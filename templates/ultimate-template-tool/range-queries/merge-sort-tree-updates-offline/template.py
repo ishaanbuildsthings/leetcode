@@ -26,7 +26,8 @@
 #   note: the constructor takes every (i, v) a pointAssign will ever use, so N is the array length plus that list's length; worst-case bounds and flat arrays, the fastest of these
 
 # Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
-# inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold, with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
+# inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold,
+# with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
 # point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
 # Offline: the constructor takes every (i, v) that a pointAssign will ever use (read every query first). For adds
 # or chmax / chmin, work out the new value yourself and list that.
@@ -143,7 +144,8 @@ class MergeSortTreeOffline:
             raise IndexError(f"countGteX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
         return (r - l + 1) - self._countLess(l, r, x, True)
 
-    # O(log^2(N)) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N)) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n,
+    # else raises IndexError
     def countInValRange(self, l, r, lowVal, highVal):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"countInValRange: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")

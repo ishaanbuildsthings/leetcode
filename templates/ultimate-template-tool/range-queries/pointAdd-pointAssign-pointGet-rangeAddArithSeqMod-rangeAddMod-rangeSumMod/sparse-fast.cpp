@@ -55,7 +55,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -71,7 +73,8 @@ struct SparseArithSeqSumBITMod {
     T mod;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseArithSeqSumBITMod(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), n(hi - lo + 1), mod(mod) {}
+    SparseArithSeqSumBITMod(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), n(hi - lo + 1),
+        mod(mod) {}
 
 
     // optional -- reserve room for this many nodes up front

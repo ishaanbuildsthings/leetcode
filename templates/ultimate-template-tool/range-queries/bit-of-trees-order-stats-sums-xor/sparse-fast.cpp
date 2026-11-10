@@ -49,8 +49,10 @@ using ll = long long;
 //   other: root[1*log(U)] vals[1]
 //   note: any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update
 
-// a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a dynamic
-// value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT
+// a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a
+// dynamic
+// value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the
+// BIT
 // prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
 // subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.
 // Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length
@@ -84,7 +86,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -336,8 +340,10 @@ struct SparseDynamicOrderStats {
 
     // trees to add / subtract for a[l..r]; returns the zeros in a[l..r]
     LEETCODE_NO_SANITIZE long long sides(long long l, long long r, vector<int>& pos, vector<int>& neg) const {
-        for (long long j = r - lo + 1; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) pos.push_back(it->second);
-        for (long long j = l - lo; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) neg.push_back(it->second);
+        for (long long j = r - lo + 1; j; j &= j - 1) if (auto it = root.find(j);
+            it != root.end()) pos.push_back(it->second);
+        for (long long j = l - lo; j; j &= j - 1) if (auto it = root.find(j);
+            it != root.end()) neg.push_back(it->second);
         return (r - l + 1) - total(pos, neg, [&](int t) { return nd[t].C; });
     }
 

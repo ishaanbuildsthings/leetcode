@@ -54,7 +54,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -68,7 +70,8 @@ struct ValueMapSeg {
     HotVector<int> t, row, rows, freeRows, gbuf, tmp;
 
     // O(N*U) -- arr: the initial array; every value it will ever hold must be in [valLo, valHi]
-    ValueMapSeg(const vector<T>& arr, T valLo, T valHi) : n((int)arr.size()), cap(1), lg(0), U(int(valHi - valLo) + 1), valLo(valLo) {
+    ValueMapSeg(const vector<T>& arr, T valLo, T valHi) : n((int)arr.size()), cap(1), lg(0),
+        U(int(valHi - valLo) + 1), valLo(valLo) {
         while (cap < n) cap <<= 1, lg++;
         t.assign(2 * cap, -1), row.assign(cap, -1), tmp.assign(U, 0);
         for (int i = 0; i < n; i++) {
@@ -128,7 +131,8 @@ struct ValueMapSeg {
         return (int)o;
     }
 
-    LEETCODE_NO_SANITIZE void applyMap(int k, const int* g) {  // node k's segment goes through map g (newer than anything below k)
+    LEETCODE_NO_SANITIZE void applyMap(int k, const int* g) {
+        // node k's segment goes through map g (newer than anything below k)
         if (k >= cap) {
             if (t[k] >= 0) {
                 t[k] = g[t[k]];
@@ -176,7 +180,8 @@ struct ValueMapSeg {
         return int(rows.size() / U) - 1;
     }
 
-    LEETCODE_NO_SANITIZE void pushAbove(int l, int r) {  // push every map above the leaves l..r - 1 (offset by cap) down to them
+    LEETCODE_NO_SANITIZE void pushAbove(int l, int r) {
+        // push every map above the leaves l..r - 1 (offset by cap) down to them
         for (int h = lg; h >= 1; h--) {
             if (((l >> h) << h) != l) push(l >> h);
             if (((r >> h) << h) != r) push((r - 1) >> h);

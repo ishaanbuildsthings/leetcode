@@ -36,14 +36,18 @@
 #
 # Usage:
 #     arr = [3, 1, 4, 1, 5]
-#     base, mod = 911, 10**9 + 7                                                   # set these only to match something else (unset, they are shared between structures, so hashes compare)
-#     t1 = RollingHashPalindromeDeque(arr)                                         # the defaults: hashing just works for negatives, large numbers, chars, with the run's random base
+#     base, mod = 911, 10**9 + 7                                                   # set these only to match something
+#     else (unset, they are shared between structures, so hashes compare)
+#     t1 = RollingHashPalindromeDeque(arr)                                         # the defaults: hashing just works
+#     for negatives, large numbers, chars, with the run's random base
 #     t0 = RollingHashPalindromeDeque()                                            # or start empty
 #     t2 = RollingHashPalindromeDeque(arr, hashBase=base)                          # your base, mod 2^61 - 1
 #     t3 = RollingHashPalindromeDeque(arr, hashMod=mod)                            # the run's random base, your mod
 #     t4 = RollingHashPalindromeDeque(arr, hashBase=base, hashMod=mod)             # both
-#     s = RollingHashPalindromeDeque("abacaba")                                    # a string works too (values are its characters)
-#     t1.rangeHash(0, 2) == RollingHashPalindromeDeque([3, 1, 4]).rangeHash(0, 2)  # True: the same values, base and mod (the run's)
+#     s = RollingHashPalindromeDeque("abacaba")                                    # a string works too (values are its
+#     characters)
+#     t1.rangeHash(0, 2) == RollingHashPalindromeDeque([3, 1, 4]).rangeHash(0, 2)  # True: the same values, base and mod
+#     (the run's)
 import random
 
 
@@ -65,11 +69,13 @@ class RollingHashPalindromeDeque:
         self.inv = pow(self.base, self.mod - 2, self.mod)
         self.pw, self.pwi = [1], [1]  # pw[k] = base^k, pwi[k] = base^-k, grown as the window grows (amortized O(1))
         vals = list(arr)
-        self._code = ord if vals and isinstance(vals[0], str) else int  # (characters hash by their code)
+        self._code = self._firstCode  # (characters hash by their code, numbers as they are: the first value decides)
         self.back = []
         self.front = []  # the first values, stored last to first
         self.P = []  # P[k]: hash of back[0..k] read left to right
-        self.G = []  # G[j]: hash of front[j], front[j-1], ..., front[0] (a[0..j] when the front holds a[0..j]), times nothing: see _frontHash
+        # G[j]: hash of front[j], front[j-1], ..., front[0] (a[0..j] when the front holds a[0..j]), times nothing: see
+        # _frontHash
+        self.G = []
         self.RB = []  # RB[k]: sum of hval(back[k]) * base^k: the back half read backwards
         self.Q = []  # Q[j]: hash of front[0..j] in storage order (the front read backwards)
         for v in vals:
@@ -118,7 +124,8 @@ class RollingHashPalindromeDeque:
         self.RB.pop()
         return self.back.pop()
 
-    # O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -217,7 +224,8 @@ class RollingHashPalindromeDeque:
         RB, pwi = self.RB, self._powers(x)[1]
         return (RB[y] - (RB[x - 1] if x else 0)) * pwi[x] % self.mod
 
-    def _frontHashRev(self, jr, jl):  # hash of front[jr], front[jr+1], ..., front[jl] (jr <= jl): a[f-1-jl .. f-1-jr] backwards
+    def _frontHashRev(self, jr, jl):
+        # hash of front[jr], front[jr+1], ..., front[jl] (jr <= jl): a[f-1-jl .. f-1-jr] backwards
         Q, pw = self.Q, self._powers(jl - jr + 1)[0]
         return (Q[jl] - (Q[jr - 1] * pw[jl - jr + 1] if jr else 0)) % self.mod
 
@@ -229,6 +237,10 @@ class RollingHashPalindromeDeque:
             return self._frontHashRev(f - 1 - r, f - 1 - l)
         pw = self._powers(f - l)[0]
         return (self._backHashRev(0, r - f) * pw[f - l] + self._frontHashRev(0, f - 1 - l)) % self.mod
+    def _firstCode(self, v):  # the first value decides how values hash (so starting empty works): characters by code
+        self._code = ord if isinstance(v, str) else int
+        return self._code(v)
+
     def _powers(self, k):  # pw and pwi with at least k + 1 entries
         pw, pwi = self.pw, self.pwi
         if len(pw) <= k:
@@ -245,7 +257,7 @@ class RollingHashPalindromeDeque:
         self.front = moved[::-1]
         self._rebuild()
 
-    def _moveToBack(self):  # the front half's last-stored half (its first values... no: its values nearest the middle) becomes the back
+    def _moveToBack(self):  # the front half's values nearest the middle (stored first) become the back
         k = (len(self.front) + 1) // 2
         moved = self.front[:k]  # (the values nearest the middle are stored first)
         self.front = self.front[k:]

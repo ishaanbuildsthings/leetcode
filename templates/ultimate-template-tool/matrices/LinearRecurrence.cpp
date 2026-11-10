@@ -15,7 +15,8 @@ using namespace std;
 template <uint32_t MOD>
 vector<uint32_t> linRecPolyMul(const vector<uint32_t>& a, const vector<uint32_t>& b) {
     // products of two values < MOD that can pile onto a value < MOD before a uint64 overflows
-    constexpr uint64_t BATCH = min<uint64_t>(1 << 20, (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
+    constexpr uint64_t BATCH = min<uint64_t>(1 << 20,
+        (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
     vector<uint64_t> acc(a.size() + b.size() - 1, 0);
     uint64_t pending = 0;
     for (size_t i = 0; i < a.size(); i++) {
@@ -39,8 +40,10 @@ vector<uint32_t> linRecPolyMul(const vector<uint32_t>& a, const vector<uint32_t>
 template <uint32_t MOD = 1'000'000'007>
 long long nthTerm(const vector<long long>& coeffs, const vector<long long>& initial, long long n) {
     int d = coeffs.size();
-    if (d == 0 || (int)initial.size() != d) throw invalid_argument("nthTerm needs d >= 1 coeffs and exactly d initial terms");
+    if (d == 0
+        || (int)initial.size() != d) throw invalid_argument("nthTerm needs d >= 1 coeffs and exactly d initial terms");
     auto norm = [](long long x) { x %= (long long)MOD; return (uint32_t)(x < 0 ? x + MOD : x); };
+    if (n < 0) throw invalid_argument("nthTerm needs n >= 0");
     if (n < d) return norm(initial[n]);
     // a[n] = [x^n] P(x) / Q(x) with Q = 1 - coeffs[0] x - ... - coeffs[d-1] x^d and P = (initial * Q) mod x^d
     // Bostan-Mori: P/Q = P(x)Q(-x) / Q(x)Q(-x), the denominator is even, so keep the half of the numerator

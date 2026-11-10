@@ -28,7 +28,8 @@ class StridedQueries:
         self.maxStep = 0  # the step the max table was built for
         self.maxTable = None
 
-    # min of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    # min of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    # grouped by
     # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMin(self, l, r, step):
         if not 0 <= l <= r < self.n:
@@ -52,7 +53,8 @@ class StridedQueries:
         a, b = row[l], row[last - ((1 << level) - 1) * step]
         return a if a < b else b
 
-    # max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    # max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    # grouped by
     # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMax(self, l, r, step):
         if not 0 <= l <= r < self.n:

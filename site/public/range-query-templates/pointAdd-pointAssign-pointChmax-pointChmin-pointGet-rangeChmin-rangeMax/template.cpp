@@ -38,7 +38,8 @@ struct ChminMaxTree {
     vector<T> hi;  // N: tags on internal nodes
 
     // O(N)
-    explicit ChminMaxTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit ChminMaxTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         mx.assign(2 * n, NEG);
         for (int i = 0; i < n; i++) mx[n + i] = a[i];
         for (int x = n - 1; x > 0; x--) mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);

@@ -134,7 +134,8 @@ class DynamicOrderStats:
             raise IndexError(f"countGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return r - l + 1 - self._countBelow(l, r, x)
 
-    # O(logN * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1, else
+    # O(logN * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1,
+    # else
     # IndexError
     def kthSmallest(self, l, r, k):
         if not 0 <= l <= r < self.n:

@@ -2,7 +2,6 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/getAllSubtreeHashes.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 uint64_t FIXED = chrono::steady_clock::now().time_since_epoch().count();
 

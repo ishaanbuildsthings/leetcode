@@ -12,13 +12,16 @@ from random import getrandbits
 class Eertree:
     # @if append+pop
     # @if quickLinks
-    # O(n log n) expected time, O(n) space (append finds its palindrome through quick links, so it stays fast after pops)
+    # O(n log n) expected time, O(n) space (append finds its palindrome through quick links, so it stays fast after
+    # pops)
     # @endif
     # @if itemLinks
-    # O(n * alphabet) expected time and space, alphabet = number of distinct items (every palindrome keeps a link per item)
+    # O(n * alphabet) expected time and space, alphabet = number of distinct items (every palindrome keeps a link per
+    # item)
     # @endif
     # @if persistentLinks
-    # O(n log alphabet) expected time and space, alphabet = number of distinct items (every palindrome's links are a persistent array)
+    # O(n log alphabet) expected time and space, alphabet = number of distinct items (every palindrome's links are a
+    # persistent array)
     # @endif
     # @else
     # O(n) expected time, O(n) space
@@ -47,7 +50,8 @@ class Eertree:
         self.itemLink = [{}, {}]  # itemLink[node][x] = longest proper palindromic suffix of node with x right before it
         # @endif
         # @if append+pop+persistentLinks
-        # the same links as a persistent array per palindrome: item -> id, then a binary trie over the id's bits where a new
+        # the same links as a persistent array per palindrome: item -> id, then a binary trie over the id's bits where a
+        # new
         # palindrome copies only the O(log alphabet) trie nodes on one path of its suffix link's trie
         self.idOf = {}
         self.trieLeft, self.trieRight, self.trieVal = [0], [0], [0]  # trie node 0 = empty

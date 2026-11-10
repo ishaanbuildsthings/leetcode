@@ -247,7 +247,8 @@ struct WaveletMatrix {
         for (int lv = 0; lv < bits; lv++) {
             const int* z = row(lv);
             int zl = z[lo], zh = z[hi];
-            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;  // all 0s are below x
+            // all 0s are below x
+            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;
             else lo = zl, hi = zh;
         }
         return res;

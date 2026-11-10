@@ -4,6 +4,8 @@ import os, random, subprocess, sys, tempfile, shutil
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from eertree_strip import strip
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from find_compiler import cxx, sanitize_flags  # noqa: E402
 
 QUERIES = ["leftmostLForPalEndingAtR", "leftmostLForPalEndingAtEachR", "rightmostRForPalStartingAtL", "rightmostRForPalStartingAtEachL",
            "numDistinctPalsInPrefixEndingAtEachR", "numPalsEndingAtEachR", "numDistinctPals", "numDistinctPalsInPrefixEndingAtR",
@@ -21,7 +23,7 @@ try:
         open(os.path.join(work, "eertree_under_test.cpp"), "w").write(strip(src, chosen))
         flags = [f"-DHAS_{op}" for op in sorted(chosen)]
         exe = os.path.join(work, "t")
-        subprocess.run(["g++", "-std=c++17", "-O1", "-Wall", "-Wextra", "-fsanitize=address,undefined", *flags,
+        subprocess.run([cxx(), "-std=c++17", "-O1", "-Wall", "-Wextra", *sanitize_flags(), *flags,
                         os.path.join(work, "test_eertree_main.cpp"), "-o", exe], check=True)
         out = subprocess.run([exe], capture_output=True, text=True)
         assert out.returncode == 0 and out.stdout.strip() == "ok", (sorted(chosen), out.stdout, out.stderr)

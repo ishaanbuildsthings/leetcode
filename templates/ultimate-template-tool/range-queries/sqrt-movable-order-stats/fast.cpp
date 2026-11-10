@@ -93,7 +93,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -120,17 +122,21 @@ struct SqrtSequence {
     // O(N log N) -- arr: the initial array
     explicit SqrtSequence(const vector<T>& arr) : n((int)arr.size()) {
         B = targetBlockSize(n), nAtTidy = n;
-        for (int i = 0; i < n; i += B) blocks.push_back(makeBlock(vector<T>(arr.begin() + i, arr.begin() + min(n, i + B))));
+        for (int i = 0; i < n;
+            i += B) blocks.push_back(makeBlock(vector<T>(arr.begin() + i, arr.begin() + min(n, i + B))));
     }
 
-    LEETCODE_NO_SANITIZE static int targetBlockSize(int len) { return max(1, (int)(0.7 * sqrt(len * log2(len + 2.0)))); }
+    LEETCODE_NO_SANITIZE static int targetBlockSize(int len) {
+        return max(1, (int)(0.7 * sqrt(len * log2(len + 2.0))));
+    }
 
     LEETCODE_NO_SANITIZE static Block makeBlock(vector<T> vals) {
         Block b;
         int sz = (int)vals.size();
         b.pos.resize(sz);
         iota(b.pos.begin(), b.pos.end(), 0);
-        sort(b.pos.begin(), b.pos.end(), [&](int x, int y) { return vals[x] < vals[y] || (vals[x] == vals[y] && x < y); });
+        sort(b.pos.begin(), b.pos.end(),
+            [&](int x, int y) { return vals[x] < vals[y] || (vals[x] == vals[y] && x < y); });
         b.srt.resize(sz);
         for (int k = 0; k < sz; k++) b.srt[k] = vals[b.pos[k]], b.sum += vals[b.pos[k]];
         b.vals = move(vals);
@@ -144,7 +150,9 @@ struct SqrtSequence {
         return b.vals[b.rev ? b.sz - 1 - i : i] + b.add;
     }
 
-    LEETCODE_NO_SANITIZE static S blockSum(const Block& b) { return b.assigned ? S(b.asg) * b.sz : b.sum + S(b.add) * b.sz; }
+    LEETCODE_NO_SANITIZE static S blockSum(const Block& b) {
+        return b.assigned ? S(b.asg) * b.sz : b.sum + S(b.add) * b.sz;
+    }
 
     // how many values in a whole block are < x / <= x
     LEETCODE_NO_SANITIZE static int cntLess(const Block& b, T x) {
@@ -191,7 +199,8 @@ struct SqrtSequence {
             right.sz = sz - k, b.sz = k;
             right.add = b.add, right.asg = b.asg, right.assigned = b.assigned, right.rev = b.rev;
             if (!b.assigned) {
-                int cutAt = b.rev ? sz - k : k;  // stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+                // stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+                int cutAt = b.rev ? sz - k : k;
                 vector<T> lowSrt, highSrt;
                 vector<int> lowPos, highPos;
                 lowSrt.reserve(cutAt), lowPos.reserve(cutAt), highSrt.reserve(sz - cutAt), highPos.reserve(sz - cutAt);
@@ -208,7 +217,8 @@ struct SqrtSequence {
                 b.vals.resize(cutAt);
                 S highSum = b.sum - lowSum;
                 if (!b.rev) {
-                    right.vals = move(highVals), right.srt = move(highSrt), right.pos = move(highPos), right.sum = highSum;
+                    right.vals = move(highVals), right.srt = move(highSrt), right.pos = move(highPos),
+                        right.sum = highSum;
                     b.srt = move(lowSrt), b.pos = move(lowPos), b.sum = lowSum;
                 } else {
                     right.vals = move(b.vals), right.srt = move(lowSrt), right.pos = move(lowPos), right.sum = lowSum;
@@ -632,7 +642,8 @@ struct SqrtSequence {
     LEETCODE_NO_SANITIZE void paste(int i, SqrtSequence& other) {
         if (i < 0 || i > n) throw out_of_range("paste: needs 0 <= i <= size()");
         int j = splitAt(i);
-        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()), make_move_iterator(other.blocks.end()));
+        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()),
+            make_move_iterator(other.blocks.end()));
         n += other.n;
         other.blocks.clear(), other.n = 0;
         normalize();

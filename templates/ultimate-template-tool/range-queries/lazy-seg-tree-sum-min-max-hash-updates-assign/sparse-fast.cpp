@@ -72,7 +72,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -116,11 +118,13 @@ struct SparseLazySegTree {
     LEETCODE_NO_SANITIZE static unsigned long long hadd(unsigned long long a, unsigned long long b) {
         return a + b >= HP ? a + b - HP : a + b;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {  // v as a residue (what an add changes a hash by, per position)
+    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {
+        // v as a residue (what an add changes a hash by, per position)
         long long r = (long long)v % (long long)HP;
         return r < 0 ? (unsigned long long)(r + (long long)HP) : (unsigned long long)r;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {  // the hash of value v: v + an offset random per run, so no common value is 0
+    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {
+        // the hash of value v: v + an offset random per run, so no common value is 0
         static unsigned long long off = 1 + rnd() % (HP - 1);
         return hadd(hraw(v), off);
     }
@@ -444,7 +448,8 @@ struct SparseLazySegTree {
         return cover(l, r, ns, ls, ts);
     }
 
-    LEETCODE_NO_SANITIZE void collect(int x, int s, long long tl, long long l, long long r, int* ns, int* ls, long long* ts, int& c) {
+    LEETCODE_NO_SANITIZE void collect(int x, int s, long long tl, long long l, long long r, int* ns, int* ls,
+        long long* ts, int& c) {
         if (l <= tl && tl + (1LL << s) - 1 <= r) {
             ns[c] = x, ls[c] = s, ts[c++] = tl;
             return;
@@ -470,7 +475,8 @@ struct SparseLazySegTree {
         pull(x, s);
     }
 
-    LEETCODE_NO_SANITIZE int leafOf(long long i, int* path) {  // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
+    LEETCODE_NO_SANITIZE int leafOf(long long i, int* path) {
+        // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
         int x = 1;
         long long tl = first;
         for (int s = D; s > 0; s--) {
@@ -483,7 +489,8 @@ struct SparseLazySegTree {
         return x;
     }
 
-    LEETCODE_NO_SANITIZE void up(const int* path) {  // recompute the nodes of path, deepest first (path[k] has level D - k)
+    LEETCODE_NO_SANITIZE void up(const int* path) {
+        // recompute the nodes of path, deepest first (path[k] has level D - k)
         for (int k = D - 1; k >= 0; k--) pull(path[k], D - k);
     }
 

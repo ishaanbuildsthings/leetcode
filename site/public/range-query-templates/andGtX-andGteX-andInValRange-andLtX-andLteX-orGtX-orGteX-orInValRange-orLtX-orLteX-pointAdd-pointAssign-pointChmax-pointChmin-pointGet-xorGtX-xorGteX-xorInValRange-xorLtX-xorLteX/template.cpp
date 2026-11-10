@@ -38,7 +38,8 @@ using ll = long long;
 
 // xor / OR / AND of the values in a value range inside a[l..r], with point updates. A segment tree over positions
 // (bottom-up: node p >= n is a[p - n], node p < n covers its children's positions); every node keeps a dynamic value
-// seg tree over [valLo, valHi] of the values at its positions: per value node, the copies below it, the xor, the OR, the AND
+// seg tree over [valLo, valHi] of the values at its positions: per value node, the copies below it, the xor, the OR,
+// the AND
 // of the values present. a[l..r] is O(log N) segment nodes, and each answers a value range in O(log U).
 // Values are integers; query arguments (x, lowVal, ...) can be anything. T: int, long long, ...
 template <typename T>

@@ -61,11 +61,13 @@ using ll = long long;
 //   note: blocks of about sqrt N, each a binary trie of its stored values (at most its length times log U nodes, U = 2^bits) with a lazy xor and a lazy assign; a scratch trie of 2 sqrt N log U nodes for the partly covered ends of a query
 
 // a[l..r] as a multiset, asked about v ^ x over its values v, with range xor-apply, range assign and point assign. The
-// array is cut into blocks of about sqrt(N); each block keeps a binary trie (one level per bit, highest bit first) of its
+// array is cut into blocks of about sqrt(N); each block keeps a binary trie (one level per bit, highest bit first) of
+// its
 // stored values, a lazy xor (its real values are stored ^ tag) and a lazy assign (the trie is one path of copies). A
 // whole block updates in O(log U); a partly covered one is rewritten and its trie rebuilt. A query walks the tries of
 // the whole blocks inside l..r down together, each through its own lazy xor, plus a scratch trie of the partly covered
-// ends. Values and every x must lie in [0, 2^bits); thresholds (k, m, lo, hi) can be any integers. 0-indexed, inclusive.
+// ends. Values and every x must lie in [0, 2^bits); thresholds (k, m, lo, hi) can be any integers. 0-indexed,
+// inclusive.
 // sumXor: per block, how many stored values have each bit set.
 // The plain order statistics (counts, k-th, min / max, predecessor / successor) are the same walks with x = 0.
 // T: int, long long, ....
@@ -260,7 +262,8 @@ struct SqrtXorTries {
             if (l <= s && e <= r) {
                 long long size = e - s + 1;
                 cnt += size;
-                for (int h = 0; h < B; h++) cntOnes[h] += tag[b] >> h & 1 ? size - ones[(size_t)b * B + h] : ones[(size_t)b * B + h];
+                for (int h = 0; h < B;
+                    h++) cntOnes[h] += tag[b] >> h & 1 ? size - ones[(size_t)b * B + h] : ones[(size_t)b * B + h];
             } else {
                 for (long long i = max(l, s); i <= min(r, e); i++) res += get(i) ^ x;
             }
@@ -347,7 +350,8 @@ struct SqrtXorTries {
         return r - l + 1 - lt(l, r, x);
     }
 
-    // O(sqrt(N) logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    // O(sqrt(N) logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <=
+    // r < size()
     long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("countInValRange", l, r);
         return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
@@ -359,7 +363,8 @@ struct SqrtXorTries {
         return lt(l, r, x + 1) - lt(l, r, x);
     }
 
-    // O(sqrt(N) logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    // O(sqrt(N) logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r -
+    // l + 1,
     // else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
         rangeCheck("kthSmallest", l, r);
@@ -379,7 +384,8 @@ struct SqrtXorTries {
         return (T)kth(l, r, r - l + 1);
     }
 
-    // O(sqrt(N) logU) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    // O(sqrt(N) logU) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     optional<T> smallestGteX(long long l, long long r, long long x) const {
         rangeCheck("smallestGteX", l, r);
         long long c = lt(l, r, x);
@@ -387,7 +393,8 @@ struct SqrtXorTries {
         return (T)kth(l, r, c + 1);
     }
 
-    // O(sqrt(N) logU) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    // O(sqrt(N) logU) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     optional<T> smallestGtX(long long l, long long r, long long x) const {
         rangeCheck("smallestGtX", l, r);
         long long c = lt(l, r, x + 1);
@@ -395,7 +402,8 @@ struct SqrtXorTries {
         return (T)kth(l, r, c + 1);
     }
 
-    // O(sqrt(N) logU) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    // O(sqrt(N) logU) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     optional<T> largestLteX(long long l, long long r, long long x) const {
         rangeCheck("largestLteX", l, r);
         long long c = lt(l, r, x + 1);
@@ -500,7 +508,8 @@ struct SqrtXorTries {
 
     void rangeCheck(const char* name, long long l, long long r) const { checkRange(name, l, r); }
 
-    long long lt(long long l, long long r, long long k) const { return cntLt(sources(l, r), r - l + 1, k, 0); }  // # < k
+    // # < k
+    long long lt(long long l, long long r, long long k) const { return cntLt(sources(l, r), r - l + 1, k, 0); }
 
     long long kth(long long l, long long r, long long k) const { return kthX(sources(l, r), k, 0); }  // k-th smallest
 

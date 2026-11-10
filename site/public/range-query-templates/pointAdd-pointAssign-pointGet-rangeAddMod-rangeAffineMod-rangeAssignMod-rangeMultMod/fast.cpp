@@ -56,7 +56,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -72,7 +74,8 @@ struct AffineTree {
     LEETCODE_NO_SANITIZE T norm(W x) const { x %= mod; return T(x < 0 ? x + mod : x); }
 
     // O(N)
-    explicit AffineTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), M(a.size(), 1), K(a.size(), 0), val(a.size()) {
+    explicit AffineTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), M(a.size(), 1),
+        K(a.size(), 0), val(a.size()) {
         for (int i = 0; i < n; i++) val[i] = norm(a[i]);
     }
 

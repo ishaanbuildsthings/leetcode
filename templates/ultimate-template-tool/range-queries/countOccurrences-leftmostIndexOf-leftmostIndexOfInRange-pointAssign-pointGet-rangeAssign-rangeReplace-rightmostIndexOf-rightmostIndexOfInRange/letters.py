@@ -30,7 +30,8 @@
 # x first / last appears. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing qualifies.
 
 class ValueMapSeg:
-    # leaves t[cap + i] hold a[i] - valLo (-1: padding past n); mp[k]: node k's pending map for its children (None: none)
+    # leaves t[cap + i] hold a[i] - valLo (-1: padding past n); mp[k]: node k's pending map for its children (None:
+    # none)
     # cnt[k][v]: how many leaves below internal node k hold v (its own map already applied)
     __slots__ = ("n", "cap", "U", "valLo", "t", "mp", "cnt")
 

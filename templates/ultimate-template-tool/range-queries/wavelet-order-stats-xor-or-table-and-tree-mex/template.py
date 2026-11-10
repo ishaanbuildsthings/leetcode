@@ -104,7 +104,8 @@ class WaveletMatrix:
             raise IndexError(f"countInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return 0
-        return self._countBelow(l, r, bisect_right(self.srt, highVal)) - self._countBelow(l, r, bisect_left(self.srt, lowVal))
+        return self._countBelow(l, r, bisect_right(self.srt, highVal)) - self._countBelow(l, r,
+            bisect_left(self.srt, lowVal))
 
     # O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def countLtX(self, l, r, x):

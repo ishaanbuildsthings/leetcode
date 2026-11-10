@@ -35,7 +35,8 @@ using ll = long long;
 //   note: the constructor takes every (i, v) a pointAssign will ever use, so N is the array length plus that list's length; worst-case bounds and flat arrays, the fastest of these
 
 // Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
-// inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold, with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
+// inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold,
+// with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
 // point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
 // Offline: the constructor takes every (i, v) that a pointAssign will ever use (read every query first). For adds
 // or chmax / chmin, work out the new value yourself and list that.
@@ -46,7 +47,8 @@ struct MergeSortTreeOffline {
     int n;
     vector<T> A;
     vector<T> xorTotal;  // xorTotal[p]: xor of node p's values
-    vector<int> start;  // node p's possible values are vals[start[p] .. start[p + 1]); its Fenwick slots 1 .. size sit at
+    // node p's possible values are vals[start[p] .. start[p + 1]); its Fenwick slots 1 .. size sit at
+    vector<int> start;
                         // fenStart(p) + 1 .. fenStart(p) + size
     vector<T> vals;
     vector<int> counts;  // Fenwick trees of copies, one per node
@@ -135,7 +137,8 @@ struct MergeSortTreeOffline {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         T old = A[i];
         if (old == v) return;
-        if (n > 1 && !listed((i + n) >> 1, v)) throw invalid_argument("pointAssign: (i, v) was not in the constructor's updates");
+        if (n > 1 && !listed((i + n) >> 1,
+            v)) throw invalid_argument("pointAssign: (i, v) was not in the constructor's updates");
         for (int p = (i + n) >> 1; p >= 1; p >>= 1) {
             add(p, old, -1);
             add(p, v, 1);
@@ -168,32 +171,37 @@ struct MergeSortTreeOffline {
         return (r - l + 1) - countLess(l, r, x, true);
     }
 
-    // O(log^2(N)) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n,
+    // else throws out_of_range
     long long countInValRange(int l, int r, T lowVal, T highVal) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
         if (lowVal > highVal) return 0;
         return countLess(l, r, highVal, false) - countLess(l, r, lowVal, true);
     }
 
-    // O(log^2(N)) -- smallest a[i] >= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- smallest a[i] >= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     optional<T> smallestGteX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("smallestGteX: needs 0 <= l <= r < n");
         return firstAtLeast(l, r, x, false);
     }
 
-    // O(log^2(N)) -- smallest a[i] > x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- smallest a[i] > x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     optional<T> smallestGtX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("smallestGtX: needs 0 <= l <= r < n");
         return firstAtLeast(l, r, x, true);
     }
 
-    // O(log^2(N)) -- largest a[i] <= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- largest a[i] <= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     optional<T> largestLteX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("largestLteX: needs 0 <= l <= r < n");
         return lastBelow(l, r, x, false);
     }
 
-    // O(log^2(N)) -- largest a[i] < x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- largest a[i] < x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     optional<T> largestLtX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("largestLtX: needs 0 <= l <= r < n");
         return lastBelow(l, r, x, true);
@@ -223,7 +231,8 @@ struct MergeSortTreeOffline {
         return xorAll(l, r) ^ xorLess(l, r, x, true);
     }
 
-    // O(log^2(N)) -- xor of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- xor of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <= l <= r <
+    // n, else throws out_of_range
     T xorInValRange(int l, int r, T lowVal, T highVal) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("xorInValRange: needs 0 <= l <= r < n");
         if (lowVal > highVal) return 0;

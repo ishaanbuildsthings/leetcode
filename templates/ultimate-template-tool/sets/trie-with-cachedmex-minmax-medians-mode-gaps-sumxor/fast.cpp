@@ -78,7 +78,8 @@ using ll = long long;
 
 // Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
 // how many copies, how many distinct values are below it. Besides the usual ordered queries it answers questions
-// about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking one bit
+// about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking
+// one bit
 // per level, so O(bits) each. Each multiset owns its node arrays (node 0 = empty, node 1 = the root); nodes are never
 // removed. T: int, long long, ...; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
@@ -106,14 +107,17 @@ struct HotVector : vector<U> {
     using vector<U>::vector;
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
 
 template <typename T>
 struct TrieMultiset {
-    static constexpr T NONE = -1;  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    static constexpr T NONE = -1;
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int B;
     long long top;  // the largest value it can hold
@@ -183,7 +187,8 @@ struct TrieMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE long long kthX(long long k, long long key) const {  // the k-th smallest (1-indexed) stored value ^ key
+    LEETCODE_NO_SANITIZE long long kthX(long long k, long long key) const {
+        // the k-th smallest (1-indexed) stored value ^ key
         int t = 1;
         long long res = 0;
         for (int h = B - 1; h >= 0; h--) {
@@ -194,7 +199,8 @@ struct TrieMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE long long extreme(int t, int h, long long key, bool big) const {  // bits h..0 of the largest (big) / smallest stored value ^ key below t
+    LEETCODE_NO_SANITIZE long long extreme(int t, int h, long long key, bool big) const {
+        // bits h..0 of the largest (big) / smallest stored value ^ key below t
         long long res = 0;
         for (; h >= 0; h--) {
             int pb = int(key >> h & 1) ^ int(big);  // the child whose result bit is 1 (big) / 0
@@ -261,13 +267,15 @@ struct TrieMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE S sumX(long long key) const {  // sum of stored value ^ key over every copy: bit by bit from the per-bit counts
+    LEETCODE_NO_SANITIZE S sumX(long long key) const {
+        // sum of stored value ^ key over every copy: bit by bit from the per-bit counts
         S res = 0;
         for (int h = 0; h < B; h++) res += S(key >> h & 1 ? n - bc[h] : bc[h]) << h;
         return res;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {  // the largest (big) / smallest v ^ x over the values v in [lo, hi]
+    LEETCODE_NO_SANITIZE optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {
+        // the largest (big) / smallest v ^ x over the values v in [lo, hi]
         lo = std::max(lo, 0LL), hi = std::min(hi, top);
         if (lo > hi) return nullopt;
         long long mk = 0, key = x ^ mk;  // v ^ x = stored value ^ key
@@ -294,7 +302,8 @@ struct TrieMultiset {
         return T(best);
     }
 
-    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, both medians, the mex current
+    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {
+        // c copies of x (c < 0 removes); keeps min / max, both medians, the mex current
         n += c;
         long long f = insert(x, c);  // x's new count
         long long g = f - c;  // x's old count
@@ -307,7 +316,8 @@ struct TrieMultiset {
             if (f) bk[f].insert(x);
         }
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
                 long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
@@ -335,7 +345,8 @@ struct TrieMultiset {
             if (x < mn) mn = x;
             if (x > mx) mx = x;
         } else {
-            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;  // the last copy of a value below the mex
+            // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;
             if (!n) return;
             if (!f) {  // x is gone: it may have been the min / max
                 if (x == mn) mn = kthAt(1);

@@ -3,7 +3,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// DynamicBitset: n bits, n chosen at runtime and able to grow and shrink (appendBit / popBit / resize). Built on its own
+// DynamicBitset: n bits, n chosen at runtime and able to grow and shrink (appendBit / popBit / resize). Built on its
+// own
 // array of 64-bit words, so unlike std::bitset it also gives range ops that only touch
 // the words in the range.
 // Bit i is index i of an array of 0s and 1s, and strings read left to right like an array:
@@ -53,7 +54,8 @@ struct DynamicBitset {
             if (s[i] == '1') {
                 words[i >> 6] |= 1ULL << (i & 63);
             } else if (s[i] != '0') {
-                throw invalid_argument("DynamicBitset: string has a character other than '0' / '1' at index " + to_string(i));
+                throw invalid_argument("DynamicBitset: string has a character other than '0' / '1' at index "
+                    + to_string(i));
             }
         }
     }
@@ -300,9 +302,15 @@ struct DynamicBitset {
 
     // O(n/64) each -- a &= b, a |= b, a ^= b change a in place, bit i = a[i] AND / OR / XOR b[i];
     // a & b, a | b, a ^ b, ~a (NOT) return a NEW bitset of the same n (one allocation)
-    DynamicBitset& operator&=(const DynamicBitset& o) { checkSameSize(o); for (size_t i = 0; i < words.size(); i++) words[i] &= o.words[i]; return *this; }
-    DynamicBitset& operator|=(const DynamicBitset& o) { checkSameSize(o); for (size_t i = 0; i < words.size(); i++) words[i] |= o.words[i]; return *this; }
-    DynamicBitset& operator^=(const DynamicBitset& o) { checkSameSize(o); for (size_t i = 0; i < words.size(); i++) words[i] ^= o.words[i]; return *this; }
+    DynamicBitset& operator&=(const DynamicBitset& o) {
+        checkSameSize(o); for (size_t i = 0; i < words.size(); i++) words[i] &= o.words[i]; return *this;
+    }
+    DynamicBitset& operator|=(const DynamicBitset& o) {
+        checkSameSize(o); for (size_t i = 0; i < words.size(); i++) words[i] |= o.words[i]; return *this;
+    }
+    DynamicBitset& operator^=(const DynamicBitset& o) {
+        checkSameSize(o); for (size_t i = 0; i < words.size(); i++) words[i] ^= o.words[i]; return *this;
+    }
     DynamicBitset operator&(const DynamicBitset& o) const { DynamicBitset res = *this; res &= o; return res; }
     DynamicBitset operator|(const DynamicBitset& o) const { DynamicBitset res = *this; res |= o; return res; }
     DynamicBitset operator^(const DynamicBitset& o) const { DynamicBitset res = *this; res ^= o; return res; }
@@ -398,12 +406,14 @@ struct DynamicBitset {
         return s;
     }
 
-    // O(n/64) -- the bits as one number, bit i -> bit i, so bits 0, 1, 3 -> 11; only works when every 1 is at index 0..63,
+    // O(n/64) -- the bits as one number, bit i -> bit i, so bits 0, 1, 3 -> 11; only works when every 1 is at index
+    // 0..63,
     // else throws overflow_error (a number only has 64 bits)
     unsigned long long toNumber() const {
         for (size_t i = 1; i < words.size(); i++) {
             if (words[i]) {
-                throw overflow_error("DynamicBitset: toNumber with a 1 at bit " + to_string(nextOneAfter(63)) + ", past bit 63");
+                throw overflow_error("DynamicBitset: toNumber with a 1 at bit " + to_string(nextOneAfter(63))
+                    + ", past bit 63");
             }
         }
         return words.empty() ? 0 : words[0];
@@ -440,7 +450,8 @@ struct DynamicBitset {
     }
     void checkRange(int l, int r) const {
         if (l < 0 || r >= n || l > r) {
-            throw out_of_range("DynamicBitset: range [" + to_string(l) + ", " + to_string(r) + "] is not inside [0, " + to_string(n) + ")");
+            throw out_of_range("DynamicBitset: range [" + to_string(l) + ", " + to_string(r) + "] is not inside [0, "
+                + to_string(n) + ")");
         }
     }
     void checkSameSize(const DynamicBitset& o) const {

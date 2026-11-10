@@ -102,7 +102,8 @@ class TrieMultiset:
     def __init__(self, bits):
         self.B = bits
         self.top = (1 << bits) - 1  # the largest value it can hold
-        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]  # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]
         self.S = [0, 0]  # sum of the copies below
         self.bc = [0] * bits  # bc[h] = copies with bit h set
         self.A = [-1, -1]  # AND of the values below (an empty node's: every bit)
@@ -334,7 +335,8 @@ class TrieMultiset:
         if gone:
             self._swapFreq(gone, 0)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)
@@ -447,7 +449,9 @@ class TrieMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logU) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -455,7 +459,9 @@ class TrieMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def andOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(kFrom), self._kth(kTo))
 
     # O(logU) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
@@ -792,7 +798,9 @@ class TrieMultiset:
     # 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
     # O(logU) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
@@ -800,7 +808,9 @@ class TrieMultiset:
     # <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
     # O(logU) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just

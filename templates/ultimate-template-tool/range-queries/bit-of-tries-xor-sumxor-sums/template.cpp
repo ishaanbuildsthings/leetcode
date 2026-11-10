@@ -69,7 +69,8 @@ using ll = long long;
 //   note: BIT over positions, each BIT node a binary trie of its block's values (U = 2^bits); nodes are never freed, so each point assign adds up to 2 log N log U of them
 
 // a[l..r] as a multiset, asked about v ^ x over its values v, with point assigns. A Fenwick tree (BIT) over positions:
-// BIT node j is a binary trie (one level per bit, highest bit first) of the values a[j - lowbit(j) .. j - 1]. The values
+// BIT node j is a binary trie (one level per bit, highest bit first) of the values a[j - lowbit(j) .. j - 1]. The
+// values
 // of a[l..r] are the BIT prefix of r + 1 minus the prefix of l, so a query walks those ~2 log N tries down together
 // (adding the first prefix's counts, subtracting the second's). Values and every x must lie in [0, 2^bits); thresholds
 // (k, m, lo, hi) can be any integers. 0-indexed, inclusive.
@@ -148,7 +149,8 @@ struct BitXorTries {
         return kthX(s, i + 1, x);
     }
 
-    // O(logN logU) -- how many values v in a[l..r] have v ^ x < k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    // O(logN logU) -- how many values v in a[l..r] have v ^ x < k (k is a VALUE, not a rank); needs 0 <= l <= r <
+    // size()
     long long countXorLtK(long long l, long long r, long long x, long long k) const {
         Span s = span("countXorLtK", l, r);
         return cntLt(s, r - l + 1, k, x);
@@ -161,7 +163,8 @@ struct BitXorTries {
         return cntLt(s, r - l + 1, k + 1, x);
     }
 
-    // O(logN logU) -- how many values v in a[l..r] have v ^ x > k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    // O(logN logU) -- how many values v in a[l..r] have v ^ x > k (k is a VALUE, not a rank); needs 0 <= l <= r <
+    // size()
     long long countXorGtK(long long l, long long r, long long x, long long k) const {
         Span s = span("countXorGtK", l, r);
         return r - l + 1 - cntLt(s, r - l + 1, k + 1, x);
@@ -301,7 +304,8 @@ struct BitXorTries {
         return r - l + 1 - lt(l, r, x);
     }
 
-    // O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    // O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    // size()
     long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("countInValRange", l, r);
         return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
@@ -313,7 +317,8 @@ struct BitXorTries {
         return lt(l, r, x + 1) - lt(l, r, x);
     }
 
-    // O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    // O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l +
+    // 1,
     // else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
         rangeCheck("kthSmallest", l, r);
@@ -440,7 +445,8 @@ struct BitXorTries {
     // 0 <= l <= r < size() and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     long long sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {
         rangeCheck("sumKthSmallestRange", l, r);
-        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l
+            + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumKth(l, r, kTo) - sumKth(l, r, kFrom - 1);
     }
 
@@ -449,7 +455,8 @@ struct BitXorTries {
     long long sumKthLargestRange(long long l, long long r, long long kFrom, long long kTo) const {
         rangeCheck("sumKthLargestRange", l, r);
         long long n = r - l + 1;
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumKth(l, r, n - kFrom + 1) - sumKth(l, r, n - kTo);
     }
 

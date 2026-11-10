@@ -31,7 +31,8 @@ INF = float("inf")
 
 # Range max / min and leftmost / rightmost index with a[i] >= / > / <= / < x, with point updates, over
 # any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing
-# qualifies (-1 when lo = 0). Sparse: dicts keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of
+# qualifies (-1 when lo = 0). Sparse: dicts keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is
+# a block of
 # zeros. The searches are the dense tree's iterative walks: climb from the boundary until a node holds a match,
 # then descend into it.
 

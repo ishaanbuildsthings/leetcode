@@ -52,7 +52,8 @@
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "B", "L", "R", "c", "p", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "d")
+    __slots__ = ("lo", "hi", "B", "L", "R", "c", "p", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB",
+        "highC", "mexV", "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):

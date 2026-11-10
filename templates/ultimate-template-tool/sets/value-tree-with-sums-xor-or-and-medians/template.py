@@ -86,13 +86,15 @@
 #   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-# each node keeping how many copies, their sum,, their xor, their OR, their AND are below it. Sparse: dicts keyed by heap
+# each node keeping how many copies, their sum,, their xor, their OR, their AND are below it. Sparse: dicts keyed by
+# heap
 # index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend
 # by counts.
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "B", "L", "R", "c", "s", "x", "o", "a", "n", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "xtotal", "total", "d")
+    __slots__ = ("lo", "hi", "B", "L", "R", "c", "s", "x", "o", "a", "n", "lowV", "lowB", "lowC", "lowS", "highV",
+        "highB", "highC", "xtotal", "total", "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):
@@ -381,7 +383,9 @@ class ValueTreeMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logU) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -389,7 +393,9 @@ class ValueTreeMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def andOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(kFrom), self._kth(kTo))
 
     # O(logU) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
@@ -522,7 +528,9 @@ class ValueTreeMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def orOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logU) -- bitwise OR of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -530,7 +538,9 @@ class ValueTreeMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def orOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(kFrom), self._kth(kTo))
 
     # O(logU) -- bitwise OR of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k =
@@ -672,7 +682,9 @@ class ValueTreeMultiset:
     # 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
     # O(logU) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
@@ -680,7 +692,9 @@ class ValueTreeMultiset:
     # <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
     # O(logU) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just
@@ -728,7 +742,9 @@ class ValueTreeMultiset:
     # 1 <= kFrom <= kTo <= size
     def xorOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
 
     # O(logU) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
@@ -736,7 +752,9 @@ class ValueTreeMultiset:
     # <= kFrom <= kTo <= size
     def xorOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
 
     # O(logU) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just

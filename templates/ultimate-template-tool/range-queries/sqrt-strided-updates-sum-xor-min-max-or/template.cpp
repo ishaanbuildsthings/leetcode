@@ -36,7 +36,8 @@ struct StridedQueries {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n, blockStrides = 0, blockSize = 1, numBlocks = 0, treeStrides = 0;
     vector<T> A;
-    vector<int> offsets;  // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    vector<int> offsets;
     vector<S> sumBlocks;
     vector<T> xorBlocks;
     vector<T> minTree;
@@ -48,10 +49,10 @@ struct StridedQueries {
     explicit StridedQueries(const vector<T>& arr, int cutoff = -1) {
         n = (int)arr.size();
         A = arr;
-        blockStrides = max(1, min(n, (int)sqrt((double)n)));
+        blockStrides = min(n, max(1, (int)sqrt((double)n)));
         blockSize = blockStrides;
         numBlocks = n / blockSize + 1;
-        treeStrides = cutoff != -1 ? cutoff : max(1, min(n, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
+        treeStrides = cutoff != -1 ? cutoff : min(n, max(1, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
         if (treeStrides < 0 || treeStrides > n) throw out_of_range("StridedQueries: needs 0 <= cutoff <= n");
         int strides = max(blockStrides, treeStrides);
         offsets.assign((size_t)strides * (strides + 1) / 2, 0);
@@ -136,7 +137,8 @@ struct StridedQueries {
         write(i, min(A[i], v));
     }
 
-    // O(sqrt(N)) -- a[l] + a[l + step] + ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N)) -- a[l] + a[l + step] + ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     S stridedSum(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedSum: needs step >= 1");
@@ -161,7 +163,8 @@ struct StridedQueries {
         return res;
     }
 
-    // O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedXorQuery: needs step >= 1");
@@ -186,7 +189,8 @@ struct StridedQueries {
         return res;
     }
 
-    // O(sqrt(N logN)) -- min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    // throws out_of_range
     T stridedMin(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMin: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedMin: needs step >= 1");
@@ -207,7 +211,8 @@ struct StridedQueries {
         return res;
     }
 
-    // O(sqrt(N logN)) -- max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    // throws out_of_range
     T stridedMax(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedMax: needs step >= 1");
@@ -228,7 +233,8 @@ struct StridedQueries {
         return res;
     }
 
-    // O(sqrt(N logN)) -- a[l] | a[l + step] | ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- a[l] | a[l + step] | ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     T stridedOrQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedOrQuery: needs step >= 1");

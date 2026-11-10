@@ -39,7 +39,8 @@ struct AssignSumTree {
     vector<char> hasAsg;
 
     // O(N)
-    explicit AssignSumTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit AssignSumTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         sm.assign(2 * n, 0);
         for (int i = 0; i < n; i++) {
             sm[n + i] = a[i];

@@ -79,7 +79,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -197,7 +199,8 @@ struct PersistentTreap {
         root = merge(merge(a, other.root), c);
         other.root = 0;
     }
-    LEETCODE_NO_SANITIZE void paste(long long i, PersistentTreap&& other) { paste(i, other); }  // (a temporary: paste(i, t.copy(l, r)))
+    // (a temporary: paste(i, t.copy(l, r)))
+    LEETCODE_NO_SANITIZE void paste(long long i, PersistentTreap&& other) { paste(i, other); }
 
     // O(logN) expected -- a[i] += v (copies the one path down to a[i]); needs 0 <= i < size(), else throws
     // out_of_range
@@ -323,7 +326,8 @@ struct PersistentTreap {
         return v;
     }
 
-    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -349,7 +353,8 @@ struct PersistentTreap {
 
     LEETCODE_NO_SANITIZE int build(const vector<T>& vals) { return build(vals, 0, (int)vals.size()); }
 
-    LEETCODE_NO_SANITIZE int build(const vector<T>& vals, int lo, int hi) {  // a balanced tree of new nodes holding vals[lo, hi), O(len)
+    LEETCODE_NO_SANITIZE int build(const vector<T>& vals, int lo, int hi) {
+        // a balanced tree of new nodes holding vals[lo, hi), O(len)
         if (lo >= hi) return 0;
         int mid = (lo + hi) / 2, x = newNode(vals[mid]);
         int l = build(vals, lo, mid), r = build(vals, mid + 1, hi);
@@ -411,7 +416,8 @@ struct PersistentTreap {
         }
     }
 
-    LEETCODE_NO_SANITIZE void split(int t, long long k, int& a, int& b) {  // a = first k of t, b = the rest (as new nodes)
+    LEETCODE_NO_SANITIZE void split(int t, long long k, int& a, int& b) {
+        // a = first k of t, b = the rest (as new nodes)
         if (!t) { a = b = 0; return; }
         t = clone(t);
         push(t);
@@ -421,7 +427,8 @@ struct PersistentTreap {
         pull(t);
     }
 
-    LEETCODE_NO_SANITIZE int merge(int a, int b) {  // a's elements, then b's, as new nodes; the root is a with probability |a| / (|a| + |b|)
+    LEETCODE_NO_SANITIZE int merge(int a, int b) {
+        // a's elements, then b's, as new nodes; the root is a with probability |a| / (|a| + |b|)
         if (!a || !b) return a | b;
         if (rnd() % (unsigned long long)(nd[a].sz + nd[b].sz) < (unsigned long long)nd[a].sz) {
             a = clone(a);
@@ -442,7 +449,8 @@ struct PersistentTreap {
         split(b, r - l + 1, b, c);
     }
 
-    LEETCODE_NO_SANITIZE int locate(long long i) {  // the node holding a[i], every tag on the way pushed (harmless in place: see the top)
+    LEETCODE_NO_SANITIZE int locate(long long i) {
+        // the node holding a[i], every tag on the way pushed (harmless in place: see the top)
         int t = root;
         while (true) {
             push(t);
@@ -478,7 +486,8 @@ struct PersistentTreap {
         return rq(root, l, r);
     }
 
-    LEETCODE_NO_SANITIZE int rq(int t, long long l, long long r) {  // a node over a[l..r] of t's subtree: t itself if that is all of it
+    LEETCODE_NO_SANITIZE int rq(int t, long long l, long long r) {
+        // a node over a[l..r] of t's subtree: t itself if that is all of it
         if (!t || r < 0 || l >= nd[t].sz) return 0;
         if (l <= 0 && nd[t].sz - 1 <= r) return t;
         long long ls = nd[nd[t].L].sz;
@@ -491,12 +500,14 @@ struct PersistentTreap {
         return y;
     }
 
-    LEETCODE_NO_SANITIZE void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+    LEETCODE_NO_SANITIZE void release(size_t mark) {
+        // drop every node made after mark (temporaries: no tree points to them)
         nd.resize(mark);
     }
 
     template <class F>
-    LEETCODE_NO_SANITIZE int setAt(int t, long long i, const F& f) {  // t with a[i] = f(a[i]): new copies of the nodes on the path to it
+    LEETCODE_NO_SANITIZE int setAt(int t, long long i, const F& f) {
+        // t with a[i] = f(a[i]): new copies of the nodes on the path to it
         t = clone(t);
         push(t);
         long long ls = nd[nd[t].L].sz;

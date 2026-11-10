@@ -9,7 +9,6 @@ interface ParsedClass {
   ctor: UsageParam[];
   ctorDoc: string;
   methods: Record<string, { params: string[]; returns?: string; doc: string }>;
-  pool?: boolean;
   // C++: a plain struct, not a template <typename T> one (written without <T>)
   plain?: boolean;
 }
@@ -23,10 +22,14 @@ function splitTopLevel(s: string): string[] {
   const out: string[] = [];
   let depth = 0;
   let cur = "";
+  let quote = ""; // inside a '(' or "," literal, brackets and commas are just characters
   for (const ch of s) {
-    if ("<([{".includes(ch)) depth++;
+    if (quote) {
+      if (ch === quote) quote = "";
+    } else if (ch === "'" || ch === '"') quote = ch;
+    else if ("<([{".includes(ch)) depth++;
     else if (">)]}".includes(ch)) depth--;
-    if (ch === "," && depth === 0) {
+    if (ch === "," && depth === 0 && !quote) {
       out.push(cur.trim());
       cur = "";
     } else cur += ch;
@@ -76,6 +79,34 @@ function docAbove(lines: string[], i: number, cm: string): string {
     .trim();
 }
 
+// Whether the comment block right above line i opens with its cost ("O(log N) -- ...").
+function startsWithCost(lines: string[], i: number, cm: string): boolean {
+  let first = "";
+  for (let j = i - 1; j >= 0 && lines[j].trim().startsWith(cm); j--) first = lines[j].trim().slice(cm.length).trim();
+  return /^(?:amortized\s+)?O\(/.test(first);
+}
+
+// Line i with its comment dropped; a signature broken over several lines comes back as one.
+function joinedSignature(lines: string[], i: number, cm: string): string {
+  const uncommented = (t: string) => t.replace(cm === "#" ? /#.*$/ : /\/\/.*$/, "").trimEnd();
+  let whole = uncommented(lines[i]);
+  if (!/^\s{4}(?!\s)/.test(whole) || (cm === "#" && !/^\s{4}def /.test(whole))) return whole;
+  const open = () => {
+    let depth = 0;
+    let quote = "";
+    for (const ch of whole) {
+      if (quote) {
+        if (ch === quote) quote = "";
+      } else if (ch === "'" || ch === '"') quote = ch;
+      else if (ch === "(") depth++;
+      else if (ch === ")") depth--;
+    }
+    return depth > 0;
+  };
+  for (let j = i + 1; j < lines.length && j <= i + 8 && open(); j++) whole += ` ${uncommented(lines[j]).trim()}`;
+  return whole;
+}
+
 // A long constructor comment is mostly implementation notes; its first sentence is the part worth showing.
 const firstSentenceIfLong = (s: string) =>
   s.length > 180 ? s.split(/(?<=\.)\s/)[0] : s;
@@ -85,7 +116,10 @@ function parenArgs(line: string, i: number): string {
   const open = line.indexOf("(", i);
   let depth = 0;
   for (let k = open; k < line.length; k++) {
-    if (line[k] === "(") depth++;
+    if (line[k] === "'" || line[k] === '"') { // a char or string literal, e.g. T openChar = T('(')
+      const close = line.indexOf(line[k], k + 1);
+      if (close !== -1) k = close;
+    } else if (line[k] === "(") depth++;
     else if (line[k] === ")" && --depth === 0) return line.slice(open + 1, k);
   }
   return line.slice(open + 1);
@@ -138,7 +172,7 @@ function pyClasses(text: string): ParsedClass[] {
       return;
     }
     if (/^[^\s#]/.test(line)) cur = null; // any other top-level statement ends the class
-    const m = line.match(/^    def (\w+)\(self(?:,\s*)?(.*)\):/);
+    const m = joinedSignature(lines, i, "#").match(/^    def (\w+)\(self(?:,\s*)?(.*)\):/);
     if (!cur || !m) return;
     if (m[1] === "__init__") {
       cur.ctor = pyParams(m[2]);
@@ -168,30 +202,36 @@ function cppClasses(text: string): ParsedClass[] {
       ctor: [],
       ctorDoc: "",
       methods: {},
-      pool: false,
       ...(templated ? {} : { plain: true }),
     };
+    const isPublic = new Set<string>(); // methods whose chosen overload is documented with its cost
     let depth = 0;
     for (let j = start; j < lines.length; j++) {
       const line = lines[j].replace(/\/\/.*$/, "");
       if (depth === 1) {
-        const ctor = line.match(
+        const whole = joinedSignature(lines, j, "//");
+        const ctor = whole.match(
           new RegExp(`^\\s{4}(?:explicit\\s+)?${cls.name}\\(`),
         );
-        const m = line.match(
+        const m = whole.match(
           /^\s{4}(?:(?:static|inline|constexpr|virtual|LEETCODE_NO_SANITIZE(?:_INLINE)?)\s+)*([\w:<>, *&]+?)\s+(\w+)\((.*)\)\s*(?:const\s*)?(?:\{|$)/,
         );
         if (ctor) {
-          cls.ctor = cppParams(parenArgs(line, ctor.index ?? 0));
+          cls.ctor = cppParams(parenArgs(whole, ctor.index ?? 0));
           cls.ctorDoc = firstSentenceIfLong(docAbove(lines, j, "//"));
         } else if (m) {
-          if (m[2] === "resetPool") cls.pool = true;
           const doc = docAbove(lines, j, "//");
+          const params = cppParams(m[3]).map((p) => p.name);
           // an overload keeps the public method (its comment starts with the cost) over an internal helper of the
-          // same name (e.g. cut(l, r) over the cut(l, r, a, b, c) that hands back raw roots)
-          const pub = (d: string) => /^(?:amortized\s+)?O\(/.test(d);
-          if (!cls.methods[m[2]] || (pub(doc) && !pub(cls.methods[m[2]].doc)))
-            cls.methods[m[2]] = { params: cppParams(m[3]).map((p) => p.name), returns: m[1].trim(), doc };
+          // same name (e.g. cut(l, r) over the cut(l, r, a, b, c) that hands back raw roots). A public no-argument
+          // overload gives way to one with arguments: copy(l, r) is the op, copy() just the whole-array shorthand
+          const pub = startsWithCost(lines, j, "//");
+          const old = cls.methods[m[2]];
+          const better = !old || (pub && !isPublic.has(m[2])) || (pub && !old.params.length && params.length > 0);
+          if (better) {
+            cls.methods[m[2]] = { params, returns: m[1].trim(), doc };
+            if (pub) isPublic.add(m[2]);
+          }
         }
       }
       depth +=
@@ -234,7 +274,6 @@ export function readUsage(
       doc: cls.doc,
       ctor: cls.ctor,
       ctorDoc: cls.ctorDoc,
-      ...(cls.pool ? { pool: true } : {}),
       ...(cls.plain ? { plain: true } : {}),
     })),
     methods: Object.fromEntries(

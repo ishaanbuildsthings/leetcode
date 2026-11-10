@@ -62,7 +62,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -75,7 +77,8 @@ struct ChminChmaxAssignMinTree {
     HotVector<T> hi, lo;  // N: tags on internal nodes
 
     // O(N)
-    explicit ChminChmaxAssignMinTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit ChminChmaxAssignMinTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         mn.assign(2 * n, INF);
         for (int i = 0; i < n; i++) mn[n + i] = a[i];
         for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]);

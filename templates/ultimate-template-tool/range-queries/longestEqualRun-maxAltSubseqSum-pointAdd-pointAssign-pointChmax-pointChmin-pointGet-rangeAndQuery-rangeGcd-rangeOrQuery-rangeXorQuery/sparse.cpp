@@ -249,8 +249,8 @@ struct SparseSegTree {
         nd[x].pr = j && nd[a].pr == hl ? nd[a].pr + nd[b].pr : nd[a].pr;
         nd[x].sr = j && nd[b].sr == hl ? nd[b].sr + nd[a].sr : nd[b].sr;
         nd[x].fv = nd[a].fv, nd[x].lv = nd[b].lv;
-        array<S,
-            4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11}, {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
+        array<S, 4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11},
+            {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
         nd[x].a00 = c[0], nd[x].a01 = c[1], nd[x].a10 = c[2], nd[x].a11 = c[3];
     }
 };

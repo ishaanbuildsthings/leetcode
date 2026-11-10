@@ -401,7 +401,8 @@ class PairSwapTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -727,13 +728,15 @@ class PairSwapTreap:
             self.val[t] = h(self.val[t], ls - l)
         self._pull(t)
 
-    def _lanes(self, l, r):  # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+    def _lanes(self, l, r):
+        # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
         roots = (self.rE, self.rO)
         e = (roots[l % 2], l // 2, (r - (r - l) % 2) // 2)
         o = (roots[(l + 1) % 2], (l + 1) // 2, (r - (r - l - 1) % 2) // 2) if l < r else (0, 0, -1)
         return e, o
 
-    def _laneNodes(self, l, r):  # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
+    def _laneNodes(self, l, r):
+        # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
         mark = len(self.val)
         (te, le, he), (to, lo, ho) = self._lanes(l, r)
         return self._rq(te, le, he), self._rq(to, lo, ho), mark

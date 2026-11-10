@@ -104,19 +104,23 @@ from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
-# how many copies, how many distinct values, their xor, their OR, their AND are below it. Besides the usual ordered queries it answers questions
-# about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking one bit
+# how many copies, how many distinct values, their xor, their OR, their AND are below it. Besides the usual ordered
+# queries it answers questions
+# about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking one
+# bit
 # per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and are never removed.
 
 
 class TrieMultiset:
-    __slots__ = ("B", "top", "L", "R", "C", "P", "bc", "X", "O", "A", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "gc", "gmin", "gmax", "dups", "xtotal", "salt", "d")
+    __slots__ = ("B", "top", "L", "R", "C", "P", "bc", "X", "O", "A", "n", "mn", "mx", "lowV", "lowB", "lowC",
+        "highV", "highB", "highC", "gc", "gmin", "gmax", "dups", "xtotal", "salt", "d")
 
     # O(1) -- an empty multiset for integers in [0, 2^bits) (bits = 30 holds values up to 1073741823)
     def __init__(self, bits):
         self.B = bits
         self.top = (1 << bits) - 1  # the largest value it can hold
-        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]  # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]
         self.P = [0, 0]  # distinct values below
         self.bc = [0] * bits  # bc[h] = copies with bit h set
         self.X = [0, 0]  # xor of the stored values below with an odd count
@@ -124,7 +128,8 @@ class TrieMultiset:
         self.A = [-1, -1]  # AND of the values below (an empty node's: every bit)
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.xtotal = 0  # xor of all values (copies count)
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.n = self.d = 0
 
     def _new(self):  # a new empty node
@@ -583,7 +588,9 @@ class TrieMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logU) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -591,7 +598,9 @@ class TrieMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def andOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(kFrom), self._kth(kTo))
 
     # O(logU) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
@@ -839,7 +848,9 @@ class TrieMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def orOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logU) -- bitwise OR of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -847,7 +858,9 @@ class TrieMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def orOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(kFrom), self._kth(kTo))
 
     # O(logU) -- bitwise OR of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k =
@@ -997,7 +1010,9 @@ class TrieMultiset:
     # 1 <= kFrom <= kTo <= size
     def xorOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
 
     # O(logU) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
@@ -1005,7 +1020,9 @@ class TrieMultiset:
     # <= kFrom <= kTo <= size
     def xorOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
 
     # O(logU) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just

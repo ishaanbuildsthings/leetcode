@@ -51,7 +51,8 @@ class SortedRunsMin:
             j = i + (i & -i)
             if j <= n:
                 self.bc[j] += self.bc[i]
-        size = self.size = 1 << max(0, (n - 1).bit_length())  # seg tree over positions: each run's aggregates at its start
+        # seg tree over positions: each run's aggregates at its start
+        size = self.size = 1 << max(0, (n - 1).bit_length())
         self.qn = [INF] * (2 * size)
         for s in range(n):
             self._set(s + size, s)
@@ -131,7 +132,8 @@ class SortedRunsMin:
             s += self.len[s]
         return out
 
-    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def minAll(self):
         if self.n < 1:
             raise IndexError("minAll: needs n >= 1")

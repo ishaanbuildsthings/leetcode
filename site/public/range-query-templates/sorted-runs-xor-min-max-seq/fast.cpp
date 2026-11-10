@@ -84,7 +84,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -279,7 +281,8 @@ struct SortedRunsXorMinMaxSeq {
 
     // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty;
     // needs 0 <= l <= r < size(), else throws out_of_range
-    LEETCODE_NO_SANITIZE tuple<SortedRunsXorMinMaxSeq, SortedRunsXorMinMaxSeq, SortedRunsXorMinMaxSeq> trisect(int l, int r) {
+    LEETCODE_NO_SANITIZE tuple<SortedRunsXorMinMaxSeq, SortedRunsXorMinMaxSeq, SortedRunsXorMinMaxSeq> trisect(int l,
+        int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         SortedRunsXorMinMaxSeq left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
@@ -357,7 +360,8 @@ struct SortedRunsXorMinMaxSeq {
         return v;
     }
 
-    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -365,19 +369,22 @@ struct SortedRunsXorMinMaxSeq {
         return v;
     }
 
-    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto minAll() {
         if (size() < 1) throw out_of_range("minAll: needs n >= 1");
         return rangeMin(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto maxAll() {
         if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
         return rangeMax(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE auto xorAll() {
         if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
         return rangeXorQuery(0, size() - 1);

@@ -2,12 +2,13 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/multiPatternMatches.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 #ifndef CHILD_TABLE_DEFINED
 #define CHILD_TABLE_DEFINED
-// node -> (item -> child) for tries / automata, in one hash table keyed by (node, item): O(1) expected per lookup whatever
-// the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when there's no child
+// node -> (item -> child) for tries / automata, in one hash table keyed by (node, item): O(1) expected per lookup
+// whatever
+// the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when there's no
+// child
 template <class E>
 struct ChildTable {
     // hash of a (node, item) key: every item hash mixes in a per-run random seed, so colliding inputs can't be
@@ -35,8 +36,12 @@ struct ChildTable {
             return h;
         }
         template <class A, class B>
-        static uint64_t itemHash(const pair<A, B>& p) { return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second)); }
-        size_t operator()(const pair<int, E>& key) const { return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL); }
+        static uint64_t itemHash(const pair<A, B>& p) {
+            return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second));
+        }
+        size_t operator()(const pair<int, E>& key) const {
+            return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL);
+        }
     };
     unordered_map<pair<int, E>, int, KeyHash> table;
     vector<vector<E>> itemsOf;  // itemsOf[node] = the items node has a child on, in the order they were added
@@ -64,14 +69,19 @@ struct ChildTable {
 };
 #endif
 
-// vector of size patterns.size(): res[k] = every index i where text[i...] matches patterns[k], ascending (overlaps included, Aho-Corasick)
+// vector of size patterns.size(): res[k] = every index i where text[i...] matches patterns[k], ascending (overlaps
+// included, Aho-Corasick)
 // an empty pattern matches at every i in 0..text.size(); duplicate patterns each get their own list
-// text and the patterns can be different containers (e.g. string and vector<char>) of any element type that has == and a hash
+// text and the patterns can be different containers (e.g. string and vector<char>) of any element type that has == and
+// a hash
 // multiPatternMatches(string("ababa"), vector<string>{"aba", "b", "ab", "zz"}) -> {{0, 2}, {1, 3}, {0, 2}, {}}
 // multiPatternMatches(vector<int>{-1, 2, -1, 2}, vector<vector<int>>{{-1, 2}, {2}}) -> {{0, 2}, {1, 3}}
-// O(n + m + n * sqrt(m)) expected time (m = total pattern length), worst case when the output is huge: patterns of the same length are
-// different, so together they match at most n indices, and total length m allows at most about sqrt(2m) different lengths,
-// so there are at most n * sqrt(2m) matches (duplicate patterns each get their own copy); use multiPatternCounts for just counts
+// O(n + m + n * sqrt(m)) expected time (m = total pattern length), worst case when the output is huge: patterns of the
+// same length are
+// different, so together they match at most n indices, and total length m allows at most about sqrt(2m) different
+// lengths,
+// so there are at most n * sqrt(2m) matches (duplicate patterns each get their own copy); use multiPatternCounts for
+// just counts
 template <class T1, class T2>
 vector<vector<int>> multiPatternMatches(const T1& text, const vector<T2>& patterns) {
     // trie of the patterns; fail[node] = node of the longest proper suffix of node's path that is also a trie path

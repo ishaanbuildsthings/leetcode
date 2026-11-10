@@ -116,7 +116,8 @@ struct SparseXorEven {
     U64 seed, zero;
 
     // O(1) -- all zeros over [lo, hi]. Seeded from the clock: a fixed seed is hackable.
-    SparseXorEven(long long lo, long long hi) : lo(lo), hi(hi), seed(mt19937_64(chrono::steady_clock::now().time_since_epoch().count())()) {
+    SparseXorEven(long long lo, long long hi) : lo(lo), hi(hi),
+        seed(mt19937_64(chrono::steady_clock::now().time_since_epoch().count())()) {
         zero = tagOf(T(0));
     }
 

@@ -52,7 +52,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -89,7 +91,8 @@ struct StridedQueries {
         copy(A.begin(), A.end(), orTable.begin());
     }
 
-    // a[l] ^ a[l + step] ^ ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] ^ a[l + step] ^ ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
@@ -104,7 +107,8 @@ struct StridedQueries {
         return xorPre[last] ^ (l >= step ? xorPre[l - step] : T(0));
     }
 
-    // min of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // min of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedMin(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMin: needs 0 <= l <= r < n");
@@ -121,7 +125,8 @@ struct StridedQueries {
         return min(minTable[base + l], minTable[base + last - ((1 << level) - 1) * step]);
     }
 
-    // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedMax(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
@@ -138,7 +143,8 @@ struct StridedQueries {
         return max(maxTable[base + l], maxTable[base + last - ((1 << level) - 1) * step]);
     }
 
-    // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedAndQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n");
@@ -155,7 +161,8 @@ struct StridedQueries {
         return (andTable[base + l] & andTable[base + last - ((1 << level) - 1) * step]);
     }
 
-    // a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedOrQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n");

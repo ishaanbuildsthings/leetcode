@@ -40,7 +40,8 @@ struct MaxPrefixSuffixSumTree {
 
     static Node leaf(T v) { return {S(v), S(v), S(v)}; }
 
-    static Node merge(const Node& a, const Node& b) { return {a.sm + b.sm, max(a.pre, a.sm + b.pre), max(b.suf, b.sm + a.suf)}; }
+    static Node merge(const Node& a,
+        const Node& b) { return {a.sm + b.sm, max(a.pre, a.sm + b.pre), max(b.suf, b.sm + a.suf)}; }
 
     // O(N)
     explicit MaxPrefixSuffixSumTree(const vector<T>& a) : n((int)a.size()), t(2 * a.size()) {

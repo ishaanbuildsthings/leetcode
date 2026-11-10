@@ -50,7 +50,8 @@ struct RangeLIS {
         int m = n >> 1;
         int *rank = take(n), *colsLo = take(m), *colsHi = take(n - m), *rowsLo = take(m), *rowsHi = take(n - m);
         int *PLo = take(m), *PHi = take(n - m), *QLo = take(m), *QHi = take(n - m), *RLo = take(m), *RHi = take(n - m);
-        int *rowCol = take(n), *colRow = take(n), *below = take(n + 2), *flags = take(n);  // flags: bit 0 row is lo, bit 1 col is lo
+        // flags: bit 0 row is lo, bit 1 col is lo
+        int *rowCol = take(n), *colRow = take(n), *below = take(n + 2), *flags = take(n);
         fill(flags, flags + n, 0);
         for (int j = 0; j < m; j++) flags[Q[j]] |= 2;  // temporarily: column of Q is in the lo half
         int cl = 0, ch = 0, rl = 0, rh = 0;
@@ -239,8 +240,10 @@ struct RangeLIS {
 
 // ======================================================================================== sparse wrapper
 
-// Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
-// of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per gap,
+// Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range
+// [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
+// of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per
+// gap,
 // and a query maps l and r to the compressed elements containing them.
 template <typename T>
 struct SparseStaticLIS {
@@ -250,7 +253,8 @@ struct SparseStaticLIS {
     RangeLIS<T> inner;
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparseStaticLIS(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(compress(values)) {}
+    SparseStaticLIS(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi),
+        inner(compress(values)) {}
 
     vector<T> compress(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());

@@ -58,7 +58,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -102,7 +104,8 @@ struct SparseAffineSumTree {
     LEETCODE_NO_SANITIZE static bool isId(const Tag& t) { return t.mul == 1 && t.add == 0; }
 
     // tag o, then tag t
-    LEETCODE_NO_SANITIZE Tag compose(const Tag& o, const Tag& t) const { return Tag{T(W(t.mul) * o.mul % mod), T((W(t.mul) * o.add + t.add) % mod)}; }
+    LEETCODE_NO_SANITIZE Tag compose(const Tag& o,
+        const Tag& t) const { return Tag{T(W(t.mul) * o.mul % mod), T((W(t.mul) * o.add + t.add) % mod)}; }
 
     // the aggregate of k slots after tag t
     LEETCODE_NO_SANITIZE Agg applyTag(Agg v, long long k, const Tag& t) const {

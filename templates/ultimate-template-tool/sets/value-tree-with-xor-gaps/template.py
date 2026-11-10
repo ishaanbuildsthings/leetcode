@@ -73,7 +73,8 @@ class ValueTreeMultiset:
         self._clearData()
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.xtotal = 0  # xor of all values (copies count)
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.n = self.d = 0
 
     def _newNode(self):
@@ -475,7 +476,9 @@ class ValueTreeMultiset:
     # 1 <= kFrom <= kTo <= size
     def xorOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
 
     # O(logU) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
@@ -483,7 +486,9 @@ class ValueTreeMultiset:
     # <= kFrom <= kTo <= size
     def xorOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
 
     # O(logU) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just

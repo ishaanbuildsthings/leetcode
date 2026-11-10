@@ -131,10 +131,13 @@ struct TreapMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    struct Node { T key; long long c, z; long long dn; T xr; unsigned prio; int l, r; };  // copies; copies, distinct below
+    // copies; copies, distinct below
+    struct Node { T key; long long c, z; long long dn; T xr; unsigned prio; int l, r; };
     FlatPool<Node> pool{1};
     FlatPool<int> freeList;
     static inline mt19937 rng{(unsigned)chrono::steady_clock::now().time_since_epoch().count()};
@@ -215,7 +218,8 @@ struct TreapMultiset {
     }
 
     FlatPool<int> path;  // scratch for insert: the nodes it walked through
-    LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count; a value already present never needs a split or merge
+    LEETCODE_NO_SANITIZE long long insert(T x, long long c) {
+        // returns x's new count; a value already present never needs a split or merge
         path.clear();
         int t = root, cur;
         while (t) {
@@ -240,7 +244,8 @@ struct TreapMultiset {
             d++;
             f = pool[m].c = c;
             int i = 0, walked = int(path.size());
-            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;  // the new node goes where its priority belongs
+            // the new node goes where its priority belongs
+            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;
             if (i < walked) {
                 int a, b;
                 split(path[i], x, a, b);
@@ -334,7 +339,8 @@ struct TreapMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, the mex current
+    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {
+        // c copies of x (c < 0 removes); keeps min / max, the mex current
         n += c;
         if (c & 1) xtotal ^= x;  // an odd number of copies flips x in or out of the xor of everything
         long long f = insert(x, c);  // x's new count
@@ -356,7 +362,8 @@ struct TreapMultiset {
             if (x < mn) mn = x;
             if (x > mx) mx = x;
         } else {
-            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;  // the last copy of a value below the mex
+            // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;
             if (!n) return;
             if (!f) {  // x is gone: it may have been the min / max
                 if (x == mn) mn = kthAt(1);
@@ -646,7 +653,8 @@ struct TreapMultiset {
     // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -654,7 +662,8 @@ struct TreapMultiset {
     // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

@@ -70,19 +70,23 @@
 #   note: per add of a new value, one node per bit of its path; U = 2^bits. Each multiset owns its nodes (clear() keeps the arrays' capacity)
 
 # Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
-# how many copies, how many distinct values, the smallest and largest value are below it. Besides the usual ordered queries it answers questions
-# about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking one bit
+# how many copies, how many distinct values, the smallest and largest value are below it. Besides the usual ordered
+# queries it answers questions
+# about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking one
+# bit
 # per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and are never removed.
 
 
 class TrieMultiset:
-    __slots__ = ("B", "top", "L", "R", "C", "P", "MN", "MX", "bc", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "d")
+    __slots__ = ("B", "top", "L", "R", "C", "P", "MN", "MX", "bc", "n", "lowV", "lowB", "lowC", "highV", "highB",
+        "highC", "mexV", "d")
 
     # O(1) -- an empty multiset for integers in [0, 2^bits) (bits = 30 holds values up to 1073741823)
     def __init__(self, bits):
         self.B = bits
         self.top = (1 << bits) - 1  # the largest value it can hold
-        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]  # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]
         self.P = [0, 0]  # distinct values below
         self.MN, self.MX = [0, 0], [0, 0]  # smallest / largest value below (meaningful while its count > 0)
         self.bc = [0] * bits  # bc[h] = copies with bit h set

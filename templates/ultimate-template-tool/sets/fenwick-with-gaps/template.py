@@ -59,7 +59,8 @@ from bisect import bisect_left, bisect_right
 class FenwickMultiset:
     __slots__ = ("vals", "m", "top", "steps", "cnt", "fc", "n", "gc", "gmin", "gmax", "dups", "salt", "d")
 
-    # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
+    # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order,
+    # duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
     def __init__(self, allValuesThatWillEverBeInsertedForOfflineCompression):
         vals = self.vals = sorted(set(allValuesThatWillEverBeInsertedForOfflineCompression))
         m = self.m = len(vals)
@@ -68,7 +69,8 @@ class FenwickMultiset:
         self.cnt = [0] * m  # copies of vals[i]
         self.fc = [0] * (m + 1)  # Fenwick: copies
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.n = self.d = 0
 
     def _fen(self, f, i, v):

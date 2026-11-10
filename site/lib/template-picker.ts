@@ -60,7 +60,6 @@ export interface UsageClass {
   doc: string;
   ctor: UsageParam[];
   ctorDoc: string;
-  pool?: boolean;
   // C++: a plain struct (not templated on T), so it's constructed without <T>
   plain?: boolean;
 }

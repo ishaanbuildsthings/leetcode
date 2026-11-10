@@ -42,7 +42,8 @@ struct AssignSumMinTree {
     vector<char> hasAsg;
 
     // O(N)
-    explicit AssignSumMinTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit AssignSumMinTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         sm.assign(2 * n, 0);
         mn.assign(2 * n, INF);
         for (int i = 0; i < n; i++) {

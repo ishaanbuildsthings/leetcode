@@ -36,7 +36,7 @@ using ll = long long;
 template <typename T>
 struct SparseOccurrenceLists {
     using IndexSet = __gnu_pbds::tree<long long, __gnu_pbds::null_type, less<long long>, __gnu_pbds::rb_tree_tag,
-                                      __gnu_pbds::tree_order_statistics_node_update>;
+        __gnu_pbds::tree_order_statistics_node_update>;
     long long lo, hi;
     // splitmix64 with a random per-run offset: anti-hash tests can't predict buckets, so the tables stay O(1)
     struct SafeHash {
@@ -84,7 +84,8 @@ struct SparseOccurrenceLists {
         if (l > r) return lo - 1;
         if (x == T(0)) {
             if (!vals.count(l)) return l;
-            long long base = nz.order_of_key(l), a = l, b = r + 1;  // the smallest m with a zero in [l, m] (r + 1: none)
+            // the smallest m with a zero in [l, m] (r + 1: none)
+            long long base = nz.order_of_key(l), a = l, b = r + 1;
             while (a < b) {
                 long long m = a + (b - a) / 2;
                 if ((long long)nz.order_of_key(m + 1) - base < m - l + 1) b = m;
@@ -105,7 +106,8 @@ struct SparseOccurrenceLists {
         if (l > r) return lo - 1;
         if (x == T(0)) {
             if (!vals.count(r)) return r;
-            long long top = nz.order_of_key(r + 1), a = l - 1, b = r;  // the largest m with a zero in [m, r] (l - 1: none)
+            // the largest m with a zero in [m, r] (l - 1: none)
+            long long top = nz.order_of_key(r + 1), a = l - 1, b = r;
             while (a < b) {
                 long long m = a + (b - a + 1) / 2;
                 if (top - (long long)nz.order_of_key(m) < r - m + 1) a = m;

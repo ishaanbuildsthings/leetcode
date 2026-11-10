@@ -38,7 +38,8 @@ struct SparseArithSeqSumBITMod {
     T mod;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseArithSeqSumBITMod(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), n(hi - lo + 1), mod(mod) {}
+    SparseArithSeqSumBITMod(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), n(hi - lo + 1),
+        mod(mod) {}
 
 
     // optional -- reserve room for this many nodes up front

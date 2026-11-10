@@ -109,14 +109,17 @@ struct HotVector : vector<U> {
     using vector<U>::vector;
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
 
 template <typename T>
 struct TrieMultiset {
-    static constexpr T NONE = -1;  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    static constexpr T NONE = -1;
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int B;
     long long top;  // the largest value it can hold
@@ -180,7 +183,8 @@ struct TrieMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE long long kthX(long long k, long long key) const {  // the k-th smallest (1-indexed) stored value ^ key
+    LEETCODE_NO_SANITIZE long long kthX(long long k, long long key) const {
+        // the k-th smallest (1-indexed) stored value ^ key
         int t = 1;
         long long res = 0;
         for (int h = B - 1; h >= 0; h--) {
@@ -191,7 +195,8 @@ struct TrieMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE long long extreme(int t, int h, long long key, bool big) const {  // bits h..0 of the largest (big) / smallest stored value ^ key below t
+    LEETCODE_NO_SANITIZE long long extreme(int t, int h, long long key, bool big) const {
+        // bits h..0 of the largest (big) / smallest stored value ^ key below t
         long long res = 0;
         for (; h >= 0; h--) {
             int pb = int(key >> h & 1) ^ int(big);  // the child whose result bit is 1 (big) / 0
@@ -230,7 +235,8 @@ struct TrieMultiset {
         return {T(v), before, c[t]};
     }
 
-    LEETCODE_NO_SANITIZE optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {  // the largest (big) / smallest v ^ x over the values v in [lo, hi]
+    LEETCODE_NO_SANITIZE optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {
+        // the largest (big) / smallest v ^ x over the values v in [lo, hi]
         lo = std::max(lo, 0LL), hi = std::min(hi, top);
         if (lo > hi) return nullopt;
         long long mk = 0, key = x ^ mk;  // v ^ x = stored value ^ key
@@ -257,7 +263,8 @@ struct TrieMultiset {
         return T(best);
     }
 
-    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, both medians current
+    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {
+        // c copies of x (c < 0 removes); keeps min / max, both medians current
         n += c;
         if (c & 1) xtotal ^= x;  // an odd number of copies flips x in or out of the xor of everything
         long long f = insert(x, c);  // x's new count
@@ -673,7 +680,8 @@ struct TrieMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -681,7 +689,8 @@ struct TrieMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

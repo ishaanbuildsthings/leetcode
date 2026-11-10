@@ -2,15 +2,17 @@
 // Run: g++ -O2 -std=c++17 test_sos.cpp -o /tmp/ts && /tmp/ts
 #include "../bit-operations/subsetSums.cpp"
 #include "../bit-operations/supersetSums.cpp"
-#include "../bit-operations/countSubsetsByAnd.cpp"
-#include "../bit-operations/countSubsetsByOr.cpp"
-#include "../bit-operations/countPairsByAnd.cpp"
-#include "../bit-operations/countPairsByOr.cpp"
-#include "../bit-operations/orConvolution.cpp"
-#include "../bit-operations/andConvolution.cpp"
-#include "../bit-operations/xorConvolution.cpp"
-#include "../bit-operations/xorConvolutionMod.cpp"
-#include "../bit-operations/countPairsByXor.cpp"
+#include "../bit-operations/countAndSubsetsEqualToKForAllKMod.cpp"
+#include "../bit-operations/countOrSubsetsEqualToKForAllKMod.cpp"
+#include "../bit-operations/countAndSubsetsEqualToKForAllK.cpp"
+#include "../bit-operations/countOrSubsetsEqualToKForAllK.cpp"
+#include "../bit-operations/countAndPairsEqualToKForAllK.cpp"
+#include "../bit-operations/countOrPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfOrPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfAndPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfXorPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfXorPairsEqualToKForAllKMod.cpp"
+#include "../bit-operations/countXorPairsEqualToKForAllK.cpp"
 
 mt19937_64 rng(2);
 long long rnd(long long lo, long long hi) { return lo + (long long)(rng() % (unsigned long long)(hi - lo)); }
@@ -39,13 +41,13 @@ int main() {
         }
         CHECK(subsetSums(f) == sub);
         CHECK(supersetSums(f) == sup);
-        CHECK(orConvolution(f, g) == orC);
-        CHECK(andConvolution(f, g) == andC);
-        CHECK(xorConvolution(f, g) == xorC);
+        CHECK(sumOfOrPairsEqualToKForAllK(f, g) == orC);
+        CHECK(sumOfAndPairsEqualToKForAllK(f, g) == andC);
+        CHECK(sumOfXorPairsEqualToKForAllK(f, g) == xorC);
         for (long long mod : {7LL, 1'000'000'007LL, 1LL, (1LL << 61) - 1}) {
             vl want(n);
             for (int i = 0; i < n; i++) want[i] = ((xorC[i] % mod) + mod) % mod;
-            CHECK(xorConvolutionMod(f, g, mod) == want);
+            CHECK(sumOfXorPairsEqualToKForAllKMod(f, g, mod) == want);
         }
         vector<int> arr(rnd(0, 9));
         int hi = vector<int>{1, 2, 5, 16, 40}[rnd(0, 5)];
@@ -61,10 +63,10 @@ int main() {
                 px[arr[i] ^ arr[j]]++;
             }
         }
-        CHECK(countPairsByAnd(arr) == pa);
-        CHECK(countPairsByOr(arr) == po);
-        CHECK(countPairsByXor(arr) == px);
-        for (long long mod : {1'000'000'007LL, 5LL}) {
+        CHECK(countAndPairsEqualToKForAllK(arr) == pa);
+        CHECK(countOrPairsEqualToKForAllK(arr) == po);
+        CHECK(countXorPairsEqualToKForAllK(arr) == px);
+        for (long long mod : {1'000'000'007LL, 5LL, 0LL}) {  // (0: the exact versions)
             vl sa(m, 0), so(m, 0);
             for (int mask = 1; mask < (1 << arr.size()); mask++) {
                 int a = -1, o = 0;
@@ -74,25 +76,34 @@ int main() {
                 sa[a]++;
                 so[o]++;
             }
+            if (mod == 0) {
+                CHECK(countAndSubsetsEqualToKForAllK(arr) == sa);
+                CHECK(countOrSubsetsEqualToKForAllK(arr) == so);
+                continue;
+            }
             for (auto& x : sa) x %= mod;
             for (auto& x : so) x %= mod;
-            CHECK(countSubsetsByAnd(arr, mod) == sa);
-            CHECK(countSubsetsByOr(arr, mod) == so);
+            CHECK(countAndSubsetsEqualToKForAllKMod(arr, mod) == sa);
+            CHECK(countOrSubsetsEqualToKForAllKMod(arr, mod) == so);
         }
     }
     bool threw = false;
     try { subsetSums(vector<int>{1, 2, 3}); } catch (const invalid_argument&) { threw = true; }
     CHECK(threw);
     threw = false;
-    try { xorConvolutionMod(vector<int>{1, 2}, vector<int>{3, 4}, 10); } catch (const invalid_argument&) { threw = true; }
+    try { countAndSubsetsEqualToKForAllK(vector<int>(63, 1)); } catch (const overflow_error&) { threw = true; }
+    CHECK(threw);
+    CHECK(countAndSubsetsEqualToKForAllK(vector<int>(62, 1))[1] == (1LL << 62) - 1);
+    threw = false;
+    try { sumOfXorPairsEqualToKForAllKMod(vector<int>{1, 2}, vector<int>{3, 4}, 10); } catch (const invalid_argument&) { threw = true; }
     CHECK(threw);
     // a big one: 2^20 entries runs fast and the convolution of counts stays exact
     vector<int> big(200000);
     for (auto& x : big) x = rnd(0, 1 << 20);
     auto t0 = chrono::steady_clock::now();
-    auto pairs = countPairsByXor(big);
+    auto pairs = countXorPairsEqualToKForAllK(big);
     long long total = accumulate(pairs.begin(), pairs.end(), 0LL);
     CHECK(total == 200000LL * 199999 / 2);
     auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t0).count();
-    cout << "c++ sos tests passed (countPairsByXor on 2e5 values < 2^20: " << ms << " ms)" << endl;
+    cout << "c++ sos tests passed (countXorPairsEqualToKForAllK on 2e5 values < 2^20: " << ms << " ms)" << endl;
 }

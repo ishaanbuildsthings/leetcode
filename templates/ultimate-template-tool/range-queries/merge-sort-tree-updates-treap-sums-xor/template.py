@@ -39,7 +39,8 @@
 #   note: no value range and nothing up front; each update makes at most log N new treap nodes and none are reused, so N counts updates too
 
 # Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
-# inner node keeping its positions' values in a searchable structure (a treap keyed by value, copies counted, with subtree sizes / sums / xors). a[l..r] is O(log n) nodes, and a
+# inner node keeping its positions' values in a searchable structure (a treap keyed by value, copies counted, with
+# subtree sizes / sums / xors). a[l..r] is O(log n) nodes, and a
 # point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
 # T: int, long long, ...; sums are kept in S (long long for small T).
 
@@ -131,7 +132,8 @@ class MergeSortTreeUpdates:
             raise IndexError(f"countGteX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
         return (r - l + 1) - self._countLess(l, r, x, True)
 
-    # O(log^2(N) expected) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N) expected) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r
+    # < n, else raises IndexError
     def countInValRange(self, l, r, lowVal, highVal):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"countInValRange: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
@@ -139,25 +141,29 @@ class MergeSortTreeUpdates:
             return 0
         return self._countLess(l, r, highVal, False) - self._countLess(l, r, lowVal, True)
 
-    # O(log^2(N) expected) -- smallest a[i] >= x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N) expected) -- smallest a[i] >= x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises
+    # IndexError
     def smallestGteX(self, l, r, x):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"smallestGteX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
         return self._firstAtLeast(l, r, x, False)
 
-    # O(log^2(N) expected) -- smallest a[i] > x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N) expected) -- smallest a[i] > x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises
+    # IndexError
     def smallestGtX(self, l, r, x):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"smallestGtX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
         return self._firstAtLeast(l, r, x, True)
 
-    # O(log^2(N) expected) -- largest a[i] <= x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N) expected) -- largest a[i] <= x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises
+    # IndexError
     def largestLteX(self, l, r, x):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"largestLteX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
         return self._lastBelow(l, r, x, False)
 
-    # O(log^2(N) expected) -- largest a[i] < x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N) expected) -- largest a[i] < x in [l, r]; None if there is none; needs 0 <= l <= r < n, else raises
+    # IndexError
     def largestLtX(self, l, r, x):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"largestLtX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
@@ -187,7 +193,8 @@ class MergeSortTreeUpdates:
             raise IndexError(f"sumGteX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
         return self._sumAll(l, r) - self._sumLess(l, r, x, True)
 
-    # O(log^2(N) expected) -- sum of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N) expected) -- sum of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <= l
+    # <= r < n, else raises IndexError
     def sumInValRange(self, l, r, lowVal, highVal):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"sumInValRange: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
@@ -227,7 +234,8 @@ class MergeSortTreeUpdates:
             raise IndexError(f"xorGteX: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")
         return self._xorAll(l, r) ^ self._xorLess(l, r, x, True)
 
-    # O(log^2(N) expected) -- xor of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <= l <= r < n, else raises IndexError
+    # O(log^2(N) expected) -- xor of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <= l
+    # <= r < n, else raises IndexError
     def xorInValRange(self, l, r, lowVal, highVal):
         if l < 0 or l > r or r >= self.n:
             raise IndexError(f"xorInValRange: needs 0 <= l <= r < n, got l={l}, r={r}, n={self.n}")

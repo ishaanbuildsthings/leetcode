@@ -52,13 +52,15 @@ from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
-# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies
+# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
+# the copies
 # and distinct values in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
 # nodes are reused.
 
 
 class AVLMultiset:
-    __slots__ = ("K", "C", "Z", "D", "H", "L", "R", "free", "root", "newCount", "n", "mn", "mx", "bk", "bkAt", "fh", "fhAt", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
+    __slots__ = ("K", "C", "Z", "D", "H", "L", "R", "free", "root", "newCount", "n", "mn", "mx", "bk", "bkAt", "fh",
+        "fhAt", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -68,7 +70,8 @@ class AVLMultiset:
         self.free = []  # removed nodes, reused first
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.bk, self.bkAt = {}, {}  # mode: count -> list of the values with that many copies; value -> its index there
         self.fh, self.fhAt = [], {}  # mode: max-heap of the counts that have a bucket; count -> its index in it
         self.root = self.n = self.d = 0
@@ -318,7 +321,8 @@ class AVLMultiset:
                 if x == self.mx:
                     self.mx = self._kth(n)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)

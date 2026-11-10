@@ -58,7 +58,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -102,7 +104,9 @@ struct XorEven {
     }
 
     // O(logN) -- xor of tags over a[l..r]
-    LEETCODE_NO_SANITIZE unsigned long long rangeXor(int l, int r) const { return prefix(r) ^ (l ? prefix(l - 1) : 0ULL); }
+    LEETCODE_NO_SANITIZE unsigned long long rangeXor(int l, int r) const {
+        return prefix(r) ^ (l ? prefix(l - 1) : 0ULL);
+    }
 
     // O(logN) -- true iff every value in a[l..r] appears an even number of times; needs 0 <= l <= r < n, else throws
     // out_of_range

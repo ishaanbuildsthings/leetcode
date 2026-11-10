@@ -140,7 +140,8 @@ struct SortedRunsAnd {
         return out;
     }
 
-    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     auto andAll() {
         if (n < 1) throw out_of_range("andAll: needs n >= 1");
         return rangeAndQuery(0, n - 1);

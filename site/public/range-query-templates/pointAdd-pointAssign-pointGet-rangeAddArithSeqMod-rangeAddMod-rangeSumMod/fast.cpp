@@ -58,7 +58,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -74,7 +76,8 @@ struct ArithSeqSumBITMod {
     LEETCODE_NO_SANITIZE T tri(long long k) const { return norm(W(k) * (k + 1) / 2); }
 
     // O(N)
-    explicit ArithSeqSumBITMod(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), bA(n + 1), bB(n + 1), bC(n + 1) {
+    explicit ArithSeqSumBITMod(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), bA(n + 1),
+        bB(n + 1), bC(n + 1) {
         for (int i = 0; i < n; i++) bA[i + 1] = norm(a[i]);
         for (int i = 1; i <= n; i++) {
             int j = i + (i & -i);
@@ -83,7 +86,8 @@ struct ArithSeqSumBITMod {
     }
 
     LEETCODE_NO_SANITIZE void point(int i, T a, T b, T c) {
-        for (i++; i <= n; i += i & -i) bA[i] = norm(W(bA[i]) + a), bB[i] = norm(W(bB[i]) + b), bC[i] = norm(W(bC[i]) + c);
+        for (i++; i <= n; i += i & -i) bA[i] = norm(W(bA[i]) + a), bB[i] = norm(W(bB[i]) + b),
+            bC[i] = norm(W(bC[i]) + c);
     }
 
     // O(logN) -- (a[0] + ... + a[x]) % MOD (0 for x = -1)

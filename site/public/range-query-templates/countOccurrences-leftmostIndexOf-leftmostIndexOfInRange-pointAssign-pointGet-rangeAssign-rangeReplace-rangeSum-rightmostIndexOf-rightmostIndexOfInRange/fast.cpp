@@ -63,7 +63,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -81,7 +83,8 @@ struct ValueMapSeg {
     HotVector<S> sm;
 
     // O(N*U) -- arr: the initial array; every value it will ever hold must be in [valLo, valHi]
-    ValueMapSeg(const vector<T>& arr, T valLo, T valHi) : n((int)arr.size()), cap(1), lg(0), U(int(valHi - valLo) + 1), valLo(valLo) {
+    ValueMapSeg(const vector<T>& arr, T valLo, T valHi) : n((int)arr.size()), cap(1), lg(0),
+        U(int(valHi - valLo) + 1), valLo(valLo) {
         while (cap < n) cap <<= 1, lg++;
         t.assign(2 * cap, -1), row.assign(cap, -1), tmp.assign(U, 0);
         cnt.assign((size_t)cap * U, 0);
@@ -191,7 +194,8 @@ struct ValueMapSeg {
         return (int)o;
     }
 
-    LEETCODE_NO_SANITIZE void applyMap(int k, const int* g) {  // node k's segment goes through map g (newer than anything below k)
+    LEETCODE_NO_SANITIZE void applyMap(int k, const int* g) {
+        // node k's segment goes through map g (newer than anything below k)
         if (k >= cap) {
             if (t[k] >= 0) {
                 t[k] = g[t[k]];
@@ -263,7 +267,8 @@ struct ValueMapSeg {
         sm[k] = sm[2 * k] + sm[2 * k + 1];
     }
 
-    LEETCODE_NO_SANITIZE void pushAbove(int l, int r) {  // push every map above the leaves l..r - 1 (offset by cap) down to them
+    LEETCODE_NO_SANITIZE void pushAbove(int l, int r) {
+        // push every map above the leaves l..r - 1 (offset by cap) down to them
         for (int h = lg; h >= 1; h--) {
             if (((l >> h) << h) != l) push(l >> h);
             if (((r >> h) << h) != r) push((r - 1) >> h);
@@ -285,7 +290,8 @@ struct ValueMapSeg {
     }
 
     template <class F>
-    LEETCODE_NO_SANITIZE void cover(int l, int r, F visit) {  // visit the nodes that exactly cover a[l..r], every map above them pushed
+    LEETCODE_NO_SANITIZE void cover(int l, int r, F visit) {
+        // visit the nodes that exactly cover a[l..r], every map above them pushed
         l += cap, r += cap + 1;
         pushAbove(l, r);
         for (; l < r; l >>= 1, r >>= 1) {
@@ -296,7 +302,8 @@ struct ValueMapSeg {
 
     LEETCODE_NO_SANITIZE int countOf(int k, int a) const { return k >= cap ? int(t[k] == a) : cnt[(size_t)k * U + a]; }
 
-    LEETCODE_NO_SANITIZE int find(const T& x, int l, int r, bool left) {  // the first (left) / last i in [l, r] with a[i] == x, or -1
+    LEETCODE_NO_SANITIZE int find(const T& x, int l, int r, bool left) {
+        // the first (left) / last i in [l, r] with a[i] == x, or -1
         long long a = (long long)x - (long long)valLo;
         return a < 0 || a >= U ? -1 : walk(1, 0, cap - 1, l, r, (int)a, left);
     }

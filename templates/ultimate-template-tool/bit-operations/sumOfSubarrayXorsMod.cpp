@@ -6,7 +6,8 @@ using namespace std;
 // sum over every non-empty subarray of the XOR of all its values, mod mod (mod < 2^62)
 // values must be >= 0; B = number of bits in max(arr)
 // Each bit is counted on its own: a subarray has bit b exactly when the prefix XORs at its two ends differ in bit b
-// sumOfSubarrayXorsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 10   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 3 + 1 + 0
+// sumOfSubarrayXorsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 10   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 3
+// + 1 + 0
 // O(N * B)
 template <class T>
 long long sumOfSubarrayXorsMod(const vector<T>& arr, long long mod) {

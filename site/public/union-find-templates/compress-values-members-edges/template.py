@@ -131,7 +131,8 @@ class DSU:
     def componentMax(self, i):
         return self.cmax[self.find(i)]
 
-    # O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an edge
+    # O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an
+    # edge
     def edgeCount(self, i):
         return self.edges[self.find(i)]
 

@@ -30,7 +30,7 @@ class StridedQueries:
     def __init__(self, arr, cutoff=None):
         self.A = list(arr)
         self.n = n = len(self.A)
-        self.strides = cutoff if cutoff is not None else max(1, min(n, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))
+        self.strides = cutoff if cutoff is not None else min(n, max(1, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))
         if not 0 <= self.strides <= n:
             raise IndexError(f"StridedQueries: needs 0 <= cutoff <= n, got cutoff={cutoff}, n={n}")
         # offsets[step][residue]: where that residue class starts in that stride's list
@@ -42,9 +42,11 @@ class StridedQueries:
                 if residue < n:
                     used += (n - residue + step - 1) // step
             self.offsets[step] = starts
-        self.diffs = [None] + [[0] * (n + 2) for _ in range(self.strides)]  # one Fenwick tree of differences per kept step
+        # one Fenwick tree of differences per kept step
+        self.diffs = [None] + [[0] * (n + 2) for _ in range(self.strides)]
 
-    # O(sqrt(N logN)) -- a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N logN)) -- a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    # raises IndexError
     def stridedAdd(self, l, r, step, v):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

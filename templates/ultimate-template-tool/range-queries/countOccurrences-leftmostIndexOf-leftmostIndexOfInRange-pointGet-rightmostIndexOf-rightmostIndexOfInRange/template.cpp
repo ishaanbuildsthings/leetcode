@@ -39,7 +39,8 @@ struct OccurrenceLists {
     int countOccurrences(int l, int r, const T& x) const {
         if (l < 0 || l > r || r >= size()) throw out_of_range("countOccurrences: needs 0 <= l <= r < size()");
         if (l > r) return 0;
-        return int(lower_bound(pos.begin(), pos.end(), pair<T, int>{x, r + 1}) - lower_bound(pos.begin(), pos.end(), pair<T, int>{x, l}));
+        return int(lower_bound(pos.begin(), pos.end(), pair<T, int>{x, r + 1}) - lower_bound(pos.begin(), pos.end(),
+            pair<T, int>{x, l}));
     }
 
     // O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array

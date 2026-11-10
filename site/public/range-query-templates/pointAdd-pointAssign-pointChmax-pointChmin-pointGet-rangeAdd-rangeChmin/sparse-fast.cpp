@@ -55,7 +55,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -96,7 +98,8 @@ struct SparseAddChminTree {
     LEETCODE_NO_SANITIZE static bool isId(const Tag& t) { return t.hi == INF && t.c == 0; }
 
     // tag o, then tag t
-    LEETCODE_NO_SANITIZE static Tag compose(const Tag& o, const Tag& t) { return Tag{std::min(t.hi, o.hi == INF ? INF : o.hi + t.c), o.c + t.c}; }
+    LEETCODE_NO_SANITIZE static Tag compose(const Tag& o,
+        const Tag& t) { return Tag{std::min(t.hi, o.hi == INF ? INF : o.hi + t.c), o.c + t.c}; }
 
     // the aggregate of k slots after tag t
     LEETCODE_NO_SANITIZE static Agg applyTag(Agg v, long long k, const Tag& t) {

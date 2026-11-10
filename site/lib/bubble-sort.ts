@@ -9,7 +9,7 @@ export const BUBBLE_SORT: FillIn[] = [
     title: "",
     folder: "_bubble-sort",
     file: "MinSwapsToSort",
-    ops: [["minAdjacentSwapsToSort(arr)", "N*log(N)"]],
+    ops: [["minAdjacentSwapsToSort(sequence)", "N*log(N)"]],
     githubUrl: GITHUB,
   },
   {
@@ -17,7 +17,7 @@ export const BUBBLE_SORT: FillIn[] = [
     title: "",
     folder: "_bubble-sort",
     file: "MinSwapsToTarget",
-    ops: [["minAdjacentSwapsToTarget(arr, target)", "N*log(N)"]],
+    ops: [["minAdjacentSwapsToTarget(sequence, target)", "N*log(N)"]],
     githubUrl: GITHUB,
   },
   {
@@ -25,7 +25,7 @@ export const BUBBLE_SORT: FillIn[] = [
     title: "",
     folder: "_bubble-sort",
     file: "MinSwapsToPalindrome",
-    ops: [["minAdjacentSwapsToPalindrome(s)", "N*log(N)"]],
+    ops: [["minAdjacentSwapsToPalindrome(sequence)", "N*log(N)"]],
     githubUrl: GITHUB,
   },
 ];

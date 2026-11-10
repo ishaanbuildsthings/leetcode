@@ -66,7 +66,8 @@ struct SparseClampTree {
     static bool isId(const Tag& t) { return t.hi == INF && t.lo == NEG && t.c == 0; }
 
     // tag o, then tag t
-    static Tag compose(const Tag& o, const Tag& t) { T h = std::min(t.hi, std::max(t.lo, o.hi == INF ? INF : o.hi + t.c));
+    static Tag compose(const Tag& o,
+        const Tag& t) { T h = std::min(t.hi, std::max(t.lo, o.hi == INF ? INF : o.hi + t.c));
         T l = std::min(std::max(t.lo, o.lo == NEG ? NEG : o.lo + t.c), h);
         return Tag{h, l, o.c + t.c}; }
 

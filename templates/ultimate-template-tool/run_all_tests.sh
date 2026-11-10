@@ -66,9 +66,23 @@ done
 run sets-catalog python3 set-tests/check_sets.py
 
 echo "== union find, strings"
-run union-find python3 union-find-tests/test_union_find.py "${LANGS[@]}"
+if [ "${#LANGS[@]}" -eq 2 ]; then run union-find python3 union-find-tests/test_union_find.py
+else run union-find python3 union-find-tests/test_union_find.py "${LANGS[0]}"; fi
 run strings python3 string-tests/test_strings.py
 run palindromes python3 string-tests/test_palindromes.py
+
+echo "== small folders: bit operations, matrices, bubble sort, generics, combinatorics, permutations, trees, bitset"
+run generic-brute-py python3 range-query-tests/test_generic_brute.py
+run matrices-py python3 matrices/tests/test_matrices.py
+run bubble-sort python3 range-query-tests/test_bubble_sort.py
+if [[ " ${LANGS[*]} " == *" --cpp "* ]]; then
+    run bit-operations bash bit-operations-tests/run_tests.sh
+    run generic-brute-cpp python3 range-query-tests/test_generic_brute_cpp.py
+    run matrices-cpp bash -c 'out=$(mktemp -d) && "$(python3 find_compiler.py)" -std=c++17 -O2 matrices/tests/test_matrices.cpp -o "$out/t" && "$out/t"'
+fi
+if [ "${#LANGS[@]}" -eq 1 ] && [ "${LANGS[0]}" = "--py" ]; then run misc python3 misc-tests/test_misc.py --py
+else run misc python3 misc-tests/test_misc.py; fi
+run line-length python3 format_long_lines.py --check
 
 echo
 echo "================ SUMMARY ($(( $(date +%s) - START ))s, logs in $LOGS/)"

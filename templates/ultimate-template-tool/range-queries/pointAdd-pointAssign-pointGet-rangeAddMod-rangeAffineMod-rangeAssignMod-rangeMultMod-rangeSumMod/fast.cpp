@@ -59,7 +59,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -92,7 +94,8 @@ struct AffineSumTree {
     LEETCODE_NO_SANITIZE void push(int p) {
         for (int s = h; s > 0; s--) {
             int x = p >> s, k = 1 << (s - 1);
-            if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]), mul[x] = 1, add[x] = 0;
+            if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]),
+                mul[x] = 1, add[x] = 0;
         }
     }
 
@@ -142,7 +145,8 @@ struct AffineSumTree {
         for (int s = h; s > 0; s--) {
             int k = 1 << (s - 1);
             for (int x = max(1, n >> s); x <= (2 * n - 1) >> s; x++)
-                if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]), mul[x] = 1, add[x] = 0;
+                if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]),
+                    mul[x] = 1, add[x] = 0;
         }
         return vector<T>(tot.begin() + n, tot.end());
     }

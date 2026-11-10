@@ -14,15 +14,15 @@ export const TREES: FillIn[] = [
   },
   {
     label: "Weighted edge list to rooted tree O(n)",
-    title: "Edges come as [a, b, w]; returns children[node] = [(child, weight), ...]. Root is 0, or 1 with zeroIndexed off",
+    title: "Edges come as [a, b, w], rooted at any node you pass; returns children[node] = [(child, weight), ...], sized to the largest label",
     folder: "_trees",
     file: "weightedEdgeListToTree",
-    ops: [["edgeListToTree(edgeList, zeroIndexed=True) -> children", "N"]],
+    ops: [["edgeListToTree(edgeList, root) -> children", "N"]],
     githubUrl: GITHUB,
   },
   {
     label: "Find centroids O(n)",
-    title: "The 1 or 2 centroids of an unrooted [a, b] edge list, sorted. Removing one leaves every piece at most n/2. Labels 0..n-1 or 1..n",
+    title: "The 1 or 2 centroids of an unrooted [a, b] edge list, sorted. Removing one leaves every piece at most n/2. Labels 0..n-1 or 1..n; needs at least one edge",
     folder: "_trees",
     file: "findCentroids",
     ops: [["findCentroids(edgeList) -> [centroid, ...]", "N"]],

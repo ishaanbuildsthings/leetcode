@@ -34,7 +34,7 @@ using ll = long long;
 template <typename T>
 struct SparseDistinctBIT {
     using OrderedSet = __gnu_pbds::tree<long long, __gnu_pbds::null_type, less<long long>, __gnu_pbds::rb_tree_tag,
-                                        __gnu_pbds::tree_order_statistics_node_update>;
+        __gnu_pbds::tree_order_statistics_node_update>;
     // splitmix64 with a random per-run offset: anti-hash tests can't predict buckets, so the tables stay O(1)
     struct SafeHash {
         size_t operator()(long long x) const {
@@ -126,7 +126,8 @@ struct SparseDistinctBIT {
             set<long long>& to = chains[v];
             auto jt = to.insert(i).first;
             auto nx = next(jt);
-            if (jt != to.begin()) setNxt(*prev(jt), i);  // move the predecessor off the successor first, then hand it to i
+            // move the predecessor off the successor first, then hand it to i
+            if (jt != to.begin()) setNxt(*prev(jt), i);
             setNxt(i, nx == to.end() ? none : *nx);
             vals[i] = v;
         } else {

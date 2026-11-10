@@ -44,7 +44,8 @@ class DoubleEndedEertree:
         front = self.front
         return front[len(front) - 1 - i] if i < len(front) else self.back[i - len(front)]
 
-    # the node x + cur + x, made if new (x salted); fits(t) says whether x + t + x fits on this side (for the new node's link)
+    # the node x + cur + x, made if new (x salted); fits(t) says whether x + t + x fits on this side (for the new node's
+    # link)
     def _child(self, cur, x, fits):
         palLen, palLink, nxt = self.palLen, self.palLink, self.nxt
         node = nxt[cur].get(x)

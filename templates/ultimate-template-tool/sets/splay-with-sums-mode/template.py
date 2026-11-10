@@ -64,7 +64,8 @@ from random import getrandbits
 
 
 class SplayMultiset:
-    __slots__ = ("K", "C", "Z", "S", "L", "R", "P", "free", "root", "n", "bk", "bkAt", "fh", "fhAt", "salt", "total", "d")
+    __slots__ = ("K", "C", "Z", "S", "L", "R", "P", "free", "root", "n", "bk", "bkAt", "fh", "fhAt", "salt", "total",
+        "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -309,7 +310,8 @@ class SplayMultiset:
         if gone:
             self._swapFreq(gone, 0)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)
@@ -582,7 +584,9 @@ class SplayMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
     # O(logN amortized) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -590,7 +594,9 @@ class SplayMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
     # O(logN amortized) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k

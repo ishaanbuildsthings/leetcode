@@ -108,7 +108,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -123,7 +125,8 @@ struct SqrtSequence {
         vector<int> pos;  // pos[k] = where srt[k] sits in vals
         vector<S> pf;     // pf[k] = srt[0] + ... + srt[k - 1]
         int sz = 0;
-        T add = 0, floor = NINF, ceil = INF;  // each value reads clamp(stored + add, floor, ceil); floor == ceil: assigned
+        // each value reads clamp(stored + add, floor, ceil); floor == ceil: assigned
+        T add = 0, floor = NINF, ceil = INF;
         bool rev = false;
     };
     HotVector<Block> blocks;
@@ -135,10 +138,13 @@ struct SqrtSequence {
     // O(N log N) -- arr: the initial array
     explicit SqrtSequence(const vector<T>& arr) : n((int)arr.size()) {
         B = targetBlockSize(n), nAtTidy = n;
-        for (int i = 0; i < n; i += B) blocks.push_back(makeBlock(vector<T>(arr.begin() + i, arr.begin() + min(n, i + B))));
+        for (int i = 0; i < n;
+            i += B) blocks.push_back(makeBlock(vector<T>(arr.begin() + i, arr.begin() + min(n, i + B))));
     }
 
-    LEETCODE_NO_SANITIZE static int targetBlockSize(int len) { return max(1, (int)(0.7 * sqrt(len * log2(len + 2.0)))); }
+    LEETCODE_NO_SANITIZE static int targetBlockSize(int len) {
+        return max(1, (int)(0.7 * sqrt(len * log2(len + 2.0))));
+    }
 
     LEETCODE_NO_SANITIZE static void buildPf(Block& b) {
         b.pf.resize(b.srt.size() + 1);
@@ -151,7 +157,8 @@ struct SqrtSequence {
         int sz = (int)vals.size();
         b.pos.resize(sz);
         iota(b.pos.begin(), b.pos.end(), 0);
-        sort(b.pos.begin(), b.pos.end(), [&](int x, int y) { return vals[x] < vals[y] || (vals[x] == vals[y] && x < y); });
+        sort(b.pos.begin(), b.pos.end(),
+            [&](int x, int y) { return vals[x] < vals[y] || (vals[x] == vals[y] && x < y); });
         b.srt.resize(sz);
         for (int k = 0; k < sz; k++) b.srt[k] = vals[b.pos[k]];
         b.vals = move(vals);
@@ -200,8 +207,10 @@ struct SqrtSequence {
         if (k <= 0) return 0;
         if (assigned(b)) return S(b.floor) * k;
         // lt stored values read as the floor, those from keep on read as the ceiling
-        int lt = b.floor == NINF ? 0 : int(lower_bound(b.srt.begin(), b.srt.end(), b.floor, [&](T v, T y) { return v + b.add < y; }) - b.srt.begin());
-        int keep = b.ceil == INF ? b.sz : int(upper_bound(b.srt.begin(), b.srt.end(), b.ceil, [&](T y, T v) { return y < v + b.add; }) - b.srt.begin());
+        int lt = b.floor == NINF ? 0 : int(lower_bound(b.srt.begin(), b.srt.end(), b.floor,
+            [&](T v, T y) { return v + b.add < y; }) - b.srt.begin());
+        int keep = b.ceil == INF ? b.sz : int(upper_bound(b.srt.begin(), b.srt.end(), b.ceil,
+            [&](T y, T v) { return y < v + b.add; }) - b.srt.begin());
         S res = 0;
         int fl = min(k, lt);
         res += S(b.floor) * fl;  // (fl is 0 when there is no floor)
@@ -249,7 +258,8 @@ struct SqrtSequence {
             if (assigned(b)) {
                 right.pf.assign(1, 0);
             } else {
-                int cutAt = b.rev ? sz - k : k;  // stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+                // stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+                int cutAt = b.rev ? sz - k : k;
                 vector<T> lowSrt, highSrt;
                 vector<int> lowPos, highPos;
                 lowSrt.reserve(cutAt), lowPos.reserve(cutAt), highSrt.reserve(sz - cutAt), highPos.reserve(sz - cutAt);
@@ -796,7 +806,8 @@ struct SqrtSequence {
     LEETCODE_NO_SANITIZE void paste(int i, SqrtSequence& other) {
         if (i < 0 || i > n) throw out_of_range("paste: needs 0 <= i <= size()");
         int j = splitAt(i);
-        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()), make_move_iterator(other.blocks.end()));
+        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()),
+            make_move_iterator(other.blocks.end()));
         n += other.n;
         other.blocks.clear(), other.n = 0;
         normalize();

@@ -37,7 +37,7 @@ using ll = long long;
 template <typename T>
 struct DynamicOccurrenceLists {
     using IndexSet = __gnu_pbds::tree<int, __gnu_pbds::null_type, less<int>, __gnu_pbds::rb_tree_tag,
-                                      __gnu_pbds::tree_order_statistics_node_update>;
+        __gnu_pbds::tree_order_statistics_node_update>;
     vector<T> a;
     map<T, IndexSet> pos;
 

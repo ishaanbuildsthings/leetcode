@@ -130,7 +130,9 @@ struct TreapMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; S s; unsigned prio; int l, r; };  // copies; copies, sum below
@@ -212,7 +214,8 @@ struct TreapMultiset {
     }
 
     FlatPool<int> path;  // scratch for insert: the nodes it walked through
-    LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count; a value already present never needs a split or merge
+    LEETCODE_NO_SANITIZE long long insert(T x, long long c) {
+        // returns x's new count; a value already present never needs a split or merge
         path.clear();
         int t = root, cur;
         while (t) {
@@ -237,7 +240,8 @@ struct TreapMultiset {
             d++;
             f = pool[m].c = c;
             int i = 0, walked = int(path.size());
-            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;  // the new node goes where its priority belongs
+            // the new node goes where its priority belongs
+            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;
             if (i < walked) {
                 int a, b;
                 split(path[i], x, a, b);
@@ -329,7 +333,8 @@ struct TreapMultiset {
     }
 
 
-    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, both medians current
+    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {
+        // c copies of x (c < 0 removes); keeps min / max, both medians current
         n += c;
         total += S(c) * x;
         long long f = insert(x, c);  // x's new count
@@ -603,7 +608,8 @@ struct TreapMultiset {
     // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE S sumKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(n - kFrom + 1) - sumFirst(n - kTo);
     }
 
@@ -611,7 +617,8 @@ struct TreapMultiset {
     // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE S sumKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(kTo) - sumFirst(kFrom - 1);
     }
 

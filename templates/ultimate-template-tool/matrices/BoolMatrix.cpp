@@ -61,12 +61,15 @@ struct BoolMatrix {
         return res;
     }
 
-    bool operator==(const BoolMatrix& other) const { return rows == other.rows && cols == other.cols && bits == other.bits; }
+    bool operator==(const BoolMatrix& other) const {
+        return rows == other.rows && cols == other.cols && bits == other.bits;
+    }
 
     // A[x, y] * B[y, z] = C[x, z]
     // O(x*y*z / 64)
     friend BoolMatrix operator*(const BoolMatrix& A, const BoolMatrix& B) {
-        if (A.cols != B.rows) throw invalid_argument("matmul shape mismatch: [" + to_string(A.rows) + ", " + to_string(A.cols) + "] * [" + to_string(B.rows) + ", " + to_string(B.cols) + "]");
+        if (A.cols != B.rows) throw invalid_argument("matmul shape mismatch: [" + to_string(A.rows) + ", "
+            + to_string(A.cols) + "] * [" + to_string(B.rows) + ", " + to_string(B.cols) + "]");
         BoolMatrix C(A.rows, B.cols);
         for (int i = 0; i < A.rows; i++) mulRowInto(A.row(i), A.words, B, C.row(i));
         return C;
@@ -75,7 +78,8 @@ struct BoolMatrix {
     // vec[1, x] * M[x, y] = vec[1, y], vec of 0/1
     // O(x*y / 64)
     friend vector<int> operator*(const vector<int>& vec, const BoolMatrix& M) {
-        if ((int)vec.size() != M.rows) throw invalid_argument("vecmat shape mismatch: [1, " + to_string(vec.size()) + "] * [" + to_string(M.rows) + ", " + to_string(M.cols) + "]");
+        if ((int)vec.size() != M.rows) throw invalid_argument("vecmat shape mismatch: [1, " + to_string(vec.size())
+            + "] * [" + to_string(M.rows) + ", " + to_string(M.cols) + "]");
         vector<uint64_t> in((M.rows + 63) / 64), out(M.words);
         for (int k = 0; k < M.rows; k++) {
             if (vec[k]) in[k >> 6] |= 1ULL << (k & 63);
@@ -141,6 +145,7 @@ private:
 #pragma GCC pop_options
 
     void requireSquare(const char* what) const {
-        if (rows != cols) throw invalid_argument(string(what) + " needs a square matrix, got [" + to_string(rows) + ", " + to_string(cols) + "]");
+        if (rows != cols) throw invalid_argument(string(what) + " needs a square matrix, got [" + to_string(rows)
+            + ", " + to_string(cols) + "]");
     }
 };

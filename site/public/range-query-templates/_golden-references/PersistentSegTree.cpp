@@ -1,9 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/golden-references/PersistentSegTree.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
 #include<bits/stdc++.h>
 using namespace std;
 using ll = long long;

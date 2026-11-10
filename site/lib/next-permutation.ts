@@ -40,7 +40,7 @@ export const NEXT_PERMUTATION: FillIn[] = [
   },
   {
     label: "Next permutation, steps ahead O(n log n)",
-    title: "",
+    title: "Needs steps >= 0. O(n log n) while steps fits in 64 bits; a far larger steps in Python also pays for big integers",
     folder: "_next-permutation",
     file: "NextPermutationSteps",
     ops: [["nextPermutation(arr, steps)", "N*log(N)"]],

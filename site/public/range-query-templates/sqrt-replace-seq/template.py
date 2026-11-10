@@ -37,6 +37,7 @@
 #   note: blocks of about sqrt(N) values; each block's values are classes joined by a union-find (union by size, path halving: O(alpha), counted as O(1)); where maps each value in the block to its class; values are hashed, so any values work
 
 from math import isqrt
+from random import getrandbits
 
 # Blocks whose values form a union-find of classes (mass change, CF 911G, in O(sqrt(N)), with sequence edits): the
 # array is cut into blocks of about sqrt(N) values. Inside a block equal values form a class, and the classes are
@@ -49,16 +50,19 @@ class _Block:
     # a run of the array: cls[k] is the class of its k-th value. Classes form a union-find (par);
     # a root class holds its value (val) and how many of the block's values are in it (cnt). where: value -> root class
     __slots__ = ("cls", "par", "val", "cnt", "where")
+    salt = getrandbits(62)  # where's int keys are salted with this, so no fixed input can make them collide
 
     def __init__(self, vals):
         self.build(vals)
 
     def build(self, vals):  # O(len) -- the classes from scratch
         where, par, val, cnt, cls = {}, [], [], [], []
+        salt = self.salt
         for v in vals:
-            c = where.get(v)
+            key = v ^ salt if type(v) is int else v
+            c = where.get(key)
             if c is None:
-                c = where[v] = len(par)
+                c = where[key] = len(par)
                 par.append(c)
                 val.append(v)
                 cnt.append(0)
@@ -84,26 +88,29 @@ class _Block:
         return out
 
     def count(self, x):  # how many x's
-        c = self.where.get(x)
+        c = self.where.get(x ^ self.salt if type(x) is int else x)
         return self.cnt[c] if c is not None else 0
 
     def replace(self, x, y):  # O(1) -- every x becomes y: x's class is renamed, or joined to y's
-        cx = self.where.pop(x, None)
+        salt = self.salt
+        cx = self.where.pop(x ^ salt if type(x) is int else x, None)
         if cx is None:
             return
-        cy = self.where.get(y)
+        ky = y ^ salt if type(y) is int else y
+        cy = self.where.get(ky)
         if cy is None:
             self.val[cx] = y
-            self.where[y] = cx
+            self.where[ky] = cx
             return
         if self.cnt[cx] > self.cnt[cy]:  # (union by size)
             cx, cy = cy, cx
         self.par[cx] = cy
         self.cnt[cy] += self.cnt[cx]
         self.val[cy] = y
-        self.where[y] = cy
+        self.where[ky] = cy
 
-    def assignAll(self, v):  # every value becomes v: every class joined into one (O(1) amortized: each join removes one)
+    def assignAll(self, v):
+        # every value becomes v: every class joined into one (O(1) amortized: each join removes one)
         roots = list(self.where.values())
         r = max(roots, key=lambda c: self.cnt[c])
         for c in roots:
@@ -111,7 +118,7 @@ class _Block:
                 self.par[c] = r
                 self.cnt[r] += self.cnt[c]
         self.val[r] = v
-        self.where = {v: r}
+        self.where = {v ^ self.salt if type(v) is int else v: r}
 
     def assign(self, k, v):  # O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
         c = self.find(self.cls[k])
@@ -119,11 +126,13 @@ class _Block:
         if old == v:
             return
         self.cnt[c] -= 1
+        salt = self.salt
         if not self.cnt[c]:
-            del self.where[old]
-        d = self.where.get(v)
+            del self.where[old ^ salt if type(old) is int else old]
+        key = v ^ salt if type(v) is int else v
+        d = self.where.get(key)
         if d is None:
-            d = self.where[v] = len(self.par)
+            d = self.where[key] = len(self.par)
             self.par.append(d)
             self.val.append(v)
             self.cnt.append(0)
@@ -208,7 +217,8 @@ class SqrtReplace:
     def rightmostIndexOf(self, x):
         return self._find(0, self.n - 1, x, False)
 
-    # O(sqrt(N)) amortized -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # O(sqrt(N)) amortized -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r <
+    # size(), else
     # IndexError
     def leftmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.size():
@@ -216,7 +226,8 @@ class SqrtReplace:
                              f"l = {l}, r = {r}, n = {self.size()}")
         return self._find(l, r, x, True)
 
-    # O(sqrt(N)) amortized -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # O(sqrt(N)) amortized -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r <
+    # size(), else
     # IndexError
     def rightmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.size():
@@ -345,7 +356,8 @@ class SqrtReplace:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")

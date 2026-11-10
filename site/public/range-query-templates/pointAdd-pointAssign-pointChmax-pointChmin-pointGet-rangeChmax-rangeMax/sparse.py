@@ -40,7 +40,8 @@ def _compose(o, t):  # tag o, then tag t; the maps compose into the same form
     return h, min(max(t[1], o[1] + t[2]), h), o[2] + t[2]
 
 
-# Range chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
+# Range chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every
+# position starts at 0.
 # A tag is the map x -> min(hi, max(lo, x + add)), kept as (hi, lo, add); these maps compose into the same form,
 # and each is monotone, so it sends a node's min / max straight to the new min / max.
 # Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they

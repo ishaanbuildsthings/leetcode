@@ -85,13 +85,15 @@ using ll = long long;
 //   note: per add of a new value, one node per bit of its path; U = 2^bits. Each multiset owns its nodes (clear() keeps the arrays' capacity)
 
 // Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
-// how many copies, how many distinct values, their xor are below it. Besides the usual ordered queries it answers questions
+// how many copies, how many distinct values, their xor are below it. Besides the usual ordered queries it answers
+// questions
 // about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, mex) by walking one bit
 // per level, so O(bits) each. Each multiset owns its node arrays (node 0 = empty, node 1 = the root); nodes are never
 // removed. T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct TrieMultiset {
-    static constexpr T NONE = -1;  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    static constexpr T NONE = -1;
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int B;
     long long top;  // the largest value it can hold
@@ -176,7 +178,8 @@ struct TrieMultiset {
         return res;
     }
 
-    long long extreme(int t, int h, long long key, bool big) const {  // bits h..0 of the largest (big) / smallest stored value ^ key below t
+    long long extreme(int t, int h, long long key, bool big) const {
+        // bits h..0 of the largest (big) / smallest stored value ^ key below t
         long long res = 0;
         for (; h >= 0; h--) {
             int pb = int(key >> h & 1) ^ int(big);  // the child whose result bit is 1 (big) / 0
@@ -243,7 +246,8 @@ struct TrieMultiset {
         return res;
     }
 
-    optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {  // the largest (big) / smallest v ^ x over the values v in [lo, hi]
+    optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {
+        // the largest (big) / smallest v ^ x over the values v in [lo, hi]
         lo = std::max(lo, 0LL), hi = std::min(hi, top);
         if (lo > hi) return nullopt;
         long long mk = 0, key = x ^ mk;  // v ^ x = stored value ^ key
@@ -284,7 +288,8 @@ struct TrieMultiset {
             if (f) bk[f].insert(x);
         }
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
                 long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
@@ -312,7 +317,8 @@ struct TrieMultiset {
             if (x < mn) mn = x;
             if (x > mx) mx = x;
         } else {
-            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;  // the last copy of a value below the mex
+            // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;
             if (!n) return;
             if (!f) {  // x is gone: it may have been the min / max
                 if (x == mn) mn = kthAt(1);
@@ -739,7 +745,8 @@ struct TrieMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -747,7 +754,8 @@ struct TrieMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

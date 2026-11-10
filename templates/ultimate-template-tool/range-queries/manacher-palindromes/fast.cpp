@@ -52,7 +52,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -62,7 +64,8 @@ struct Manacher {
     int n;
     HotVector<T> A;
     HotVector<int> odd;  // odd[i]: the largest k with a[i-k+1..i+k-1] a palindrome (so at least 1)
-    HotVector<int> even;  // even[i]: the largest k with a[i-k..i+k-1] a palindrome (the centre is between a[i-1] and a[i]; 0 when none)
+    // even[i]: the largest k with a[i-k..i+k-1] a palindrome (the centre is between a[i-1] and a[i]; 0 when none)
+    HotVector<int> even;
 
     // O(N) -- arr: the array (non-empty); T: int, long long, char, ...
     explicit Manacher(const vector<T>& arr) : n((int)arr.size()), A(arr), odd(n, 0), even(n, 0) {
@@ -105,7 +108,8 @@ struct Manacher {
         return {i - k, i + k};
     }
 
-    // O(1) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty range,
+    // O(1) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // range,
     // when there is none (so also for i = n - 1); needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<int, int> longestPalCenteredAtIPlusOne(int i) const {
         if (i < 0 || i >= n) throw out_of_range("longestPalCenteredAtIPlusOne: needs 0 <= i < n");

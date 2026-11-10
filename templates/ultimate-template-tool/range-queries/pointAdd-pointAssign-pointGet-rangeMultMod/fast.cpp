@@ -52,7 +52,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -65,7 +67,8 @@ struct RangeMultModTree {
     HotVector<T> tree;  // tree[n + i] = a[i]; tree[1 .. n-1] = pending tag (identity T(1))
 
     // O(N)
-    explicit RangeMultModTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), tree(2 * a.size(), T(1)) {
+    explicit RangeMultModTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod),
+        tree(2 * a.size(), T(1)) {
         for (int i = 0; i < n; i++) tree[n + i] = T((a[i] % mod + mod) % mod);
     }
 

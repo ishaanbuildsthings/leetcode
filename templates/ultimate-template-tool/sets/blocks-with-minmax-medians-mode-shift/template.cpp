@@ -68,7 +68,9 @@ struct BlockMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
@@ -134,7 +136,8 @@ struct BlockMultiset {
                 d--, due--;
                 keys[k].erase(keys[k].begin() + j), cnts[k].erase(cnts[k].begin() + j);
                 if (keys[k].empty()) {  // the block is empty: drop it
-                    keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k), bc.erase(bc.begin() + k);
+                    keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k),
+                        bc.erase(bc.begin() + k);
                     stale = true;
                     return 0;
                 }

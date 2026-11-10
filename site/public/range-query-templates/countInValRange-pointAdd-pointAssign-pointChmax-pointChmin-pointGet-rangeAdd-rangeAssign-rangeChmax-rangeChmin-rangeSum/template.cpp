@@ -168,7 +168,8 @@ struct SqrtBlocks {
             auto [lt, gt] = clampedCounts(b);
             if (lt && low <= lazyChmax[b] && lazyChmax[b] <= high) res += lt;
             if (gt && low <= lazyChmin[b] && lazyChmin[b] <= high) res += gt;
-            // the untouched middle reads stored + add: count stored values in [low - add, high - add], in W so it can't overflow
+            // the untouched middle reads stored + add: count stored values in [low - add, high - add], in W so it can't
+            // overflow
             W add = lazyAdd[b];
             auto first = s.begin() + lt, last = s.begin() + (sz - gt);
             auto ub = upper_bound(first, last, W(high) - add, [](W x, T v) { return x < v; });
@@ -249,7 +250,8 @@ struct SqrtBlocks {
         pointAssign(i, pointGet(i) + delta);
     }
 
-    // O(sqrt(N)*log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(sqrt(N)*log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto sumAll() {
         if (n < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, n - 1);

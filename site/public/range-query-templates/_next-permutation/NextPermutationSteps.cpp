@@ -4,11 +4,14 @@
 using namespace std;
 using ll = long long;
 
-// Can pass in a vector of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be very large
-// Returns a new permutation in the same format, that many steps forward, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
+// Can pass in a vector of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can
+// be very large
+// Returns a new permutation in the same format, that many steps forward, with looping behavior around to the
+// lexicographical smallest permutation if we step past the lexicographical max
 template <typename Seq>
 Seq nextPermutation(Seq arrOrString, long long steps) {
     using i128 = __int128;
+    if (steps < 0) throw invalid_argument("nextPermutation: needs steps >= 0");
     int n = arrOrString.size();
     if (steps == 0) return arrOrString;
 
@@ -28,8 +31,10 @@ Seq nextPermutation(Seq arrOrString, long long steps) {
     i128 arrangements = 1, after = 0, afterNext = 0;
     int s = n;
     while (after < steps) {
-        if (s == 0) {  // fewer than steps arrangements come after arrOrString: loop around to the smallest and count on from there
-            long long r = (long long)((steps - after - 1) % arrangements);  // arrangements: how many in all (or more than steps)
+        if (s == 0) {
+            // fewer than steps arrangements come after arrOrString: loop around to the smallest and count on from there
+            // arrangements: how many in all (or more than steps)
+            long long r = (long long)((steps - after - 1) % arrangements);
             sort(arrOrString.begin(), arrOrString.end());
             return nextPermutation(arrOrString, r);
         }

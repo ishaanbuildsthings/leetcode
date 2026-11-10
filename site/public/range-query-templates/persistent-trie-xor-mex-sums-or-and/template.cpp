@@ -329,7 +329,8 @@ struct PersistentXorTrie {
         return r - l + 1 - lt(l, r, x);
     }
 
-    // O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    // O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    // size()
     long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("countInValRange", l, r);
         return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
@@ -465,7 +466,8 @@ struct PersistentXorTrie {
     // 0 <= l <= r < size() and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     long long sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {
         rangeCheck("sumKthSmallestRange", l, r);
-        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l
+            + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumKth(l, r, kTo) - sumKth(l, r, kFrom - 1);
     }
 
@@ -474,7 +476,8 @@ struct PersistentXorTrie {
     long long sumKthLargestRange(long long l, long long r, long long kFrom, long long kTo) const {
         rangeCheck("sumKthLargestRange", l, r);
         long long n = r - l + 1;
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumKth(l, r, n - kFrom + 1) - sumKth(l, r, n - kTo);
     }
 
@@ -485,62 +488,72 @@ struct PersistentXorTrie {
         return x * c - s + (sumAll(l, r) - s) - x * (r - l + 1 - c);
     }
 
-    // O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orLtX(long long l, long long r, long long x) const {
         rangeCheck("orLtX", l, r);
         return orIn(l, r, 0, x - 1);
     }
 
-    // O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orLteX(long long l, long long r, long long x) const {
         rangeCheck("orLteX", l, r);
         return orIn(l, r, 0, x);
     }
 
-    // O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orGtX(long long l, long long r, long long x) const {
         rangeCheck("orGtX", l, r);
         return orIn(l, r, x + 1, top);
     }
 
-    // O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orGteX(long long l, long long r, long long x) const {
         rangeCheck("orGteX", l, r);
         return orIn(l, r, x, top);
     }
 
-    // O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    // O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l
+    // <= r < size(), else
     // throws out_of_range
     long long orInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("orInValRange", l, r);
         return orIn(l, r, lowVal, highVal);
     }
 
-    // O(logU * logU) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    // size(), else throws out_of_range
     long long andLtX(long long l, long long r, long long x) const {
         rangeCheck("andLtX", l, r);
         return andIn(l, r, 0, x - 1);
     }
 
-    // O(logU * logU) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    // size(), else throws out_of_range
     long long andLteX(long long l, long long r, long long x) const {
         rangeCheck("andLteX", l, r);
         return andIn(l, r, 0, x);
     }
 
-    // O(logU * logU) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    // size(), else throws out_of_range
     long long andGtX(long long l, long long r, long long x) const {
         rangeCheck("andGtX", l, r);
         return andIn(l, r, x + 1, top);
     }
 
-    // O(logU * logU) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    // size(), else throws out_of_range
     long long andGteX(long long l, long long r, long long x) const {
         rangeCheck("andGteX", l, r);
         return andIn(l, r, x, top);
     }
 
-    // O(logU * logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
+    // O(logU * logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are
+    // none); needs 0 <= l <= r < size(), else
     // throws out_of_range
     long long andInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("andInValRange", l, r);
@@ -583,9 +596,11 @@ struct PersistentXorTrie {
         return cur;
     }
 
-    long long lt(long long l, long long r, long long k) const { return cntLt(l, r, k, 0); }  // # of values < k in a[l..r]
+    // # of values < k in a[l..r]
+    long long lt(long long l, long long r, long long k) const { return cntLt(l, r, k, 0); }
 
-    long long kth(long long l, long long r, long long k) const { return kthX(l, r, k, 0); }  // k-th smallest (1-indexed)
+    // k-th smallest (1-indexed)
+    long long kth(long long l, long long r, long long k) const { return kthX(l, r, k, 0); }
 
     long long sumAll(long long l, long long r) const { return nd[root[r + 1]].S - nd[root[l]].S; }
 
@@ -720,7 +735,8 @@ struct PersistentXorTrie {
     }
 
     // the largest (big = 1) / smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt. Walks down
-    // the bits lo and hi share, then splits: below lo's side only the lower bound matters, below hi's only the upper one
+    // the bits lo and hi share, then splits: below lo's side only the lower bound matters, below hi's only the upper
+    // one
     optional<long long> bestIn(long long l, long long r, long long x, long long lo, long long hi, int big) const {
         lo = max(lo, 0LL), hi = min(hi, top);
         if (lo > hi) return nullopt;
@@ -743,7 +759,8 @@ struct PersistentXorTrie {
     // below the node pair (a, b): the best v ^ x whose bits h..0 are >= (lower = 1) / <= bound's bits h..0, or nullopt;
     // res holds the result's bits above h. Along the path that matches bound, each step off it (to the side the bound
     // allows) is a free subtree: take it at once if its result bit beats the path's, else remember the deepest one
-    optional<long long> oneSide(int a, int b, int h, long long bound, long long x, int big, int lower, long long res) const {
+    optional<long long> oneSide(int a, int b, int h, long long bound, long long x, int big, int lower,
+        long long res) const {
         if (nd[a].C == nd[b].C) return nullopt;
         int fa = -1, fb = 0, fh = 0;
         long long fres = 0;

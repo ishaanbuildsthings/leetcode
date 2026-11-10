@@ -80,13 +80,15 @@ from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-# keeps its value, its copies, and the copies, xor, OR, AND and distinct values in its subtree; every operation splays the
+# keeps its value, its copies, and the copies, xor, OR, AND and distinct values in its subtree; every operation splays
+# the
 # last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
 # node 0 is the empty tree) and removed nodes are reused.
 
 
 class SplayMultiset:
-    __slots__ = ("K", "C", "Z", "X", "O", "A", "D", "L", "R", "P", "free", "root", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "xtotal", "salt", "d")
+    __slots__ = ("K", "C", "Z", "X", "O", "A", "D", "L", "R", "P", "free", "root", "n", "mn", "mx", "lowV", "lowB",
+        "lowC", "highV", "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "xtotal", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -99,7 +101,8 @@ class SplayMultiset:
         self.free = []  # removed nodes, reused first
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.xtotal = 0  # xor of all values (copies count)
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.mexV = 0  # the mex, kept current (0 for the empty set)
         self.root = self.n = self.d = 0
 
@@ -616,7 +619,9 @@ class SplayMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logN amortized) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive:
@@ -624,7 +629,9 @@ class SplayMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._andIn(self._kth(kFrom), self._kth(kTo))
 
     # O(logN amortized) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values
@@ -779,7 +786,9 @@ class SplayMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def orOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logN amortized) -- bitwise OR of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive:
@@ -787,7 +796,9 @@ class SplayMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def orOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(kFrom), self._kth(kTo))
 
     # O(logN amortized) -- bitwise OR of the k largest values; k is a COUNT, not an index: k = 0 takes no values
@@ -917,7 +928,9 @@ class SplayMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def xorOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
 
     # O(logN amortized) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -925,7 +938,9 @@ class SplayMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def xorOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
 
     # O(logN amortized) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k

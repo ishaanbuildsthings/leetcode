@@ -95,7 +95,7 @@ class _PieceCost:
 
 
 def _pieces(lo, hi, pts, c):
-    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for given values pts over [lo, hi]."""
+    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for strict costs) for given values pts over [lo, hi]."""
     starts, v, w, slope = [], [], [], []
     prev = lo - 1
     for i, x in pts:

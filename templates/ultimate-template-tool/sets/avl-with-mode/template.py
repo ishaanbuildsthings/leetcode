@@ -46,7 +46,8 @@
 from random import getrandbits
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
-# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies
+# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
+# the copies
 # in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
 # nodes are reused.
 
@@ -242,7 +243,8 @@ class AVLMultiset:
         if gone:
             self._swapFreq(gone, 0)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)

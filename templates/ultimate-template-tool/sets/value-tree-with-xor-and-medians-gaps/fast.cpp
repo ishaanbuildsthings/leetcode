@@ -141,7 +141,9 @@ struct ValueTreeMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { long long c; T xr; T andv = ~T(0); int l, r; };  // copies, xor, AND below
@@ -267,7 +269,8 @@ struct ValueTreeMultiset {
         long long f = insert(x, c);  // x's new count
         long long g = f - c;  // x's old count
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
                 long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
@@ -346,14 +349,16 @@ struct ValueTreeMultiset {
         return k & 1 ? T(res ^ T(a)) : res;  // k copies of the leaf's value left
     }
 
-    LEETCODE_NO_SANITIZE T andWalk(int y, long long a, long long b, long long ql, long long qr) const {  // AND of node y's values in [ql, qr]
+    LEETCODE_NO_SANITIZE T andWalk(int y, long long a, long long b, long long ql, long long qr) const {
+        // AND of node y's values in [ql, qr]
         if (!y || qr < a || b < ql) return ~T(0);
         if (ql <= a && b <= qr) return pool[y].andv;
         long long m = a + (b - a) / 2;
         return andWalk(pool[y].l, a, m, ql, qr) & andWalk(pool[y].r, m + 1, b, ql, qr);
     }
 
-    LEETCODE_NO_SANITIZE T andIn(T ql, T qr) const { return andWalk(root, lo, hi, ql, qr); }  // AND of the values in [ql, qr]
+    // AND of the values in [ql, qr]
+    LEETCODE_NO_SANITIZE T andIn(T ql, T qr) const { return andWalk(root, lo, hi, ql, qr); }
     LEETCODE_NO_SANITIZE T andLe(T x) const { return andWalk(root, lo, hi, lo, x); }  // AND of the values <= x
     LEETCODE_NO_SANITIZE T andGe(T x) const { return andWalk(root, lo, hi, x, hi); }  // AND of the values >= x
 
@@ -392,7 +397,8 @@ struct ValueTreeMultiset {
     // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T andOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(n - kTo + 1);
         return andIn(a, kthAt(n - kFrom + 1));
     }
@@ -401,7 +407,8 @@ struct ValueTreeMultiset {
     // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T andOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(kFrom);
         return andIn(a, kthAt(kTo));
     }
@@ -651,7 +658,8 @@ struct ValueTreeMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -659,7 +667,8 @@ struct ValueTreeMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

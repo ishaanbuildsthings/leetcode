@@ -29,9 +29,11 @@ using ll = long long;
 //   other: none
 //   note: tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))
 
-// Range add / assign / chmin / chmax with range min / max queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
+// Range add / assign / chmin / chmax with range min / max queries, plus point ops. All indices 0-based, ranges
+// inclusive [l, r].
 // Iterative 2N lazy tree: values on the leaves, a tag on each internal node meaning "applied here, not yet pushed
-// to my children". The tag is the map x -> min(hi, max(lo, x + add)); these maps compose into the same form, and each is
+// to my children". The tag is the map x -> min(hi, max(lo, x + add)); these maps compose into the same form, and each
+// is
 // monotone, so it sends a node's min / max straight to the new min / max.
 // Assign v is the clamp with hi = lo = v.
 // An update pushes the tags on its two boundary paths, tags the covering nodes, then rebuilds the two paths.
@@ -64,7 +66,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -77,11 +81,13 @@ struct ClampMinMaxTree {
     HotVector<T> hi, lo, add;  // N: tags on internal nodes
 
     // O(N)
-    explicit ClampMinMaxTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit ClampMinMaxTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         mn.assign(2 * n, INF);
         mx.assign(2 * n, NEG);
         for (int i = 0; i < n; i++) mn[n + i] = mx[n + i] = a[i];
-        for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]), mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);
+        for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]),
+            mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);
         hi.assign(n, INF);
         lo.assign(n, NEG);
         add.assign(n, 0);

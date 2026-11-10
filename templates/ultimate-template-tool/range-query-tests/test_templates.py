@@ -1203,15 +1203,33 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
     missing = [o for o in ops if owner(o, table) is None]
     if missing:
         raise RuntimeError(f"{stem}.py has no method for {missing}")
+    def can_start_empty(cls):  # (an optional initial array and append: then every other trial starts empty and appends)
+        try:
+            first = next(iter(list(inspect.signature(cls.__init__).parameters.values())[1:]), None)
+        except (TypeError, ValueError):
+            return False
+        return first is not None and first.default is not inspect.Parameter.empty and hasattr(cls, "append")
+
+    def build(name, a0, extra, k):
+        cls = classes[name]
+        if stem == "sparse":
+            return cls(*a0, *extra)
+        if k % 2 and not extra and can_start_empty(cls):  # (regression: values typed only once they arrive, e.g. chars)
+            obj = cls()
+            for v in a0:
+                obj.append(v)
+            return obj
+        return cls(list(a0), *extra)
+
     out = []
-    for a0, seq in trials:
+    for k, (a0, seq) in enumerate(trials):
         objs, pieces = {}, []
         extra = trial_extra(ctor_extra, seq)
         for op, args in seq:
             if op.startswith("!"):  # (must raise IndexError)
                 name = owner(op[1:], table)
                 if name not in objs:
-                    objs[name] = classes[name](*a0, *extra) if stem == "sparse" else classes[name](list(a0), *extra)
+                    objs[name] = build(name, a0, extra, k)
                 try:
                     res = getattr(objs[name], op[1:])(*args)
                     out.append(f"no error, returned {norm(res)}")
@@ -1221,7 +1239,7 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
             name = owner(op, table)
             if op in PIECE_OPS:
                 if name not in objs:  # (built once: a throwaway build would still share the class's node pool)
-                    objs[name] = classes[name](list(a0), *extra)
+                    objs[name] = build(name, a0, extra, k)
                 obj = objs[name]
                 if op == "cut":
                     pieces.append(obj.cut(*args))
@@ -1243,7 +1261,7 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
                         obj.merge(piece)
                 continue
             if name not in objs:
-                objs[name] = classes[name](*a0, *extra) if stem == "sparse" else classes[name](list(a0), *extra)
+                objs[name] = build(name, a0, extra, k)
             if op in ("rangeHash", "rangeHashReversed"):
                 res = getattr(objs[name], op)(*args[:2]) == objs[name].rangeHash(*args[2:])
             elif op == "hashAll":  # (against the hash of a[l..r]: equal only when that is the whole array)

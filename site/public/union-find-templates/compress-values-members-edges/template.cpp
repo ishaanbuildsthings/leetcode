@@ -138,7 +138,8 @@ struct DSU {
     // O(α(n)) amortized, the largest value in i's component
     T componentMax(int i) { return cmax[find(i)]; }
 
-    // O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an edge
+    // O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an
+    // edge
     int edgeCount(int i) { return edges[find(i)]; }
 
     // O(α(n)) amortized, true if i's component has no cycle: exactly size - 1 edges

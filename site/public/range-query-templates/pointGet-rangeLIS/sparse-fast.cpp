@@ -50,7 +50,8 @@ struct RangeLIS {
         int m = n >> 1;
         int *rank = take(n), *colsLo = take(m), *colsHi = take(n - m), *rowsLo = take(m), *rowsHi = take(n - m);
         int *PLo = take(m), *PHi = take(n - m), *QLo = take(m), *QHi = take(n - m), *RLo = take(m), *RHi = take(n - m);
-        int *rowCol = take(n), *colRow = take(n), *below = take(n + 2), *flags = take(n);  // flags: bit 0 row is lo, bit 1 col is lo
+        // flags: bit 0 row is lo, bit 1 col is lo
+        int *rowCol = take(n), *colRow = take(n), *below = take(n + 2), *flags = take(n);
         fill(flags, flags + n, 0);
         for (int j = 0; j < m; j++) flags[Q[j]] |= 2;  // temporarily: column of Q is in the lo half
         int cl = 0, ch = 0, rl = 0, rh = 0;
@@ -239,8 +240,10 @@ struct RangeLIS {
 
 // ======================================================================================== sparse wrapper
 
-// Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
-// of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per gap,
+// Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range
+// [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
+// of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per
+// gap,
 // and a query maps l and r to the compressed elements containing them.
 // FAST MODE drawbacks compared with sparse.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -270,7 +273,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -283,7 +288,8 @@ struct SparseStaticLIS {
     RangeLIS<T> inner;
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparseStaticLIS(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(compress(values)) {}
+    SparseStaticLIS(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi),
+        inner(compress(values)) {}
 
     LEETCODE_NO_SANITIZE vector<T> compress(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
@@ -299,7 +305,9 @@ struct SparseStaticLIS {
         return arr;
     }
 
-    LEETCODE_NO_SANITIZE int element(long long i) const { return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1; }
+    LEETCODE_NO_SANITIZE int element(long long i) const {
+        return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1;
+    }
 
     // O(logN) -- range lis of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE int rangeLIS(long long l, long long r) const {

@@ -148,7 +148,8 @@ class SqrtSequence:
         if b.assigned:
             right.vals, right.srt, right.pos, right.sum = [], [], [], 0
         else:
-            cutAt = sz - k if b.rev else k  # stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+            # stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+            cutAt = sz - k if b.rev else k
             ls, lp, hs, hp = [], [], [], []
             for v, p in zip(b.srt, b.pos):
                 if p < cutAt:

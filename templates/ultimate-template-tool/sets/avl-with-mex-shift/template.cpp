@@ -51,9 +51,11 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
-// height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies
+// height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
+// the copies
 // and distinct values in its subtree. Each multiset owns its node pool (freed when it goes out of
-// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
+// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums
+// in S.
 template <typename T>
 struct AVLMultiset {
     template <class K>
@@ -61,7 +63,9 @@ struct AVLMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; long long dn; int h, l, r; };  // copies; copies, distinct below; height
@@ -223,7 +227,8 @@ struct AVLMultiset {
     // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     long long findMex() {
         T base = -off;  // (stored as v - off: the real values >= 0 are the stored ones >= -off)
-        long long c0 = distinctLt(base), before = -c0, res = d - c0;  // before: distinct values >= 0 left of t's subtree
+        // before: distinct values >= 0 left of t's subtree
+        long long c0 = distinctLt(base), before = -c0, res = d - c0;
         int t = root;
         while (t) {
             long long j = before + pool[pool[t].l].dn;

@@ -305,7 +305,8 @@ class SortedRunsSumMaxSeq:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    # raises IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -313,13 +314,15 @@ class SortedRunsSumMaxSeq:
         self.cut(0, 0)
         return v
 
-    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def sumAll(self):
         if self.size() < 1:
             raise IndexError("sumAll: needs n >= 1")
         return self.rangeSum(0, self.size() - 1)
 
-    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def maxAll(self):
         if self.size() < 1:
             raise IndexError("maxAll: needs n >= 1")

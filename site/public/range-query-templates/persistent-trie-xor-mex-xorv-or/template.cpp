@@ -317,7 +317,8 @@ struct PersistentXorTrie {
         return r - l + 1 - lt(l, r, x);
     }
 
-    // O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    // O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    // size()
     long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("countInValRange", l, r);
         return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
@@ -426,38 +427,44 @@ struct PersistentXorTrie {
         return xorAll(l, r) ^ xorLt(l, r, x);
     }
 
-    // O(logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal); needs
+    // O(logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal);
+    // needs
     // 0 <= l <= r < size()
     long long xorInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("xorInValRange", l, r);
         return lowVal <= highVal ? xorLt(l, r, highVal + 1) ^ xorLt(l, r, lowVal) : 0;
     }
 
-    // O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orLtX(long long l, long long r, long long x) const {
         rangeCheck("orLtX", l, r);
         return orIn(l, r, 0, x - 1);
     }
 
-    // O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orLteX(long long l, long long r, long long x) const {
         rangeCheck("orLteX", l, r);
         return orIn(l, r, 0, x);
     }
 
-    // O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orGtX(long long l, long long r, long long x) const {
         rangeCheck("orGtX", l, r);
         return orIn(l, r, x + 1, top);
     }
 
-    // O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     long long orGteX(long long l, long long r, long long x) const {
         rangeCheck("orGteX", l, r);
         return orIn(l, r, x, top);
     }
 
-    // O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    // O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l
+    // <= r < size(), else
     // throws out_of_range
     long long orInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("orInValRange", l, r);
@@ -498,9 +505,11 @@ struct PersistentXorTrie {
         return cur;
     }
 
-    long long lt(long long l, long long r, long long k) const { return cntLt(l, r, k, 0); }  // # of values < k in a[l..r]
+    // # of values < k in a[l..r]
+    long long lt(long long l, long long r, long long k) const { return cntLt(l, r, k, 0); }
 
-    long long kth(long long l, long long r, long long k) const { return kthX(l, r, k, 0); }  // k-th smallest (1-indexed)
+    // k-th smallest (1-indexed)
+    long long kth(long long l, long long r, long long k) const { return kthX(l, r, k, 0); }
 
     long long xorAll(long long l, long long r) const { return nd[root[r + 1]].X ^ nd[root[l]].X; }
 
@@ -605,7 +614,8 @@ struct PersistentXorTrie {
     }
 
     // the largest (big = 1) / smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt. Walks down
-    // the bits lo and hi share, then splits: below lo's side only the lower bound matters, below hi's only the upper one
+    // the bits lo and hi share, then splits: below lo's side only the lower bound matters, below hi's only the upper
+    // one
     optional<long long> bestIn(long long l, long long r, long long x, long long lo, long long hi, int big) const {
         lo = max(lo, 0LL), hi = min(hi, top);
         if (lo > hi) return nullopt;
@@ -628,7 +638,8 @@ struct PersistentXorTrie {
     // below the node pair (a, b): the best v ^ x whose bits h..0 are >= (lower = 1) / <= bound's bits h..0, or nullopt;
     // res holds the result's bits above h. Along the path that matches bound, each step off it (to the side the bound
     // allows) is a free subtree: take it at once if its result bit beats the path's, else remember the deepest one
-    optional<long long> oneSide(int a, int b, int h, long long bound, long long x, int big, int lower, long long res) const {
+    optional<long long> oneSide(int a, int b, int h, long long bound, long long x, int big, int lower,
+        long long res) const {
         if (nd[a].C == nd[b].C) return nullopt;
         int fa = -1, fb = 0, fh = 0;
         long long fres = 0;

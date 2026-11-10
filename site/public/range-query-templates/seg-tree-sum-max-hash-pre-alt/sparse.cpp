@@ -426,8 +426,8 @@ struct SparseSegTree {
         nd[x].sm = nd[a].sm + nd[b].sm;
         nd[x].mx = max(nd[a].mx, nd[b].mx);
         nd[x].fh = hadd(hmul(nd[a].fh, PW[s - 1]), nd[b].fh), nd[x].bh = hadd(hmul(nd[b].bh, PW[s - 1]), nd[a].bh);
-        array<S,
-            4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11}, {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
+        array<S, 4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11},
+            {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
         nd[x].a00 = c[0], nd[x].a01 = c[1], nd[x].a10 = c[2], nd[x].a11 = c[3];
     }
 };

@@ -84,7 +84,9 @@ struct SparseMaxSubarrayTree {
         return x;
     }
 
-    static Agg merge(const Agg& a, const Agg& b) { return Agg{a.sm + b.sm, max(a.pre, a.sm + b.pre), max(b.suf, b.sm + a.suf), max({a.best, b.best, a.suf + b.pre})}; }
+    static Agg merge(const Agg& a,
+        const Agg& b) { return Agg{a.sm + b.sm, max(a.pre, a.sm + b.pre), max(b.suf, b.sm + a.suf),
+        max({a.best, b.best, a.suf + b.pre})}; }
     static Agg leaf(T v) { return Agg{S(v), S(v), S(v), S(v)}; }
     static Agg zero(long long len) { (void)len; return Agg{0, 0, 0, 0}; }  // a block of len zeros
     Agg agg(int x, long long len) { return pool[x].v; }

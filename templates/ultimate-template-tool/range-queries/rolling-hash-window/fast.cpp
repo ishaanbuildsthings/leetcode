@@ -38,15 +38,19 @@ using ll = long long;
 //
 // Usage:
 //     vector<long long> arr = {3, 1, 4, 1, 5};
-//     unsigned long long base = 911, mod = 1000000007;                          // set these only to match something else (unset, they are shared between structures, so hashes compare)
-//     RollingHashWindow<long long> t1(arr);                                     // the defaults: hashing just works for negatives, large numbers, chars, with the run's random base
+//     unsigned long long base = 911, mod = 1000000007;                          // set these only to match something
+//     else (unset, they are shared between structures, so hashes compare)
+//     RollingHashWindow<long long> t1(arr);                                     // the defaults: hashing just works for
+//     negatives, large numbers, chars, with the run's random base
 //     RollingHashWindow<long long> t0;                                          // or start empty
-//     RollingHashWindow<int> ti(vector<int>{3, 1, 4});                          // ints work too (T = int), and negatives
+//     RollingHashWindow<int> ti(vector<int>{3, 1, 4});                          // ints work too (T = int), and
+//     negatives
 //     RollingHashWindow<long long> t2(arr, base);                               // your base, mod 2^61 - 1
 //     RollingHashWindow<long long> t3(arr, nullopt, mod);                       // the run's random base, your mod
 //     RollingHashWindow<long long> t4(arr, base, mod);                          // both
 //     RollingHashWindow<char> s(vector<char>(str.begin(), str.end()));          // characters: T = char
-//     t1.hashAll() == RollingHashWindow<long long>({3, 1, 4, 1, 5}).hashAll();  // true: the same values, base and mod (the run's)
+//     t1.hashAll() == RollingHashWindow<long long>({3, 1, 4, 1, 5}).hashAll();  // true: the same values, base and mod
+//     (the run's)
 // The run's random base, shared by every rolling-hash structure built without one (so their hashes compare): no test
 // can be built against it. Two rolling-hash templates in one file share this one copy.
 #ifndef LEETGOAT_ROLLING_HASH_SHARED
@@ -92,7 +96,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -108,11 +114,13 @@ struct RollingHashWindow {
     HotVector<U64> pw{1}, pwi{1};  // pw[k] = base^k, pwi[k] = base^-k, grown as the window grows (amortized O(1))
 
     // O(N) -- arr: the initial array (a vector of ints, long longs or chars; negatives are fine), or left out to start
-    // empty. Hashing just works with the defaults: any 64-bit values, negatives and characters, with the run's random base
+    // empty. Hashing just works with the defaults: any 64-bit values, negatives and characters, with the run's random
+    // base
     // (shared by every structure of the run, so their hashes compare) and the prime mod 2^61 - 1 (the fast one: its
     // reduction is two shifts). Set hashBase / hashMod only to match something else: then every value must be below the
     // mod, the mod a prime below 2^63, and the base in [2, mod - 2]
-    explicit RollingHashWindow(const vector<T>& arr = {}, optional<U64> hashBase = nullopt, optional<U64> hashMod = nullopt) {
+    explicit RollingHashWindow(const vector<T>& arr = {}, optional<U64> hashBase = nullopt,
+        optional<U64> hashMod = nullopt) {
         R::init();
         mod = hashMod ? *hashMod : R::HP;
         base = (hashBase ? *hashBase : R::base) % mod;
@@ -161,7 +169,8 @@ struct RollingHashWindow {
         return v;
     }
 
-    // O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         if (front.empty()) moveToFront();
@@ -229,7 +238,8 @@ struct RollingHashWindow {
         while (pw.size() <= k) pw.push_back(mul(pw.back(), base)), pwi.push_back(mul(pwi.back(), baseInv));
     }
 
-    LEETCODE_NO_SANITIZE U64 hval(T v) const {  // the hash of value v: v + 1, so a 0 is not nothing (a 0 in front would vanish)
+    LEETCODE_NO_SANITIZE U64 hval(T v) const {
+        // the hash of value v: v + 1, so a 0 is not nothing (a 0 in front would vanish)
         long long r = (long long)v % (long long)mod;
         return add(r < 0 ? (U64)(r + (long long)mod) : (U64)r, 1);
     }
@@ -240,7 +250,8 @@ struct RollingHashWindow {
         back.erase(back.begin(), back.begin() + k);
     }
 
-    LEETCODE_NO_SANITIZE void moveToBack() {  // the half of the front nearest the middle (stored first) becomes the back (the back is empty)
+    LEETCODE_NO_SANITIZE void moveToBack() {
+        // the half of the front nearest the middle (stored first) becomes the back (the back is empty)
         size_t k = (front.size() + 1) / 2;
         back.assign(front.rend() - k, front.rend());
         front.erase(front.begin(), front.begin() + k);

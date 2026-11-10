@@ -40,7 +40,8 @@ struct StridedQueries {
         xorPre.assign(n, 0);
     }
 
-    // a[l] + a[l + step] + ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] + a[l + step] + ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     S stridedSum(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
@@ -55,7 +56,8 @@ struct StridedQueries {
         return sumPre[last] - (l >= step ? sumPre[l - step] : S(0));
     }
 
-    // a[l] ^ a[l + step] ^ ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] ^ a[l + step] ^ ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");

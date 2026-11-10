@@ -57,8 +57,10 @@ Node combine(Node big, const Node& small) {
 
 
 // DSU dsu(vals);
-// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
-// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
+// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+// add(val) appends more
+// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
+// diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 struct DSU {
     using T = RawVal;
@@ -189,7 +191,8 @@ struct DSU {
     // O(α(n)) amortized, the Node of i's component: every member's baseFn, combined
     Node componentData(int i) { return data[find(i)]; }
 
-    // O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an edge
+    // O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an
+    // edge
     int edgeCount(int i) { return edges[find(i)]; }
 
     // O(α(n)) amortized, true if i's component has no cycle: exactly size - 1 edges

@@ -242,7 +242,8 @@ class BitXorTries:
         self._rangeCheck("countGteX", l, r)
         return r - l + 1 - self._lt(l, r, x)
 
-    # O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    # O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    # size()
     def countInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("countInValRange", l, r)
         return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0
@@ -252,7 +253,8 @@ class BitXorTries:
         self._rangeCheck("countOccurrences", l, r)
         return self._lt(l, r, x + 1) - self._lt(l, r, x)
 
-    # O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    # O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l +
+    # 1,
     # else IndexError
     def kthSmallest(self, l, r, k):
         self._rangeCheck("kthSmallest", l, r)
@@ -331,7 +333,8 @@ class BitXorTries:
         self._rangeCheck("xorGteX", l, r)
         return self._xorAll(l, r) ^ self._xorLt(l, r, x)
 
-    # O(logN logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal); needs
+    # O(logN logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal);
+    # needs
     # 0 <= l <= r < size()
     def xorInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("xorInValRange", l, r)

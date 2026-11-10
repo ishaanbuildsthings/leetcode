@@ -68,7 +68,9 @@ struct BlockFenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
@@ -210,8 +212,10 @@ struct BlockFenwickMultiset {
     }
 
     template <class V>
-    V below(T x, bool strict, const vector<V>& outer, const vector<vector<V>>& inner, V all) const {  // over values < x / <= x
-        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(), x)) - maxes.begin());
+    V below(T x, bool strict, const vector<V>& outer, const vector<vector<V>>& inner, V all) const {
+        // over values < x / <= x
+        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(),
+            x)) - maxes.begin());
         if (k == (int)keys.size()) return all;
         const vector<T>& b = keys[k];
         int j = int((strict ? lower_bound(b.begin(), b.end(), x) : upper_bound(b.begin(), b.end(), x)) - b.begin());
@@ -242,7 +246,8 @@ struct BlockFenwickMultiset {
 
     T kthAt(long long k) { return kthInfo(k).v; }
 
-    long long findMex() {  // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
+    long long findMex() {
+        // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
         T base = -off;  // (stored as v - off: the real values >= 0 are the stored ones >= -off)
         int k = blockOf(base);
         if (k == (int)keys.size()) return base;
@@ -280,7 +285,8 @@ struct BlockFenwickMultiset {
             if (f) bk[f].insert(x);
         }
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
                 long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
@@ -301,7 +307,8 @@ struct BlockFenwickMultiset {
         if (c > 0) {
             if constexpr (is_integral_v<T>) if (x == T(mexV)) mexV = findMex();  // x filled the mex
         } else {
-            if constexpr (is_integral_v<T>) if (x >= -off && x < T(mexV) && !f) mexV = x;  // the last copy of a value below the mex
+            // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= -off && x < T(mexV) && !f) mexV = x;
         }
     }
 

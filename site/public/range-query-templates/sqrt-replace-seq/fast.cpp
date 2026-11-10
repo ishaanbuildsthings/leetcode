@@ -77,7 +77,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -94,7 +96,8 @@ struct SqrtReplace {
         }
     };
     // a run of the array: cls[k] is the class of its k-th value. Classes form a union-find
-    // (par); a root class holds its value (val) and how many of the block's values are in it (cnt). where: value -> root
+    // (par); a root class holds its value (val) and how many of the block's values are in it (cnt). where: value ->
+    // root
     struct Block {
         vector<int> cls, par, cnt;
         vector<T> val;
@@ -163,7 +166,8 @@ struct SqrtReplace {
             where[v] = r;
         }
 
-        void assign(int k, const T& v) {  // O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
+        void assign(int k, const T& v) {
+            // O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
             int c = find(cls[k]);
             if (val[c] == v) return;
             if (!--cnt[c]) where.erase(val[c]);
@@ -171,7 +175,8 @@ struct SqrtReplace {
             if (fresh) par.push_back(it->second), val.push_back(v), cnt.push_back(0);
             cnt[it->second]++;
             cls[k] = it->second;
-            if ((int)par.size() > 2 * size() + 8) build(values());  // (many dead classes: start over, paid for by the assigns)
+            // (many dead classes: start over, paid for by the assigns)
+            if ((int)par.size() > 2 * size() + 8) build(values());
         }
     };
 
@@ -352,7 +357,8 @@ struct SqrtReplace {
     LEETCODE_NO_SANITIZE void paste(int i, SqrtReplace& other) {
         if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int j = splitAt(i);
-        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()), make_move_iterator(other.blocks.end()));
+        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()),
+            make_move_iterator(other.blocks.end()));
         n += other.n;
         other.blocks.clear(), other.n = 0;
         tidy();
@@ -391,7 +397,8 @@ struct SqrtReplace {
         return v;
     }
 
-    // O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -427,7 +434,8 @@ struct SqrtReplace {
         blocks = std::move(out);
     }
 
-    LEETCODE_NO_SANITIZE pair<int, int> at(int i) const {  // (block index, position in it) of a[i]; i == size() gives (number of blocks, 0)
+    LEETCODE_NO_SANITIZE pair<int, int> at(int i) const {
+        // (block index, position in it) of a[i]; i == size() gives (number of blocks, 0)
         for (int j = 0; j < (int)blocks.size(); j++) {
             if (i < blocks[j].size()) return {j, i};
             i -= blocks[j].size();
@@ -461,7 +469,8 @@ struct SqrtReplace {
         }
     }
 
-    LEETCODE_NO_SANITIZE int findIn(int l, int r, const T& x, bool left) {  // the first (left) / last i in [l, r] with a[i] == x, or -1
+    LEETCODE_NO_SANITIZE int findIn(int l, int r, const T& x, bool left) {
+        // the first (left) / last i in [l, r] with a[i] == x, or -1
         if (l > r) return -1;
         vector<tuple<Block*, int, int, bool, int>> parts;
         span(l, r, [&](Block& b, int lo, int hi, bool whole, int start) {

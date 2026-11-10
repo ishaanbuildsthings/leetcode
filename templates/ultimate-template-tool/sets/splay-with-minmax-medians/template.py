@@ -50,7 +50,8 @@
 
 
 class SplayMultiset:
-    __slots__ = ("K", "C", "Z", "L", "R", "P", "free", "root", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "d")
+    __slots__ = ("K", "C", "Z", "L", "R", "P", "free", "root", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV",
+        "highB", "highC", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):

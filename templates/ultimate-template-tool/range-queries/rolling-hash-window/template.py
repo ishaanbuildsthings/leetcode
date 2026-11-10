@@ -34,8 +34,10 @@
 #
 # Usage:
 #     arr = [3, 1, 4, 1, 5]
-#     base, mod = 911, 10**9 + 7                                    # set these only to match something else (unset, they are shared between structures, so hashes compare)
-#     t1 = RollingHashWindow(arr)                                   # the defaults: hashing just works for negatives, large numbers, chars, with the run's random base
+#     base, mod = 911, 10**9 + 7                                    # set these only to match something else (unset,
+#     they are shared between structures, so hashes compare)
+#     t1 = RollingHashWindow(arr)                                   # the defaults: hashing just works for negatives,
+#     large numbers, chars, with the run's random base
 #     t0 = RollingHashWindow()                                      # or start empty
 #     t2 = RollingHashWindow(arr, hashBase=base)                    # your base, mod 2^61 - 1
 #     t3 = RollingHashWindow(arr, hashMod=mod)                      # the run's random base, your mod
@@ -63,7 +65,7 @@ class RollingHashWindow:
         self.inv = pow(self.base, self.mod - 2, self.mod)
         self.pw, self.pwi = [1], [1]  # pw[k] = base^k, pwi[k] = base^-k, grown as the window grows (amortized O(1))
         vals = list(arr)
-        self._code = ord if vals and isinstance(vals[0], str) else int  # (characters hash by their code)
+        self._code = self._firstCode  # (characters hash by their code, numbers as they are: the first value decides)
         self.back = []
         self.front = []  # the first values, stored last to first
         self.h = 0  # the hash of the whole window
@@ -106,7 +108,8 @@ class RollingHashWindow:
         self.h = (self.h - self._code(v) - 1) * self._powers(1)[1][1] % self.mod
         return v
 
-    # O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -157,6 +160,10 @@ class RollingHashWindow:
 
     # ---- internals ----
 
+    def _firstCode(self, v):  # the first value decides how values hash (so starting empty works): characters by code
+        self._code = ord if isinstance(v, str) else int
+        return self._code(v)
+
     def _powers(self, k):  # pw and pwi with at least k + 1 entries
         pw, pwi = self.pw, self.pwi
         if len(pw) <= k:
@@ -172,7 +179,7 @@ class RollingHashWindow:
         self.back = self.back[k:]
         self.front = moved[::-1]
 
-    def _moveToBack(self):  # the front half's last-stored half (its first values... no: its values nearest the middle) becomes the back
+    def _moveToBack(self):  # the front half's values nearest the middle (stored first) become the back
         k = (len(self.front) + 1) // 2
         moved = self.front[:k]  # (the values nearest the middle are stored first)
         self.front = self.front[k:]

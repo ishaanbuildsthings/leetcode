@@ -208,7 +208,8 @@ struct PositionTrees {
         return lo;
     }
 
-    int firstIn(int t, int lo, int hi, int l, int r, bool left) const {  // the first (left) / last position in [l, r], or -1
+    int firstIn(int t, int lo, int hi, int l, int r, bool left) const {
+        // the first (left) / last position in [l, r], or -1
         if (!t || r < lo || hi < l) return -1;
         if (lo == hi) return lo;
         int mid = (lo + hi) >> 1;

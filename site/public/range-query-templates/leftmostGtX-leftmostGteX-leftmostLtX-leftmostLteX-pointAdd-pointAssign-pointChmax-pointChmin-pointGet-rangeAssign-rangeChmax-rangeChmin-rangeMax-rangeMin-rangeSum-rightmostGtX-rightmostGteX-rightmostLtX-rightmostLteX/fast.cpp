@@ -75,7 +75,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -90,12 +92,16 @@ struct ChminChmaxBeats {
     HotVector<S> tot;
 
     // O(N)
-    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mx(4 * max(1, n)), mx2(4 * max(1, n), NEG_INF), mn(4 * max(1, n)), mn2(4 * max(1, n), POS_INF), cntMx(4 * max(1, n)), cntMn(4 * max(1, n)), tot(4 * max(1, n)) {
+    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mx(4 * max(1, n)), mx2(4 * max(1, n), NEG_INF),
+        mn(4 * max(1, n)), mn2(4 * max(1, n), POS_INF), cntMx(4 * max(1, n)), cntMn(4 * max(1, n)), tot(4 * max(1, n)) {
         if (n) build(1, 0, n - 1, a);
     }
 
     LEETCODE_NO_SANITIZE void build(int i, int tl, int tr, const vector<T>& a) {
-        if (tl == tr) { mx[i] = a[tl], mx2[i] = NEG_INF, cntMx[i] = 1, mn[i] = a[tl], mn2[i] = POS_INF, cntMn[i] = 1, tot[i] = a[tl]; return; }
+        if (tl == tr) {
+            mx[i] = a[tl], mx2[i] = NEG_INF, cntMx[i] = 1, mn[i] = a[tl], mn2[i] = POS_INF, cntMn[i] = 1,
+                tot[i] = a[tl]; return;
+        }
         int tm = (tl + tr) / 2;
         build(2 * i, tl, tm, a), build(2 * i + 1, tm + 1, tr, a);
         pull(i);
@@ -113,7 +119,9 @@ struct ChminChmaxBeats {
     }
 
     // every value under node i (sz of them) becomes v
-    LEETCODE_NO_SANITIZE void applyAssign(int i, long long sz, T v) { mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, mn[i] = v, mn2[i] = POS_INF, cntMn[i] = sz, tot[i] = S(v) * sz; }
+    LEETCODE_NO_SANITIZE void applyAssign(int i, long long sz, T v) {
+        mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, mn[i] = v, mn2[i] = POS_INF, cntMn[i] = sz, tot[i] = S(v) * sz;
+    }
 
     // chmin by v on node i, with mx2 < v: only the copies of the max move
     LEETCODE_NO_SANITIZE void applyChmin(int i, long long sz, T v) {

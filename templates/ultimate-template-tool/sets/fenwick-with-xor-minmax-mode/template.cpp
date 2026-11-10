@@ -70,7 +70,9 @@ struct FenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     vector<T> vals;  // the sorted distinct values
@@ -89,8 +91,10 @@ struct FenwickMultiset {
     vector<int> modeSlot;  // ... and the leftmost position holding it
     T xtotal = 0;  // xor of all values (copies count)
 
-    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
-    explicit FenwickMultiset(vector<T> allValuesThatWillEverBeInsertedForOfflineCompression) : vals(move(allValuesThatWillEverBeInsertedForOfflineCompression)) {
+    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order,
+    // duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
+    explicit FenwickMultiset(vector<T> allValuesThatWillEverBeInsertedForOfflineCompression)
+        : vals(move(allValuesThatWillEverBeInsertedForOfflineCompression)) {
         sort(vals.begin(), vals.end());
         vals.erase(unique(vals.begin(), vals.end()), vals.end());
         m = (int)vals.size();
@@ -101,7 +105,8 @@ struct FenwickMultiset {
         for (int i = 0; i < segSize; i++) modeSlot[segSize + i] = i;
         fx.assign(m + 1, 0);
         if constexpr (is_integral_v<T>) {
-            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count(
+                ) ^ (unsigned long long)(uintptr_t)this;
             seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
             seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
             hashMultiplier = (seed ^ (seed >> 31)) | 1;
@@ -246,7 +251,8 @@ struct FenwickMultiset {
                 for (int j = i + 1; j <= m; j += j & -j) fc[j] = 0, fx[j] = 0;
             }
         } else {
-            fill(cnt.begin(), cnt.end(), 0), fill(fc.begin(), fc.end(), 0), fill(fx.begin(), fx.end(), 0), fill(modeCount.begin(), modeCount.end(), 0);
+            fill(cnt.begin(), cnt.end(), 0), fill(fc.begin(), fc.end(), 0), fill(fx.begin(), fx.end(), 0),
+                fill(modeCount.begin(), modeCount.end(), 0);
         }
     }
 
@@ -491,7 +497,8 @@ struct FenwickMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -499,7 +506,8 @@ struct FenwickMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

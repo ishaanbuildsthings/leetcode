@@ -54,7 +54,8 @@ Node combine(Node big, const Node& small) {
 
 
 // DSUNoCompress dsu(vals);
-// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val) appends more
+// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val)
+// appends more
 struct DSUNoCompress {
     using T = RawVal;
     vector<T> vals;
@@ -75,7 +76,8 @@ struct DSUNoCompress {
         edges.assign(n, 0);
     }
 
-    // O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    // O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    // merge
     // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     int find(int i) {
         while (par[i] != i) i = par[i];

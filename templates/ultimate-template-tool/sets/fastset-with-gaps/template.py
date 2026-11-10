@@ -59,7 +59,8 @@ class FastSetMultiset:
                 break
             width = words
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.n = self.d = 0
 
     def _insert(self, x, c):
@@ -181,7 +182,9 @@ class FastSetMultiset:
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.n = self.d = 0
 
-    def _clearData(self):  # zero only the trie words in use (walking down from the top through set bits), and the counts of the values present
+    def _clearData(self):
+        # zero only the trie words in use (walking down from the top through set bits), and the counts of the values
+        # present
         seg, cnt = self.seg, self.cnt
         stack = [(len(seg) - 1, 0)]
         while stack:

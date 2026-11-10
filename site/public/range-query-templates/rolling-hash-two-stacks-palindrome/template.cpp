@@ -40,15 +40,21 @@ using ll = long long;
 //
 // Usage:
 //     vector<long long> arr = {3, 1, 4, 1, 5};
-//     unsigned long long base = 911, mod = 1000000007;                                         // set these only to match something else (unset, they are shared between structures, so hashes compare)
-//     RollingHashPalindromeDeque<long long> t1(arr);                                           // the defaults: hashing just works for negatives, large numbers, chars, with the run's random base
+//     unsigned long long base = 911, mod = 1000000007;                                         // set these only to
+//     match something else (unset, they are shared between structures, so hashes compare)
+//     RollingHashPalindromeDeque<long long> t1(arr);                                           // the defaults: hashing
+//     just works for negatives, large numbers, chars, with the run's random base
 //     RollingHashPalindromeDeque<long long> t0;                                                // or start empty
-//     RollingHashPalindromeDeque<int> ti(vector<int>{3, 1, 4});                                // ints work too (T = int), and negatives
-//     RollingHashPalindromeDeque<long long> t2(arr, base);                                     // your base, mod 2^61 - 1
-//     RollingHashPalindromeDeque<long long> t3(arr, nullopt, mod);                             // the run's random base, your mod
+//     RollingHashPalindromeDeque<int> ti(vector<int>{3, 1, 4});                                // ints work too (T =
+//     int), and negatives
+//     RollingHashPalindromeDeque<long long> t2(arr, base);                                     // your base, mod 2^61 -
+//     1
+//     RollingHashPalindromeDeque<long long> t3(arr, nullopt, mod);                             // the run's random
+//     base, your mod
 //     RollingHashPalindromeDeque<long long> t4(arr, base, mod);                                // both
 //     RollingHashPalindromeDeque<char> s(vector<char>(str.begin(), str.end()));                // characters: T = char
-//     t1.rangeHash(0, 2) == RollingHashPalindromeDeque<long long>({3, 1, 4}).rangeHash(0, 2);  // true: the same values, base and mod (the run's)
+//     t1.rangeHash(0, 2) == RollingHashPalindromeDeque<long long>({3, 1, 4}).rangeHash(0, 2);  // true: the same
+//     values, base and mod (the run's)
 // The run's random base, shared by every rolling-hash structure built without one (so their hashes compare): no test
 // can be built against it. Two rolling-hash templates in one file share this one copy.
 #ifndef LEETGOAT_ROLLING_HASH_SHARED
@@ -73,18 +79,21 @@ struct RollingHashPalindromeDeque {
     vector<T> back;
     vector<T> front;  // the first values, stored last to first
     vector<U64> P;  // P[k]: hash of back[0..k] read left to right
-    vector<U64> G;  // G[j]: sum of hval(front[j']) * base^j' over j' <= j: front[j..0] read in window order, times base^0
+    // G[j]: sum of hval(front[j']) * base^j' over j' <= j: front[j..0] read in window order, times base^0
+    vector<U64> G;
     vector<U64> RB;  // RB[k]: sum of hval(back[k']) * base^k' over k' <= k: the back half read backwards
     vector<U64> Q;  // Q[j]: hash of front[0..j] in storage order (the front read backwards)
     U64 mod, base, baseInv;
     vector<U64> pw{1}, pwi{1};  // pw[k] = base^k, pwi[k] = base^-k, grown as the window grows (amortized O(1))
 
     // O(N) -- arr: the initial array (a vector of ints, long longs or chars; negatives are fine), or left out to start
-    // empty. Hashing just works with the defaults: any 64-bit values, negatives and characters, with the run's random base
+    // empty. Hashing just works with the defaults: any 64-bit values, negatives and characters, with the run's random
+    // base
     // (shared by every structure of the run, so their hashes compare) and the prime mod 2^61 - 1 (the fast one: its
     // reduction is two shifts). Set hashBase / hashMod only to match something else: then every value must be below the
     // mod, the mod a prime below 2^63, and the base in [2, mod - 2]
-    explicit RollingHashPalindromeDeque(const vector<T>& arr = {}, optional<U64> hashBase = nullopt, optional<U64> hashMod = nullopt) {
+    explicit RollingHashPalindromeDeque(const vector<T>& arr = {}, optional<U64> hashBase = nullopt,
+        optional<U64> hashMod = nullopt) {
         R::init();
         mod = hashMod ? *hashMod : R::HP;
         base = (hashBase ? *hashBase : R::base) % mod;
@@ -140,7 +149,8 @@ struct RollingHashPalindromeDeque {
         return v;
     }
 
-    // O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(1 amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         if (front.empty()) moveToFront();
@@ -165,7 +175,8 @@ struct RollingHashPalindromeDeque {
         return hashRev(l, r);
     }
 
-    // O(1) -- is a[l..r] a palindrome (its two readings hash equal); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(1) -- is a[l..r] a palindrome (its two readings hash equal); needs 0 <= l <= r < size(), else throws
+    // out_of_range
     bool isPalindrome(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("isPalindrome: needs 0 <= l <= r < size()");
         return hash(l, r) == hashRev(l, r);

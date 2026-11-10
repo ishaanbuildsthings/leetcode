@@ -63,7 +63,8 @@ using ll = long long;
 //   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; each operation costs a few binary searches plus one block's worth of C-level list work
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
-// max(LOAD, sqrt(N) / 8), each block keeping its values' copies and copies * value plus block totals, and a Fenwick tree over the
+// max(LOAD, sqrt(N) / 8), each block keeping its values' copies and copies * value plus block totals, and a Fenwick
+// tree over the
 // block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
 // once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
 // follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
@@ -79,7 +80,9 @@ struct BlockMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
@@ -148,7 +151,8 @@ struct BlockMultiset {
                 keys[k].erase(keys[k].begin() + j), cnts[k].erase(cnts[k].begin() + j);
                 sums[k].erase(sums[k].begin() + j);
                 if (keys[k].empty()) {  // the block is empty: drop it
-                    keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k), bc.erase(bc.begin() + k);
+                    keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k),
+                        bc.erase(bc.begin() + k);
                     sums.erase(sums.begin() + k), bs.erase(bs.begin() + k);
                     stale = true;
                     return 0;
@@ -600,7 +604,8 @@ struct BlockMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     S sumKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(n - kFrom + 1) - sumFirst(n - kTo) + S(off) * (kTo - kFrom + 1);
     }
 
@@ -608,7 +613,8 @@ struct BlockMultiset {
     // the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     S sumKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(kTo) - sumFirst(kFrom - 1) + S(off) * (kTo - kFrom + 1);
     }
 

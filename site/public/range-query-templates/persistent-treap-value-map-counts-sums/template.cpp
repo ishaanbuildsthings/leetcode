@@ -57,7 +57,8 @@ template <typename T>
 struct PersistentValueMapTreap {
     using S = long long;  // sums
     using Z = long long;  // lengths, indices and counts (long long: copies can make the array huge)
-    // one node pool shared by every PersistentValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are never
+    // one node pool shared by every PersistentValueMapTreap<T>: pieces move between them (node 0 = the empty tree).
+    // Nodes are never
     // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
     // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
     // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
@@ -332,7 +333,8 @@ struct PersistentValueMapTreap {
         return v;
     }
 
-    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -340,7 +342,8 @@ struct PersistentValueMapTreap {
         return v;
     }
 
-    // O(U*log(N) expected) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(U*log(N) expected) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto sumAll() {
         if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, size() - 1);
@@ -444,7 +447,8 @@ struct PersistentValueMapTreap {
         c[b] += c[a], c[a] = 0;
     }
 
-    static void push(int x) {  // hand x's pending tags to its children (fresh copies of them: x is a copy only this tree has)
+    static void push(int x) {
+        // hand x's pending tags to its children (fresh copies of them: x is a copy only this tree has)
         if (nd[x].row < 0) return;
         if (nd[x].L) {
             int c = clone(nd[x].L);

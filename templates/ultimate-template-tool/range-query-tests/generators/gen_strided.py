@@ -117,9 +117,9 @@ def updates_cpp(fams):
         s += "    // O(build) -- arr: the initial array\n"
     s += f"    explicit StridedQueries(const vector<T>& arr{cutoff_param}) {{\n        n = (int)arr.size();\n        A = arr;\n"
     if blocks:
-        s += "        blockStrides = max(1, min(n, (int)sqrt((double)n)));\n        blockSize = blockStrides;\n        numBlocks = n / blockSize + 1;\n"
+        s += "        blockStrides = min(n, max(1, (int)sqrt((double)n)));\n        blockSize = blockStrides;\n        numBlocks = n / blockSize + 1;\n"
     if trees:
-        s += "        treeStrides = cutoff != -1 ? cutoff : max(1, min(n, (int)sqrt(n / max(1.0, log2(n + 1.0)))));\n"
+        s += "        treeStrides = cutoff != -1 ? cutoff : min(n, max(1, (int)sqrt(n / max(1.0, log2(n + 1.0)))));\n"
         s += '        if (treeStrides < 0 || treeStrides > n) throw out_of_range("StridedQueries: needs 0 <= cutoff <= n");\n'
     s += "        int strides = max(blockStrides, treeStrides);\n        offsets.assign((size_t)strides * (strides + 1) / 2, 0);\n"
     s += "        for (int step = 1; step <= strides; step++) {\n            int used = 0;\n            for (int residue = 0; residue < step; residue++) {\n"
@@ -237,9 +237,9 @@ def updates_py(fams):
     s += "        self.blockStrides = self.treeStrides = 0\n"
     if blocks:
         s += "        self.blockSize = blockSize = max(1, min(n, int(sqrt(n))))\n"
-        s += "        self.blockStrides = max(1, min(n, int(sqrt(n)) // 8))  # (slices walk big steps fast; every stride kept slows updates)\n"
+        s += "        self.blockStrides = min(n, max(1, int(sqrt(n)) // 8))  # (slices walk big steps fast; every stride kept slows updates)\n"
     if trees:
-        s += "        self.treeStrides = cutoff if cutoff is not None else max(1, min(n, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))\n"
+        s += "        self.treeStrides = cutoff if cutoff is not None else min(n, max(1, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))\n"
         s += '        if not 0 <= self.treeStrides <= n:\n            raise IndexError(f"StridedQueries: needs 0 <= cutoff <= n, got cutoff={cutoff}, n={n}")\n'
     s += "        strides = max(self.blockStrides, self.treeStrides)\n"
     s += "        # offsets[step][residue]: where that residue class starts in that stride's list\n"
@@ -498,7 +498,7 @@ def prefix_cpp(fams):
     explicit StridedQueries(const vector<T>& arr, int cutoff = -1) {
         n = (int)arr.size();
         A = arr;
-        strides = cutoff != -1 ? cutoff : max(1, min(n, (int)sqrt((double)n)));
+        strides = cutoff != -1 ? cutoff : min(n, max(1, (int)sqrt((double)n)));
         if (strides < 0 || strides > n) throw out_of_range("StridedQueries: needs 0 <= cutoff <= n");
 """
     for f in fams:
@@ -523,7 +523,7 @@ def prefix_py(fams):
     def __init__(self, arr, cutoff=None):
         self.A = A = list(arr)
         self.n = n = len(A)
-        self.strides = cutoff if cutoff is not None else max(1, min(n, int(sqrt(n))))
+        self.strides = cutoff if cutoff is not None else min(n, max(1, int(sqrt(n))))
         if not 0 <= self.strides <= n:
             raise IndexError(f"StridedQueries: needs 0 <= cutoff <= n, got cutoff={cutoff}, n={n}")
 """
@@ -574,7 +574,7 @@ struct StridedQueries {
     explicit StridedQueries(const vector<T>& arr, int cutoff = -1) {
         n = (int)arr.size();
         A.assign(arr.begin(), arr.end());
-        strides = cutoff != -1 ? cutoff : max(1, min(n, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
+        strides = cutoff != -1 ? cutoff : min(n, max(1, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
         if (strides < 0 || strides > n) throw out_of_range("StridedQueries: needs 0 <= cutoff <= n");
         offsets.assign((size_t)strides * (strides + 1) / 2, 0);
         for (int step = 1; step <= strides; step++) {
@@ -663,7 +663,7 @@ class StridedQueries:
     def __init__(self, arr, cutoff=None):
         self.A = list(arr)
         self.n = n = len(self.A)
-        self.strides = cutoff if cutoff is not None else max(1, min(n, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))
+        self.strides = cutoff if cutoff is not None else min(n, max(1, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))
         if not 0 <= self.strides <= n:
             raise IndexError(f"StridedQueries: needs 0 <= cutoff <= n, got cutoff={cutoff}, n={n}")
         # offsets[step][residue]: where that residue class starts in that stride's list

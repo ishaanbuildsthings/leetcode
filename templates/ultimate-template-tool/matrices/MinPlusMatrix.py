@@ -6,7 +6,7 @@ HALF = 2 * 10**18
 
 
 # (min, +) matrix: "multiply" adds weights, "add" takes the min. Row-vector convention like ModMatrix
-# M[i][j] = weight of edge i -> j (INF for no edge), weights any ints (negatives fine)
+# M[i][j] = weight of edge i -> j (INF for no edge), any weights in the limit below (negatives fine)
 # M = MinPlusMatrix(rows)
 # C = A @ B             C[i][j] = min over k of A[i][k] + B[k][j]
 # v = vec @ M           v[j] = min over k of vec[k] + M[k][j] (vec[k] = best weight to reach k so far)

@@ -175,25 +175,29 @@ struct SortedRunsSumXorMaxAnd {
         return out;
     }
 
-    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto sumAll() {
         if (n < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, n - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto maxAll() {
         if (n < 1) throw out_of_range("maxAll: needs n >= 1");
         return rangeMax(0, n - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     auto xorAll() {
         if (n < 1) throw out_of_range("xorAll: needs n >= 1");
         return rangeXorQuery(0, n - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     auto andAll() {
         if (n < 1) throw out_of_range("andAll: needs n >= 1");
         return rangeAndQuery(0, n - 1);

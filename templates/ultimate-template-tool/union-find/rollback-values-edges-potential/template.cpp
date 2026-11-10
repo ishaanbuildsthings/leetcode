@@ -35,7 +35,8 @@ using ll = long long;
 
 // RollbackDSU<int> dsu(vals);
 // vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1
-// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
+// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
+// diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 template <typename T>
 struct RollbackDSU {
@@ -46,7 +47,8 @@ struct RollbackDSU {
     vector<T> cmin, cmax;
     vector<int> edges;  // edges[root]: how many unites touched root's component, merging or not
     vector<long long> pot;  // pot[i] = value[i] - value[par[i]] (0 at a root)
-    struct Frame { int i, j, mx; T lo, hi; };  // i < 0: a unite that found them already together (j: its root, for the edge count)
+    // i < 0: a unite that found them already together (j: its root, for the edge count)
+    struct Frame { int i, j, mx; T lo, hi; };
     vector<Frame> stk;  // one frame per unite, so rollback can undo it
 
     // O(n), every element starts in its own component

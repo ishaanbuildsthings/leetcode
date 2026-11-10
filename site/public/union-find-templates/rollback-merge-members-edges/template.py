@@ -39,7 +39,8 @@ def baseFn(v: RawVal, i: int) -> Node:
     pass
 
 
-# called once per merge: big is the bigger component's Node (on a tie, either one). Don't mutate big: rollback keeps the old
+# called once per merge: big is the bigger component's Node (on a tie, either one). Don't mutate big: rollback keeps the
+# old
 # Node to put it back, so return a new one
 def combine(big: Node, small: Node) -> Node:
     # return (big[0] + small[0], max(big[1], small[1]))

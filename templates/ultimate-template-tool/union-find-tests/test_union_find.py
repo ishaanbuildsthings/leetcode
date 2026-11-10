@@ -24,6 +24,9 @@ CACHE = os.environ.get("UF_CACHE", "/tmp/uf-test")
 sys.path.insert(0, HERE)
 from gen_union_find import CLASS  # noqa: E402
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from find_compiler import cxx, sanitize_flags  # noqa: E402
+
 SCRIPTS = 8
 
 
@@ -449,8 +452,8 @@ def check_cpp(name, scripts):
     code = cpp_source(name)
     if not (os.path.exists(src) and open(src).read() == code and os.path.exists(exe)):
         open(src, "w").write(code)
-        r = subprocess.run(["g++", "-std=c++17", "-O0", "-Wall", "-Wno-unused-parameter", "-fsanitize=address,undefined",
-                            "-fno-sanitize-recover=all", "-o", exe, src], capture_output=True, text=True)
+        r = subprocess.run([cxx(), "-std=c++17", "-O0", "-Wall", "-Wno-unused-parameter", *sanitize_flags(),
+                            "-o", exe, src], capture_output=True, text=True)
         if r.returncode:
             return f"FAIL  {name} [cpp]: compile error\n{r.stderr[:1500]}"
         if "warning" in r.stderr:

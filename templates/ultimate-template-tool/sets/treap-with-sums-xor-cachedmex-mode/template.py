@@ -72,12 +72,14 @@ from random import random
 
 
 # Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-# its value, its copies, and the copies, sum, xor and distinct values in its subtree. Nodes live in parallel lists (a node
+# its value, its copies, and the copies, sum, xor and distinct values in its subtree. Nodes live in parallel lists (a
+# node
 # pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
 
 
 class TreapMultiset:
-    __slots__ = ("K", "C", "Z", "S", "X", "D", "P", "L", "R", "free", "root", "n", "mexV", "bk", "bkAt", "fh", "fhAt", "xtotal", "salt", "total", "d")
+    __slots__ = ("K", "C", "Z", "S", "X", "D", "P", "L", "R", "free", "root", "n", "mexV", "bk", "bkAt", "fh", "fhAt",
+        "xtotal", "salt", "total", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -355,7 +357,8 @@ class TreapMultiset:
             if 0 <= x < self.mexV and not f:  # the last copy of a value below the mex
                 self.mexV = x
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)
@@ -681,7 +684,9 @@ class TreapMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
     # O(logN expected) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -689,7 +694,9 @@ class TreapMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
     # O(logN expected) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k
@@ -737,7 +744,9 @@ class TreapMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def xorOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
 
     # O(logN expected) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -745,7 +754,9 @@ class TreapMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def xorOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
 
     # O(logN expected) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k

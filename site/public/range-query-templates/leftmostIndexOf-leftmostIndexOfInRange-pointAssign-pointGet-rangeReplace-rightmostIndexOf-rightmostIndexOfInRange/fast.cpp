@@ -60,7 +60,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -169,7 +171,8 @@ struct PositionTrees {
 
     // ---- internals ----
 
-    LEETCODE_NO_SANITIZE int id(const T& v) {  // v's index into vals / roots (a new one, with an empty tree, the first time v is seen)
+    LEETCODE_NO_SANITIZE int id(const T& v) {
+        // v's index into vals / roots (a new one, with an empty tree, the first time v is seen)
         auto [it, fresh] = ids.try_emplace(v, (int)vals.size());
         if (fresh) vals.push_back(v), roots.push_back(0);
         return it->second;
@@ -233,7 +236,8 @@ struct PositionTrees {
         return {0, cut};
     }
 
-    LEETCODE_NO_SANITIZE int merge(int a, int b) {  // the union of two trees over disjoint positions; b's nodes that overlap a's are freed
+    LEETCODE_NO_SANITIZE int merge(int a, int b) {
+        // the union of two trees over disjoint positions; b's nodes that overlap a's are freed
         if (!a || !b) return a ? a : b;
         int l = merge(nd[a].L, nd[b].L);
         int r = merge(nd[a].R, nd[b].R);
@@ -242,7 +246,8 @@ struct PositionTrees {
         return pull(a);
     }
 
-    LEETCODE_NO_SANITIZE void moveTo(int k, int l, int r, const T& y) {  // the positions in [l, r] of vals[k]'s tree go to y's
+    LEETCODE_NO_SANITIZE void moveTo(int k, int l, int r, const T& y) {
+        // the positions in [l, r] of vals[k]'s tree go to y's
         auto [keep, cut] = split(roots[k], 0, n - 1, l, r);
         roots[k] = keep;
         if (!cut) return;
@@ -264,7 +269,8 @@ struct PositionTrees {
         return lo;
     }
 
-    LEETCODE_NO_SANITIZE int firstIn(int t, int lo, int hi, int l, int r, bool left) const {  // the first (left) / last position in [l, r], or -1
+    LEETCODE_NO_SANITIZE int firstIn(int t, int lo, int hi, int l, int r, bool left) const {
+        // the first (left) / last position in [l, r], or -1
         if (!t || r < lo || hi < l) return -1;
         if (lo == hi) return lo;
         int mid = (lo + hi) >> 1;
@@ -273,7 +279,8 @@ struct PositionTrees {
         return left ? firstIn(nd[t].R, mid + 1, hi, l, r, left) : firstIn(nd[t].L, lo, mid, l, r, left);
     }
 
-    LEETCODE_NO_SANITIZE int owner(int i) const {  // the index into vals of a[i]'s value: up from i's leaf to its tree's root
+    LEETCODE_NO_SANITIZE int owner(int i) const {
+        // the index into vals of a[i]'s value: up from i's leaf to its tree's root
         int t = leaf[i];
         while (nd[t].P) t = nd[t].P;
         return nd[t].W;

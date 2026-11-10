@@ -25,7 +25,8 @@
 #   note: K = the size of the group
 
 # dsu = DSU(vals)
-# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val)
+# appends more
 
 
 class DSU:
@@ -108,7 +109,8 @@ class DSU:
             j = nxt[j]
         return res
 
-    # O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an edge
+    # O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an
+    # edge
     def edgeCount(self, i):
         return self.edges[self.find(i)]
 

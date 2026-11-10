@@ -75,7 +75,8 @@ class Manacher:
         k = self.odd[i] - 1
         return i - k, i + k
 
-    # O(1) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty range,
+    # O(1) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    # range,
     # when there is none (so also for i = n - 1); needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtIPlusOne(self, i):
         if not 0 <= i < self.n:

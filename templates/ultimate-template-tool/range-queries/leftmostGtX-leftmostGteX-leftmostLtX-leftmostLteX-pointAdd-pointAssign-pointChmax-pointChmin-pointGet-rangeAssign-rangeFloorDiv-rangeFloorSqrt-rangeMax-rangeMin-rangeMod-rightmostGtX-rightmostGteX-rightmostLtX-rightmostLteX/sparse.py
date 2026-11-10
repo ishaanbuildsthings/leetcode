@@ -218,7 +218,8 @@ class SparseShrinkSeg:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(logU * logU) amortized -- amortized -- a[i] %= x for every i in l...r prune at mx < x: everything there is already below x, so a % x == a;
+    # O(logU * logU) amortized -- amortized -- a[i] %= x for every i in l...r prune at mx < x: everything there is
+    # already below x, so a % x == a;
     # needs lo <= l <= r <= hi, else IndexError
     def rangeMod(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -227,7 +228,8 @@ class SparseShrinkSeg:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, x, lambda v: v % x)
 
-    # O(logU * logU) amortized -- amortized -- a[i] //= x for every i in l...r. requires x >= 2 prune at mx < 1: only zeros left, and 0 // x == 0;
+    # O(logU * logU) amortized -- amortized -- a[i] //= x for every i in l...r. requires x >= 2 prune at mx < 1: only
+    # zeros left, and 0 // x == 0;
     # needs lo <= l <= r <= hi, else IndexError
     def rangeFloorDiv(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -236,7 +238,8 @@ class SparseShrinkSeg:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, 1, lambda v: v // x)
 
-    # O(logU * log(logU)) amortized -- amortized -- a[i] = floor(sqrt(a[i])) for every i in l...r prune at mx < 2: 0 and 1 are fixed points; needs
+    # O(logU * log(logU)) amortized -- amortized -- a[i] = floor(sqrt(a[i])) for every i in l...r prune at mx < 2: 0 and
+    # 1 are fixed points; needs
     # lo <= l <= r <= hi, else IndexError
     def rangeFloorSqrt(self, l, r):
         if not self.lo <= l <= r <= self.hi:

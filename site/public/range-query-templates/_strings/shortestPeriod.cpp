@@ -2,7 +2,6 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/shortestPeriod.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // length of the shortest prefix that repeats a whole number of times to form the sequence (n if none, 0 if empty)
 // works on a string or vector of any element type that has == (char, int, long long, pair, ...)

@@ -27,7 +27,8 @@
 
 # dsu = DSUNoCompress(vals)
 # vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1
-# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
+# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
+# j)
 # reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
@@ -44,7 +45,8 @@ class DSUNoCompress:
         self.edges = [0] * n  # edges[root]: how many unites touched root's component, merging or not
         self.pot = [0] * n  # pot[i] = value[i] - value[par[i]] (0 at a root)
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    # merge
     # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par

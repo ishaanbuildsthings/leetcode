@@ -66,7 +66,9 @@ struct HotVector : vector<U> {
     using vector<U>::vector;
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -74,10 +76,12 @@ struct HotVector : vector<U> {
 template <typename T>
 struct FastSetMultiset {
     long long lo, hi;
-    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never a real value)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never
+    // a real value)
     T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);
     int u;
-    HotVector<HotVector<unsigned long long>> seg;  // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    HotVector<HotVector<unsigned long long>> seg;
     HotVector<long long> cnt;                   // copies of lo + i
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
@@ -111,7 +115,9 @@ struct FastSetMultiset {
         return cnt[(long long)x - lo];
     }
 
-    LEETCODE_NO_SANITIZE long long countOf(T x) const { return (long long)x >= lo && (long long)x <= hi ? cnt[(long long)x - lo] : 0; }
+    LEETCODE_NO_SANITIZE long long countOf(T x) const {
+        return (long long)x >= lo && (long long)x <= hi ? cnt[(long long)x - lo] : 0;
+    }
 
     LEETCODE_NO_SANITIZE long long next(long long i) const {  // smallest present slot >= i, or -1
         if (i < 0) i = 0;
@@ -147,9 +153,11 @@ struct FastSetMultiset {
         return -1;
     }
 
-    LEETCODE_NO_SANITIZE T kthAt(long long k) const { return T(lo + (k == 1 ? next(0) : prev(u - 1))); }  // only the min (k = 1) or the max (k = n): no ranks
+    // only the min (k = 1) or the max (k = n): no ranks
+    LEETCODE_NO_SANITIZE T kthAt(long long k) const { return T(lo + (k == 1 ? next(0) : prev(u - 1))); }
 
-    LEETCODE_NO_SANITIZE Info kthInfo(long long k) const { return {kthAt(k), 0, 0}; }  // never called: this structure has no median ops
+    // never called: this structure has no median ops
+    LEETCODE_NO_SANITIZE Info kthInfo(long long k) const { return {kthAt(k), 0, 0}; }
 
     LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
         n += c;
@@ -170,7 +178,8 @@ struct FastSetMultiset {
         n = d = 0;
     }
 
-    LEETCODE_NO_SANITIZE void clearData() {  // zero only the trie words in use (walking down from the top through set bits)
+    LEETCODE_NO_SANITIZE void clearData() {
+        // zero only the trie words in use (walking down from the top through set bits)
         HotVector<pair<int, int>> st{{(int)seg.size() - 1, 0}};
         while (!st.empty()) {
             auto [h, w] = st.back();
@@ -291,7 +300,8 @@ struct FastSetMultiset {
     LEETCODE_NO_SANITIZE long long removeInValRange(T lo, T hi) {
         if (hi < lo) return 0;
         long long removed = 0;
-        for (long long i = next((long long)lo - this->lo); i >= 0 && this->lo + i <= (long long)hi; i = next(i + 1)) {  // each present value in [lo, hi]
+        for (long long i = next((long long)lo - this->lo); i >= 0 && this->lo + i <= (long long)hi; i = next(i + 1)) {
+            // each present value in [lo, hi]
             long long k = cnt[i];
             addRaw(T(this->lo + i), -k), removed += k;
         }

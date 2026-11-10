@@ -54,7 +54,8 @@ Node combine(Node big, const Node& small) {
 
 
 // DSU dsu(vals);
-// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+// add(val) appends more
 struct DSU {
     using T = RawVal;
     vector<T> vals;

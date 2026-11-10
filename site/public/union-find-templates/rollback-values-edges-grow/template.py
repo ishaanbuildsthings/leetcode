@@ -31,7 +31,8 @@
 #   note: plus the undo stack: one small frame per unite not yet undone
 
 # dsu = RollbackDSU(vals)
-# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+# add(val) appends more
 
 
 class RollbackDSU:

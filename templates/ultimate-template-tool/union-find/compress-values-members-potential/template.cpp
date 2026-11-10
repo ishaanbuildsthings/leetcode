@@ -30,7 +30,8 @@ using ll = long long;
 
 // DSU<int> dsu(vals);
 // vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1
-// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
+// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
+// diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 template <typename T>
 struct DSU {

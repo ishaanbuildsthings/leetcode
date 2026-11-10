@@ -122,7 +122,9 @@ struct FenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     FlatArray<T> vals;  // the sorted distinct values
@@ -131,7 +133,8 @@ struct FenwickMultiset {
     FlatArray<int> tree;  // the 16-way count tree: 16 running totals per node, leaf level first
     int levels = 0, levelStart[8] = {};  // how many levels; where each level begins in tree
     FlatArray<T> fx;  // Fenwick of xor over the values with an odd count
-    FlatArray<int> slotOf;  // integer values only: hash table from a value to its position in vals, -1 for an empty slot
+    // integer values only: hash table from a value to its position in vals, -1 for an empty slot
+    FlatArray<int> slotOf;
     unsigned long long hashMultiplier = 1;  // random per instance, so no fixed input can force collisions
     int hashShift = 0;
     unsigned hashMask = 0;
@@ -140,7 +143,8 @@ struct FenwickMultiset {
     Info low{}, high{};  // both medians, kept current by addRaw while n > 0
     T xtotal = 0;  // xor of all values (copies count)
 
-    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
+    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order,
+    // duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
     explicit FenwickMultiset(vector<T> allValuesThatWillEverBeInsertedForOfflineCompression) {
         vector<T>& sortedValues = allValuesThatWillEverBeInsertedForOfflineCompression;
         sort(sortedValues.begin(), sortedValues.end());
@@ -159,7 +163,8 @@ struct FenwickMultiset {
         tree.assign(slots, 0);
         fx.assign(m + 1, 0);
         if constexpr (is_integral_v<T>) {
-            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count(
+                ) ^ (unsigned long long)(uintptr_t)this;
             seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
             seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
             hashMultiplier = (seed ^ (seed >> 31)) | 1;
@@ -187,7 +192,8 @@ struct FenwickMultiset {
         return s;
     }
 
-    LEETCODE_NO_SANITIZE_INLINE static int countBelow(const int* node, int k) {  // how many of the node's 16 running totals are < k
+    LEETCODE_NO_SANITIZE_INLINE static int countBelow(const int* node, int k) {
+        // how many of the node's 16 running totals are < k
 #ifdef __SSE2__
         __m128i key = _mm_set1_epi32(k);
         __m128i part0 = _mm_cmplt_epi32(_mm_loadu_si128((const __m128i*)node), key);
@@ -203,9 +209,11 @@ struct FenwickMultiset {
 #endif
     }
 
-    LEETCODE_NO_SANITIZE_INLINE static void addFrom(int* node, int child, int delta) {  // add delta to running totals child..15
+    LEETCODE_NO_SANITIZE_INLINE static void addFrom(int* node, int child, int delta) {
+        // add delta to running totals child..15
 #ifdef __SSE2__
-        alignas(16) static const int mask[31] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        alignas(16) static const int mask[31] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
         const int* childMask = mask + 15 - child;
         __m128i value = _mm_set1_epi32(delta);
         for (int j = 0; j < 16; j += 4) {
@@ -230,7 +238,8 @@ struct FenwickMultiset {
         return s;
     }
 
-    LEETCODE_NO_SANITIZE int findSlot(long long k, long long& before) const {  // position of the k-th smallest; copies before it
+    LEETCODE_NO_SANITIZE int findSlot(long long k, long long& before) const {
+        // position of the k-th smallest; copies before it
         const int* t = tree.data();
         int pos = 0, want = int(k);
         for (int level = levels - 1; level >= 0; level--) {
@@ -254,7 +263,8 @@ struct FenwickMultiset {
     LEETCODE_NO_SANITIZE_INLINE unsigned hashOf(T x) const {
         return unsigned((unsigned long long)(long long)x * hashMultiplier >> hashShift);
     }
-    LEETCODE_NO_SANITIZE int rankOf(T x) const {  // x's position in vals, or m if it is not a given value; expected O(1) for integers
+    LEETCODE_NO_SANITIZE int rankOf(T x) const {
+        // x's position in vals, or m if it is not a given value; expected O(1) for integers
         if constexpr (is_integral_v<T>) {
             const int* table = slotOf.data();
             const T* sorted = vals.data();
@@ -275,7 +285,8 @@ struct FenwickMultiset {
         return insertAt(i, x, c);
     }
 
-    LEETCODE_NO_SANITIZE long long insertAt(int i, T x, long long c) {  // i is x's position in vals; returns x's new count
+    LEETCODE_NO_SANITIZE long long insertAt(int i, T x, long long c) {
+        // i is x's position in vals; returns x's new count
         int* counts = cnt.data();
         long long old = counts[i];
         long long now = counts[i] += int(c);
@@ -604,7 +615,8 @@ struct FenwickMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -612,7 +624,8 @@ struct FenwickMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

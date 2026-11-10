@@ -35,7 +35,8 @@ struct StridedQueries {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n, blockStrides = 0, blockSize = 1, numBlocks = 0, treeStrides = 0;
     vector<T> A;
-    vector<int> offsets;  // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    vector<int> offsets;
     vector<T> xorBlocks;
     vector<T> maxTree;
     vector<T> gcdTree;
@@ -46,10 +47,10 @@ struct StridedQueries {
     explicit StridedQueries(const vector<T>& arr, int cutoff = -1) {
         n = (int)arr.size();
         A = arr;
-        blockStrides = max(1, min(n, (int)sqrt((double)n)));
+        blockStrides = min(n, max(1, (int)sqrt((double)n)));
         blockSize = blockStrides;
         numBlocks = n / blockSize + 1;
-        treeStrides = cutoff != -1 ? cutoff : max(1, min(n, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
+        treeStrides = cutoff != -1 ? cutoff : min(n, max(1, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
         if (treeStrides < 0 || treeStrides > n) throw out_of_range("StridedQueries: needs 0 <= cutoff <= n");
         int strides = max(blockStrides, treeStrides);
         offsets.assign((size_t)strides * (strides + 1) / 2, 0);
@@ -108,7 +109,8 @@ struct StridedQueries {
         return A[i];
     }
 
-    // O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range
+    // O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = v (overwrite); needs 0 <= i < n, else throws
+    // out_of_range
     void pointAssign(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         write(i, v);
@@ -120,19 +122,22 @@ struct StridedQueries {
         write(i, T(A[i] + v));
     }
 
-    // O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws
+    // out_of_range
     void pointChmax(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         write(i, max(A[i], v));
     }
 
-    // O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws
+    // out_of_range
     void pointChmin(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         write(i, min(A[i], v));
     }
 
-    // O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedXorQuery: needs step >= 1");
@@ -157,7 +162,8 @@ struct StridedQueries {
         return res;
     }
 
-    // O(sqrt(N logN)) -- max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    // throws out_of_range
     T stridedMax(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedMax: needs step >= 1");
@@ -178,7 +184,8 @@ struct StridedQueries {
         return res;
     }
 
-    // O(sqrt(N logN) + logU) -- gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN) + logU) -- gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1,
+    // else throws out_of_range
     T stridedGcd(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedGcd: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedGcd: needs step >= 1");
@@ -199,7 +206,8 @@ struct StridedQueries {
         return res;
     }
 
-    // O(sqrt(N logN)) -- a[l] & a[l + step] & ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- a[l] & a[l + step] & ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     T stridedAndQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedAndQuery: needs step >= 1");

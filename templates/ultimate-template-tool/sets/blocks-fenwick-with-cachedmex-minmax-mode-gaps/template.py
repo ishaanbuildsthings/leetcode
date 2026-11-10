@@ -66,7 +66,8 @@ from operator import and_, sub
 
 class BlockFenwickMultiset:
     LOAD = 64  # the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
-    __slots__ = ("load", "due", "keys", "cnts", "fcs", "maxes", "bc", "fc", "cnt", "n", "mn", "mx", "mexV", "bk", "bkAt", "fh", "fhAt", "gc", "gmin", "gmax", "dups", "salt", "d")
+    __slots__ = ("load", "due", "keys", "cnts", "fcs", "maxes", "bc", "fc", "cnt", "n", "mn", "mx", "mexV", "bk",
+        "bkAt", "fh", "fhAt", "gc", "gmin", "gmax", "dups", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -75,9 +76,11 @@ class BlockFenwickMultiset:
         self.maxes = []  # last value of each block
         self.bc, self.fc = [], [0]  # per block: total copies; Fenwick over them
         self.cnt = {}  # value -> copies
-        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1  # block size; distinct values to add / drop before a cut
+        # block size; distinct values to add / drop before a cut
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.bk, self.bkAt = {}, {}  # mode: count -> list of the values with that many copies; value -> its index there
         self.fh, self.fhAt = [], {}  # mode: max-heap of the counts that have a bucket; count -> its index in it
         self.mexV = 0  # the mex, kept current (0 for the empty set)
@@ -232,7 +235,8 @@ class BlockFenwickMultiset:
     def _kth(self, k):
         return self._kthInfo(k)[0]
 
-    def _findMex(self):  # smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
+    def _findMex(self):
+        # smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
         keys = self.keys
         k = bisect_left(self.maxes, 0)
         if k == len(keys):
@@ -334,7 +338,8 @@ class BlockFenwickMultiset:
                 if x == self.mx:
                     self.mx = self._kth(n)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)

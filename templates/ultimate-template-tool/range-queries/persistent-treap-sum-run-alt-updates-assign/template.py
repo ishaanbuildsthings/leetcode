@@ -283,7 +283,8 @@ class PersistentTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -442,7 +443,8 @@ class PersistentTreap:
                 i -= ls + 1
                 t = self.R[t]
 
-    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+    def _pieces(self, t, l, r, out):
+        # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
         if not t or r < 0 or l >= self.sz[t]:
             return
         if l <= 0 and self.sz[t] - 1 <= r:

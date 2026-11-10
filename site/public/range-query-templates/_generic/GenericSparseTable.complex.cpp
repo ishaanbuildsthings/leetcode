@@ -36,7 +36,8 @@ struct SparseTable {
         t.resize((size_t)levels * n);
         for (int i = 0; i < n; i++) t[i] = baseFn(a[i], i);
         for (int j = 1; j < levels; j++)
-            for (int i = 0; i + (1 << j) <= n; i++) t[j * n + i] = combine(t[(j - 1) * n + i], t[(j - 1) * n + i + (1 << (j - 1))]);
+            for (int i = 0; i + (1 << j) <= n; i++) t[j * n + i] = combine(t[(j - 1) * n + i],
+                t[(j - 1) * n + i + (1 << (j - 1))]);
     }
 
     // how many elements

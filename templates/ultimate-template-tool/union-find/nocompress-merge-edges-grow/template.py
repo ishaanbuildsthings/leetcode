@@ -38,7 +38,8 @@ def baseFn(v: RawVal, i: int) -> Node:
     pass
 
 
-# called once per merge: big is the bigger component's Node (on a tie, either one). Mutating big and returning it is fine, e.g.
+# called once per merge: big is the bigger component's Node (on a tie, either one). Mutating big and returning it is
+# fine, e.g.
 # small-to-large: big |= small; return big (O(n log n) in total)
 def combine(big: Node, small: Node) -> Node:
     # return (big[0] + small[0], max(big[1], small[1]))
@@ -46,7 +47,8 @@ def combine(big: Node, small: Node) -> Node:
 
 
 # dsu = DSUNoCompress(vals, baseFn, combine)
-# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val)
+# appends more
 
 
 class DSUNoCompress:
@@ -62,7 +64,8 @@ class DSUNoCompress:
         self.data = [baseFn(v, i) for i, v in enumerate(self.vals)]  # data[root]: the Node of root's component
         self.edges = [0] * n  # edges[root]: how many unites touched root's component, merging or not
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    # merge
     # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par

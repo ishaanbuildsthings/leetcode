@@ -32,7 +32,8 @@ struct RangeMultModTree {
     vector<T> tree;  // tree[n + i] = a[i]; tree[1 .. n-1] = pending tag (identity T(1))
 
     // O(N)
-    explicit RangeMultModTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), tree(2 * a.size(), T(1)) {
+    explicit RangeMultModTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod),
+        tree(2 * a.size(), T(1)) {
         for (int i = 0; i < n; i++) tree[n + i] = T((a[i] % mod + mod) % mod);
     }
 

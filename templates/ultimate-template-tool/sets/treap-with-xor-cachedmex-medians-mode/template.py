@@ -65,7 +65,8 @@ from random import random
 
 
 class TreapMultiset:
-    __slots__ = ("K", "C", "Z", "X", "D", "P", "L", "R", "free", "root", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "bk", "bkAt", "fh", "fhAt", "xtotal", "salt", "d")
+    __slots__ = ("K", "C", "Z", "X", "D", "P", "L", "R", "free", "root", "n", "lowV", "lowB", "lowC", "highV",
+        "highB", "highC", "mexV", "bk", "bkAt", "fh", "fhAt", "xtotal", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -339,7 +340,8 @@ class TreapMultiset:
         if not self.highB < r <= self.highB + self.highC:
             self.highV, self.highB, self.highC = self._kthInfo(r)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)
@@ -645,7 +647,9 @@ class TreapMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def xorOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
 
     # O(logN expected) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -653,7 +657,9 @@ class TreapMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def xorOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
 
     # O(logN expected) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k

@@ -351,7 +351,8 @@ class PairSwapTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    # raises IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -359,7 +360,8 @@ class PairSwapTreap:
         self.cut(0, 0)
         return v
 
-    # O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    # O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a
+    # binary search on
     # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
@@ -374,7 +376,8 @@ class PairSwapTreap:
                 hi = mid - 1
         return i - lo, i + lo
 
-    # O(log^2(N)*log(U) expected ?) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    # O(log^2(N)*log(U) expected ?) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i
+    # + 1, i), the empty
     # range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     # needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtIPlusOne(self, i):
@@ -390,7 +393,8 @@ class PairSwapTreap:
                 hi = mid - 1
         return i - lo + 1, i + lo
 
-    # O(log(N)*log(U) expected ?) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    # O(log(N)*log(U) expected ?) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
+    # every structure
     # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
     def hashAll(self):
         if self.size() < 1:
@@ -403,7 +407,8 @@ class PairSwapTreap:
             raise IndexError("sumAll: needs n >= 1")
         return self.sm[self.rE] + self.sm[self.rO]
 
-    # O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def gcdAll(self):
         if self.size() < 1:
             raise IndexError("gcdAll: needs n >= 1")
@@ -636,13 +641,15 @@ class PairSwapTreap:
             self.val[t] = h(self.val[t], ls - l)
         self._pull(t)
 
-    def _lanes(self, l, r):  # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+    def _lanes(self, l, r):
+        # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
         roots = (self.rE, self.rO)
         e = (roots[l % 2], l // 2, (r - (r - l) % 2) // 2)
         o = (roots[(l + 1) % 2], (l + 1) // 2, (r - (r - l - 1) % 2) // 2) if l < r else (0, 0, -1)
         return e, o
 
-    def _laneNodes(self, l, r):  # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
+    def _laneNodes(self, l, r):
+        # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
         mark = len(self.val)
         (te, le, he), (to, lo, ho) = self._lanes(l, r)
         return self._rq(te, le, he), self._rq(to, lo, ho), mark

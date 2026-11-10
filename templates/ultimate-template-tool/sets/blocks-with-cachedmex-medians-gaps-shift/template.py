@@ -68,7 +68,8 @@ from math import isqrt
 
 class BlockMultiset:
     LOAD = 64  # the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
-    __slots__ = ("load", "due", "keys", "cnts", "maxes", "bc", "fc", "cnt", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
+    __slots__ = ("load", "due", "keys", "cnts", "maxes", "bc", "fc", "cnt", "n", "lowV", "lowB", "lowC", "highV",
+        "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -78,10 +79,12 @@ class BlockMultiset:
         self.bc = []  # per block: total copies
         self.fc = None  # Fenwick over bc (None: stale)
         self.cnt = {}  # value -> copies
-        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1  # block size; distinct values to add / drop before a cut
+        # block size; distinct values to add / drop before a cut
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.mexV = 0  # the mex, kept current (0 for the empty set)
         self.n = self.d = 0
 

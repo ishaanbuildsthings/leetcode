@@ -162,7 +162,8 @@ class FastSetMultiset:
         if gone:
             self._swapFreq(gone, 0)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)
@@ -199,7 +200,9 @@ class FastSetMultiset:
         self.bk, self.bkAt, self.fh, self.fhAt = {}, {}, [], {}
         self.n = self.d = 0
 
-    def _clearData(self):  # zero only the trie words in use (walking down from the top through set bits), and the counts of the values present
+    def _clearData(self):
+        # zero only the trie words in use (walking down from the top through set bits), and the counts of the values
+        # present
         seg, cnt = self.seg, self.cnt
         stack = [(len(seg) - 1, 0)]
         while stack:

@@ -49,8 +49,10 @@ using ll = long long;
 //   other: root[1*log(U)] vals[1]
 //   note: any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update
 
-// a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a dynamic
-// value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT
+// a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a
+// dynamic
+// value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the
+// BIT
 // prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
 // subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.
 // Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length
@@ -125,7 +127,8 @@ struct SparseDynamicOrderStats {
         return countInValRange(l, r, x, x);
     }
 
-    // O(logU * logU) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         if (highVal < lowVal) return 0;
@@ -156,7 +159,8 @@ struct SparseDynamicOrderStats {
         return r - l + 1 - countBelow(l, r, lb(x));
     }
 
-    // O(logU * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
+    // O(logU * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l +
+    // 1,
     // else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthSmallest: needs lo <= l <= r <= hi");
@@ -303,8 +307,10 @@ struct SparseDynamicOrderStats {
 
     // trees to add / subtract for a[l..r]; returns the zeros in a[l..r]
     long long sides(long long l, long long r, vector<int>& pos, vector<int>& neg) const {
-        for (long long j = r - lo + 1; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) pos.push_back(it->second);
-        for (long long j = l - lo; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) neg.push_back(it->second);
+        for (long long j = r - lo + 1; j; j &= j - 1) if (auto it = root.find(j);
+            it != root.end()) pos.push_back(it->second);
+        for (long long j = l - lo; j; j &= j - 1) if (auto it = root.find(j);
+            it != root.end()) neg.push_back(it->second);
         return (r - l + 1) - total(pos, neg, [&](int t) { return nd[t].C; });
     }
 

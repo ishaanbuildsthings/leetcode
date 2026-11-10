@@ -126,7 +126,8 @@ class SortedRunsXor:
             s += self.len[s]
         return out
 
-    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    # raises IndexError
     def xorAll(self):
         if self.n < 1:
             raise IndexError("xorAll: needs n >= 1")

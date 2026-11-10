@@ -41,11 +41,13 @@ struct AddChminMinMaxTree {
     vector<T> hi, add;  // N: tags on internal nodes
 
     // O(N)
-    explicit AddChminMinMaxTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit AddChminMinMaxTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         mn.assign(2 * n, INF);
         mx.assign(2 * n, NEG);
         for (int i = 0; i < n; i++) mn[n + i] = mx[n + i] = a[i];
-        for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]), mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);
+        for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]),
+            mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);
         hi.assign(n, INF);
         add.assign(n, 0);
     }

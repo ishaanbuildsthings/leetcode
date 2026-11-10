@@ -28,7 +28,8 @@ def _sqrts(x, k):  # x after k floor-sqrts
         k -= 1
     return x
 
-# Range floor-sqrt + point ops (values >= 0), over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
+# Range floor-sqrt + point ops (values >= 0), over any index range [lo, hi] (huge or negative is fine); every position
+# starts at 0.
 # Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its
 # O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags
 # on its path down, so they stop applying to it. Sparse: a dict keyed by heap index over a power-of-two cover of

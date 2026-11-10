@@ -20,7 +20,8 @@
 #   other: children[2*log(U)]
 #   note: per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a dict keyed by heap index, a missing key is a block of zeros
 
-# Max subarray / prefix / suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
+# Max subarray / prefix / suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is
+# fine); every position starts at 0.
 # Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of zeros.
 # Each node keeps the summary (sm, pre, suf, best); merging is not commutative, so a query folds a left and a right
 # accumulator, tracking each node's length k (a node at level s covers 2^s slots).

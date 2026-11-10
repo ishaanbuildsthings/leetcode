@@ -141,7 +141,8 @@ class IntervalMap:
     def __init__(self, arr):
         n = self.n = len(arr)
         starts, val, by = [], {}, {}
-        salt = self.salt = getrandbits(62)  # byVal's int keys are salted with this, so no fixed input can make them collide
+        # byVal's int keys are salted with this, so no fixed input can make them collide
+        salt = self.salt = getrandbits(62)
         for i, v in enumerate(arr):
             if i == 0 or v != arr[i - 1]:
                 starts.append(i)

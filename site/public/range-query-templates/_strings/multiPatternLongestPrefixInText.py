@@ -20,7 +20,8 @@ def multiPatternLongestPrefixInText(text, patterns):
 
     text = list(map(key, text))
     patterns = [list(map(key, pattern)) for pattern in patterns]
-    # suffix automaton of text: each state is a group of substrings sharing their end positions, with lengths in (length[link], length]
+    # suffix automaton of text: each state is a group of substrings sharing their end positions, with lengths in
+    # (length[link], length]
     nxt = [{}]
     link = [-1]
     length = [0]

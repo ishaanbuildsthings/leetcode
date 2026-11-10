@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
-import { MiscTemplates } from "@/components/TemplatePicker";
-import { BITSETS } from "@/lib/bitset";
-import { BIT_SUMS, SOS_DP, XOR_BASIS, XOR_CONVOLUTION } from "@/lib/bit-operations";
+import { RowTemplates } from "@/components/RowTemplates";
+import { BIT_OPS_SECTIONS } from "@/lib/bit-operations";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -31,13 +30,7 @@ export default async function BitsetTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Bit operation & bitset templates" sections={[
-            { title: "XOR basis", items: XOR_BASIS },
-            { title: "AND / OR counts (SOS DP)", items: SOS_DP },
-            { title: "XOR convolution", items: XOR_CONVOLUTION },
-            { title: "Sums of XOR / AND / OR over pairs and subarrays", items: BIT_SUMS },
-            { title: "Bitsets", items: BITSETS },
-          ]} publicBase="/range-query-templates" />
+        <RowTemplates title="Bit operation & bitset templates" sections={BIT_OPS_SECTIONS} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

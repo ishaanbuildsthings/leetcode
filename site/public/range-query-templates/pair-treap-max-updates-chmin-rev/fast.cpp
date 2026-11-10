@@ -79,7 +79,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -369,7 +371,8 @@ struct PairSwapTreap {
         return v;
     }
 
-    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -377,7 +380,8 @@ struct PairSwapTreap {
         return v;
     }
 
-    // O(log(N) expected) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N) expected) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto maxAll() {
         if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
         return rangeMax(0, size() - 1);
@@ -476,7 +480,8 @@ struct PairSwapTreap {
         return {e1, o1, e2, o2};
     }
 
-    LEETCODE_NO_SANITIZE pair<int, int> pmerge(int e1, int o1, int e2, int o2) {  // lanes of (the first array, then the second)
+    LEETCODE_NO_SANITIZE pair<int, int> pmerge(int e1, int o1, int e2, int o2) {
+        // lanes of (the first array, then the second)
         if ((nd[e1].sz + nd[o1].sz) % 2) swap(e2, o2);  // (after an odd length: its even positions are odd ones)
         return {merge(e1, e2), merge(o1, o2)};
     }
@@ -492,7 +497,8 @@ struct PairSwapTreap {
         tie(rE, rO) = pmerge(e, o, ce, co);
     }
 
-    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {
+        // the node holding a[i], every tag on the way pushed
         int t = i % 2 ? rO : rE, k = i / 2;
         while (true) {
             push(t);
@@ -588,7 +594,8 @@ struct PairSwapTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+    LEETCODE_NO_SANITIZE void release(size_t mark) {
+        // drop every node made after mark (temporaries: no tree points to them)
         nd.resize(mark);
         nd.resize(mark);
         nd.resize(mark);

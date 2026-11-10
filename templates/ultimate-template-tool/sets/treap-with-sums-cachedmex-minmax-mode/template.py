@@ -67,7 +67,8 @@ from random import random
 
 
 class TreapMultiset:
-    __slots__ = ("K", "C", "Z", "S", "D", "P", "L", "R", "free", "root", "n", "mn", "mx", "mexV", "bk", "bkAt", "fh", "fhAt", "salt", "total", "d")
+    __slots__ = ("K", "C", "Z", "S", "D", "P", "L", "R", "free", "root", "n", "mn", "mx", "mexV", "bk", "bkAt", "fh",
+        "fhAt", "salt", "total", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -352,7 +353,8 @@ class TreapMultiset:
                 if x == self.mx:
                     self.mx = self._kth(n)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)
@@ -637,7 +639,9 @@ class TreapMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
     # O(logN expected) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -645,7 +649,9 @@ class TreapMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
     # O(logN expected) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k

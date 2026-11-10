@@ -40,7 +40,7 @@ const PICKER_PAGES = [
 ];
 
 // the picker tabs, with the page's controls (children) at the right end of the same row
-function PickerTabs({ children }: { children?: React.ReactNode }) {
+export function PickerTabs({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <nav
@@ -947,7 +947,8 @@ function UsagePanel<V extends PickerTemplate>({
       : usage.classes[k].className[0].toLowerCase() +
         usage.classes[k].className.slice(1);
   const typeOf = (ret = "") =>
-    ret.replace(/\bT\b/g, elem).replace(/\bS\b/g, "long long");
+    // (any other capitalized name, like U64 or Z, is private to the struct: the caller can't write it)
+    /\b(?!T\b|S\b)[A-Z]\w*\b/.test(ret) ? "auto" : ret.replace(/\bT\b/g, elem).replace(/\bS\b/g, "long long");
 
   const blocks: { comments: string[]; code: string }[] = [];
   for (const k of neededClasses) {
@@ -961,13 +962,6 @@ function UsagePanel<V extends PickerTemplate>({
     const deducible =
       requiredParams.some((p) => /vector<.*\bT\b/.test(p.type ?? "")) &&
       !requiredParams.some((p) => /^(const\s+)?T\s*&?$/.test(p.type ?? ""));
-    if (cpp && cls.pool)
-      blocks.push({
-        comments: [
-          `Between test cases: frees every ${cls.className}<${elem}> (they all share one node pool).`,
-        ],
-        code: `${cls.className}<${elem}>::resetPool();`,
-      });
     const extraComments = catalog.ctorComments?.(template, lang) ?? [];
     const afterArgs = catalog.ctorCommentsAfterArgs?.(template) ?? false;  // (example constructions read best after the argument notes)
     const comments = [
@@ -998,10 +992,18 @@ function UsagePanel<V extends PickerTemplate>({
         : `${varOf(k)} = ${cls.className}(${required.join(", ")})`,
     });
   }
+  // result names already taken: cut and copy both make a "piece", so the second one is piece2
+  const taken = new Set<string>();
+  const fresh = (name: string) => {
+    let out = name;
+    for (let k = 2; taken.has(out); k++) out = `${name}${k}`;
+    taken.add(out);
+    return out;
+  };
   for (const op of shown) {
     const m = usage.methods[op]!;
     const call = `${varOf(m.cls)}.${op}(${m.params.map(reword).join(", ")})`;
-    const pair = catalog.pairResults?.[op];
+    const pair = catalog.pairResults?.[op]?.map(fresh);
     let code: string;
     if (pair?.length === 1) code = cpp ? `auto ${pair[0]} = ${call};` : `${pair[0]} = ${call}`;
     else if (pair)

@@ -431,7 +431,8 @@ struct WaveletMatrix {
         for (int lv = 0; lv < bits; lv++) {
             const int* z = row(lv);
             int zl = z[lo], zh = z[hi];
-            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;  // all 0s are below x
+            // all 0s are below x
+            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;
             else lo = zl, hi = zh;
         }
         return res;
@@ -447,7 +448,8 @@ struct WaveletMatrix {
             const S* zs = &zsum[(size_t)lv * (n + 1)];
             int zl = z[lo], zh = z[hi];
             if (k <= zh - zl) lo = zl, hi = zh;
-            else k -= zh - zl, res += zs[hi] - zs[lo], rank |= 1 << (bits - 1 - lv), lo = z[n] + lo - zl, hi = z[n] + hi - zh;
+            else k -= zh - zl, res += zs[hi] - zs[lo], rank |= 1 << (bits - 1 - lv), lo = z[n] + lo - zl,
+                hi = z[n] + hi - zh;
         }
         return res + S(k) * srt[rank];  // the last k all equal the k-th smallest
     }
@@ -473,7 +475,8 @@ struct WaveletMatrix {
         ML.assign(1, 0), MR.assign(1, 0), MN.assign(1, -1);  // node 0 = the empty tree (every last index -1)
         mexRoot.assign(n + 1, 0);
         for (int i = 0; i < n; i++)
-            mexRoot[i + 1] = T(0) <= arr[i] && arr[i] <= T(n + 1) ? mexSet(mexRoot[i], 0, n + 1, int(arr[i]), i) : mexRoot[i];
+            mexRoot[i + 1] = T(0) <= arr[i] && arr[i] <= T(n + 1) ? mexSet(mexRoot[i], 0, n + 1, int(arr[i]),
+                i) : mexRoot[i];
     }
 
     // copy of node with value v's last index set to i
@@ -614,7 +617,8 @@ struct WaveletMatrix {
 
 // The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 // The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and
-// zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the
+// zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so
+// the
 // k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.
 // FAST MODE drawbacks compared with sparse.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -644,7 +648,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -658,12 +664,14 @@ struct SparseWaveletMatrix {
     WaveletMatrix<T> inner;
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparseWaveletMatrix(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(split(values)) {}
+    SparseWaveletMatrix(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi),
+        inner(split(values)) {}
 
     LEETCODE_NO_SANITIZE vector<T> split(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no given values; never queried)
+        // (a dummy element when there are no given values; never queried)
+        return vals.empty() ? vector<T>{T(0)} : vals;
     }
 
     // {i0, i1, zeros}: the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
@@ -691,7 +699,8 @@ struct SparseWaveletMatrix {
     LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
-        return (i0 <= i1 ? inner.countInValRange(i0, i1, lowVal, highVal) : 0) + (lowVal <= T(0) && T(0) <= highVal ? zeros : 0);
+        return (i0 <= i1 ? inner.countInValRange(i0, i1, lowVal,
+            highVal) : 0) + (lowVal <= T(0) && T(0) <= highVal ? zeros : 0);
     }
 
     // O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range

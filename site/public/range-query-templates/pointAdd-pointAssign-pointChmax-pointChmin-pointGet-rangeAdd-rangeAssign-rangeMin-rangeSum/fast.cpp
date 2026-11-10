@@ -28,7 +28,8 @@ using ll = long long;
 //   note: tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)
 
 // Range add / assign with range sum / min queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
-// Iterative 2N lazy tree: values on the leaves, and on each internal node a pending assign or add, meaning "applied here, not
+// Iterative 2N lazy tree: values on the leaves, and on each internal node a pending assign or add, meaning "applied
+// here, not
 // yet pushed to my children". An update pushes the tags on its two boundary paths, tags the covering nodes, then
 // rebuilds the two paths. A covering node at level s is a perfect subtree of 2^s leaves, so its length is 1 << s.
 // T: int, long long, ...; sums are kept in S (long long for small T).
@@ -60,7 +61,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -76,7 +79,8 @@ struct AddAssignSumMinTree {
     HotVector<char> hasAsg;
 
     // O(N)
-    explicit AddAssignSumMinTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit AddAssignSumMinTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         sm.assign(2 * n, 0);
         mn.assign(2 * n, INF);
         for (int i = 0; i < n; i++) {

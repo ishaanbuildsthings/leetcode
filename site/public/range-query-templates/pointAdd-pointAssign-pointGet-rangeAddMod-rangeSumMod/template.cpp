@@ -34,7 +34,8 @@ struct RangeAddSumBITMod {
     T norm(W x) const { x %= mod; return T(x < 0 ? x + mod : x); }
 
     // O(N)
-    explicit RangeAddSumBITMod(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), b1(n + 1), b2(n + 1) {
+    explicit RangeAddSumBITMod(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), b1(n + 1),
+        b2(n + 1) {
         T prev = 0;
         for (int i = 0; i < n; i++) {
             T v = norm(a[i]), d = norm(W(v) - prev);

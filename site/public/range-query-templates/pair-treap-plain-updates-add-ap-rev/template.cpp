@@ -195,9 +195,11 @@ struct PairSwapTreap {
     void rangeAddArithSeq(int l, int r, T start, T step) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAddArithSeq: needs 0 <= l <= r < size()");
         auto ln = lanes(l, r);
-        upd(ln[0][0], ln[0][1], ln[0][2], [&](int x, int off) { applyAP(x, T(start + T(2) * step * T(off)), T(2) * step); (void)off; },
+        upd(ln[0][0], ln[0][1], ln[0][2],
+            [&](int x, int off) { applyAP(x, T(start + T(2) * step * T(off)), T(2) * step); (void)off; },
             [&](T w, int off) { (void)off; return T(w + start + T(2) * step * T(off)); });
-        upd(ln[1][0], ln[1][1], ln[1][2], [&](int x, int off) { applyAP(x, T(T(start + step) + T(2) * step * T(off)), T(2) * step); (void)off; },
+        upd(ln[1][0], ln[1][1], ln[1][2],
+            [&](int x, int off) { applyAP(x, T(T(start + step) + T(2) * step * T(off)), T(2) * step); (void)off; },
             [&](T w, int off) { (void)off; return T(w + T(start + step) + T(2) * step * T(off)); });
     }
 
@@ -272,7 +274,8 @@ struct PairSwapTreap {
         return v;
     }
 
-    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);

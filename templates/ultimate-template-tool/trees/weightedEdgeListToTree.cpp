@@ -1,15 +1,16 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/weightedEdgeListToTree.cpp
-// TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
+#include <bits/stdc++.h>
+using namespace std;
 
+// TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
 // edgeList = {{a, b, w}, {c, d, w}, ...}
-// if zeroIndex is true, assumes the root is 0, returns a vector `children` that goes up to `children[n-1]` (n-1 is inferred from the edgeList)
-// if zeroIndex is false, assumes the root is 1, returns a vector `children` that goes up to `children[n]`, children[0] is empty and unused
+// roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label
+// 0-indexed input -> children goes up to children[n-1]; 1-indexed -> up to children[n], children[0] empty and unused
 // children[node] = {{child, weight}, ...} where weight is the edge from node to child
-vector<vector<pair<int, int>>> edgeListToTree(const vector<array<int, 3>>& edgeList, bool zeroIndexed = true) {
-    int n = (int)edgeList.size() + 1;
-    int size = zeroIndexed ? n : n + 1;
-    int root = zeroIndexed ? 0 : 1;
+vector<vector<pair<int, int>>> edgeListToTree(const vector<array<int, 3>>& edgeList, int root) {
+    int size = root + 1;
+    for (auto& [a, b, w] : edgeList) size = max({size, a + 1, b + 1});
     vector<vector<pair<int, int>>> edgeMap(size);
     for (auto& [a, b, w] : edgeList) {
         edgeMap[a].push_back({b, w});

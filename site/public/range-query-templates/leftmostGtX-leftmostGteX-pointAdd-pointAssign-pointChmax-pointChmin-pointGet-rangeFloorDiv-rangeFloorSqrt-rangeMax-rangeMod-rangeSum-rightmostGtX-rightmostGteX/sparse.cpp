@@ -50,7 +50,9 @@ struct SparseShrinkTree {
 
 
     // optional -- reserve room for this many nodes up front
-    void reservePool(size_t nodes) { mx.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    void reservePool(size_t nodes) {
+        mx.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes);
+    }
 
     // a fresh node: a block of k zeros
     int node(long long k) const {  // const: it only grows the (mutable) pool

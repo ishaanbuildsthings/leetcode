@@ -76,7 +76,8 @@ struct SparseAssignSumMinMaxTree {
         return v;
     }
 
-    static Agg merge(const Agg& a, const Agg& b) { return Agg{a.sm + b.sm, std::min(a.mn, b.mn), std::max(a.mx, b.mx)}; }
+    static Agg merge(const Agg& a,
+        const Agg& b) { return Agg{a.sm + b.sm, std::min(a.mn, b.mn), std::max(a.mx, b.mx)}; }
 
     // node x (k slots) takes tag t: its aggregate now, its children later
     void applyNode(int x, long long k, const Tag& t) {

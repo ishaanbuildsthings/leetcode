@@ -1,4 +1,6 @@
 import type { FillIn } from "@/components/TemplatePicker";
+import type { RowChoice, RowSection, RowVersion } from "@/components/RowTemplates";
+import { BITSETS } from "@/lib/bitset";
 
 // The bit operation templates (templates/ultimate-template-tool/bit-operations/), on the Bit ops & Bitset tab, Python
 // and C++: the XOR basis classes, then one function per file and per card (SOS DP, XOR convolution, bit sums). The
@@ -6,8 +8,9 @@ import type { FillIn } from "@/components/TemplatePicker";
 const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/";
 const FOLDER = "_bit-operations";
 
+// "B*2^B+N" -> "O(B*2^B + N)": products keep their * so B*2^B can't be read as one symbol
 const bigO = (cost: string) =>
-  `O(${cost.replace(/\+/g, " + ").replace(/\*/g, " ").replace(/2\^B/g, "2ᴮ").replace(/B\^2/g, "B²").replace(/log\(MOD\)/g, "log MOD")})`;
+  `O(${cost.replace(/\+/g, " + ").replace(/B\^2/g, "B²").replace(/log\(MOD\)/g, "log MOD")})`;
 
 const card = (file: string, call: string, returns: string, cost: string, note?: string): FillIn => ({
   label: `${call} ${bigO(cost)}`,
@@ -17,6 +20,18 @@ const card = (file: string, call: string, returns: string, cost: string, note?: 
   ops: [[`${call} -> ${returns}`, cost]],
   ...(note ? { note } : {}),
   githubUrl: GITHUB,
+});
+
+// a card whose Mod version (the same function, its answer mod mod) sits behind a "With mod" checkbox instead of on a
+// card of its own
+const withMod = (base: FillIn, file: string, call: string, returns: string, cost: string): FillIn => ({
+  ...base,
+  variant: {
+    label: "With mod",
+    title: `Use ${file}: the same answer, mod mod`,
+    storageKey: `templatePicker.mod.${base.file}`,
+    on: { label: `${call} ${bigO(cost)}`, file, ops: [[`${call} -> ${returns}`, cost]] },
+  },
 });
 
 // B comes from max(arr) and the result has a slot for every mask below 2^B
@@ -73,36 +88,139 @@ export const XOR_BASIS: FillIn[] = [
 ];
 
 export const SOS_DP: FillIn[] = [
-  card("subsetSums", "subsetSums(f)", "g: g[mask] = sum of f[sub] over every submask sub of mask (len(f) = 2^B)", "B*2^B"),
-  card("supersetSums", "supersetSums(f)", "g: g[mask] = sum of f[sup] over every supermask sup of mask (len(f) = 2^B)", "B*2^B"),
-  card("countSubsetsByAnd", "countSubsetsByAnd(arr, mod)", "res: res[v] = number of non-empty subsets whose AND is exactly v, mod mod", "B*2^B+N", MASK_NOTE),
-  card("countSubsetsByOr", "countSubsetsByOr(arr, mod)", "res: res[v] = number of non-empty subsets whose OR is exactly v, mod mod", "B*2^B+N", MASK_NOTE),
-  card("countPairsByAnd", "countPairsByAnd(arr)", "res: res[v] = number of pairs i < j with arr[i] & arr[j] == v", "B*2^B+N", MASK_NOTE),
-  card("countPairsByOr", "countPairsByOr(arr)", "res: res[v] = number of pairs i < j with arr[i] | arr[j] == v", "B*2^B+N", MASK_NOTE),
-  card("orConvolution", "orConvolution(a, b)", "c: c[k] = sum of a[i] * b[j] over every i | j == k (len(a) = len(b) = 2^B)", "B*2^B"),
-  card("andConvolution", "andConvolution(a, b)", "c: c[k] = sum of a[i] * b[j] over every i & j == k (len(a) = len(b) = 2^B)", "B*2^B"),
+  card("subsetSums", "subsetSums(valueAtMask)", "for each mask: the sum of valueAtMask[sub] over every sub with sub & mask == sub", "B*2^B",
+    "valueAtMask: a list of length 2^B with one number per mask, e.g. valueAtMask[x] = how many times x appears in your array; then res[mask] = how many of your values are submasks of mask."),
+  card("supersetSums", "supersetSums(valueAtMask)", "for each mask: the sum of valueAtMask[sup] over every sup with sup & mask == mask", "B*2^B",
+    "valueAtMask: a list of length 2^B with one number per mask, e.g. valueAtMask[x] = how many times x appears in your array; then res[mask] = how many of your values are supermasks of mask."),
+  withMod(
+    card("countAndSubsetsEqualToKForAllK", "countAndSubsetsEqualToKForAllK(arr)", "for each k: how many non-empty subsets have (& of all their elements) == k", "B*2^B+N",
+      `${MASK_NOTE} Without mod the counts are exact: Python's get as big as 2^N, C++ throws overflow_error past 62 values.`),
+    "countAndSubsetsEqualToKForAllKMod", "countAndSubsetsEqualToKForAllKMod(arr, mod)", "for each k: how many non-empty subsets have (& of all their elements) == k, mod mod", "B*2^B+N"),
+  withMod(
+    card("countOrSubsetsEqualToKForAllK", "countOrSubsetsEqualToKForAllK(arr)", "for each k: how many non-empty subsets have (| of all their elements) == k", "B*2^B+N",
+      `${MASK_NOTE} Without mod the counts are exact: Python's get as big as 2^N, C++ throws overflow_error past 62 values.`),
+    "countOrSubsetsEqualToKForAllKMod", "countOrSubsetsEqualToKForAllKMod(arr, mod)", "for each k: how many non-empty subsets have (| of all their elements) == k, mod mod", "B*2^B+N"),
+  card("countAndPairsEqualToKForAllK", "countAndPairsEqualToKForAllK(arr)", "for each k: how many pairs (i, j) with i < j have arr[i] & arr[j] == k", "B*2^B+N", MASK_NOTE),
+  card("countOrPairsEqualToKForAllK", "countOrPairsEqualToKForAllK(arr)", "for each k: how many pairs (i, j) with i < j have arr[i] | arr[j] == k", "B*2^B+N", MASK_NOTE),
+  card("sumOfOrPairsEqualToKForAllK", "sumOfOrPairsEqualToKForAllK(arr1, arr2)", "for each k: the sum of arr1[i] × arr2[j] over every i and every j with i | j == k", "B*2^B",
+    "arr1 and arr2 both have length 2^B (an OR convolution)."),
+  card("sumOfAndPairsEqualToKForAllK", "sumOfAndPairsEqualToKForAllK(arr1, arr2)", "for each k: the sum of arr1[i] × arr2[j] over every i and every j with i & j == k", "B*2^B",
+    "arr1 and arr2 both have length 2^B (an AND convolution)."),
 ];
 
 export const XOR_CONVOLUTION: FillIn[] = [
-  card("xorConvolution", "xorConvolution(a, b)", "c: c[k] = sum of a[i] * b[j] over every i ^ j == k (len(a) = len(b) = 2^B)", "B*2^B",
-    "C++ is exact while (sum of |a|) · (sum of |b|) fits in long long; past that use xorConvolutionMod."),
-  card("xorConvolutionMod", "xorConvolutionMod(a, b, mod)", "c: c[k] = sum of a[i] * b[j] over every i ^ j == k, mod mod (mod odd)", "B*2^B+log(MOD)"),
-  card("countPairsByXor", "countPairsByXor(arr)", "res: res[v] = number of pairs i < j with arr[i] ^ arr[j] == v", "B*2^B+N", MASK_NOTE),
+  withMod(
+    card("sumOfXorPairsEqualToKForAllK", "sumOfXorPairsEqualToKForAllK(arr1, arr2)", "for each k: the sum of arr1[i] × arr2[j] over every i and every j with i ^ j == k", "B*2^B",
+      "arr1 and arr2 both have length 2^B (an XOR convolution). Without mod, C++ is exact while (sum of |arr1|) · (sum of |arr2|) fits in long long; past that use With mod (mod must be odd)."),
+    "sumOfXorPairsEqualToKForAllKMod", "sumOfXorPairsEqualToKForAllKMod(arr1, arr2, mod)", "for each k: the sum of arr1[i] × arr2[j] over every i and every j with i ^ j == k, mod mod", "B*2^B+log(MOD)"),
+  card("countXorPairsEqualToKForAllK", "countXorPairsEqualToKForAllK(arr)", "for each k: how many pairs (i, j) with i < j have arr[i] ^ arr[j] == k", "B*2^B+N", MASK_NOTE),
 ];
 
-const SUM_NOTE = "Values must be >= 0. C++ throws overflow_error if the exact answer doesn't fit in long long: use the Mod version.";
+const SUM_NOTE = "Values must be >= 0. Without mod, C++ throws overflow_error if the exact answer doesn't fit in long long (the With mod version never does).";
 
-export const BIT_SUMS: FillIn[] = [
-  card("sumOfPairXors", "sumOfPairXors(arr)", "sum of arr[i] ^ arr[j] over every pair i < j", "N*B", SUM_NOTE),
-  card("sumOfPairAnds", "sumOfPairAnds(arr)", "sum of arr[i] & arr[j] over every pair i < j", "N*B", SUM_NOTE),
-  card("sumOfPairOrs", "sumOfPairOrs(arr)", "sum of arr[i] | arr[j] over every pair i < j", "N*B", SUM_NOTE),
-  card("sumOfSubarrayXors", "sumOfSubarrayXors(arr)", "sum of the XOR of every non-empty subarray", "N*B", SUM_NOTE),
-  card("sumOfSubarrayAnds", "sumOfSubarrayAnds(arr)", "sum of the AND of every non-empty subarray", "N*B", SUM_NOTE),
-  card("sumOfSubarrayOrs", "sumOfSubarrayOrs(arr)", "sum of the OR of every non-empty subarray", "N*B", SUM_NOTE),
-  card("sumOfPairXorsMod", "sumOfPairXorsMod(arr, mod)", "sum of arr[i] ^ arr[j] over every pair i < j, mod mod", "N*B"),
-  card("sumOfPairAndsMod", "sumOfPairAndsMod(arr, mod)", "sum of arr[i] & arr[j] over every pair i < j, mod mod", "N*B"),
-  card("sumOfPairOrsMod", "sumOfPairOrsMod(arr, mod)", "sum of arr[i] | arr[j] over every pair i < j, mod mod", "N*B"),
-  card("sumOfSubarrayXorsMod", "sumOfSubarrayXorsMod(arr, mod)", "sum of the XOR of every non-empty subarray, mod mod", "N*B"),
-  card("sumOfSubarrayAndsMod", "sumOfSubarrayAndsMod(arr, mod)", "sum of the AND of every non-empty subarray, mod mod", "N*B"),
-  card("sumOfSubarrayOrsMod", "sumOfSubarrayOrsMod(arr, mod)", "sum of the OR of every non-empty subarray, mod mod", "N*B"),
+export const BIT_SUMS: FillIn[] = (
+  [
+    ["sumOfPairXors", "sumOfPairXors(arr)", "sum of arr[i] ^ arr[j] over every pair i < j"],
+    ["sumOfPairAnds", "sumOfPairAnds(arr)", "sum of arr[i] & arr[j] over every pair i < j"],
+    ["sumOfPairOrs", "sumOfPairOrs(arr)", "sum of arr[i] | arr[j] over every pair i < j"],
+    ["sumOfSubarrayXors", "sumOfSubarrayXors(arr)", "sum of the XOR of every non-empty subarray"],
+    ["sumOfSubarrayAnds", "sumOfSubarrayAnds(arr)", "sum of the AND of every non-empty subarray"],
+    ["sumOfSubarrayOrs", "sumOfSubarrayOrs(arr)", "sum of the OR of every non-empty subarray"],
+  ] as const
+).map(([file, call, returns]) =>
+  withMod(card(file, call, returns, "N*B", SUM_NOTE), `${file}Mod`, `${file}Mod(arr, mod)`, `${returns}, mod mod`, "N*B"),
+);
+
+// ---- the Bit ops & Bitset tab as rows (components/RowTemplates.tsx), grouped by what you want to compute
+
+const ALL_CARDS = [...SOS_DP, ...XOR_CONVOLUTION, ...BIT_SUMS];
+const byFile = (file: string) => {
+  const f = ALL_CARDS.find((c) => c.file === file);
+  if (!f) throw new Error(`no bit operations card for ${file}`);
+  return f;
+};
+
+// what a one-function card shows on its row: its call, what it computes, its cost (and the same for its mod version)
+function version(f: FillIn): RowVersion {
+  const [op, cost] = f.ops[0];
+  const [call, does] = op.split(" -> ");
+  return { call, does, cost: bigO(cost), fillIn: { ...f, variant: undefined } };
+}
+function choice(key: string, title: string, file: string): RowChoice {
+  const f = byFile(file);
+  const on = f.variant?.on;
+  return {
+    key,
+    title,
+    ...version(f),
+    ...(on ? { mod: version({ ...f, ...on, variant: undefined } as FillIn) } : {}),
+  };
+}
+// the AND / OR / XOR versions of one function: name(op) gives each one's file
+const OPS = [
+  ["AND", "And"],
+  ["OR", "Or"],
+  ["XOR", "Xor"],
+] as const;
+function byOp(name: (op: string) => string, ops: readonly (readonly [string, string])[] = OPS): RowChoice[] {
+  return ops.map(([key, op]) => choice(key, `${key}: ${name(op)}`, name(op)));
+}
+// a class with many operations: its name and a summary; the drawer lists every operation
+function whole(f: FillIn, call: string, does: string): RowChoice {
+  return { key: call, call, does, cost: "", fillIn: f };
+}
+
+export const BIT_OPS_SECTIONS: RowSection[] = [
+  {
+    title: "Bitset",
+    rows: [
+      {
+        id: "bitset",
+        choices: [whole(BITSETS[0], "DynamicBitset", "n bits, n chosen at runtime (C++ only): read / set / flip single bits, grow and shrink, whole-bitset operations")],
+      },
+    ],
+  },
+  {
+    title: "XOR basis",
+    rows: [
+      { id: "xor-basis", choices: [whole(byXorBasis("XorBasis"), "XorBasis", "max / min / kth subset XOR, how many distinct subset XORs, how many subsets make x")] },
+      { id: "range-xor-basis", choices: [whole(byXorBasis("RangeXorBasis"), "RangeXorBasis", "max subset XOR / can make x, within any subarray [l, r]")] },
+    ],
+  },
+  {
+    title: "Count pairs",
+    note: "pairs (i, j) with i < j, for every value k at once",
+    rows: [{ id: "count-pairs", choices: byOp((op) => `count${op}PairsEqualToKForAllK`) }],
+  },
+  {
+    title: "Count subsets",
+    note: "non-empty subsets, for every value k at once",
+    rows: [{ id: "count-subsets", choices: byOp((op) => `count${op}SubsetsEqualToKForAllK`, OPS.slice(0, 2)) }],
+  },
+  {
+    title: "Sum of arr1[i] × arr2[j] over index pairs",
+    note: "every i and every j, for every value k at once (a convolution)",
+    rows: [{ id: "pair-products", choices: byOp((op) => `sumOf${op}PairsEqualToKForAllK`) }],
+  },
+  {
+    title: "Sums over pairs and subarrays of one array",
+    rows: [
+      { id: "pair-sums", choices: byOp((op) => `sumOfPair${op}s`) },
+      { id: "subarray-sums", choices: byOp((op) => `sumOfSubarray${op}s`) },
+    ],
+  },
+  {
+    title: "Submask / supermask sums",
+    note: "SOS DP over a list with one number per mask",
+    rows: [
+      { id: "subset-sums", choices: [choice("sub", "subsetSums", "subsetSums")] },
+      { id: "superset-sums", choices: [choice("super", "supersetSums", "supersetSums")] },
+    ],
+  },
 ];
+
+function byXorBasis(file: string) {
+  const f = XOR_BASIS.find((c) => c.file === file);
+  if (!f) throw new Error(`no XOR basis card for ${file}`);
+  return f;
+}

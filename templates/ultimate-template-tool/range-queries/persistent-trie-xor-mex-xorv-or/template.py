@@ -279,7 +279,8 @@ class PersistentXorTrie:
         self._rangeCheck("countGteX", l, r)
         return r - l + 1 - self._lt(l, r, x)
 
-    # O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    # O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    # size()
     def countInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("countInValRange", l, r)
         return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0
@@ -378,27 +379,32 @@ class PersistentXorTrie:
         self._rangeCheck("xorInValRange", l, r)
         return self._xorLt(l, r, highVal + 1) ^ self._xorLt(l, r, lowVal) if lowVal <= highVal else 0
 
-    # O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orLtX(self, l, r, x):
         self._rangeCheck("orLtX", l, r)
         return self._orIn(l, r, 0, x - 1)
 
-    # O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orLteX(self, l, r, x):
         self._rangeCheck("orLteX", l, r)
         return self._orIn(l, r, 0, x)
 
-    # O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orGtX(self, l, r, x):
         self._rangeCheck("orGtX", l, r)
         return self._orIn(l, r, x + 1, self.top)
 
-    # O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orGteX(self, l, r, x):
         self._rangeCheck("orGteX", l, r)
         return self._orIn(l, r, x, self.top)
 
-    # O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    # O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <=
+    # r < size(), else
     # IndexError
     def orInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("orInValRange", l, r)

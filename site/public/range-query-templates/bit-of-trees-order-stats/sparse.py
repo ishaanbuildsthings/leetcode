@@ -29,7 +29,8 @@
 #   other: root[1*log(U)] vals[1]
 #   note: any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update
 
-# a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a dynamic value
+# a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a
+# dynamic value
 # seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT
 # prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
 # subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.
@@ -130,7 +131,8 @@ class SparseDynamicOrderStats:
             raise IndexError(f"countGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return r - l + 1 - self._countBelow(l, r, x)
 
-    # O(logU * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
+    # O(logU * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l +
+    # 1,
     # else IndexError
     def kthSmallest(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:

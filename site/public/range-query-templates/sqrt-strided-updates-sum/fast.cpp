@@ -55,7 +55,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -65,14 +67,15 @@ struct StridedQueries {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n, blockStrides = 0, blockSize = 1, numBlocks = 0, treeStrides = 0;
     HotVector<T> A;
-    HotVector<int> offsets;  // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    HotVector<int> offsets;
     HotVector<S> sumBlocks;
 
     // O(build) -- arr: the initial array
     explicit StridedQueries(const vector<T>& arr) {
         n = (int)arr.size();
         A = arr;
-        blockStrides = max(1, min(n, (int)sqrt((double)n)));
+        blockStrides = min(n, max(1, (int)sqrt((double)n)));
         blockSize = blockStrides;
         numBlocks = n / blockSize + 1;
         int strides = max(blockStrides, treeStrides);
@@ -156,7 +159,9 @@ struct StridedQueries {
 
     // ---- internals ----
 
-    LEETCODE_NO_SANITIZE int listIndex(int step, int i) const { return offsets[step * (step - 1) / 2 + i % step] + i / step; }
+    LEETCODE_NO_SANITIZE int listIndex(int step, int i) const {
+        return offsets[step * (step - 1) / 2 + i % step] + i / step;
+    }
 
     LEETCODE_NO_SANITIZE void write(int i, T v) {
         S sumDelta = S(v) - S(A[i]);

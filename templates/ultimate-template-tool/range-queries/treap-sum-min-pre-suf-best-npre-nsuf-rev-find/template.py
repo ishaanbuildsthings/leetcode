@@ -752,7 +752,8 @@ class ImplicitTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -826,10 +827,12 @@ class ImplicitTreap:
         s, p, q, b, u, w = v, v, v, v, v, v  # the node alone, then with its left / right parts
         if l:
             ls, lp, lq, lb, lu, lw = self.sm[l], self.pre[l], self.suf[l], self.best[l], self.npre[l], self.nsuf[l]
-            s, p, q, b, u, w = ls + s, max(lp, ls + p), max(q, s + lq), max(lb, b, lq + p), min(lu, ls + u), min(w, s + lw)
+            s, p, q, b, u, w = ls + s, max(lp, ls + p), max(q, s + lq), max(lb, b, lq + p), min(lu, ls + u), min(w,
+                s + lw)
         if r:
             rs, rp, rq, rb, ru, rw = self.sm[r], self.pre[r], self.suf[r], self.best[r], self.npre[r], self.nsuf[r]
-            s, p, q, b, u, w = s + rs, max(p, s + rp), max(rq, rs + q), max(b, rb, q + rp), min(u, s + ru), min(rw, rs + w)
+            s, p, q, b, u, w = s + rs, max(p, s + rp), max(rq, rs + q), max(b, rb, q + rp), min(u, s + ru), min(rw,
+                rs + w)
         self.sm[x], self.pre[x], self.suf[x], self.best[x], self.npre[x], self.nsuf[x] = s, p, q, b, u, w
         m = v
         if l and self.mn[l] < m:
@@ -908,7 +911,8 @@ class ImplicitTreap:
                 i -= ls + 1
                 t = self.R[t]
 
-    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+    def _pieces(self, t, l, r, out):
+        # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
         if not t or r < 0 or l >= self.sz[t]:
             return
         if l <= 0 and self.sz[t] - 1 <= r:

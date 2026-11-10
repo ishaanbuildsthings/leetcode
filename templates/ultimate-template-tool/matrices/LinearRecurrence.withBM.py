@@ -21,6 +21,8 @@ def nthTerm(coeffs, initial, n):
     d = len(coeffs)
     if d == 0 or len(initial) != d:
         raise ValueError(f"nthTerm needs d >= 1 coeffs and exactly d initial terms, got {d} and {len(initial)}")
+    if n < 0:
+        raise ValueError(f"nthTerm needs n >= 0, got {n}")
     if n < d:
         return initial[n] % MOD
     # a[n] = [x^n] P(x) / Q(x) with Q = 1 - coeffs[0] x - ... - coeffs[d-1] x^d and P = (initial * Q) mod x^d

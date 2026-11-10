@@ -76,13 +76,15 @@ from random import getrandbits
 
 
 class TrieMultiset:
-    __slots__ = ("B", "top", "L", "R", "C", "P", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "bk", "bkAt", "fh", "fhAt", "salt", "d")
+    __slots__ = ("B", "top", "L", "R", "C", "P", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC",
+        "bk", "bkAt", "fh", "fhAt", "salt", "d")
 
     # O(1) -- an empty multiset for integers in [0, 2^bits) (bits = 30 holds values up to 1073741823)
     def __init__(self, bits):
         self.B = bits
         self.top = (1 << bits) - 1  # the largest value it can hold
-        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]  # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]
         self.P = [0, 0]  # distinct values below
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.bk, self.bkAt = {}, {}  # mode: count -> list of the values with that many copies; value -> its index there
@@ -350,7 +352,8 @@ class TrieMultiset:
         if not self.highB < r <= self.highB + self.highC:
             self.highV, self.highB, self.highC = self._kthInfo(r)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)

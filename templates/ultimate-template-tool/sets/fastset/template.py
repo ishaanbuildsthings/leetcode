@@ -128,7 +128,9 @@ class FastSetMultiset:
     def _resetCached(self):  # nothing counted: as newly built
         self.n = self.d = 0
 
-    def _clearData(self):  # zero only the trie words in use (walking down from the top through set bits), and the counts of the values present
+    def _clearData(self):
+        # zero only the trie words in use (walking down from the top through set bits), and the counts of the values
+        # present
         seg, cnt = self.seg, self.cnt
         stack = [(len(seg) - 1, 0)]
         while stack:

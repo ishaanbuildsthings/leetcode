@@ -60,9 +60,11 @@ from bisect import bisect_left, bisect_right
 
 
 class FenwickMultiset:
-    __slots__ = ("vals", "m", "top", "steps", "cnt", "fc", "fp", "z", "run", "n", "mn", "mx", "bk", "bkAt", "fh", "fhAt", "gc", "gmin", "gmax", "dups", "salt", "d")
+    __slots__ = ("vals", "m", "top", "steps", "cnt", "fc", "fp", "z", "run", "n", "mn", "mx", "bk", "bkAt", "fh",
+        "fhAt", "gc", "gmin", "gmax", "dups", "salt", "d")
 
-    # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
+    # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order,
+    # duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
     def __init__(self, allValuesThatWillEverBeInsertedForOfflineCompression):
         vals = self.vals = sorted(set(allValuesThatWillEverBeInsertedForOfflineCompression))
         m = self.m = len(vals)
@@ -77,7 +79,8 @@ class FenwickMultiset:
             run += 1
         self.run = run
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.bk, self.bkAt = {}, {}  # mode: count -> list of the values with that many copies; value -> its index there
         self.fh, self.fhAt = [], {}  # mode: max-heap of the counts that have a bucket; count -> its index in it
         self.n = self.d = 0
@@ -239,7 +242,8 @@ class FenwickMultiset:
                 if x == self.mx:
                     self.mx = self._kth(n)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)

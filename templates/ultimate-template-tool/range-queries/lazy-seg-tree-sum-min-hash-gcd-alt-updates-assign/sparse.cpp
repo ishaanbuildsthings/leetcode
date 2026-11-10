@@ -399,8 +399,8 @@ struct SparseLazySegTree {
         nd[x].mn = min(nd[a].mn, nd[b].mn);
         nd[x].fh = hadd(hmul(nd[a].fh, PW[s - 1]), nd[b].fh), nd[x].bh = hadd(hmul(nd[b].bh, PW[s - 1]), nd[a].bh);
         nd[x].g = gcd(nd[a].g, nd[b].g);
-        array<S,
-            4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11}, {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
+        array<S, 4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11},
+            {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
         nd[x].a00 = c[0], nd[x].a01 = c[1], nd[x].a10 = c[2], nd[x].a11 = c[3];
     }
 

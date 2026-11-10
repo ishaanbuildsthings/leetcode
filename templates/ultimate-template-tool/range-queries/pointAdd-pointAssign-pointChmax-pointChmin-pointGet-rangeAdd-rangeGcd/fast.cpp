@@ -57,7 +57,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -65,12 +67,14 @@ struct HotVector : vector<U> {
 template <typename T>
 struct RangeAddRangeGcd {
     int n;
-    HotVector<T> diff, fen, seg;  // diff[i] = a[i] - a[i-1] (diff[0] = a[0]); fen 1-indexed; seg[n + i] = |diff[i]|, i >= 1
+    // diff[i] = a[i] - a[i-1] (diff[0] = a[0]); fen 1-indexed; seg[n + i] = |diff[i]|, i >= 1
+    HotVector<T> diff, fen, seg;
 
     LEETCODE_NO_SANITIZE static T absT(T x) { return x < 0 ? -x : x; }
 
     // O(N logU)
-    explicit RangeAddRangeGcd(const vector<T>& a) : n((int)a.size()), diff(a.size()), fen(a.size() + 1), seg(2 * a.size()) {
+    explicit RangeAddRangeGcd(const vector<T>& a) : n((int)a.size()), diff(a.size()), fen(a.size() + 1),
+        seg(2 * a.size()) {
         for (int i = 0; i < n; i++) diff[i] = i ? a[i] - a[i - 1] : a[0];
         for (int i = 1; i <= n; i++) fen[i] = diff[i - 1];
         for (int i = 1; i <= n; i++) {
@@ -161,7 +165,8 @@ struct RangeAddRangeGcd {
         if (v < cur) rangeAdd(i, i, v - cur);
     }
 
-    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto gcdAll() {
         if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
         return rangeGcd(0, n - 1);

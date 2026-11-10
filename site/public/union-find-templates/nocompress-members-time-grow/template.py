@@ -29,7 +29,8 @@ _NEVER = 1 << 62  # (the time of a root: it never got a parent)
 
 
 # dsu = DSUNoCompress(vals)
-# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val)
+# appends more
 
 
 class DSUNoCompress:
@@ -45,7 +46,8 @@ class DSUNoCompress:
         self.time = 0  # how many unites so far, failed ones too
         self.tm = [_NEVER] * n  # tm[i]: the unite (0, 1, 2, ...) that gave i its parent
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    # merge
     # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par

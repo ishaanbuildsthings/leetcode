@@ -75,7 +75,8 @@ class BlockMultiset:
         self.bc = []  # per block: total copies
         self.fc = None  # Fenwick over bc (None: stale)
         self.cnt = {}  # value -> copies
-        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1  # block size; distinct values to add / drop before a cut
+        # block size; distinct values to add / drop before a cut
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
         self.mexV = 0  # the mex, kept current (0 for the empty set)

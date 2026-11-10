@@ -59,7 +59,8 @@ struct AffineSumTree {
     void push(int p) {
         for (int s = h; s > 0; s--) {
             int x = p >> s, k = 1 << (s - 1);
-            if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]), mul[x] = 1, add[x] = 0;
+            if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]),
+                mul[x] = 1, add[x] = 0;
         }
     }
 
@@ -109,7 +110,8 @@ struct AffineSumTree {
         for (int s = h; s > 0; s--) {
             int k = 1 << (s - 1);
             for (int x = max(1, n >> s); x <= (2 * n - 1) >> s; x++)
-                if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]), mul[x] = 1, add[x] = 0;
+                if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]),
+                    mul[x] = 1, add[x] = 0;
         }
         return vector<T>(tot.begin() + n, tot.end());
     }

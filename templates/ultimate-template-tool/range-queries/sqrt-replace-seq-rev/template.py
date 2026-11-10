@@ -49,7 +49,8 @@ from random import getrandbits
 # ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
 # qualifies.
 class _Block:
-    # a run of the array: cls[k] is the class of its k-th value (read backwards when rev). Classes form a union-find (par);
+    # a run of the array: cls[k] is the class of its k-th value (read backwards when rev). Classes form a union-find
+    # (par);
     # a root class holds its value (val) and how many of the block's values are in it (cnt). where: value -> root class
     __slots__ = ("cls", "par", "val", "cnt", "where", "rev")
     salt = getrandbits(62)  # where's int keys are salted with this, so no fixed input can make them collide
@@ -116,7 +117,8 @@ class _Block:
         self.val[cy] = y
         self.where[ky] = cy
 
-    def assignAll(self, v):  # every value becomes v: every class joined into one (O(1) amortized: each join removes one)
+    def assignAll(self, v):
+        # every value becomes v: every class joined into one (O(1) amortized: each join removes one)
         roots = list(self.where.values())
         r = max(roots, key=lambda c: self.cnt[c])
         for c in roots:
@@ -225,7 +227,8 @@ class SqrtReplace:
     def rightmostIndexOf(self, x):
         return self._find(0, self.n - 1, x, False)
 
-    # O(sqrt(N)) amortized -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # O(sqrt(N)) amortized -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r <
+    # size(), else
     # IndexError
     def leftmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.size():
@@ -233,7 +236,8 @@ class SqrtReplace:
                              f"l = {l}, r = {r}, n = {self.size()}")
         return self._find(l, r, x, True)
 
-    # O(sqrt(N)) amortized -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # O(sqrt(N)) amortized -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r <
+    # size(), else
     # IndexError
     def rightmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.size():
@@ -374,7 +378,8 @@ class SqrtReplace:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")

@@ -63,7 +63,8 @@ class SparseBitCountTree:
     @staticmethod
     def _tagged(v, k, t):
         a, x = t
-        return tuple(((k - c) if x >> b & 1 else c) if a >> b & 1 else (k if x >> b & 1 else 0) for b, c in enumerate(v))
+        return tuple(((k - c) if x >> b & 1 else c) if a >> b & 1 else (k if x >> b & 1 else 0) for b,
+            c in enumerate(v))
 
     # tag o, then tag t
     @staticmethod

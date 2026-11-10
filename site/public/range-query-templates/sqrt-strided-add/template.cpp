@@ -30,7 +30,8 @@ struct StridedQueries {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n, strides;
     vector<S> A;
-    vector<int> offsets;  // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    vector<int> offsets;
     vector<S> diffs;  // one Fenwick tree of differences per kept step, n + 2 slots each
 
     // O(build) -- arr: the initial array. cutoff: a Fenwick tree is kept for steps up to it (more memory and slower
@@ -38,7 +39,7 @@ struct StridedQueries {
     explicit StridedQueries(const vector<T>& arr, int cutoff = -1) {
         n = (int)arr.size();
         A.assign(arr.begin(), arr.end());
-        strides = cutoff != -1 ? cutoff : max(1, min(n, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
+        strides = cutoff != -1 ? cutoff : min(n, max(1, (int)sqrt(n / max(1.0, log2(n + 1.0)))));
         if (strides < 0 || strides > n) throw out_of_range("StridedQueries: needs 0 <= cutoff <= n");
         offsets.assign((size_t)strides * (strides + 1) / 2, 0);
         for (int step = 1; step <= strides; step++) {
@@ -51,7 +52,8 @@ struct StridedQueries {
         diffs.assign((size_t)strides * (n + 2), 0);
     }
 
-    // O(sqrt(N logN)) -- a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    // throws out_of_range
     void stridedAdd(int l, int r, int step, T v) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAdd: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedAdd: needs step >= 1");

@@ -24,7 +24,8 @@ using namespace std;
 template <uint32_t MOD>
 vector<int> gaussEliminate(vector<vector<uint64_t>>& a, int numVars, bool full, uint64_t& det) {
     // products of two values < MOD that can pile onto a value < MOD before a uint64 overflows
-    constexpr uint64_t BATCH = min<uint64_t>(1 << 20, (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
+    constexpr uint64_t BATCH = min<uint64_t>(1 << 20,
+        (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
     auto modPow = [](uint64_t b, uint64_t e) {
         uint64_t r = 1 % MOD;
         for (b %= MOD; e; e >>= 1, b = b * b % MOD) {

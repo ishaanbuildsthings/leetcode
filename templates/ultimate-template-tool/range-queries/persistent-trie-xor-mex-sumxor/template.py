@@ -282,7 +282,8 @@ class PersistentXorTrie:
         self._rangeCheck("countGteX", l, r)
         return r - l + 1 - self._lt(l, r, x)
 
-    # O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    # O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    # size()
     def countInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("countInValRange", l, r)
         return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0

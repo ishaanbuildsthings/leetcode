@@ -67,7 +67,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -349,7 +351,8 @@ struct SparseLazySegTree {
         return cover(l, r, ns, ls, ts);
     }
 
-    LEETCODE_NO_SANITIZE void collect(int x, int s, long long tl, long long l, long long r, int* ns, int* ls, long long* ts, int& c) {
+    LEETCODE_NO_SANITIZE void collect(int x, int s, long long tl, long long l, long long r, int* ns, int* ls,
+        long long* ts, int& c) {
         if (l <= tl && tl + (1LL << s) - 1 <= r) {
             ns[c] = x, ls[c] = s, ts[c++] = tl;
             return;
@@ -375,7 +378,8 @@ struct SparseLazySegTree {
         pull(x, s);
     }
 
-    LEETCODE_NO_SANITIZE int leafOf(long long i, int* path) {  // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
+    LEETCODE_NO_SANITIZE int leafOf(long long i, int* path) {
+        // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
         int x = 1;
         long long tl = first;
         for (int s = D; s > 0; s--) {
@@ -388,7 +392,8 @@ struct SparseLazySegTree {
         return x;
     }
 
-    LEETCODE_NO_SANITIZE void up(const int* path) {  // recompute the nodes of path, deepest first (path[k] has level D - k)
+    LEETCODE_NO_SANITIZE void up(const int* path) {
+        // recompute the nodes of path, deepest first (path[k] has level D - k)
         for (int k = D - 1; k >= 0; k--) pull(path[k], D - k);
     }
 
@@ -404,8 +409,8 @@ struct SparseLazySegTree {
         nd[x].suf = max(nd[b].suf, nd[b].sm + nd[a].suf);
         nd[x].sm = nd[a].sm + nd[b].sm;
         nd[x].mn = min(nd[a].mn, nd[b].mn);
-        array<S,
-            4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11}, {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
+        array<S, 4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11},
+            {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
         nd[x].a00 = c[0], nd[x].a01 = c[1], nd[x].a10 = c[2], nd[x].a11 = c[3];
     }
 

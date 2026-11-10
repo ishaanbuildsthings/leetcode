@@ -48,7 +48,8 @@ struct BitCountTree {
 
     // O(N * bits)
     explicit BitCountTree(const vector<T>& a, int bits = 20)
-        : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())), bits(bits), full(T((T(1) << bits) - 1)),
+        : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())), bits(bits),
+            full(T((T(1) << bits) - 1)),
           cnt(2 * a.size() * bits), andTag(a.size(), full), xorTag(a.size(), 0) {
         for (int i = 0; i < n; i++)
             for (int b = 0; b < bits; b++) cnt[(n + i) * bits + b] = a[i] >> b & 1;
@@ -221,13 +222,15 @@ struct BitCountTree {
         return rangeSum(0, n - 1);
     }
 
-    // O(log(N)*log(U)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)*log(U)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto andAll() {
         if (n < 1) throw out_of_range("andAll: needs n >= 1");
         return rangeAndQuery(0, n - 1);
     }
 
-    // O(log(N)*log(U)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)*log(U)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto orAll() {
         if (n < 1) throw out_of_range("orAll: needs n >= 1");
         return rangeOrQuery(0, n - 1);

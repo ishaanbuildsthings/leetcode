@@ -57,7 +57,8 @@ class SortedRunsXorMinAnd:
             j = i + (i & -i)
             if j <= n:
                 self.bc[j] += self.bc[i]
-        size = self.size = 1 << max(0, (n - 1).bit_length())  # seg tree over positions: each run's aggregates at its start
+        # seg tree over positions: each run's aggregates at its start
+        size = self.size = 1 << max(0, (n - 1).bit_length())
         self.qx = [0] * (2 * size)
         self.qn = [INF] * (2 * size)
         self.qa = [-1] * (2 * size)
@@ -155,19 +156,22 @@ class SortedRunsXorMinAnd:
             s += self.len[s]
         return out
 
-    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def minAll(self):
         if self.n < 1:
             raise IndexError("minAll: needs n >= 1")
         return self.rangeMin(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    # raises IndexError
     def xorAll(self):
         if self.n < 1:
             raise IndexError("xorAll: needs n >= 1")
         return self.rangeXorQuery(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else
+    # raises IndexError
     def andAll(self):
         if self.n < 1:
             raise IndexError("andAll: needs n >= 1")

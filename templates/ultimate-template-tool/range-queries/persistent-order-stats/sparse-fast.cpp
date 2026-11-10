@@ -211,7 +211,8 @@ struct PersistentOrderStats {
 
 // The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 // The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and
-// zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the
+// zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so
+// the
 // k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.
 // FAST MODE drawbacks compared with sparse.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -241,7 +242,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -289,7 +292,8 @@ struct SparsePersistentOrderStats {
     LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
-        return (i0 <= i1 ? inner.countInValRange(i0, i1, lowVal, highVal) : 0) + (lowVal <= T(0) && T(0) <= highVal ? zeros : 0);
+        return (i0 <= i1 ? inner.countInValRange(i0, i1, lowVal,
+            highVal) : 0) + (lowVal <= T(0) && T(0) <= highVal ? zeros : 0);
     }
 
     // O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range

@@ -68,7 +68,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -337,7 +339,8 @@ struct SparseShrinkSegTree {
         return cover(l, r, ns, ls, ts);
     }
 
-    LEETCODE_NO_SANITIZE void collect(int x, int s, long long tl, long long l, long long r, int* ns, int* ls, long long* ts, int& c) {
+    LEETCODE_NO_SANITIZE void collect(int x, int s, long long tl, long long l, long long r, int* ns, int* ls,
+        long long* ts, int& c) {
         if (l <= tl && tl + (1LL << s) - 1 <= r) {
             ns[c] = x, ls[c] = s, ts[c++] = tl;
             return;
@@ -361,7 +364,8 @@ struct SparseShrinkSegTree {
         pull(x, s);
     }
 
-    LEETCODE_NO_SANITIZE int leafOf(long long i, int* path) {  // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
+    LEETCODE_NO_SANITIZE int leafOf(long long i, int* path) {
+        // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
         int x = 1;
         long long tl = first;
         for (int s = D; s > 0; s--) {
@@ -373,7 +377,8 @@ struct SparseShrinkSegTree {
         return x;
     }
 
-    LEETCODE_NO_SANITIZE void up(const int* path) {  // recompute the nodes of path, deepest first (path[k] has level D - k)
+    LEETCODE_NO_SANITIZE void up(const int* path) {
+        // recompute the nodes of path, deepest first (path[k] has level D - k)
         for (int k = D - 1; k >= 0; k--) pull(path[k], D - k);
     }
 
@@ -386,7 +391,8 @@ struct SparseShrinkSegTree {
     }
 
     template <class F>
-    LEETCODE_NO_SANITIZE void shrink(int x, int s, T lim, const F& f) {  // every value v >= lim under node x (level s) becomes f(v)
+    LEETCODE_NO_SANITIZE void shrink(int x, int s, T lim, const F& f) {
+        // every value v >= lim under node x (level s) becomes f(v)
         if (nd[x].mx < lim) return;
         if (s == 0) { setLeaf(x, f(nd[x].mx)); return; }
         kids(x, s);
@@ -412,8 +418,8 @@ struct SparseShrinkSegTree {
         nd[x].pr = j && nd[a].pr == hl ? nd[a].pr + nd[b].pr : nd[a].pr;
         nd[x].sr = j && nd[b].sr == hl ? nd[b].sr + nd[a].sr : nd[b].sr;
         nd[x].fv = nd[a].fv, nd[x].lv = nd[b].lv;
-        array<S,
-            4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11}, {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
+        array<S, 4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11},
+            {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
         nd[x].a00 = c[0], nd[x].a01 = c[1], nd[x].a10 = c[2], nd[x].a11 = c[3];
     }
 };

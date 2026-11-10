@@ -79,7 +79,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -368,7 +370,8 @@ struct WaveletMatrix {
         for (int lv = 0; lv < bits; lv++) {
             const int* z = row(lv);
             int zl = z[lo], zh = z[hi];
-            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;  // all 0s are below x
+            // all 0s are below x
+            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;
             else lo = zl, hi = zh;
         }
         return res;
@@ -404,7 +407,8 @@ struct WaveletMatrix {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE void orBuild(int lv, const vector<T>& vals) {  // sparse table: row j = OR of every window of 2^j
+    LEETCODE_NO_SANITIZE void orBuild(int lv, const vector<T>& vals) {
+        // sparse table: row j = OR of every window of 2^j
         auto& rows = ot[lv];
         rows.assign(1, vals);
         for (int h = 1; 2 * h <= n; h *= 2) {
@@ -442,7 +446,8 @@ struct WaveletMatrix {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE void andBuild(int lv, const vector<T>& vals) {  // sparse table: row j = AND of every window of 2^j
+    LEETCODE_NO_SANITIZE void andBuild(int lv, const vector<T>& vals) {
+        // sparse table: row j = AND of every window of 2^j
         auto& rows = at[lv];
         rows.assign(1, vals);
         for (int h = 1; 2 * h <= n; h *= 2) {

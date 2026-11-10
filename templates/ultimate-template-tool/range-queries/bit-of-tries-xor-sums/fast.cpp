@@ -67,7 +67,8 @@ using ll = long long;
 //   note: BIT over positions, each BIT node a binary trie of its block's values (U = 2^bits); nodes are never freed, so each point assign adds up to 2 log N log U of them
 
 // a[l..r] as a multiset, asked about v ^ x over its values v, with point assigns. A Fenwick tree (BIT) over positions:
-// BIT node j is a binary trie (one level per bit, highest bit first) of the values a[j - lowbit(j) .. j - 1]. The values
+// BIT node j is a binary trie (one level per bit, highest bit first) of the values a[j - lowbit(j) .. j - 1]. The
+// values
 // of a[l..r] are the BIT prefix of r + 1 minus the prefix of l, so a query walks those ~2 log N tries down together
 // (adding the first prefix's counts, subtracting the second's). Values and every x must lie in [0, 2^bits); thresholds
 // (k, m, lo, hi) can be any integers. 0-indexed, inclusive.
@@ -102,7 +103,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -176,7 +179,8 @@ struct BitXorTries {
         return kthX(s, i + 1, x);
     }
 
-    // O(logN logU) -- how many values v in a[l..r] have v ^ x < k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    // O(logN logU) -- how many values v in a[l..r] have v ^ x < k (k is a VALUE, not a rank); needs 0 <= l <= r <
+    // size()
     LEETCODE_NO_SANITIZE long long countXorLtK(long long l, long long r, long long x, long long k) const {
         Span s = span("countXorLtK", l, r);
         return cntLt(s, r - l + 1, k, x);
@@ -189,7 +193,8 @@ struct BitXorTries {
         return cntLt(s, r - l + 1, k + 1, x);
     }
 
-    // O(logN logU) -- how many values v in a[l..r] have v ^ x > k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    // O(logN logU) -- how many values v in a[l..r] have v ^ x > k (k is a VALUE, not a rank); needs 0 <= l <= r <
+    // size()
     LEETCODE_NO_SANITIZE long long countXorGtK(long long l, long long r, long long x, long long k) const {
         Span s = span("countXorGtK", l, r);
         return r - l + 1 - cntLt(s, r - l + 1, k + 1, x);
@@ -281,13 +286,15 @@ struct BitXorTries {
 
     // O(logN logU) -- largest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt; needs
     // 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE optional<long long> maxXorWithVInValRange(long long l, long long r, long long x, long long lo, long long hi) const {
+    LEETCODE_NO_SANITIZE optional<long long> maxXorWithVInValRange(long long l, long long r, long long x,
+        long long lo, long long hi) const {
         return bestIn(span("maxXorWithVInValRange", l, r), x, lo, hi, 1);
     }
 
     // O(logN logU) -- smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt; needs
     // 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE optional<long long> minXorWithVInValRange(long long l, long long r, long long x, long long lo, long long hi) const {
+    LEETCODE_NO_SANITIZE optional<long long> minXorWithVInValRange(long long l, long long r, long long x,
+        long long lo, long long hi) const {
         return bestIn(span("minXorWithVInValRange", l, r), x, lo, hi, 0);
     }
 
@@ -317,8 +324,10 @@ struct BitXorTries {
         return r - l + 1 - lt(l, r, x);
     }
 
-    // O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+    // O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    // size()
+    LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, long long lowVal,
+        long long highVal) const {
         rangeCheck("countInValRange", l, r);
         return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
     }
@@ -329,7 +338,8 @@ struct BitXorTries {
         return lt(l, r, x + 1) - lt(l, r, x);
     }
 
-    // O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    // O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l +
+    // 1,
     // else throws out_of_range
     LEETCODE_NO_SANITIZE T kthSmallest(long long l, long long r, long long k) const {
         rangeCheck("kthSmallest", l, r);
@@ -450,7 +460,8 @@ struct BitXorTries {
     // 0 <= l <= r < size() and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     LEETCODE_NO_SANITIZE long long sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {
         rangeCheck("sumKthSmallestRange", l, r);
-        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l
+            + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumKth(l, r, kTo) - sumKth(l, r, kFrom - 1);
     }
 
@@ -459,7 +470,8 @@ struct BitXorTries {
     LEETCODE_NO_SANITIZE long long sumKthLargestRange(long long l, long long r, long long kFrom, long long kTo) const {
         rangeCheck("sumKthLargestRange", l, r);
         long long n = r - l + 1;
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumKth(l, r, n - kFrom + 1) - sumKth(l, r, n - kTo);
     }
 
@@ -513,9 +525,13 @@ struct BitXorTries {
         return s;
     }
 
-    LEETCODE_NO_SANITIZE long long lt(long long l, long long r, long long k) const { return cntLt(tries(l, r), r - l + 1, k, 0); }  // # < k
+    // # < k
+    LEETCODE_NO_SANITIZE long long lt(long long l, long long r, long long k) const {
+        return cntLt(tries(l, r), r - l + 1, k, 0);
+    }
 
-    LEETCODE_NO_SANITIZE long long kth(long long l, long long r, long long k) const { return kthX(tries(l, r), k, 0); }  // k-th smallest
+    // k-th smallest
+    LEETCODE_NO_SANITIZE long long kth(long long l, long long r, long long k) const { return kthX(tries(l, r), k, 0); }
 
     LEETCODE_NO_SANITIZE long long sumOf(const Span& s) const {
         long long res = 0;
@@ -526,7 +542,8 @@ struct BitXorTries {
 
     LEETCODE_NO_SANITIZE long long sumAll(long long l, long long r) const { return sumOf(tries(l, r)); }
 
-    LEETCODE_NO_SANITIZE long long sumLt(long long l, long long r, long long k) const {  // sum of the values < k in a[l..r]
+    LEETCODE_NO_SANITIZE long long sumLt(long long l, long long r, long long k) const {
+        // sum of the values < k in a[l..r]
         if (k <= 0) return 0;
         if (k > top) return sumAll(l, r);
         Span s = tries(l, r);
@@ -542,7 +559,8 @@ struct BitXorTries {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE long long sumKth(long long l, long long r, long long k) const {  // sum of the k smallest values in a[l..r]
+    LEETCODE_NO_SANITIZE long long sumKth(long long l, long long r, long long k) const {
+        // sum of the k smallest values in a[l..r]
         if (k <= 0) return 0;
         Span s = tries(l, r);
         long long res = 0, v = 0;
@@ -582,7 +600,8 @@ struct BitXorTries {
         return c;
     }
 
-    LEETCODE_NO_SANITIZE void descend(Span& s, int bit) const {  // s becomes its children for v's bit = bit (empty ones dropped), in place
+    LEETCODE_NO_SANITIZE void descend(Span& s, int bit) const {
+        // s becomes its children for v's bit = bit (empty ones dropped), in place
         for (auto* side : {&s.P, &s.N}) {
             size_t k = 0;
             for (int t : *side)
@@ -591,7 +610,8 @@ struct BitXorTries {
         }
     }
 
-    LEETCODE_NO_SANITIZE Span down(const Span& s, int bit) const {  // the children for v's bit = bit (empty ones dropped)
+    LEETCODE_NO_SANITIZE Span down(const Span& s, int bit) const {
+        // the children for v's bit = bit (empty ones dropped)
         Span o;
         for (int t : s.P) if (int c = bit ? nd[t].R : nd[t].L) o.P.push_back(c);
         for (int t : s.N) if (int c = bit ? nd[t].R : nd[t].L) o.N.push_back(c);
@@ -672,7 +692,8 @@ struct BitXorTries {
     // below s: the best v ^ x whose bits h..0 are >= (lower = 1) / <= bound's bits h..0, or nullopt; res holds the
     // result's bits above h. Along the path that matches bound, each step off it (to the side the bound allows) is a
     // free subtree: take it at once if its result bit beats the path's, else remember the deepest one
-    LEETCODE_NO_SANITIZE optional<long long> oneSide(Span s, int h, long long bound, long long x, int big, int lower, long long res) const {
+    LEETCODE_NO_SANITIZE optional<long long> oneSide(Span s, int h, long long bound, long long x, int big, int lower,
+        long long res) const {
         if (!cnt(s)) return nullopt;
         Span f;
         int fh = -2;

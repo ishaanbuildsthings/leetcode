@@ -2,7 +2,6 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/reroot/SumOfDistances.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // For every node, the sum of its distances (by edge count) to all other nodes
 // edges = {{a, b}, {c, d}, ...}: an unrooted tree with at least 2 nodes

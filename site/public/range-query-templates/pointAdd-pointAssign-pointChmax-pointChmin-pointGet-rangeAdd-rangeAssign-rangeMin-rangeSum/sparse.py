@@ -43,7 +43,8 @@ def _compose(o, t):  # tag o, then tag t (an add on an assign shifts the assigne
     return None, o[1] + t[1]
 
 
-# Range add / assign with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
+# Range add / assign with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is
+# fine); every position starts at 0.
 # A tag is (assigned value or None, add): an assign, or an add (an add on an assigned node shifts the value).
 # Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they
 # carry the ancestors' tags down and apply them to what they return, so they create no nodes.

@@ -100,7 +100,9 @@ struct SparseBitCountTree {
 
     void pull(int x) { pool[x].v = merge(pool[pool[x].l].v, pool[pool[x].r].v); }
 
-    static Agg merge(const Agg& a, const Agg& b) { Agg r; for (int j = 0; j < BITS; j++) r.c[j] = a.c[j] + b.c[j]; return r; }
+    static Agg merge(const Agg& a, const Agg& b) {
+        Agg r; for (int j = 0; j < BITS; j++) r.c[j] = a.c[j] + b.c[j]; return r;
+    }
 
     void update(int x, long long a, long long b, long long l, long long r, const Tag& t) {
         if (l <= a && b <= r) { applyNode(x, b - a + 1, t); return; }

@@ -33,7 +33,9 @@ struct SparseRangeMultModTree {
     T mod;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseRangeMultModTree(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), mod(mod) { root = make(lo == hi); }
+    SparseRangeMultModTree(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), mod(mod) {
+        root = make(lo == hi);
+    }
 
 
     // optional -- reserve room for this many nodes up front

@@ -61,11 +61,13 @@ using ll = long long;
 //   note: blocks of about sqrt N, each a binary trie of its stored values (at most its length times log U nodes, U = 2^bits) with a lazy xor and a lazy assign; a scratch trie of 2 sqrt N log U nodes for the partly covered ends of a query
 
 // a[l..r] as a multiset, asked about v ^ x over its values v, with range xor-apply, range assign and point assign. The
-// array is cut into blocks of about sqrt(N); each block keeps a binary trie (one level per bit, highest bit first) of its
+// array is cut into blocks of about sqrt(N); each block keeps a binary trie (one level per bit, highest bit first) of
+// its
 // stored values, a lazy xor (its real values are stored ^ tag) and a lazy assign (the trie is one path of copies). A
 // whole block updates in O(log U); a partly covered one is rewritten and its trie rebuilt. A query walks the tries of
 // the whole blocks inside l..r down together, each through its own lazy xor, plus a scratch trie of the partly covered
-// ends. Values and every x must lie in [0, 2^bits); thresholds (k, m, lo, hi) can be any integers. 0-indexed, inclusive.
+// ends. Values and every x must lie in [0, 2^bits); thresholds (k, m, lo, hi) can be any integers. 0-indexed,
+// inclusive.
 // sumXor: per block, how many stored values have each bit set.
 // The plain order statistics (counts, k-th, min / max, predecessor / successor) are the same walks with x = 0.
 // T: int, long long, ....
@@ -97,7 +99,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -293,7 +297,8 @@ struct SqrtXorTries {
             if (l <= s && e <= r) {
                 long long size = e - s + 1;
                 cnt += size;
-                for (int h = 0; h < B; h++) cntOnes[h] += tag[b] >> h & 1 ? size - ones[(size_t)b * B + h] : ones[(size_t)b * B + h];
+                for (int h = 0; h < B;
+                    h++) cntOnes[h] += tag[b] >> h & 1 ? size - ones[(size_t)b * B + h] : ones[(size_t)b * B + h];
             } else {
                 for (long long i = max(l, s); i <= min(r, e); i++) res += get(i) ^ x;
             }
@@ -344,13 +349,15 @@ struct SqrtXorTries {
 
     // O(sqrt(N) logU) -- largest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt; needs
     // 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE optional<long long> maxXorWithVInValRange(long long l, long long r, long long x, long long lo, long long hi) const {
+    LEETCODE_NO_SANITIZE optional<long long> maxXorWithVInValRange(long long l, long long r, long long x,
+        long long lo, long long hi) const {
         return bestIn(span("maxXorWithVInValRange", l, r), x, lo, hi, 1);
     }
 
     // O(sqrt(N) logU) -- smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt; needs
     // 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE optional<long long> minXorWithVInValRange(long long l, long long r, long long x, long long lo, long long hi) const {
+    LEETCODE_NO_SANITIZE optional<long long> minXorWithVInValRange(long long l, long long r, long long x,
+        long long lo, long long hi) const {
         return bestIn(span("minXorWithVInValRange", l, r), x, lo, hi, 0);
     }
 
@@ -380,8 +387,10 @@ struct SqrtXorTries {
         return r - l + 1 - lt(l, r, x);
     }
 
-    // O(sqrt(N) logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+    // O(sqrt(N) logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <=
+    // r < size()
+    LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, long long lowVal,
+        long long highVal) const {
         rangeCheck("countInValRange", l, r);
         return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
     }
@@ -392,7 +401,8 @@ struct SqrtXorTries {
         return lt(l, r, x + 1) - lt(l, r, x);
     }
 
-    // O(sqrt(N) logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    // O(sqrt(N) logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r -
+    // l + 1,
     // else throws out_of_range
     LEETCODE_NO_SANITIZE T kthSmallest(long long l, long long r, long long k) const {
         rangeCheck("kthSmallest", l, r);
@@ -412,7 +422,8 @@ struct SqrtXorTries {
         return (T)kth(l, r, r - l + 1);
     }
 
-    // O(sqrt(N) logU) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    // O(sqrt(N) logU) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGteX(long long l, long long r, long long x) const {
         rangeCheck("smallestGteX", l, r);
         long long c = lt(l, r, x);
@@ -420,7 +431,8 @@ struct SqrtXorTries {
         return (T)kth(l, r, c + 1);
     }
 
-    // O(sqrt(N) logU) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    // O(sqrt(N) logU) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGtX(long long l, long long r, long long x) const {
         rangeCheck("smallestGtX", l, r);
         long long c = lt(l, r, x + 1);
@@ -428,7 +440,8 @@ struct SqrtXorTries {
         return (T)kth(l, r, c + 1);
     }
 
-    // O(sqrt(N) logU) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    // O(sqrt(N) logU) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLteX(long long l, long long r, long long x) const {
         rangeCheck("largestLteX", l, r);
         long long c = lt(l, r, x + 1);
@@ -533,13 +546,20 @@ struct SqrtXorTries {
 
     LEETCODE_NO_SANITIZE void rangeCheck(const char* name, long long l, long long r) const { checkRange(name, l, r); }
 
-    LEETCODE_NO_SANITIZE long long lt(long long l, long long r, long long k) const { return cntLt(sources(l, r), r - l + 1, k, 0); }  // # < k
+    // # < k
+    LEETCODE_NO_SANITIZE long long lt(long long l, long long r, long long k) const {
+        return cntLt(sources(l, r), r - l + 1, k, 0);
+    }
 
-    LEETCODE_NO_SANITIZE long long kth(long long l, long long r, long long k) const { return kthX(sources(l, r), k, 0); }  // k-th smallest
+    // k-th smallest
+    LEETCODE_NO_SANITIZE long long kth(long long l, long long r, long long k) const {
+        return kthX(sources(l, r), k, 0);
+    }
 
     LEETCODE_NO_SANITIZE long long sumAll(long long l, long long r) const { return sumXor(l, r, 0); }
 
-    LEETCODE_NO_SANITIZE long long xorAll(long long l, long long r) const {  // each bit is set in an odd number of values
+    LEETCODE_NO_SANITIZE long long xorAll(long long l, long long r) const {
+        // each bit is set in an odd number of values
         long long res = 0;
         for (int b = (int)(l / S); b <= r / S; b++) {
             long long s = (long long)b * S, e = blockEnd(b);
@@ -594,14 +614,16 @@ struct SqrtXorTries {
         return c;
     }
 
-    LEETCODE_NO_SANITIZE void descend(Src& src, int bit, int h) const {  // src becomes its children for real bit h = bit, in place
+    LEETCODE_NO_SANITIZE void descend(Src& src, int bit, int h) const {
+        // src becomes its children for real bit h = bit, in place
         size_t k = 0;
         for (auto& [t, g] : src)
             if (int c = (bit ^ (int)(g >> h & 1)) ? nd[t].R : nd[t].L) src[k++] = {c, g};
         src.resize(k);
     }
 
-    LEETCODE_NO_SANITIZE Src down(const Src& src, int bit, int h) const {  // the children for real bit h = bit (each through its lazy xor)
+    LEETCODE_NO_SANITIZE Src down(const Src& src, int bit, int h) const {
+        // the children for real bit h = bit (each through its lazy xor)
         Src out;
         out.reserve(src.size());
         for (auto& [t, g] : src)
@@ -683,7 +705,8 @@ struct SqrtXorTries {
     // below src: the best v ^ x whose bits h..0 are >= (lower = 1) / <= bound's bits h..0, or nullopt; res holds the
     // result's bits above h. Along the path that matches bound, each step off it (to the side the bound allows) is a
     // free subtree: take it at once if its result bit beats the path's, else remember the deepest one
-    LEETCODE_NO_SANITIZE optional<long long> oneSide(Src src, int h, long long bound, long long x, int big, int lower, long long res) const {
+    LEETCODE_NO_SANITIZE optional<long long> oneSide(Src src, int h, long long bound, long long x, int big, int lower,
+        long long res) const {
         if (!cnt(src)) return nullopt;
         Src f;
         int fh = -2;

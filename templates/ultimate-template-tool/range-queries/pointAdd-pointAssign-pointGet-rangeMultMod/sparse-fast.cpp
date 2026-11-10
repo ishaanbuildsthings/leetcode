@@ -52,7 +52,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -66,7 +68,9 @@ struct SparseRangeMultModTree {
     T mod;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseRangeMultModTree(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), mod(mod) { root = make(lo == hi); }
+    SparseRangeMultModTree(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), mod(mod) {
+        root = make(lo == hi);
+    }
 
 
     // optional -- reserve room for this many nodes up front
@@ -93,7 +97,9 @@ struct SparseRangeMultModTree {
     LEETCODE_NO_SANITIZE T compose(T a, T v) const { return T(W(a) * v % mod); }  // tag a, then tag v
     LEETCODE_NO_SANITIZE T leaf(T a, T v) const { return T(W(a) * v % mod); }  // value a after tag v
 
-    LEETCODE_NO_SANITIZE void apply(int x, bool isLeaf, T v) { pool[x].v = isLeaf ? leaf(pool[x].v, v) : compose(pool[x].v, v); }
+    LEETCODE_NO_SANITIZE void apply(int x, bool isLeaf, T v) {
+        pool[x].v = isLeaf ? leaf(pool[x].v, v) : compose(pool[x].v, v);
+    }
 
     LEETCODE_NO_SANITIZE void update(int x, long long a, long long b, long long l, long long r, T v) {
         if (l <= a && b <= r) { apply(x, a == b, v); return; }

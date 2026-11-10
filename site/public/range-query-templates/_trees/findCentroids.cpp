@@ -2,12 +2,13 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/findCentroids.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 // TEMPLATE BY ISHAANBUILDSTHINGS on github
 // in:  edgeList  = {{1,2}, {1,3}, {2,4}, {2,5}}   // unrooted, labels can be 0- or 1-indexed
 // out: centroids = {2} or {1, 2}   // 1 or 2 nodes, sorted; deleting one leaves every piece <= n/2
+// needs at least one edge (an empty list does not say what the single node is called)
 // O(n) time, O(n) space
 vector<int> findCentroids(const vector<pair<int, int>>& edgeList) {
+    if (edgeList.empty()) throw invalid_argument("findCentroids: needs at least one edge");
     int n = (int)edgeList.size() + 1;
     int size = 0;
     for (auto& [a, b] : edgeList) size = max({size, a + 1, b + 1});

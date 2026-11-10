@@ -3,8 +3,11 @@
 # TEMPLATE BY ISHAANBUILDSTHINGS on github
 # in:  edgeList  = [(1,2), (1,3), (2,4), (2,5)]   # unrooted, labels can be 0- or 1-indexed
 # out: centroids = [2] or [1, 2]   # 1 or 2 nodes, sorted; deleting one leaves every piece <= n/2
+# needs at least one edge (an empty list does not say what the single node is called)
 # O(n) time, O(n) space
 def findCentroids(edgeList):
+    if not edgeList:
+        raise ValueError("findCentroids: needs at least one edge")
     n = len(edgeList) + 1
     size = max(max(a, b) for a, b in edgeList) + 1
     start = edgeList[0][0]

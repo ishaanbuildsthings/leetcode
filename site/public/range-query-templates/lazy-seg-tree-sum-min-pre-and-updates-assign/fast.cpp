@@ -70,7 +70,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -334,7 +336,8 @@ struct LazySegTree {
 
     LEETCODE_NO_SANITIZE T leaf(int p) const { return T(sm[p]); }  // the value at leaf p
 
-    LEETCODE_NO_SANITIZE void pull(int x, int s) {  // recompute node x (level s) from its children, then redo its own pending tags
+    LEETCODE_NO_SANITIZE void pull(int x, int s) {
+        // recompute node x (level s) from its children, then redo its own pending tags
         int a = 2 * x, b = 2 * x + 1;
         pre[x] = max(pre[a], sm[a] + pre[b]);
         sm[x] = sm[a] + sm[b];
@@ -347,7 +350,8 @@ struct LazySegTree {
         for (int s = 1; p > 1; s++) p >>= 1, pull(p, s);
     }
 
-    LEETCODE_NO_SANITIZE int cover(int l, int r, int* ns, int* ls) {  // the nodes covering a[l..r] left to right (ns) and their levels (ls)
+    LEETCODE_NO_SANITIZE int cover(int l, int r, int* ns, int* ls) {
+        // the nodes covering a[l..r] left to right (ns) and their levels (ls)
         pushPath(l + n), pushPath(r + n);
         int c = 0, rc = 0, rn[32], rl[32];
         for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {

@@ -48,7 +48,8 @@ struct ValueMapSeg {
     vector<S> sm;
 
     // O(N*U) -- arr: the initial array; every value it will ever hold must be in [valLo, valHi]
-    ValueMapSeg(const vector<T>& arr, T valLo, T valHi) : n((int)arr.size()), cap(1), lg(0), U(int(valHi - valLo) + 1), valLo(valLo) {
+    ValueMapSeg(const vector<T>& arr, T valLo, T valHi) : n((int)arr.size()), cap(1), lg(0),
+        U(int(valHi - valLo) + 1), valLo(valLo) {
         while (cap < n) cap <<= 1, lg++;
         t.assign(2 * cap, -1), row.assign(cap, -1), tmp.assign(U, 0);
         cnt.assign((size_t)cap * U, 0);

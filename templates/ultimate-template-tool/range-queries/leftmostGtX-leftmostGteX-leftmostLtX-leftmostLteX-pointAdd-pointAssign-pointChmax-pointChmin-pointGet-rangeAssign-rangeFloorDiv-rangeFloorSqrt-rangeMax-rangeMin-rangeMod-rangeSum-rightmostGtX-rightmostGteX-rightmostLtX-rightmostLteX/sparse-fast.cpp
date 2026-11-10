@@ -67,7 +67,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -88,7 +90,10 @@ struct SparseShrinkSeg {
 
 
     // optional -- reserve room for this many nodes up front
-    LEETCODE_NO_SANITIZE void reservePool(size_t nodes) { mx.reserve(nodes); mn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    LEETCODE_NO_SANITIZE void reservePool(size_t nodes) {
+        mx.reserve(nodes); mn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes);
+            ln.reserve(nodes);
+    }
 
     // a fresh node: a block of k zeros
     LEETCODE_NO_SANITIZE int node(long long k) const {  // const: it only grows the (mutable) pool
@@ -129,7 +134,8 @@ struct SparseShrinkSeg {
     }
 
     template <class F>
-    LEETCODE_NO_SANITIZE void shrink(int i, long long tl, long long tr, long long ql, long long qr, T cutoff, const F& op) {
+    LEETCODE_NO_SANITIZE void shrink(int i, long long tl, long long tr, long long ql, long long qr, T cutoff,
+        const F& op) {
         if (qr < tl || ql > tr || mx[i] < cutoff) return;
         if (ql <= tl && tr <= qr && mn[i] == mx[i]) { applyAssign(i, tr - tl + 1, op(mx[i])); return; }
         push(i, tl, tr);

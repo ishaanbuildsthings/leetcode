@@ -53,7 +53,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -82,7 +84,8 @@ struct SparseEqualRunTree {
 
     // walk from the root to leaf i, creating missing nodes; fills path[] with the nodes above the leaf and
     // returns the leaf. len[] / starts[] (when given) receive each path node's range.
-    LEETCODE_NO_SANITIZE int descend(long long i, int* path, int& depth, long long* starts = nullptr, long long* ends = nullptr) {
+    LEETCODE_NO_SANITIZE int descend(long long i, int* path, int& depth, long long* starts = nullptr,
+        long long* ends = nullptr) {
         if (!root) root = make();
         int x = root;
         long long a = lo, b = hi;
@@ -114,9 +117,13 @@ struct SparseEqualRunTree {
         return x;
     }
 
-    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a, const Agg& b) { return Agg{a.ln + b.ln, (a.rv == b.lv && a.pre == a.ln) ? a.ln + b.pre : a.pre, (a.rv == b.lv && b.suf == b.ln) ? b.ln + a.suf : b.suf, max({a.best, b.best, a.rv == b.lv ? a.suf + b.pre : 0LL}), a.lv, b.rv}; }
+    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a,
+        const Agg& b) { return Agg{a.ln + b.ln, (a.rv == b.lv && a.pre == a.ln) ? a.ln + b.pre : a.pre,
+        (a.rv == b.lv && b.suf == b.ln) ? b.ln + a.suf : b.suf,
+        max({a.best, b.best, a.rv == b.lv ? a.suf + b.pre : 0LL}), a.lv, b.rv}; }
     LEETCODE_NO_SANITIZE static Agg leaf(T v) { return Agg{1, 1, 1, 1, v, v}; }
-    LEETCODE_NO_SANITIZE static Agg zero(long long len) { (void)len; return Agg{len, len, len, len, T(0), T(0)}; }  // a block of len zeros
+    // a block of len zeros
+    LEETCODE_NO_SANITIZE static Agg zero(long long len) { (void)len; return Agg{len, len, len, len, T(0), T(0)}; }
     LEETCODE_NO_SANITIZE Agg agg(int x, long long len) { return x ? pool[x].v : zero(len); }
 
     // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range

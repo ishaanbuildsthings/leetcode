@@ -4,7 +4,7 @@
 using namespace std;
 
 // (max, +) matrix: "multiply" adds weights, "add" takes the max. Row-vector convention like ModMatrix
-// M[i][j] = weight of edge i -> j (MaxPlusMatrix::NEG_INF for no edge), weights any ints (negatives fine)
+// M[i][j] = weight of edge i -> j (MaxPlusMatrix::NEG_INF for no edge), any weights in the limit below (negatives fine)
 // real walk weights must stay within -1e18 .. 1e18
 // MaxPlusMatrix M(rows);                     from vector<vector<long long>>
 // auto C = A * B;                     C[i][j] = max over k of A[i][k] + B[k][j]
@@ -19,7 +19,8 @@ struct MaxPlusMatrix {
     vector<long long> vals; // row-major
 
     // O(x*y) -- from a vector of rows (NEG_INF = no edge)
-    MaxPlusMatrix(const vector<vector<long long>>& init) : rows(init.size()), cols(init.empty() ? 0 : init[0].size()), vals((size_t)rows * cols) {
+    MaxPlusMatrix(const vector<vector<long long>>& init) : rows(init.size()), cols(init.empty() ? 0 : init[0].size()),
+        vals((size_t)rows * cols) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) vals[(size_t)i * cols + j] = clamp(init[i][j]);
         }
@@ -47,7 +48,8 @@ struct MaxPlusMatrix {
     // A[x, y] * B[y, z] = C[x, z]
     // O(x*y*z)
     friend MaxPlusMatrix operator*(const MaxPlusMatrix& A, const MaxPlusMatrix& B) {
-        if (A.cols != B.rows) throw invalid_argument("matmul shape mismatch: [" + to_string(A.rows) + ", " + to_string(A.cols) + "] * [" + to_string(B.rows) + ", " + to_string(B.cols) + "]");
+        if (A.cols != B.rows) throw invalid_argument("matmul shape mismatch: [" + to_string(A.rows) + ", "
+            + to_string(A.cols) + "] * [" + to_string(B.rows) + ", " + to_string(B.cols) + "]");
         MaxPlusMatrix C(A.rows, B.cols);
         for (int i = 0; i < A.rows; i++) mulRowInto(A[i], B, C[i]);
         return C;
@@ -56,7 +58,8 @@ struct MaxPlusMatrix {
     // vec[1, x] * M[x, y] = vec[1, y] (NEG_INF = unreachable)
     // O(x*y)
     friend vector<long long> operator*(const vector<long long>& vec, const MaxPlusMatrix& M) {
-        if ((int)vec.size() != M.rows) throw invalid_argument("vecmat shape mismatch: [1, " + to_string(vec.size()) + "] * [" + to_string(M.rows) + ", " + to_string(M.cols) + "]");
+        if ((int)vec.size() != M.rows) throw invalid_argument("vecmat shape mismatch: [1, " + to_string(vec.size())
+            + "] * [" + to_string(M.rows) + ", " + to_string(M.cols) + "]");
         vector<long long> row(vec.size()), res(M.cols);
         for (size_t i = 0; i < vec.size(); i++) row[i] = clamp(vec[i]);
         mulRowInto(row.data(), M, res.data());
@@ -116,7 +119,8 @@ private:
 #pragma GCC pop_options
 
     void requireSquare(long long p) const {
-        if (rows != cols) throw invalid_argument("matrix power needs a square matrix, got [" + to_string(rows) + ", " + to_string(cols) + "]");
+        if (rows != cols) throw invalid_argument("matrix power needs a square matrix, got [" + to_string(rows) + ", "
+            + to_string(cols) + "]");
         if (p < 0) throw invalid_argument("matrix power needs p >= 0");
     }
 };

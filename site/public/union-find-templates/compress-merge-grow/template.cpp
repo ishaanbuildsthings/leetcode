@@ -51,7 +51,8 @@ Node combine(Node big, const Node& small) {
 
 
 // DSU dsu(vals);
-// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val) appends more
+// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val)
+// appends more
 struct DSU {
     using T = RawVal;
     vector<T> vals;

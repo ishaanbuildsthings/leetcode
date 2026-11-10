@@ -34,14 +34,18 @@
 #
 # Usage:
 #     arr = [3, 1, 4, 1, 5]
-#     base, mod = 911, 10**9 + 7                                              # set these only to match something else (unset, they are shared between structures, so hashes compare)
-#     t1 = RollingHashPalindrome(arr)                                         # the defaults: hashing just works for negatives, large numbers, chars, with the run's random base
+#     base, mod = 911, 10**9 + 7                                              # set these only to match something else
+#     (unset, they are shared between structures, so hashes compare)
+#     t1 = RollingHashPalindrome(arr)                                         # the defaults: hashing just works for
+#     negatives, large numbers, chars, with the run's random base
 #     t0 = RollingHashPalindrome()                                            # or start empty
 #     t2 = RollingHashPalindrome(arr, hashBase=base)                          # your base, mod 2^61 - 1
 #     t3 = RollingHashPalindrome(arr, hashMod=mod)                            # the run's random base, your mod
 #     t4 = RollingHashPalindrome(arr, hashBase=base, hashMod=mod)             # both
-#     s = RollingHashPalindrome("abacaba")                                    # a string works too (values are its characters)
-#     t1.rangeHash(0, 2) == RollingHashPalindrome([3, 1, 4]).rangeHash(0, 2)  # True: the same values, base and mod (the run's)
+#     s = RollingHashPalindrome("abacaba")                                    # a string works too (values are its
+#     characters)
+#     t1.rangeHash(0, 2) == RollingHashPalindrome([3, 1, 4]).rangeHash(0, 2)  # True: the same values, base and mod (the
+#     run's)
 import random
 
 
@@ -63,7 +67,7 @@ class RollingHashPalindrome:
         self.inv = pow(self.base, self.mod - 2, self.mod)
         self.pw, self.pwi = [1], [1]  # pw[k] = base^k, pwi[k] = base^-k, grown as the window grows (amortized O(1))
         vals = list(arr)
-        self._code = ord if vals and isinstance(vals[0], str) else int  # (characters hash by their code)
+        self._code = self._firstCode  # (characters hash by their code, numbers as they are: the first value decides)
         self.back = []
         self.P = []  # P[k]: hash of back[0..k] read left to right
         self.RB = []  # RB[k]: sum of hval(back[k]) * base^k: the back half read backwards
@@ -176,6 +180,10 @@ class RollingHashPalindrome:
     def _hashRev(self, x, y):  # hash of a[y], a[y-1], ..., a[x]
         RB, pwi = self.RB, self._powers(x)[1]
         return (RB[y] - (RB[x - 1] if x else 0)) * pwi[x] % self.mod
+    def _firstCode(self, v):  # the first value decides how values hash (so starting empty works): characters by code
+        self._code = ord if isinstance(v, str) else int
+        return self._code(v)
+
     def _powers(self, k):  # pw and pwi with at least k + 1 entries
         pw, pwi = self.pw, self.pwi
         if len(pw) <= k:

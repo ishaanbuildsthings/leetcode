@@ -29,7 +29,8 @@
 #   note: uniteAUnderB skips union by size, so it can build a chain N deep: every log(N) above (and the N*log(N) of groups / elementsInGroup) holds only if you never call it, otherwise those calls are O(N) (O(N^2))
 
 # dsu = DSUNoCompress(vals)
-# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+# add(val) appends more
 
 
 class DSUNoCompress:
@@ -47,7 +48,8 @@ class DSUNoCompress:
         self.cmax = list(self.vals)
         self.edges = [0] * n  # edges[root]: how many unites touched root's component, merging or not
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    # merge
     # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par

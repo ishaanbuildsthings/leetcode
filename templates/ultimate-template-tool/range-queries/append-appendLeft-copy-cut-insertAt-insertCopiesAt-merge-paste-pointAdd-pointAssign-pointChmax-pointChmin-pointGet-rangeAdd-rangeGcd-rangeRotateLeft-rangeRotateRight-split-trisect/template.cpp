@@ -261,7 +261,8 @@ struct PersistentTreap {
         return v;
     }
 
-    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -269,7 +270,8 @@ struct PersistentTreap {
         return v;
     }
 
-    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto gcdAll() {
         if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
         return rangeGcd(0, size() - 1);

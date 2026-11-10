@@ -79,7 +79,8 @@ using ll = long long;
 // removed. T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct TrieMultiset {
-    static constexpr T NONE = -1;  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
+    static constexpr T NONE = -1;
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int B;
     long long top;  // the largest value it can hold
@@ -154,7 +155,8 @@ struct TrieMultiset {
         return res;
     }
 
-    long long extreme(int t, int h, long long key, bool big) const {  // bits h..0 of the largest (big) / smallest stored value ^ key below t
+    long long extreme(int t, int h, long long key, bool big) const {
+        // bits h..0 of the largest (big) / smallest stored value ^ key below t
         long long res = 0;
         for (; h >= 0; h--) {
             int pb = int(key >> h & 1) ^ int(big);  // the child whose result bit is 1 (big) / 0
@@ -221,7 +223,8 @@ struct TrieMultiset {
         return res;
     }
 
-    optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {  // the largest (big) / smallest v ^ x over the values v in [lo, hi]
+    optional<T> bestIn(long long x, long long lo, long long hi, bool big) const {
+        // the largest (big) / smallest v ^ x over the values v in [lo, hi]
         lo = std::max(lo, 0LL), hi = std::min(hi, top);
         if (lo > hi) return nullopt;
         long long mk = 0, key = x ^ mk;  // v ^ x = stored value ^ key
@@ -267,7 +270,8 @@ struct TrieMultiset {
                 return;
             }
         } else {
-            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;  // the last copy of a value below the mex
+            // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;
             if (!n) return;
         }
         // each median is a tracked rank: shift its (value, copies before, copies), and search again only

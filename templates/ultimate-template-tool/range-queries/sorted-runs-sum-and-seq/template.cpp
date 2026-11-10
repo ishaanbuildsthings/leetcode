@@ -310,7 +310,8 @@ struct SortedRunsSumAndSeq {
         return v;
     }
 
-    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -318,13 +319,15 @@ struct SortedRunsSumAndSeq {
         return v;
     }
 
-    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto sumAll() {
         if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     auto andAll() {
         if (size() < 1) throw out_of_range("andAll: needs n >= 1");
         return rangeAndQuery(0, size() - 1);
@@ -498,7 +501,8 @@ struct SortedRunsSumAndSeq {
         }
     }
 
-    // O(logN + logU) amortized -- a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new nodes (one path) the second
+    // O(logN + logU) amortized -- a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new
+    // nodes (one path) the second
     void split(int t, long long k, long long nl, long long nh, int& a, int& b) {
         if (k <= 0) { a = 0, b = t; return; }
         if (k >= vn[t].cnt) { a = t, b = 0; return; }

@@ -69,7 +69,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -84,7 +86,8 @@ struct ChminChmaxBeats {
     HotVector<S> tot;
 
     // O(N)
-    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mx(4 * max(1, n)), mx2(4 * max(1, n), NEG_INF), addTag(4 * max(1, n)), cntMx(4 * max(1, n)), tot(4 * max(1, n)) {
+    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mx(4 * max(1, n)), mx2(4 * max(1, n), NEG_INF),
+        addTag(4 * max(1, n)), cntMx(4 * max(1, n)), tot(4 * max(1, n)) {
         if (n) build(1, 0, n - 1, a);
     }
 
@@ -105,7 +108,9 @@ struct ChminChmaxBeats {
     }
 
     // every value under node i (sz of them) becomes v
-    LEETCODE_NO_SANITIZE void applyAssign(int i, long long sz, T v) { mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, tot[i] = S(v) * sz, addTag[i] = 0; }
+    LEETCODE_NO_SANITIZE void applyAssign(int i, long long sz, T v) {
+        mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, tot[i] = S(v) * sz, addTag[i] = 0;
+    }
 
     // every value under node i gains v
     LEETCODE_NO_SANITIZE void applyAdd(int i, long long sz, T v) {

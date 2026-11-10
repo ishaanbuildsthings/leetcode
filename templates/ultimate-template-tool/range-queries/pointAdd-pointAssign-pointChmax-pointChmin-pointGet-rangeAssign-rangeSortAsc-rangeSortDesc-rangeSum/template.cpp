@@ -135,7 +135,8 @@ struct SortedRunsSum {
         return out;
     }
 
-    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto sumAll() {
         if (n < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, n - 1);

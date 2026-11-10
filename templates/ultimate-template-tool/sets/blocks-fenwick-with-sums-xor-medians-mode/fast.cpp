@@ -73,7 +73,8 @@ using ll = long long;
 //   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style with a Fenwick tree inside every block: the
-// distinct values in sorted blocks of max(LOAD, sqrt(N) / 8), each block keeping its values' copies and copies * value and xor plus a Fenwick
+// distinct values in sorted blocks of max(LOAD, sqrt(N) / 8), each block keeping its values' copies and copies * value
+// and xor plus a Fenwick
 // tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 // one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N)).
 // A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
@@ -105,7 +106,9 @@ struct HotVector : vector<U> {
     using vector<U>::vector;
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -117,7 +120,9 @@ struct BlockFenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
@@ -171,7 +176,8 @@ struct BlockFenwickMultiset {
     }
 
     template <class V>
-    LEETCODE_NO_SANITIZE static void rebuildFrom(HotVector<V>& f, const HotVector<V>& a, int from) {  // only positions >= from changed
+    LEETCODE_NO_SANITIZE static void rebuildFrom(HotVector<V>& f, const HotVector<V>& a, int from) {
+        // only positions >= from changed
         int size = a.size();
         f.resize(size + 1);
         for (int i = from + 1; i <= size; i++) f[i] = 0;
@@ -189,7 +195,9 @@ struct BlockFenwickMultiset {
         fxs[k] = buildx(xvs[k]);
     }
 
-    LEETCODE_NO_SANITIZE int blockOf(T x) const { return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }
+    LEETCODE_NO_SANITIZE int blockOf(T x) const {
+        return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin());
+    }
 
     LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count
         if (due <= 0) recut();  // enough distinct values came or went: cut the blocks again
@@ -262,7 +270,8 @@ struct BlockFenwickMultiset {
         return c;
     }
 
-    LEETCODE_NO_SANITIZE void recut() {  // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
+    LEETCODE_NO_SANITIZE void recut() {
+        // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
         due = std::max(d, (long long)LOAD * LOAD) / 2;
         if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average
@@ -291,8 +300,11 @@ struct BlockFenwickMultiset {
     }
 
     template <class V>
-    LEETCODE_NO_SANITIZE V below(T x, bool strict, const HotVector<V>& outer, const HotVector<HotVector<V>>& inner, V all) const {  // over values < x / <= x
-        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(), x)) - maxes.begin());
+    LEETCODE_NO_SANITIZE V below(T x, bool strict, const HotVector<V>& outer, const HotVector<HotVector<V>>& inner,
+        V all) const {
+        // over values < x / <= x
+        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(),
+            x)) - maxes.begin());
         if (k == (int)keys.size()) return all;
         const HotVector<T>& b = keys[k];
         int j = int((strict ? lower_bound(b.begin(), b.end(), x) : upper_bound(b.begin(), b.end(), x)) - b.begin());
@@ -311,7 +323,8 @@ struct BlockFenwickMultiset {
         return j < (int)keys[k].size() && keys[k][j] == x ? cnts[k][j] : 0;
     }
 
-    LEETCODE_NO_SANITIZE Info kthInfo(long long k) {  // the k-th smallest, copies before it, its copies, sum before it: lift over blocks, then inside one
+    LEETCODE_NO_SANITIZE Info kthInfo(long long k) {
+        // the k-th smallest, copies before it, its copies, sum before it: lift over blocks, then inside one
         int m = (int)bc.size(), b = 0, j = 0;
         long long before = 0;
         S acc = 0;
@@ -326,7 +339,8 @@ struct BlockFenwickMultiset {
 
     LEETCODE_NO_SANITIZE T kthAt(long long k) { return kthInfo(k).v; }
 
-    LEETCODE_NO_SANITIZE long long findMex() {  // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
+    LEETCODE_NO_SANITIZE long long findMex() {
+        // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
         int k = blockOf(T(0));
         if (k == (int)keys.size()) return 0;
         int j = int(lower_bound(keys[k].begin(), keys[k].end(), T(0)) - keys[k].begin());
@@ -407,7 +421,8 @@ struct BlockFenwickMultiset {
         fx.assign(1, T(0));
     }
 
-    LEETCODE_NO_SANITIZE long long distinctLt(T x) const {  // distinct values < x: every block before x's, then a binary search in x's block
+    LEETCODE_NO_SANITIZE long long distinctLt(T x) const {
+        // distinct values < x: every block before x's, then a binary search in x's block
         int b = int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin());
         long long res = 0;
         for (int k = 0; k < b; k++) res += (long long)keys[k].size();
@@ -436,7 +451,8 @@ struct BlockFenwickMultiset {
     }
 
     LEETCODE_NO_SANITIZE T xbelow(T x, bool strict) const {  // xor of the values < x (strict) or <= x (copies count)
-        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(), x)) - maxes.begin());
+        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(),
+            x)) - maxes.begin());
         if (k == (int)keys.size()) return xtotal;
         const HotVector<T>& b = keys[k];
         int j = int((strict ? lower_bound(b.begin(), b.end(), x) : upper_bound(b.begin(), b.end(), x)) - b.begin());
@@ -446,7 +462,8 @@ struct BlockFenwickMultiset {
     LEETCODE_NO_SANITIZE T xlt(T x) const { return xbelow(x, true); }
     LEETCODE_NO_SANITIZE T xle(T x) const { return xbelow(x, false); }
 
-    LEETCODE_NO_SANITIZE T xorFirst(long long k) const {  // xor of the k smallest values (copies count): lift over blocks, then inside one
+    LEETCODE_NO_SANITIZE T xorFirst(long long k) const {
+        // xor of the k smallest values (copies count): lift over blocks, then inside one
         if (k <= 0) return 0;
         int m = (int)bc.size(), b = 0, j = 0;
         long long before = 0;
@@ -708,7 +725,8 @@ struct BlockFenwickMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE S sumKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(n - kFrom + 1) - sumFirst(n - kTo);
     }
 
@@ -716,7 +734,8 @@ struct BlockFenwickMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE S sumKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(kTo) - sumFirst(kFrom - 1);
     }
 
@@ -770,7 +789,8 @@ struct BlockFenwickMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -778,7 +798,8 @@ struct BlockFenwickMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

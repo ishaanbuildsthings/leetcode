@@ -19,7 +19,8 @@ def countDistinctSubstrings(arrOrString):
         return x  # str hashing is already randomized per run
 
     arrOrString = list(map(key, arrOrString))
-    # suffix automaton: each state is a group of substrings sharing their end positions, with lengths in (length[link], length]
+    # suffix automaton: each state is a group of substrings sharing their end positions, with lengths in (length[link],
+    # length]
     nxt = [{}]
     link = [-1]
     length = [0]

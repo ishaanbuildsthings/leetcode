@@ -82,7 +82,8 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies, sum, xor, OR and distinct values in its subtree. Each multiset owns its node pool
+// its value, its copies, and the copies, sum, xor, OR and distinct values in its subtree. Each multiset owns its node
+// pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 template <typename T>
@@ -92,10 +93,13 @@ struct TreapMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    struct Node { T key; long long c, z; S s; long long dn; T xr; T orv; unsigned prio; int l, r; };  // copies; copies, sum, distinct below
+    // copies; copies, sum, distinct below
+    struct Node { T key; long long c, z; S s; long long dn; T xr; T orv; unsigned prio; int l, r; };
     vector<Node> pool{Node{}};
     vector<int> freeList;
     static inline mt19937 rng{(unsigned)chrono::steady_clock::now().time_since_epoch().count()};
@@ -203,7 +207,8 @@ struct TreapMultiset {
             d++;
             f = pool[m].c = c;
             int i = 0, walked = int(path.size());
-            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;  // the new node goes where its priority belongs
+            // the new node goes where its priority belongs
+            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;
             if (i < walked) {
                 int a, b;
                 split(path[i], x, a, b);
@@ -588,7 +593,8 @@ struct TreapMultiset {
     // (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count);
     // throws out_of_range unless 1 <= kFrom <= kTo <= size
     T orOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(n - kTo + 1);
         return orIn(a, kthAt(n - kFrom + 1));
     }
@@ -597,7 +603,8 @@ struct TreapMultiset {
     // (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     T orOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(kFrom);
         return orIn(a, kthAt(kTo));
     }
@@ -748,7 +755,8 @@ struct TreapMultiset {
     // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     S sumKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(n - kFrom + 1) - sumFirst(n - kTo);
     }
 
@@ -756,7 +764,8 @@ struct TreapMultiset {
     // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     S sumKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(kTo) - sumFirst(kFrom - 1);
     }
 
@@ -810,7 +819,8 @@ struct TreapMultiset {
     // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -818,7 +828,8 @@ struct TreapMultiset {
     // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
     // out_of_range unless 1 <= kFrom <= kTo <= size
     T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

@@ -87,7 +87,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -571,7 +573,8 @@ struct ImplicitTreap {
         return v;
     }
 
-    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -597,7 +600,8 @@ struct ImplicitTreap {
         return nd[root].mx;
     }
 
-    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto gcdAll() {
         if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
         return rangeGcd(0, size() - 1);
@@ -709,7 +713,8 @@ struct ImplicitTreap {
         split(b, r - l + 1, b, c);
     }
 
-    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {
+        // the node holding a[i], every tag on the way pushed
         int t = root;
         while (true) {
             push(t);
@@ -768,7 +773,8 @@ struct ImplicitTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+    LEETCODE_NO_SANITIZE void release(size_t mark) {
+        // drop every node made after mark (temporaries: no tree points to them)
         nd.resize(mark);
         nd.resize(mark);
         nd.resize(mark);

@@ -67,7 +67,8 @@ struct SparseAffineTree {
     static bool isId(const Tag& t) { return t.mul == 1 && t.add == 0; }
 
     // tag o, then tag t
-    Tag compose(const Tag& o, const Tag& t) const { return Tag{T(W(t.mul) * o.mul % mod), T((W(t.mul) * o.add + t.add) % mod)}; }
+    Tag compose(const Tag& o,
+        const Tag& t) const { return Tag{T(W(t.mul) * o.mul % mod), T((W(t.mul) * o.add + t.add) % mod)}; }
 
     // the aggregate of k slots after tag t
     Agg applyTag(Agg v, long long k, const Tag& t) const {

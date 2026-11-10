@@ -100,7 +100,8 @@ class WaveletMatrix:
             raise IndexError(f"countInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return 0
-        return self._countBelow(l, r, bisect_right(self.srt, highVal)) - self._countBelow(l, r, bisect_left(self.srt, lowVal))
+        return self._countBelow(l, r, bisect_right(self.srt, highVal)) - self._countBelow(l, r,
+            bisect_left(self.srt, lowVal))
 
     # O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def countLtX(self, l, r, x):
@@ -187,7 +188,8 @@ class WaveletMatrix:
             raise IndexError(f"sumInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return 0
-        return self._sumBelow(l, r, bisect_right(self.srt, highVal)) - self._sumBelow(l, r, bisect_left(self.srt, lowVal))
+        return self._sumBelow(l, r, bisect_right(self.srt, highVal)) - self._sumBelow(l, r,
+            bisect_left(self.srt, lowVal))
 
     # O(logN) -- sum of the values < x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def sumLtX(self, l, r, x):
@@ -476,7 +478,8 @@ class SparseWaveletMatrix:
         pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
-        self.inner = WaveletMatrix(self.vals or [0])  # (a dummy element when there are no given values; it is never queried)
+        # (a dummy element when there are no given values; it is never queried)
+        self.inner = WaveletMatrix(self.vals or [0])
 
     # (i0, i1, zeros): the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
     def _span(self, l, r):

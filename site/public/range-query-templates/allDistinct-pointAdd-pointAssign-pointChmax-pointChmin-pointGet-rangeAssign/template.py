@@ -145,7 +145,8 @@ class DistinctTree:
         self.val = list(arr)
         tree = self.tree = [n] * (2 * n)
         positions = {}
-        salt = self.salt = getrandbits(62)  # int values are salted as dict keys, so no fixed input can make them collide
+        # int values are salted as dict keys, so no fixed input can make them collide
+        salt = self.salt = getrandbits(62)
         for i, v in enumerate(arr):
             if type(v) is int:
                 v ^= salt

@@ -35,7 +35,8 @@ class StridedQueries:
         self.n = n = len(A)
         self.blockStrides = self.treeStrides = 0
         self.blockSize = blockSize = max(1, min(n, int(sqrt(n))))
-        self.blockStrides = max(1, min(n, int(sqrt(n)) // 8))  # (slices walk big steps fast; every stride kept slows updates)
+        # (slices walk big steps fast; every stride kept slows updates)
+        self.blockStrides = min(n, max(1, int(sqrt(n)) // 8))
         strides = max(self.blockStrides, self.treeStrides)
         # offsets[step][residue]: where that residue class starts in that stride's list
         self.offsets = [None] * (strides + 1)
@@ -49,7 +50,8 @@ class StridedQueries:
                     used += (n - residue + step - 1) // step
             self.offsets[step] = starts
             lists[step] = parts
-        self.xorBlocks = [None] + [[reduce(xor, lists[step][k:k + blockSize]) for k in range(0, n, blockSize)] + [0] for step in range(1, self.blockStrides + 1)]
+        self.xorBlocks = [None] + [[reduce(xor, lists[step][k:k + blockSize]) for k in range(0, n,
+            blockSize)] + [0] for step in range(1, self.blockStrides + 1)]
 
     # O(n) -- the whole array
     def getAll(self):
@@ -85,7 +87,8 @@ class StridedQueries:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i={i}, n={self.n}")
         self._write(i, min(self.A[i], v))
 
-    # O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises
+    # IndexError
     def stridedXorQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedXorQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

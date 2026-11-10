@@ -67,7 +67,7 @@ class RangeAddRangeGcd:
     def __init__(self, arr):
         self.n = n = len(arr)
 
-        self.diff = diff = [arr[0]] + [arr[i] - arr[i - 1] for i in range(1, n)]
+        self.diff = diff = arr[:1] + [arr[i] - arr[i - 1] for i in range(1, n)]
 
         self.fen = fen = [0] + diff[:]
         for i in range(1, n + 1):

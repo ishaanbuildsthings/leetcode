@@ -41,7 +41,8 @@ struct ArithSeqSumBITMod {
     T tri(long long k) const { return norm(W(k) * (k + 1) / 2); }
 
     // O(N)
-    explicit ArithSeqSumBITMod(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), bA(n + 1), bB(n + 1), bC(n + 1) {
+    explicit ArithSeqSumBITMod(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), bA(n + 1),
+        bB(n + 1), bC(n + 1) {
         for (int i = 0; i < n; i++) bA[i + 1] = norm(a[i]);
         for (int i = 1; i <= n; i++) {
             int j = i + (i & -i);
@@ -50,7 +51,8 @@ struct ArithSeqSumBITMod {
     }
 
     void point(int i, T a, T b, T c) {
-        for (i++; i <= n; i += i & -i) bA[i] = norm(W(bA[i]) + a), bB[i] = norm(W(bB[i]) + b), bC[i] = norm(W(bC[i]) + c);
+        for (i++; i <= n; i += i & -i) bA[i] = norm(W(bA[i]) + a), bB[i] = norm(W(bB[i]) + b),
+            bC[i] = norm(W(bC[i]) + c);
     }
 
     // O(logN) -- (a[0] + ... + a[x]) % MOD (0 for x = -1)

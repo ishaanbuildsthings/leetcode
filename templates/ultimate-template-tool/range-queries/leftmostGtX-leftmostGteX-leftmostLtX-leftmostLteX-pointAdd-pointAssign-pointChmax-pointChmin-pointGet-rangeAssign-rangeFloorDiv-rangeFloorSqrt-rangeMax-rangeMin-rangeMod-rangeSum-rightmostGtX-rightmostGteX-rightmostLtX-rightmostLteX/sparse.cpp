@@ -55,7 +55,10 @@ struct SparseShrinkSeg {
 
 
     // optional -- reserve room for this many nodes up front
-    void reservePool(size_t nodes) { mx.reserve(nodes); mn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    void reservePool(size_t nodes) {
+        mx.reserve(nodes); mn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes);
+            ln.reserve(nodes);
+    }
 
     // a fresh node: a block of k zeros
     int node(long long k) const {  // const: it only grows the (mutable) pool
@@ -188,7 +191,8 @@ struct SparseShrinkSeg {
         return qmin(root, lo, hi, l, r);
     }
 
-    // O(logU) amortized -- a[i] = v, an overwrite that may raise the value; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = v, an overwrite that may raise the value; needs lo <= i <= hi, else throws
+    // out_of_range
     void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         rangeAssign(i, i, v);

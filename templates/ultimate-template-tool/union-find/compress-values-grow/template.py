@@ -25,7 +25,8 @@
 #   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N]
 
 # dsu = DSU(vals)
-# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+# add(val) appends more
 
 
 class DSU:

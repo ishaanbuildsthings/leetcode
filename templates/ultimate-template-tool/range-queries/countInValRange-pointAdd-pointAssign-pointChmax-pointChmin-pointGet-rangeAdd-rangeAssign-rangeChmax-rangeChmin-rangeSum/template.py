@@ -44,15 +44,20 @@
 # O(1) point get
 
 # ========================
-# Improve TC from O(rootN*logN) to O(root(N log N)), these notes reference the SqrtBlocks_CLEAN_CODE implementation at the bottom for guidance.
+# Improve TC from O(rootN*logN) to O(root(N log N)), these notes reference the SqrtBlocks_CLEAN_CODE implementation at
+# the bottom for guidance.
 
-# Technically, we can get O(n * root(n * log n)) for the range operations by making _refreshSortedBlockAndPfSum take rootN time
+# Technically, we can get O(n * root(n * log n)) for the range operations by making _refreshSortedBlockAndPfSum take
+# rootN time
 # normally we update some values in self.valsBeforeTags (unsorted space) directly, then refresh the block
 # instead, we will modify sortedBeforeTag to store (value, indexInUnSortedSpace) instead of just values
-# now when we want to update some positions in self.valsBeforeTags and then call refresh, instead we loop over sorted space
-# any index (which we now have access to from the tuple) that is getting updated goes into one bucket, otherwise it goes into another bucket
+# now when we want to update some positions in self.valsBeforeTags and then call refresh, instead we loop over sorted
+# space
+# any index (which we now have access to from the tuple) that is getting updated goes into one bucket, otherwise it goes
+# into another bucket
 # each of these two buckets have a sorted value range since it came from a sorted array
-# for the bucket that gets updated, we apply our update operations, whether assign, add, chmin, chmax, it will stay sorted
+# for the bucket that gets updated, we apply our update operations, whether assign, add, chmin, chmax, it will stay
+# sorted
 # now we merge the two sorted lists back in O(rootN)
 
 from bisect import bisect_left, bisect_right, insort
@@ -630,7 +635,8 @@ class SqrtBlocks_CLEAN_CODE:
     
     # O(root(N) * logN)
     # instead of manually writing chmin, chmax, assign, and add
-    # define a function which tells us how to update lazyTags, and also how to update individual indices for the partials
+    # define a function which tells us how to update lazyTags, and also how to update individual indices for the
+    # partials
     def _rangeApply(self, l, r, tagOp, indexOp):
         if l > r:
             return
@@ -670,7 +676,8 @@ class SqrtBlocks_CLEAN_CODE:
             return min(val, x)
         def tagOp(b):
             self.lazyChmin[b] = min(self.lazyChmin[b], x) # drop the ceiling
-            if self.lazyChmax[b] > x: # and also drop the floor, if the ceiling dropped below the floor (now all values would be equal to x)
+            if self.lazyChmax[b] > x:
+                # and also drop the floor, if the ceiling dropped below the floor (now all values would be equal to x)
                 self.lazyChmax[b] = x
         self._rangeApply(l, r, tagOp, indexOp)
 
@@ -682,7 +689,8 @@ class SqrtBlocks_CLEAN_CODE:
             return max(val, x)
         def tagOp(b):
             self.lazyChmax[b] = max(self.lazyChmax[b], x) # raise the floor
-            if self.lazyChmin[b] < x: # and also raise the ceiling, if the floor rose above the ceiling (now all values would be equal to x)
+            if self.lazyChmin[b] < x:
+                # and also raise the ceiling, if the floor rose above the ceiling (now all values would be equal to x)
                 self.lazyChmin[b] = x
         self._rangeApply(l, r, tagOp, indexOp)
     
@@ -705,7 +713,8 @@ class SqrtBlocks_CLEAN_CODE:
         def indexOp(val):
             return val + diff
         # we had a pending add before and then a chmin/chmax, to add a new add after we can do this
-        # I have an add and then a clamp. So I have a value in some range and I wanna add again. That'll put my value in some new range. So I guess I could say CH min CH max is updated.
+        # I have an add and then a clamp. So I have a value in some range and I wanna add again. That'll put my value in
+        # some new range. So I guess I could say CH min CH max is updated.
         def tagOp(b):
             self.lazyAdd[b] += diff
             self.lazyChmax[b] += diff

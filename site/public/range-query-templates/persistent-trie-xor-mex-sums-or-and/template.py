@@ -290,7 +290,8 @@ class PersistentXorTrie:
         self._rangeCheck("countGteX", l, r)
         return r - l + 1 - self._lt(l, r, x)
 
-    # O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    # O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    # size()
     def countInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("countInValRange", l, r)
         return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0
@@ -410,7 +411,8 @@ class PersistentXorTrie:
     def sumKthSmallestRange(self, l, r, kFrom, kTo):
         self._rangeCheck("sumKthSmallestRange", l, r)
         if not 1 <= kFrom <= kTo <= r - l + 1:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
         return self._sumKth(l, r, kTo) - self._sumKth(l, r, kFrom - 1)
 
     # O(logU) -- sum of the kFrom-th .. kTo-th largest values in a[l..r] (1-indexed, inclusive); needs
@@ -419,7 +421,8 @@ class PersistentXorTrie:
         self._rangeCheck("sumKthLargestRange", l, r)
         n = r - l + 1
         if not 1 <= kFrom <= kTo <= n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
         return self._sumKth(l, r, n - kFrom + 1) - self._sumKth(l, r, n - kTo)
 
     # O(logU) -- sum of |a[i] - x| over i in [l, r]; needs 0 <= l <= r < size(), else IndexError
@@ -428,53 +431,63 @@ class PersistentXorTrie:
         c, s = self._lt(l, r, x), self._sumLt(l, r, x)
         return x * c - s + (self._sumAll(l, r) - s) - x * (r - l + 1 - c)
 
-    # O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orLtX(self, l, r, x):
         self._rangeCheck("orLtX", l, r)
         return self._orIn(l, r, 0, x - 1)
 
-    # O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orLteX(self, l, r, x):
         self._rangeCheck("orLteX", l, r)
         return self._orIn(l, r, 0, x)
 
-    # O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orGtX(self, l, r, x):
         self._rangeCheck("orGtX", l, r)
         return self._orIn(l, r, x + 1, self.top)
 
-    # O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
     def orGteX(self, l, r, x):
         self._rangeCheck("orGteX", l, r)
         return self._orIn(l, r, x, self.top)
 
-    # O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    # O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <=
+    # r < size(), else
     # IndexError
     def orInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("orInValRange", l, r)
         return self._orIn(l, r, lowVal, highVal)
 
-    # O(logU * logU) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    # size(), else IndexError
     def andLtX(self, l, r, x):
         self._rangeCheck("andLtX", l, r)
         return self._andIn(l, r, 0, x - 1)
 
-    # O(logU * logU) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    # size(), else IndexError
     def andLteX(self, l, r, x):
         self._rangeCheck("andLteX", l, r)
         return self._andIn(l, r, 0, x)
 
-    # O(logU * logU) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    # size(), else IndexError
     def andGtX(self, l, r, x):
         self._rangeCheck("andGtX", l, r)
         return self._andIn(l, r, x + 1, self.top)
 
-    # O(logU * logU) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r <
+    # size(), else IndexError
     def andGteX(self, l, r, x):
         self._rangeCheck("andGteX", l, r)
         return self._andIn(l, r, x, self.top)
 
-    # O(logU * logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
+    # O(logU * logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are
+    # none); needs 0 <= l <= r < size(), else
     # IndexError
     def andInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("andInValRange", l, r)

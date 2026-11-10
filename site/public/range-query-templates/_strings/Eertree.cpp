@@ -2,11 +2,16 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/Eertree.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
+// @if masterFileOnly
+// This is the master file: it holds every op, and doesn't compile as it stands, because the @if / @else blocks below
+// are
+// alternatives. Pick your ops on the Strings tab of the site and copy the result from there.
+// @endif
 
 // Palindromic tree (eertree) over a sequence: every distinct palindromic substring is one node inside, but every method
 // below talks in indices into the sequence. A sequence of length n has at most n distinct palindromic substrings.
-// works on any element type that has == and a hash (char, int, long long, string, pair of those, ...); E is the element type
+// works on any element type that has == and a hash (char, int, long long, string, pair of those, ...); E is the element
+// type
 // Eertree<char> et("abaab");
 // Eertree<int> et(vector<int>{-1, 2, -1});
 // Eertree<int> et;   // empty, then append
@@ -15,13 +20,16 @@ class Eertree {
 public:
     // @if append+pop
     // @if quickLinks
-    // O(n log n) expected time, O(n) space (append finds its palindrome through quick links, so it stays fast after pops)
+    // O(n log n) expected time, O(n) space (append finds its palindrome through quick links, so it stays fast after
+    // pops)
     // @endif
     // @if itemLinks
-    // O(n * alphabet) expected time and space, alphabet = number of distinct items (every palindrome keeps a link per item)
+    // O(n * alphabet) expected time and space, alphabet = number of distinct items (every palindrome keeps a link per
+    // item)
     // @endif
     // @if persistentLinks
-    // O(n log alphabet) expected time and space, alphabet = number of distinct items (every palindrome's links are a persistent array)
+    // O(n log alphabet) expected time and space, alphabet = number of distinct items (every palindrome's links are a
+    // persistent array)
     // @endif
     // @else
     // O(n) expected time, O(n) space
@@ -233,7 +241,8 @@ public:
         for (int node : sufNode) occ[node]++;
         for (int node = nodes - 1; node > 1; node--) occ[palLink[node]] += occ[node];
         vector<tuple<int, int, long long>> res;
-        for (int node = 2; node < nodes; node++) res.emplace_back(firstEnd[node] - palLen[node] + 1, firstEnd[node], occ[node]);
+        for (int node = 2; node < nodes; node++) res.emplace_back(firstEnd[node] - palLen[node] + 1, firstEnd[node],
+            occ[node]);
         return res;
     }
 
@@ -282,8 +291,12 @@ private:
             return h;
         }
         template <class A, class B>
-        static uint64_t itemHash(const pair<A, B>& p) { return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second)); }
-        size_t operator()(const pair<int, E>& key) const { return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL); }
+        static uint64_t itemHash(const pair<A, B>& p) {
+            return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second));
+        }
+        size_t operator()(const pair<int, E>& key) const {
+            return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL);
+        }
     };
     using Table = unordered_map<pair<int, E>, int, KeyHash>;
 
@@ -305,12 +318,14 @@ private:
     vector<int> quick{0, 0};  // quick link: lets append skip runs of suffixes preceded by the same item
     // @endif
     // @if append+pop+itemLinks
-    // itemLink[node] = for each item x, the longest proper palindromic suffix of node with x right before it (absent: the
+    // itemLink[node] = for each item x, the longest proper palindromic suffix of node with x right before it (absent:
+    // the
     // imaginary root); a plain list, since append copies it anyway
     vector<vector<pair<E, int>>> itemLink = vector<vector<pair<E, int>>>(2);
     // @endif
     // @if append+pop+persistentLinks
-    // the same links as a persistent array per palindrome: item -> id, then a binary trie over the id's bits where a new
+    // the same links as a persistent array per palindrome: item -> id, then a binary trie over the id's bits where a
+    // new
     // palindrome copies only the O(log alphabet) trie nodes on one path of its suffix link's trie
     struct ItemHash {
         size_t operator()(const E& x) const { return KeyHash::itemHash(x); }
@@ -345,7 +360,8 @@ private:
 
     // @if leftmostLForPalEndingAtR rightmostRForPalStartingAtL numDistinctPalsInPrefixEndingAtR numPalsEndingAtR
     void checkIndex(int i) const {
-        if (i < 0 || i >= (int)seq.size()) throw out_of_range("index " + to_string(i) + " out of range for an Eertree of length " + to_string(seq.size()));
+        if (i < 0 || i >= (int)seq.size()) throw out_of_range("index " + to_string(i)
+            + " out of range for an Eertree of length " + to_string(seq.size()));
     }
 
     // @endif
@@ -473,7 +489,8 @@ private:
             // @endif
             // @if append+pop+itemLinks
             {
-                vector<pair<E, int>> links = itemLink[link];  // node's proper suffixes are link and link's proper suffixes
+                // node's proper suffixes are link and link's proper suffixes
+                vector<pair<E, int>> links = itemLink[link];
                 const E& before = seq[i - palLen[link]];  // the item right before link inside node
                 bool found = false;
                 for (auto& [item, to] : links) if (item == before) { to = link; found = true; }

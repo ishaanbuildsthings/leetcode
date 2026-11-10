@@ -62,7 +62,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -79,7 +81,8 @@ struct SqrtReplace {
         }
     };
     // a run of the array: cls[k] is the class of its k-th value. Classes form a union-find
-    // (par); a root class holds its value (val) and how many of the block's values are in it (cnt). where: value -> root
+    // (par); a root class holds its value (val) and how many of the block's values are in it (cnt). where: value ->
+    // root
     struct Block {
         vector<int> cls, par, cnt;
         vector<T> val;
@@ -148,7 +151,8 @@ struct SqrtReplace {
             where[v] = r;
         }
 
-        void assign(int k, const T& v) {  // O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
+        void assign(int k, const T& v) {
+            // O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
             int c = find(cls[k]);
             if (val[c] == v) return;
             if (!--cnt[c]) where.erase(val[c]);
@@ -156,7 +160,8 @@ struct SqrtReplace {
             if (fresh) par.push_back(it->second), val.push_back(v), cnt.push_back(0);
             cnt[it->second]++;
             cls[k] = it->second;
-            if ((int)par.size() > 2 * size() + 8) build(values());  // (many dead classes: start over, paid for by the assigns)
+            // (many dead classes: start over, paid for by the assigns)
+            if ((int)par.size() > 2 * size() + 8) build(values());
         }
     };
 
@@ -262,7 +267,8 @@ struct SqrtReplace {
         for (int s = 0; s < n; s += B) blocks.emplace_back(vector<T>(vals.begin() + s, vals.begin() + min(n, s + B)));
     }
 
-    LEETCODE_NO_SANITIZE pair<int, int> locate(int i) const { return {i / B, i % B}; }  // (block index, position in it) of a[i]
+    // (block index, position in it) of a[i]
+    LEETCODE_NO_SANITIZE pair<int, int> locate(int i) const { return {i / B, i % B}; }
 
     // f(block, lo, hi, whole, start) for each block meeting a[l..r] (positions lo..hi of it, whether that is all of
     // it, the index of its first value), until f returns true
@@ -274,7 +280,8 @@ struct SqrtReplace {
         }
     }
 
-    LEETCODE_NO_SANITIZE int findIn(int l, int r, const T& x, bool left) {  // the first (left) / last i in [l, r] with a[i] == x, or -1
+    LEETCODE_NO_SANITIZE int findIn(int l, int r, const T& x, bool left) {
+        // the first (left) / last i in [l, r] with a[i] == x, or -1
         if (l > r) return -1;
         vector<tuple<Block*, int, int, bool, int>> parts;
         span(l, r, [&](Block& b, int lo, int hi, bool whole, int start) {

@@ -81,7 +81,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -101,7 +103,8 @@ struct PersistentOfflineOrderStats {
     };
     HotVector<Node> nd;  // node 0 = the empty tree
 
-    // O(N log N) -- arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value append will
+    // O(N log N) -- arr: the initial array (may be empty), 0-indexed;
+    // allValuesThatWillEverBeInsertedForOfflineCompression: every value append will
     // ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     PersistentOfflineOrderStats(const vector<T>& a, vector<T> allValuesThatWillEverBeInsertedForOfflineCompression)
         : srt(move(allValuesThatWillEverBeInsertedForOfflineCompression)), root(1, 0), nd(1) {

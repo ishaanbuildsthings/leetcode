@@ -86,7 +86,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -283,7 +285,8 @@ struct SortedRunsSumMaxOrAndSeq {
 
     // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty;
     // needs 0 <= l <= r < size(), else throws out_of_range
-    LEETCODE_NO_SANITIZE tuple<SortedRunsSumMaxOrAndSeq, SortedRunsSumMaxOrAndSeq, SortedRunsSumMaxOrAndSeq> trisect(int l, int r) {
+    LEETCODE_NO_SANITIZE tuple<SortedRunsSumMaxOrAndSeq, SortedRunsSumMaxOrAndSeq, SortedRunsSumMaxOrAndSeq> trisect(
+        int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         SortedRunsSumMaxOrAndSeq left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
@@ -370,7 +373,8 @@ struct SortedRunsSumMaxOrAndSeq {
         return v;
     }
 
-    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -378,25 +382,29 @@ struct SortedRunsSumMaxOrAndSeq {
         return v;
     }
 
-    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto sumAll() {
         if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto maxAll() {
         if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
         return rangeMax(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE auto andAll() {
         if (size() < 1) throw out_of_range("andAll: needs n >= 1");
         return rangeAndQuery(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto orAll() {
         if (size() < 1) throw out_of_range("orAll: needs n >= 1");
         return rangeOrQuery(0, size() - 1);

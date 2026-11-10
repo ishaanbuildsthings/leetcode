@@ -32,7 +32,8 @@ class StridedQueries:
         self.andStep = 0  # the step the and table was built for
         self.andTable = None
 
-    # gcd of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    # gcd of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    # grouped by
     # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedGcd(self, l, r, step):
         if not 0 <= l <= r < self.n:
@@ -56,7 +57,8 @@ class StridedQueries:
         a, b = row[l], row[last - ((1 << level) - 1) * step]
         return gcd(a, b)
 
-    # a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    # a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    # grouped by
     # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedAndQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:

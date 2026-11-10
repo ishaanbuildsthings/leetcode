@@ -53,7 +53,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -67,7 +69,8 @@ struct SparseTable {
         t.resize((size_t)levels * n);
         for (int i = 0; i < n; i++) t[i] = baseFn(a[i], i);
         for (int j = 1; j < levels; j++)
-            for (int i = 0; i + (1 << j) <= n; i++) t[j * n + i] = combine(t[(j - 1) * n + i], t[(j - 1) * n + i + (1 << (j - 1))]);
+            for (int i = 0; i + (1 << j) <= n; i++) t[j * n + i] = combine(t[(j - 1) * n + i],
+                t[(j - 1) * n + i + (1 << (j - 1))]);
     }
 
     // how many elements

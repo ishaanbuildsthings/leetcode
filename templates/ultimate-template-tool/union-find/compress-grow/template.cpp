@@ -25,7 +25,8 @@ using namespace std;
 using ll = long long;
 
 // DSU<int> dsu(vals);
-// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val) appends more
+// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val)
+// appends more
 template <typename T>
 struct DSU {
     vector<T> vals;

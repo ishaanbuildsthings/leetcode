@@ -126,7 +126,8 @@ class SortedRunsSum:
             s += self.len[s]
         return out
 
-    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def sumAll(self):
         if self.n < 1:
             raise IndexError("sumAll: needs n >= 1")

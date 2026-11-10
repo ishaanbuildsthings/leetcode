@@ -50,13 +50,15 @@ from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
-# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies
+# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
+# the copies
 # and distinct values in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
 # nodes are reused.
 
 
 class AVLMultiset:
-    __slots__ = ("K", "C", "Z", "D", "H", "L", "R", "free", "root", "newCount", "n", "mn", "mx", "mexV", "gc", "gmin", "gmax", "dups", "salt", "d")
+    __slots__ = ("K", "C", "Z", "D", "H", "L", "R", "free", "root", "newCount", "n", "mn", "mx", "mexV", "gc", "gmin",
+        "gmax", "dups", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -65,7 +67,8 @@ class AVLMultiset:
         self.H, self.L, self.R = [0], [0], [0]  # height (empty tree 0), children
         self.free = []  # removed nodes, reused first
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.mexV = 0  # the mex, kept current (0 for the empty set)
         self.root = self.n = self.d = 0
 

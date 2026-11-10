@@ -39,7 +39,8 @@ struct AffineTree {
     T norm(W x) const { x %= mod; return T(x < 0 ? x + mod : x); }
 
     // O(N)
-    explicit AffineTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), M(a.size(), 1), K(a.size(), 0), val(a.size()) {
+    explicit AffineTree(const vector<T>& a, T mod = 1000000007) : n((int)a.size()), mod(mod), M(a.size(), 1),
+        K(a.size(), 0), val(a.size()) {
         for (int i = 0; i < n; i++) val[i] = norm(a[i]);
     }
 

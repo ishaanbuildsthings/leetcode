@@ -27,8 +27,10 @@
 """
 How do range mode work in rootN?
 
-First, we split the array into rootN blocks. I want to be able to answer: "what is the mode from bl...br and how many time does it occur)
-This is easy, from the starting point of each block sweep to the end of the array, every time we hit the end of the block we know the mode for bl...some other block and we store the answer. We do rootN sweeps each N time.
+First, we split the array into rootN blocks. I want to be able to answer: "what is the mode from bl...br and how many
+time does it occur)
+This is easy, from the starting point of each block sweep to the end of the array, every time we hit the end of the
+block we know the mode for bl...some other block and we store the answer. We do rootN sweeps each N time.
 
 Now I claim in a rangeMode(l, r) query, the mode is one of:
 -the mode JUST inside the full blocks portion
@@ -38,7 +40,8 @@ It wouldn't be possible for a value to be the mode if it's not a partial and not
 
 We can find the mode of just the inside full blocks portion since we precomputed it.
 
-Now we want to know for each partial, how many times does it occur in the full region? We could do this with NrootN memory by, for each value, computing a prefix sum of size rootN, like for each block. But we can do N memory:
+Now we want to know for each partial, how many times does it occur in the full region? We could do this with NrootN
+memory by, for each value, computing a prefix sum of size rootN, like for each block. But we can do N memory:
 
 Map all values -> indices, and also an index to its position in that index bucket, so [5, 2, 5] has:
 
@@ -47,7 +50,8 @@ Map all values -> indices, and also an index to its position in that index bucke
 
 But also 0->0, 1->1, 2->1 as the global index -> inside bucket index, mapping.
 
-Now for any partial value we can find exactly where it occurs in its indices list in O(1). We then jump ahead by modeMiddleFrequency spots and check if the ending spot is <= qr or not.
+Now for any partial value we can find exactly where it occurs in its indices list in O(1). We then jump ahead by
+modeMiddleFrequency spots and check if the ending spot is <= qr or not.
 """
 
 # ========================

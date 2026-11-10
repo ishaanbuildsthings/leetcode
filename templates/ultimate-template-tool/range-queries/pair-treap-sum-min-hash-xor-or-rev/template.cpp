@@ -434,7 +434,8 @@ struct PairSwapTreap {
         return v;
     }
 
-    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -442,7 +443,8 @@ struct PairSwapTreap {
         return v;
     }
 
-    // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
+    // search on
     // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
@@ -456,7 +458,8 @@ struct PairSwapTreap {
         return {i - lo, i + lo};
     }
 
-    // O(log^2(N) expected) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // O(log^2(N) expected) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1,
+    // i), the empty
     // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     // needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
@@ -471,7 +474,8 @@ struct PairSwapTreap {
         return {i - lo + 1, i + lo};
     }
 
-    // O(log(N) expected) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    // O(log(N) expected) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every
+    // structure
     // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
     auto hashAll() {
         if (size() < 1) throw out_of_range("hashAll: needs n >= 1");
@@ -484,7 +488,8 @@ struct PairSwapTreap {
         return nd[rE].sm + nd[rO].sm;
     }
 
-    // O(log(N) expected) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N) expected) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto minAll() {
         if (size() < 1) throw out_of_range("minAll: needs n >= 1");
         return rangeMin(0, size() - 1);

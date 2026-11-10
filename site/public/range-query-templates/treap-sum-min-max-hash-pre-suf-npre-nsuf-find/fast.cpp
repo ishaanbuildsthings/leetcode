@@ -103,7 +103,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -170,11 +172,13 @@ struct ImplicitTreap {
     LEETCODE_NO_SANITIZE static unsigned long long hadd(unsigned long long a, unsigned long long b) {
         return a + b >= HP ? a + b - HP : a + b;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {  // v as a residue (what an add changes a hash by, per position)
+    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {
+        // v as a residue (what an add changes a hash by, per position)
         long long r = (long long)v % (long long)HP;
         return r < 0 ? (unsigned long long)(r + (long long)HP) : (unsigned long long)r;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {  // the hash of value v: v + an offset random per run, so no common value is 0
+    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {
+        // the hash of value v: v + an offset random per run, so no common value is 0
         static unsigned long long off = 1 + rnd() % (HP - 1);
         return hadd(hraw(v), off);
     }
@@ -966,7 +970,8 @@ struct ImplicitTreap {
         return v;
     }
 
-    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -974,7 +979,8 @@ struct ImplicitTreap {
         return v;
     }
 
-    // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
+    // search on
     // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
@@ -988,7 +994,8 @@ struct ImplicitTreap {
         return {i - lo, i + lo};
     }
 
-    // O(log^2(N) expected) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // O(log^2(N) expected) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1,
+    // i), the empty
     // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     // needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
@@ -1090,7 +1097,8 @@ struct ImplicitTreap {
         nd[x].bh = hadd(hmul(hadd(hmul(nd[r].bh, B), hv), nd[l].pw), nd[l].bh);
     }
 
-    LEETCODE_NO_SANITIZE void rekey(int t, T old) {  // t's value changed from old: the map follows (find needs distinct values)
+    LEETCODE_NO_SANITIZE void rekey(int t, T old) {
+        // t's value changed from old: the map follows (find needs distinct values)
         auto it = where.find(old);
         if (it != where.end() && it->second == t) where.erase(it);
         where[nd[t].val] = t;
@@ -1120,7 +1128,8 @@ struct ImplicitTreap {
         split(b, r - l + 1, b, c);
     }
 
-    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {
+        // the node holding a[i], every tag on the way pushed
         int t = root;
         while (true) {
             int ls = nd[nd[t].L].sz;
@@ -1178,7 +1187,8 @@ struct ImplicitTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+    LEETCODE_NO_SANITIZE void release(size_t mark) {
+        // drop every node made after mark (temporaries: no tree points to them)
         nd.resize(mark);
         nd.resize(mark);
         nd.resize(mark);

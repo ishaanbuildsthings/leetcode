@@ -63,7 +63,9 @@ struct SplayMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; long long dn; int l, r, p; };  // copies; copies, distinct below; parent
@@ -237,7 +239,8 @@ struct SplayMultiset {
     // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     long long findMex() {
         T base = -off;  // (stored as v - off: the real values >= 0 are the stored ones >= -off)
-        long long c0 = distinctLt(base), before = -c0, res = d - c0;  // before: distinct values >= 0 left of t's subtree
+        // before: distinct values >= 0 left of t's subtree
+        long long c0 = distinctLt(base), before = -c0, res = d - c0;
         int t = root, last = 0;
         while (t) {
             last = t;

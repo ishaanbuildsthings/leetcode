@@ -46,7 +46,8 @@ struct SqrtReplace {
         }
     };
     // a run of the array: cls[k] is the class of its k-th value. Classes form a union-find
-    // (par); a root class holds its value (val) and how many of the block's values are in it (cnt). where: value -> root
+    // (par); a root class holds its value (val) and how many of the block's values are in it (cnt). where: value ->
+    // root
     struct Block {
         vector<int> cls, par, cnt;
         vector<T> val;
@@ -115,7 +116,8 @@ struct SqrtReplace {
             where[v] = r;
         }
 
-        void assign(int k, const T& v) {  // O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
+        void assign(int k, const T& v) {
+            // O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
             int c = find(cls[k]);
             if (val[c] == v) return;
             if (!--cnt[c]) where.erase(val[c]);
@@ -123,7 +125,8 @@ struct SqrtReplace {
             if (fresh) par.push_back(it->second), val.push_back(v), cnt.push_back(0);
             cnt[it->second]++;
             cls[k] = it->second;
-            if ((int)par.size() > 2 * size() + 8) build(values());  // (many dead classes: start over, paid for by the assigns)
+            // (many dead classes: start over, paid for by the assigns)
+            if ((int)par.size() > 2 * size() + 8) build(values());
         }
     };
 

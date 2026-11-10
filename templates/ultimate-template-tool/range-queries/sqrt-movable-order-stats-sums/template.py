@@ -205,7 +205,8 @@ class SqrtSequence:
         if b.floor == b.ceil:
             right.vals, right.srt, right.pos, right.pf = [], [], [], [0]
         else:
-            cutAt = sz - k if b.rev else k  # stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+            # stored positions [0, cutAt) vs [cutAt, sz); reversed, the high part comes first
+            cutAt = sz - k if b.rev else k
             ls, lp, hs, hp = [], [], [], []
             for v, p in zip(b.srt, b.pos):
                 if p < cutAt:
@@ -677,7 +678,8 @@ class SqrtSequence:
     def sumKthSmallestRange(self, l, r, i, j):
         self._check("sumKthSmallestRange", l, r)
         if not 1 <= i <= j <= r - l + 1:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= i <= j <= r - l + 1, got i = {i}, j = {j}, r - l + 1 = {r - l + 1}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= i <= j <= r - l + 1, got i = {i}, j = {j}, r - l + 1 = {r - l + 1}")
         return self.sumSmallestK(l, r, j) - self.sumSmallestK(l, r, i - 1)
 
     # O(sqrt(N log N) * log(U)) -- the sum of the i-th through j-th largest values of a[l..r] (1-based ranks); needs
@@ -685,7 +687,8 @@ class SqrtSequence:
     def sumKthLargestRange(self, l, r, i, j):
         self._check("sumKthLargestRange", l, r)
         if not 1 <= i <= j <= r - l + 1:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= i <= j <= r - l + 1, got i = {i}, j = {j}, r - l + 1 = {r - l + 1}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= i <= j <= r - l + 1, got i = {i}, j = {j}, r - l + 1 = {r - l + 1}")
         n = r - l + 1
         return self.sumSmallestK(l, r, n - i + 1) - self.sumSmallestK(l, r, n - j)
 

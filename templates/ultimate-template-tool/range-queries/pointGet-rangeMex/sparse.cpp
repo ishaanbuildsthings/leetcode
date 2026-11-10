@@ -89,7 +89,8 @@ struct PersistentMex {
 
 // The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 // The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and
-// zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the
+// zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so
+// the
 // k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.
 template <typename T>
 struct SparsePersistentMex {
@@ -99,12 +100,14 @@ struct SparsePersistentMex {
     PersistentMex<T> inner;
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparsePersistentMex(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(split(values)) {}
+    SparsePersistentMex(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi),
+        inner(split(values)) {}
 
     vector<T> split(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no given values; never queried)
+        // (a dummy element when there are no given values; never queried)
+        return vals.empty() ? vector<T>{T(0)} : vals;
     }
 
     // {i0, i1, zeros}: the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros

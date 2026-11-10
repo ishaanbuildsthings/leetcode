@@ -51,7 +51,8 @@ struct ChminChmaxTree {
     void push(int p) {
         for (int h = 31 - __builtin_clz(p); h > 0; h--) {
             int x = p >> h;
-            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF, B[x] = NINF;
+            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF,
+                B[x] = NINF;
         }
     }
 
@@ -95,7 +96,8 @@ struct ChminChmaxTree {
     // each node's tag is complete when it is pushed), then read the leaves
     vector<T> getAll() {
         for (int x = 1; x < n; x++)
-            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF, B[x] = NINF;
+            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF,
+                B[x] = NINF;
         return val;
     }
 

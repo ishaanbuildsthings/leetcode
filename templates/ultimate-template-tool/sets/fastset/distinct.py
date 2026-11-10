@@ -117,7 +117,8 @@ class FastSet:
             i = j
         return 1
 
-    # O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
+    # O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it
+    # instead of building a new one
     def clear(self):
         self.n = 0
         self._clearWords()

@@ -67,7 +67,8 @@ from heapq import heappop, heappush
 
 
 class SplayMultiset:
-    __slots__ = ("K", "C", "Z", "S", "L", "R", "P", "free", "root", "n", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "gc", "gmin", "gmax", "dups", "off", "salt", "total", "d")
+    __slots__ = ("K", "C", "Z", "S", "L", "R", "P", "free", "root", "n", "lowV", "lowB", "lowC", "lowS", "highV",
+        "highB", "highC", "gc", "gmin", "gmax", "dups", "off", "salt", "total", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -76,7 +77,8 @@ class SplayMultiset:
         self.free = []  # removed nodes, reused first
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.root = self.n = self.total = self.d = 0
 
     def _new(self, x, parent):
@@ -630,7 +632,9 @@ class SplayMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo) + self.off * (kTo - kFrom + 1)
 
     # O(logN amortized) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -638,7 +642,9 @@ class SplayMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1) + self.off * (kTo - kFrom + 1)
 
     # O(logN amortized) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k

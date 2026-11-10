@@ -35,7 +35,8 @@ _NEVER = 1 << 62  # (the time of a root: it never got a parent)
 
 # dsu = DSUNoCompress(vals)
 # vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1
-# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
+# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
+# j)
 # reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
@@ -58,7 +59,8 @@ class DSUNoCompress:
         self.time = 0  # how many unites so far, failed ones too
         self.tm = [_NEVER] * n  # tm[i]: the unite (0, 1, 2, ...) that gave i its parent
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    # merge
     # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par

@@ -43,7 +43,8 @@ class DequeEertree:
         self._quick = [0, 0]
         # @endif
         # @if itemLinks
-        self._itemLink = [{}, {}]  # itemLink[node][x] = longest proper palindromic suffix of node with x right before it
+        # itemLink[node][x] = longest proper palindromic suffix of node with x right before it
+        self._itemLink = [{}, {}]
         # @endif
         # @if persistentLinks
         self._idOf = {}

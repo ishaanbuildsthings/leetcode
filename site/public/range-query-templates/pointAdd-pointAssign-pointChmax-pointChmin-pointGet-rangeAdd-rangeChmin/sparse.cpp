@@ -63,7 +63,8 @@ struct SparseAddChminTree {
     static bool isId(const Tag& t) { return t.hi == INF && t.c == 0; }
 
     // tag o, then tag t
-    static Tag compose(const Tag& o, const Tag& t) { return Tag{std::min(t.hi, o.hi == INF ? INF : o.hi + t.c), o.c + t.c}; }
+    static Tag compose(const Tag& o,
+        const Tag& t) { return Tag{std::min(t.hi, o.hi == INF ? INF : o.hi + t.c), o.c + t.c}; }
 
     // the aggregate of k slots after tag t
     static Agg applyTag(Agg v, long long k, const Tag& t) {

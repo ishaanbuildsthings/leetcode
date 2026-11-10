@@ -51,7 +51,8 @@ struct ChminChmaxBeats {
     vector<S> tot;
 
     // O(N)
-    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mx(4 * max(1, n)), mx2(4 * max(1, n), NEG_INF), addTag(4 * max(1, n)), cntMx(4 * max(1, n)), tot(4 * max(1, n)) {
+    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mx(4 * max(1, n)), mx2(4 * max(1, n), NEG_INF),
+        addTag(4 * max(1, n)), cntMx(4 * max(1, n)), tot(4 * max(1, n)) {
         if (n) build(1, 0, n - 1, a);
     }
 
@@ -72,7 +73,9 @@ struct ChminChmaxBeats {
     }
 
     // every value under node i (sz of them) becomes v
-    void applyAssign(int i, long long sz, T v) { mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, tot[i] = S(v) * sz, addTag[i] = 0; }
+    void applyAssign(int i, long long sz, T v) {
+        mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, tot[i] = S(v) * sz, addTag[i] = 0;
+    }
 
     // every value under node i gains v
     void applyAdd(int i, long long sz, T v) {

@@ -97,7 +97,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -278,13 +280,15 @@ struct PersistentXorTrie {
     }
 
     // O(logU) -- largest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt; needs 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE optional<long long> maxXorWithVInValRange(long long l, long long r, long long x, long long lo, long long hi) const {
+    LEETCODE_NO_SANITIZE optional<long long> maxXorWithVInValRange(long long l, long long r, long long x,
+        long long lo, long long hi) const {
         rangeCheck("maxXorWithVInValRange", l, r);
         return bestIn(l, r, x, lo, hi, 1);
     }
 
     // O(logU) -- smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt; needs 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE optional<long long> minXorWithVInValRange(long long l, long long r, long long x, long long lo, long long hi) const {
+    LEETCODE_NO_SANITIZE optional<long long> minXorWithVInValRange(long long l, long long r, long long x,
+        long long lo, long long hi) const {
         rangeCheck("minXorWithVInValRange", l, r);
         return bestIn(l, r, x, lo, hi, 0);
     }
@@ -315,8 +319,10 @@ struct PersistentXorTrie {
         return r - l + 1 - lt(l, r, x);
     }
 
-    // O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
-    LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+    // O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    // size()
+    LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, long long lowVal,
+        long long highVal) const {
         rangeCheck("countInValRange", l, r);
         return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
     }
@@ -421,7 +427,8 @@ struct PersistentXorTrie {
         return xorAll(l, r) ^ xorLt(l, r, x);
     }
 
-    // O(logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal); needs
+    // O(logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal);
+    // needs
     // 0 <= l <= r < size()
     LEETCODE_NO_SANITIZE long long xorInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("xorInValRange", l, r);
@@ -458,13 +465,16 @@ struct PersistentXorTrie {
         return cur;
     }
 
-    LEETCODE_NO_SANITIZE long long lt(long long l, long long r, long long k) const { return cntLt(l, r, k, 0); }  // # of values < k in a[l..r]
+    // # of values < k in a[l..r]
+    LEETCODE_NO_SANITIZE long long lt(long long l, long long r, long long k) const { return cntLt(l, r, k, 0); }
 
-    LEETCODE_NO_SANITIZE long long kth(long long l, long long r, long long k) const { return kthX(l, r, k, 0); }  // k-th smallest (1-indexed)
+    // k-th smallest (1-indexed)
+    LEETCODE_NO_SANITIZE long long kth(long long l, long long r, long long k) const { return kthX(l, r, k, 0); }
 
     LEETCODE_NO_SANITIZE long long xorAll(long long l, long long r) const { return nd[root[r + 1]].X ^ nd[root[l]].X; }
 
-    LEETCODE_NO_SANITIZE long long xorLt(long long l, long long r, long long k) const {  // xor of the values < k in a[l..r]
+    LEETCODE_NO_SANITIZE long long xorLt(long long l, long long r, long long k) const {
+        // xor of the values < k in a[l..r]
         if (k <= 0) return 0;
         if (k > top) return xorAll(l, r);
         int a = root[r + 1], b = root[l];
@@ -536,8 +546,10 @@ struct PersistentXorTrie {
     }
 
     // the largest (big = 1) / smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or nullopt. Walks down
-    // the bits lo and hi share, then splits: below lo's side only the lower bound matters, below hi's only the upper one
-    LEETCODE_NO_SANITIZE optional<long long> bestIn(long long l, long long r, long long x, long long lo, long long hi, int big) const {
+    // the bits lo and hi share, then splits: below lo's side only the lower bound matters, below hi's only the upper
+    // one
+    LEETCODE_NO_SANITIZE optional<long long> bestIn(long long l, long long r, long long x, long long lo, long long hi,
+        int big) const {
         lo = max(lo, 0LL), hi = min(hi, top);
         if (lo > hi) return nullopt;
         int a = root[r + 1], b = root[l], h = B - 1;
@@ -559,7 +571,8 @@ struct PersistentXorTrie {
     // below the node pair (a, b): the best v ^ x whose bits h..0 are >= (lower = 1) / <= bound's bits h..0, or nullopt;
     // res holds the result's bits above h. Along the path that matches bound, each step off it (to the side the bound
     // allows) is a free subtree: take it at once if its result bit beats the path's, else remember the deepest one
-    LEETCODE_NO_SANITIZE optional<long long> oneSide(int a, int b, int h, long long bound, long long x, int big, int lower, long long res) const {
+    LEETCODE_NO_SANITIZE optional<long long> oneSide(int a, int b, int h, long long bound, long long x, int big,
+        int lower, long long res) const {
         if (nd[a].C == nd[b].C) return nullopt;
         int fa = -1, fb = 0, fh = 0;
         long long fres = 0;

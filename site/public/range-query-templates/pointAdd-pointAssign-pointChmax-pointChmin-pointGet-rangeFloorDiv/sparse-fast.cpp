@@ -56,7 +56,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -97,7 +99,9 @@ struct SparseRangeFloorDivTree {
     LEETCODE_NO_SANITIZE T compose(T a, T v) const { return mulCap(a, v); }  // tag a, then tag v
     LEETCODE_NO_SANITIZE T leaf(T a, T v) const { return floorDiv(a, v); }  // value a after tag v
 
-    LEETCODE_NO_SANITIZE void apply(int x, bool isLeaf, T v) { pool[x].v = isLeaf ? leaf(pool[x].v, v) : compose(pool[x].v, v); }
+    LEETCODE_NO_SANITIZE void apply(int x, bool isLeaf, T v) {
+        pool[x].v = isLeaf ? leaf(pool[x].v, v) : compose(pool[x].v, v);
+    }
 
     LEETCODE_NO_SANITIZE void update(int x, long long a, long long b, long long l, long long r, T v) {
         if (l <= a && b <= r) { apply(x, a == b, v); return; }

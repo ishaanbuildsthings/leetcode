@@ -42,10 +42,12 @@ using ll = long long;
 template <typename T>
 struct FastSet {
     long long lo, hi;
-    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never a real value)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never
+    // a real value)
     T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);
     int u;
-    vector<vector<unsigned long long>> seg;  // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    vector<vector<unsigned long long>> seg;
     long long n = 0;
     T mn{}, mx{};  // kept current while n > 0
     multiset<long long> gaps;  // differences between neighbouring values
@@ -131,7 +133,8 @@ struct FastSet {
         return 1;
     }
 
-    // O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
+    // O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it
+    // instead of building a new one
     void clear() {
         n = 0;
         gaps.clear();

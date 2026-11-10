@@ -70,16 +70,19 @@ from bisect import bisect_left, bisect_right
 
 
 # Ordered multiset over values known ahead of time (offline): Fenwick trees over the sorted distinct values you pass
-# to the constructor, one counting copies, one summing them, one marking which values are present (for mex), one xor-ing the values with an odd count.
+# to the constructor, one counting copies, one summing them, one marking which values are present (for mex), one xor-ing
+# the values with an odd count.
 # k-th / sum of the k smallest walk down by binary lifting. The constructor only learns which values can appear (it
 # compresses them); the multiset starts EMPTY. Every value you add must be one of them; query arguments (x, lo, hi)
 # can be anything.
 
 
 class FenwickMultiset:
-    __slots__ = ("vals", "m", "top", "steps", "cnt", "fc", "fs", "fx", "fp", "z", "run", "n", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "xtotal", "total", "d")
+    __slots__ = ("vals", "m", "top", "steps", "cnt", "fc", "fs", "fx", "fp", "z", "run", "n", "lowV", "lowB", "lowC",
+        "lowS", "highV", "highB", "highC", "xtotal", "total", "d")
 
-    # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
+    # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order,
+    # duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
     def __init__(self, allValuesThatWillEverBeInsertedForOfflineCompression):
         vals = self.vals = sorted(set(allValuesThatWillEverBeInsertedForOfflineCompression))
         m = self.m = len(vals)
@@ -521,7 +524,9 @@ class FenwickMultiset:
     # 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
     # O(logN) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
@@ -529,7 +534,9 @@ class FenwickMultiset:
     # <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
     # O(logN) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just
@@ -577,7 +584,9 @@ class FenwickMultiset:
     # 1 <= kFrom <= kTo <= size
     def xorOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
 
     # O(logN) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
@@ -585,7 +594,9 @@ class FenwickMultiset:
     # <= kFrom <= kTo <= size
     def xorOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
 
     # O(logN) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just

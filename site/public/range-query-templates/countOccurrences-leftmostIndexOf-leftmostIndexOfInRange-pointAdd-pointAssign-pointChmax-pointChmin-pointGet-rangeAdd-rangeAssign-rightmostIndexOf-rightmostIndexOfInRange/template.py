@@ -46,7 +46,8 @@ class SqrtOccurrences:
         nb = (n + B - 1) // B
         self.vals = list(arr)
         self.cnt = [{} for _ in range(nb)]
-        salt = self.salt = getrandbits(62)  # cnt's keys are values salted with this, so no fixed input can make them collide
+        # cnt's keys are values salted with this, so no fixed input can make them collide
+        salt = self.salt = getrandbits(62)
         for i, v in enumerate(arr):
             c = self.cnt[i // B]
             v ^= salt

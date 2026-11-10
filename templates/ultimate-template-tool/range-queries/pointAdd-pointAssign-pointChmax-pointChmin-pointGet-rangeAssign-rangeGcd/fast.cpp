@@ -56,7 +56,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -71,7 +73,8 @@ struct AssignGcdTree {
 
     // O(N logU)
     explicit AssignGcdTree(const vector<T>& a)
-        : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())), t(2 * a.size()), asg(a.size()), hasAsg(a.size()) {
+        : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())), t(2 * a.size()), asg(a.size()),
+            hasAsg(a.size()) {
         for (int i = 0; i < n; i++) t[n + i] = a[i];
         for (int x = n - 1; x > 0; x--) t[x] = std::gcd(absT(t[2 * x]), absT(t[2 * x + 1]));
     }
@@ -159,7 +162,8 @@ struct AssignGcdTree {
         if (v < pointGet(i)) rangeAssign(i, i, v);
     }
 
-    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto gcdAll() {
         if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
         return rangeGcd(0, n - 1);

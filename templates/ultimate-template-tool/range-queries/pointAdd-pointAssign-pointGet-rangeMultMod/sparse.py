@@ -15,7 +15,8 @@
 #   other: children[8*log(U)]
 #   note: per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index
 
-# rangeMultMod + point ops (values in [0, mod)), over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
+# rangeMultMod + point ops (values in [0, mod)), over any index range [lo, hi] (huge or negative is fine); every
+# position starts at 0.
 # Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its
 # O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags
 # on its path down, so they stop applying to it. Sparse: a dict keyed by heap index over a power-of-two cover of

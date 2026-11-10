@@ -23,8 +23,10 @@
 #   other: vals[1*N] pot[1*N]
 
 # dsu = DSU(vals)
-# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val) appends more
-# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
+# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val)
+# appends more
+# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
+# j)
 # reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
@@ -39,7 +41,8 @@ class DSU:
         self.mx = 1 if n else 0
         self.pot = [0] * n  # pot[i] = value[i] - value[par[i]] (0 at a root)
 
-    # O(α(n)) amortized, effectively O(1): index of the representative of i's component (compresses fully, keeping pot right)
+    # O(α(n)) amortized, effectively O(1): index of the representative of i's component (compresses fully, keeping pot
+    # right)
     def find(self, i):
         par, pot = self.par, self.pot
         path = []

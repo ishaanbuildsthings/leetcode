@@ -63,7 +63,9 @@ struct FenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     vector<T> vals;  // the sorted distinct values
@@ -77,12 +79,15 @@ struct FenwickMultiset {
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
     Info low{}, high{};  // both medians, kept current by addRaw while n > 0
-    vector<int> gapFirst, gapLast;  // segment tree over positions: the first and last present value in each range, -1 if none
+    // segment tree over positions: the first and last present value in each range, -1 if none
+    vector<int> gapFirst, gapLast;
     vector<long long> gapMin, gapMax;  // ... and the smallest and largest gap between neighbours inside it
     long long dups = 0;  // values with 2+ copies
 
-    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
-    explicit FenwickMultiset(vector<T> allValuesThatWillEverBeInsertedForOfflineCompression) : vals(move(allValuesThatWillEverBeInsertedForOfflineCompression)) {
+    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order,
+    // duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
+    explicit FenwickMultiset(vector<T> allValuesThatWillEverBeInsertedForOfflineCompression)
+        : vals(move(allValuesThatWillEverBeInsertedForOfflineCompression)) {
         sort(vals.begin(), vals.end());
         vals.erase(unique(vals.begin(), vals.end()), vals.end());
         m = (int)vals.size();
@@ -96,7 +101,8 @@ struct FenwickMultiset {
         run = 0;
         while (z + run < m && vals[z + run] == T(run)) run++;  // vals[z .. z + run - 1] = 0, 1, ..., run - 1
         if constexpr (is_integral_v<T>) {
-            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count(
+                ) ^ (unsigned long long)(uintptr_t)this;
             seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
             seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
             hashMultiplier = (seed ^ (seed >> 31)) | 1;
@@ -150,7 +156,8 @@ struct FenwickMultiset {
             int a = 2 * j, b = a + 1;
             if (gapLast[a] < 0 || gapFirst[b] < 0) {
                 int side = gapLast[a] < 0 ? b : a;
-                gapFirst[j] = gapFirst[side], gapLast[j] = gapLast[side], gapMin[j] = gapMin[side], gapMax[j] = gapMax[side];
+                gapFirst[j] = gapFirst[side], gapLast[j] = gapLast[side], gapMin[j] = gapMin[side],
+                    gapMax[j] = gapMax[side];
             } else {
                 long long middle = (long long)vals[gapFirst[b]] - (long long)vals[gapLast[a]];
                 gapFirst[j] = gapFirst[a], gapLast[j] = gapLast[b];
@@ -219,7 +226,8 @@ struct FenwickMultiset {
         long long f = insertAt(i, x, c);  // x's new count
         long long g = f - c;  // x's old count
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
         }
         if (c > 0) {
             if (n == c) {  // the set was empty
@@ -263,7 +271,9 @@ struct FenwickMultiset {
                 for (int j = i + 1; j <= m; j += j & -j) fc[j] = 0, fp[j] = 0;
             }
         } else {
-            fill(cnt.begin(), cnt.end(), 0), fill(fc.begin(), fc.end(), 0), fill(fp.begin(), fp.end(), 0), fill(gapFirst.begin(), gapFirst.end(), -1), fill(gapLast.begin(), gapLast.end(), -1), fill(gapMin.begin(), gapMin.end(), LLONG_MAX), fill(gapMax.begin(), gapMax.end(), -1);
+            fill(cnt.begin(), cnt.end(), 0), fill(fc.begin(), fc.end(), 0), fill(fp.begin(), fp.end(), 0),
+                fill(gapFirst.begin(), gapFirst.end(), -1), fill(gapLast.begin(), gapLast.end(), -1),
+                fill(gapMin.begin(), gapMin.end(), LLONG_MAX), fill(gapMax.begin(), gapMax.end(), -1);
         }
     }
 

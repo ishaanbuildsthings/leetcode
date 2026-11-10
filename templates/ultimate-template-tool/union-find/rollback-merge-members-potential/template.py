@@ -38,7 +38,8 @@ def baseFn(v: RawVal, i: int) -> Node:
     pass
 
 
-# called once per merge: big is the bigger component's Node (on a tie, either one). Don't mutate big: rollback keeps the old
+# called once per merge: big is the bigger component's Node (on a tie, either one). Don't mutate big: rollback keeps the
+# old
 # Node to put it back, so return a new one
 def combine(big: Node, small: Node) -> Node:
     # return (big[0] + small[0], max(big[1], small[1]))
@@ -47,7 +48,8 @@ def combine(big: Node, small: Node) -> Node:
 
 # dsu = RollbackDSU(vals, baseFn, combine)
 # vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1
-# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
+# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
+# j)
 # reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 

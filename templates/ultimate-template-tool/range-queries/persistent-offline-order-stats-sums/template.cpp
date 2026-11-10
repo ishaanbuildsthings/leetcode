@@ -68,7 +68,8 @@ struct PersistentOfflineOrderStats {
     };
     vector<Node> nd;  // node 0 = the empty tree
 
-    // O(N log N) -- arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value append will
+    // O(N log N) -- arr: the initial array (may be empty), 0-indexed;
+    // allValuesThatWillEverBeInsertedForOfflineCompression: every value append will
     // ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     PersistentOfflineOrderStats(const vector<T>& a, vector<T> allValuesThatWillEverBeInsertedForOfflineCompression)
         : srt(move(allValuesThatWillEverBeInsertedForOfflineCompression)), root(1, 0), nd(1) {

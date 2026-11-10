@@ -57,7 +57,8 @@
 #   note: blocks of about sqrt N, each a binary trie of its stored values (at most its length times log U nodes, U = 2^bits) with a lazy xor and a lazy assign; a scratch trie of 2 sqrt N log U nodes for the partly covered ends of a query
 
 # a[l..r] as a multiset, asked about v ^ x over its values v, with range xor-apply, range assign and point assign. The
-# array is cut into blocks of about sqrt(N); each block keeps a binary trie (one level per bit, highest bit first) of its
+# array is cut into blocks of about sqrt(N); each block keeps a binary trie (one level per bit, highest bit first) of
+# its
 # stored values, a lazy xor (its real values are stored ^ tag) and a lazy assign (the trie is one path of copies). A
 # whole block updates in O(log U); a partly covered one is rewritten and its trie rebuilt. A query walks the tries of
 # the whole blocks inside l..r down together, each through its own lazy xor, plus a scratch trie of the partly covered
@@ -82,7 +83,8 @@ class SqrtXorTries:
             if not 0 <= v <= self.top:
                 raise ValueError(f"__init__: needs 0 <= v < 2^bits, got v = {v} at index {i}, bits = {bits}")
         self.arr = list(arr)  # the stored values: a[i] = arr[i] ^ tag of its block, unless the block is assigned
-        # node 0 = empty; block b owns the nodes from base[b] (its root) on, at most (its length) * bits + 1 of them; the
+        # node 0 = empty; block b owns the nodes from base[b] (its root) on, at most (its length) * bits + 1 of them;
+        # the
         # scratch trie for the partly covered ends of a query comes after them
         self.base, total = [], 1
         for b in range(nb):
@@ -298,7 +300,8 @@ class SqrtXorTries:
         self._rangeCheck("countGteX", l, r)
         return r - l + 1 - self._lt(l, r, x)
 
-    # O(sqrt(N) logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    # O(sqrt(N) logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r
+    # < size()
     def countInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("countInValRange", l, r)
         return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0
@@ -308,7 +311,8 @@ class SqrtXorTries:
         self._rangeCheck("countOccurrences", l, r)
         return self._lt(l, r, x + 1) - self._lt(l, r, x)
 
-    # O(sqrt(N) logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    # O(sqrt(N) logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l
+    # + 1,
     # else IndexError
     def kthSmallest(self, l, r, k):
         self._rangeCheck("kthSmallest", l, r)

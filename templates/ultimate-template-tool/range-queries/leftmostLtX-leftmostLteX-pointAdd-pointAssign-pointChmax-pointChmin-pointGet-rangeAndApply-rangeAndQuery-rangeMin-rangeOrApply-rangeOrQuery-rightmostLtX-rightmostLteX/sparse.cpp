@@ -38,7 +38,8 @@ using ll = long long;
 // All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x:
 //   and X -> (X, 0)   or X -> (~X, X)
 // and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's
-// values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min just shift.
+// values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min just
+// shift.
 // Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it.
 // No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op.
 // For xor with sums use BitCountTree (per-bit counts), which needs no beats at all.

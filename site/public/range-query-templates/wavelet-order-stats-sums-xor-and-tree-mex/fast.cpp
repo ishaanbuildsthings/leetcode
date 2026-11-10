@@ -90,7 +90,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -441,7 +443,8 @@ struct WaveletMatrix {
         for (int lv = 0; lv < bits; lv++) {
             const int* z = row(lv);
             int zl = z[lo], zh = z[hi];
-            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;  // all 0s are below x
+            // all 0s are below x
+            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;
             else lo = zl, hi = zh;
         }
         return res;
@@ -457,7 +460,8 @@ struct WaveletMatrix {
             const S* zs = &zsum[(size_t)lv * (n + 1)];
             int zl = z[lo], zh = z[hi];
             if (k <= zh - zl) lo = zl, hi = zh;
-            else k -= zh - zl, res += zs[hi] - zs[lo], rank |= 1 << (bits - 1 - lv), lo = z[n] + lo - zl, hi = z[n] + hi - zh;
+            else k -= zh - zl, res += zs[hi] - zs[lo], rank |= 1 << (bits - 1 - lv), lo = z[n] + lo - zl,
+                hi = z[n] + hi - zh;
         }
         return res + S(k) * srt[rank];  // the last k all equal the k-th smallest
     }
@@ -483,7 +487,8 @@ struct WaveletMatrix {
         ML.assign(1, 0), MR.assign(1, 0), MN.assign(1, -1);  // node 0 = the empty tree (every last index -1)
         mexRoot.assign(n + 1, 0);
         for (int i = 0; i < n; i++)
-            mexRoot[i + 1] = T(0) <= arr[i] && arr[i] <= T(n + 1) ? mexSet(mexRoot[i], 0, n + 1, int(arr[i]), i) : mexRoot[i];
+            mexRoot[i + 1] = T(0) <= arr[i] && arr[i] <= T(n + 1) ? mexSet(mexRoot[i], 0, n + 1, int(arr[i]),
+                i) : mexRoot[i];
     }
 
     // copy of node with value v's last index set to i

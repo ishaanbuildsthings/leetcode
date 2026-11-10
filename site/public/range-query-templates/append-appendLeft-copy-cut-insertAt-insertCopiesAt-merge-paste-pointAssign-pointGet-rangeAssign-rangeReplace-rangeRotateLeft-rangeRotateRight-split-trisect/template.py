@@ -41,7 +41,8 @@ import random
 # changes composes into one map. All indices 0-based, ranges inclusive [l, r], an index always the position in the
 # CURRENT array; searches return -1 when nothing qualifies.
 class PersistentValueMapTreap:
-    # one node pool shared by every PersistentValueMapTreap: pieces move between them (node 0 = the empty tree); nodes are never
+    # one node pool shared by every PersistentValueMapTreap: pieces move between them (node 0 = the empty tree); nodes
+    # are never
     # freed. val[x]: x's value - valLo (every map that reached x already applied); mp[x]: the map x still owes its
     # children (None: none)
     val = [0]
@@ -91,7 +92,8 @@ class PersistentValueMapTreap:
             a, c = self._split(self.root, i)
             self.root = self._merge(self._merge(a, self._build([o] * k)), c)
 
-    # O(U*logN) expected -- a[l..r] (leave out l and r: the whole array, O(1)) as a PersistentValueMapTreap of its own; this
+    # O(U*logN) expected -- a[l..r] (leave out l and r: the whole array, O(1)) as a PersistentValueMapTreap of its own;
+    # this
     # one is unchanged. The copy shares this one's nodes, so it costs O(U*logN) however long it is
     def copy(self, l=0, r=None):
         n = self.size()
@@ -253,7 +255,8 @@ class PersistentValueMapTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")

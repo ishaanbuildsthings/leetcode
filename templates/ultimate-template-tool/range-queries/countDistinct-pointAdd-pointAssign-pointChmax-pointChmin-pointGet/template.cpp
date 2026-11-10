@@ -37,7 +37,7 @@ using ll = long long;
 template <typename T>
 struct DynamicDistinctBIT {
     using OrderedSet = __gnu_pbds::tree<int, __gnu_pbds::null_type, less<int>, __gnu_pbds::rb_tree_tag,
-                                        __gnu_pbds::tree_order_statistics_node_update>;
+        __gnu_pbds::tree_order_statistics_node_update>;
     int n;
     vector<T> a;
     vector<int> nxt, last;    // last: Fenwick tree counting positions with nxt == n
@@ -45,7 +45,8 @@ struct DynamicDistinctBIT {
     map<T, set<int>> chains;
 
     // O(N log^2 N)
-    explicit DynamicDistinctBIT(const vector<T>& arr) : n((int)arr.size()), a(arr), nxt(n, n), last(n + 1), sets(n + 1) {
+    explicit DynamicDistinctBIT(const vector<T>& arr) : n((int)arr.size()), a(arr), nxt(n, n), last(n + 1),
+        sets(n + 1) {
         map<T, int> prev;
         for (int i = 0; i < n; i++) {
             auto it = prev.find(arr[i]);

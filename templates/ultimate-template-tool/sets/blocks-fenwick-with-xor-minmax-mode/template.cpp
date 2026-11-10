@@ -61,7 +61,8 @@ using ll = long long;
 //   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style with a Fenwick tree inside every block: the
-// distinct values in sorted blocks of max(LOAD, sqrt(N) / 8), each block keeping its values' copies and xor plus a Fenwick
+// distinct values in sorted blocks of max(LOAD, sqrt(N) / 8), each block keeping its values' copies and xor plus a
+// Fenwick
 // tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 // one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N)).
 // A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
@@ -75,7 +76,9 @@ struct BlockFenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
@@ -232,8 +235,10 @@ struct BlockFenwickMultiset {
     }
 
     template <class V>
-    V below(T x, bool strict, const vector<V>& outer, const vector<vector<V>>& inner, V all) const {  // over values < x / <= x
-        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(), x)) - maxes.begin());
+    V below(T x, bool strict, const vector<V>& outer, const vector<vector<V>>& inner, V all) const {
+        // over values < x / <= x
+        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(),
+            x)) - maxes.begin());
         if (k == (int)keys.size()) return all;
         const vector<T>& b = keys[k];
         int j = int((strict ? lower_bound(b.begin(), b.end(), x) : upper_bound(b.begin(), b.end(), x)) - b.begin());
@@ -264,7 +269,8 @@ struct BlockFenwickMultiset {
 
     T kthAt(long long k) { return kthInfo(k).v; }
 
-    long long findMex() {  // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
+    long long findMex() {
+        // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
         int k = blockOf(T(0));
         if (k == (int)keys.size()) return 0;
         int j = int(lower_bound(keys[k].begin(), keys[k].end(), T(0)) - keys[k].begin());
@@ -360,7 +366,8 @@ struct BlockFenwickMultiset {
     }
 
     T xbelow(T x, bool strict) const {  // xor of the values < x (strict) or <= x (copies count)
-        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(), x)) - maxes.begin());
+        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(),
+            x)) - maxes.begin());
         if (k == (int)keys.size()) return xtotal;
         const vector<T>& b = keys[k];
         int j = int((strict ? lower_bound(b.begin(), b.end(), x) : upper_bound(b.begin(), b.end(), x)) - b.begin());
@@ -618,7 +625,8 @@ struct BlockFenwickMultiset {
     // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
     // unless 1 <= kFrom <= kTo <= size
     T xorOfKthLargestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
@@ -626,7 +634,8 @@ struct BlockFenwickMultiset {
     // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
     // 1 <= kFrom <= kTo <= size
     T xorOfKthSmallestRange(long long kFrom, long long kTo) {
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 

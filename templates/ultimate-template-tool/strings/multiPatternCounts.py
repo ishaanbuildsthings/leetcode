@@ -3,7 +3,8 @@
 
 from random import getrandbits
 
-# list of size len(patterns): res[k] = number of indices i where text[i...] matches patterns[k] (overlaps counted, Aho-Corasick)
+# list of size len(patterns): res[k] = number of indices i where text[i...] matches patterns[k] (overlaps counted,
+# Aho-Corasick)
 # an empty pattern matches at every i in 0..len(text); duplicate patterns each get their own count
 # text and patterns can be any mix of str / list / tuple holding hashable items (ints, chars, tuples, ...)
 # multiPatternCounts("ababa", ["aba", "b", "ab", "zz"]) -> [2, 2, 2, 0]

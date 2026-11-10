@@ -59,7 +59,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -72,7 +74,8 @@ struct ClampTree {
     HotVector<T> val;      // leaf values
 
     // O(N)
-    explicit ClampTree(const vector<T>& a) : n((int)a.size()), A(a.size(), INF), B(a.size(), NINF), C(a.size(), 0), val(a) {}
+    explicit ClampTree(const vector<T>& a) : n((int)a.size()), A(a.size(), INF), B(a.size(), NINF), C(a.size(), 0),
+        val(a) {}
 
     // apply clamp (a, b, c) on top of whatever node x already holds
     LEETCODE_NO_SANITIZE void apply(int x, T a, T b, T c) {

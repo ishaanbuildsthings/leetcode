@@ -99,7 +99,8 @@ struct SparseGcdTree {
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(2 * logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs lo <= l <= r <= hi, else throws out_of_range
+    // O(2 * logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs lo <= l <= r <= hi, else throws
+    // out_of_range
     T rangeGcd(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         return query(root, lo, hi, l, r);

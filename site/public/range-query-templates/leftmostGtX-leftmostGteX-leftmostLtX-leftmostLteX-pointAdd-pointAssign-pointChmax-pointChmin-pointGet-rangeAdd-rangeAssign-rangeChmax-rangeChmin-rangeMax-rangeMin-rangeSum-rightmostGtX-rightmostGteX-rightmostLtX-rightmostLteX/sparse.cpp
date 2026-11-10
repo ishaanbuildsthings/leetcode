@@ -47,7 +47,8 @@ using ll = long long;
 // and stops there, and only x <= mx2 has to go further down. a chmax is the same with the min: mn, mn2 and cntMn. A
 // node's own mx / mn doubles as its pending clamp: push clamps each child to it, so there is no chmin / chmax tag.
 // There is no assign tag either: when all of a node's values are equal (mn == mx), push hands that value to both
-// children as an assign. An add shifts everything a node keeps and goes in the one add tag. Amortized O(logU * logU) per
+// children as an assign. An add shifts everything a node keeps and goes in the one add tag. Amortized O(logU * logU)
+// per
 // update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>

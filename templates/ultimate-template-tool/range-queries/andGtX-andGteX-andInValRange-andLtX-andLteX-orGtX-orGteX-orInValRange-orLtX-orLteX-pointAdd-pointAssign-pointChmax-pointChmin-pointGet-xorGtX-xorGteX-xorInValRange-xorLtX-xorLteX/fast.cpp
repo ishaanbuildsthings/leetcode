@@ -38,7 +38,8 @@ using ll = long long;
 
 // xor / OR / AND of the values in a value range inside a[l..r], with point updates. A segment tree over positions
 // (bottom-up: node p >= n is a[p - n], node p < n covers its children's positions); every node keeps a dynamic value
-// seg tree over [valLo, valHi] of the values at its positions: per value node, the copies below it, the xor, the OR, the AND
+// seg tree over [valLo, valHi] of the values at its positions: per value node, the copies below it, the xor, the OR,
+// the AND
 // of the values present. a[l..r] is O(log N) segment nodes, and each answers a value range in O(log U).
 // Values are integers; query arguments (x, lowVal, ...) can be anything. T: int, long long, ...
 // FAST MODE drawbacks compared with template.cpp:
@@ -69,7 +70,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };

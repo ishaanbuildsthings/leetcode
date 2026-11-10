@@ -76,7 +76,8 @@ class SortedRunsXorMinMaxOrHash:
             j = i + (i & -i)
             if j <= n:
                 self.bc[j] += self.bc[i]
-        size = self.size = 1 << max(0, (n - 1).bit_length())  # seg tree over positions: each run's aggregates at its start
+        # seg tree over positions: each run's aggregates at its start
+        size = self.size = 1 << max(0, (n - 1).bit_length())
         self.qx = [0] * (2 * size)
         self.qn = [INF] * (2 * size)
         self.qm = [-INF] * (2 * size)
@@ -221,7 +222,8 @@ class SortedRunsXorMinMaxOrHash:
             s += self.len[s]
         return out
 
-    # O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    # O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i,
+    # i)): a binary search on
     # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.n
@@ -236,7 +238,8 @@ class SortedRunsXorMinMaxOrHash:
                 hi = mid - 1
         return i - lo, i + lo
 
-    # O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    # O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and
+    # a[i+1]; (i + 1, i), the empty
     # range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     # needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtIPlusOne(self, i):
@@ -252,32 +255,37 @@ class SortedRunsXorMinMaxOrHash:
                 hi = mid - 1
         return i - lo + 1, i + lo
 
-    # O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    # O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
+    # every structure
     # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
     def hashAll(self):
         if self.n < 1:
             raise IndexError("hashAll: needs n >= 1")
         return self.rangeHash(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def minAll(self):
         if self.n < 1:
             raise IndexError("minAll: needs n >= 1")
         return self.rangeMin(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def maxAll(self):
         if self.n < 1:
             raise IndexError("maxAll: needs n >= 1")
         return self.rangeMax(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    # raises IndexError
     def xorAll(self):
         if self.n < 1:
             raise IndexError("xorAll: needs n >= 1")
         return self.rangeXorQuery(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def orAll(self):
         if self.n < 1:
             raise IndexError("orAll: needs n >= 1")

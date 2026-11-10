@@ -63,7 +63,9 @@ struct TreapMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; long long dn; unsigned prio; int l, r; };  // copies; copies, distinct below
@@ -172,7 +174,8 @@ struct TreapMultiset {
             d++;
             f = pool[m].c = c;
             int i = 0, walked = int(path.size());
-            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;  // the new node goes where its priority belongs
+            // the new node goes where its priority belongs
+            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;
             if (i < walked) {
                 int a, b;
                 split(path[i], x, a, b);
@@ -257,7 +260,8 @@ struct TreapMultiset {
     // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     long long findMex() {
         T base = -off;  // (stored as v - off: the real values >= 0 are the stored ones >= -off)
-        long long c0 = distinctLt(base), before = -c0, res = d - c0;  // before: distinct values >= 0 left of t's subtree
+        // before: distinct values >= 0 left of t's subtree
+        long long c0 = distinctLt(base), before = -c0, res = d - c0;
         int t = root;
         while (t) {
             long long j = before + pool[pool[t].l].dn;
@@ -272,7 +276,8 @@ struct TreapMultiset {
         long long f = insert(x, c);  // x's new count
         long long g = f - c;  // x's old count
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
                 long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
@@ -299,7 +304,8 @@ struct TreapMultiset {
             if (x < mn) mn = x;
             if (x > mx) mx = x;
         } else {
-            if constexpr (is_integral_v<T>) if (x >= -off && x < T(mexV) && !f) mexV = x;  // the last copy of a value below the mex
+            // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= -off && x < T(mexV) && !f) mexV = x;
             if (!n) return;
             if (!f) {  // x is gone: it may have been the min / max
                 if (x == mn) mn = kthAt(1);

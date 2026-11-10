@@ -44,9 +44,11 @@
 """
 HOW DO POTENTIALS WORK? (rangeMod example)
 
-First when we do A%B with A>=B, A always falls by at least half. If B is < half of A, then obviously A is halved. If it is bigger, it is obviously halved too.
+First when we do A%B with A>=B, A always falls by at least half. If B is < half of A, then obviously A is halved. If it
+is bigger, it is obviously halved too.
 
-Think about the "potential" of the entire segment tree. There are N values in logN layers, so N log N values are captured across all segment tree nodes.
+Think about the "potential" of the entire segment tree. There are N values in logN layers, so N log N values are
+captured across all segment tree nodes.
 Each value can be halved at most logC times, so the potential across the whole tree is N logN log C.
 
 
@@ -60,10 +62,12 @@ always comes from one of the other nodes so these are free
 
 3) FULLY COVERED NODES THAT DO RECURSE
 in a normal segment tree we stop as soon as we hit one, here we do not
-We must show the # of fully covered nodes we visit is bounded, as the others are bounded, then our total visits is bounded
+We must show the # of fully covered nodes we visit is bounded, as the others are bounded, then our total visits is
+bounded
 
 When we visit a fully covered node and the max is < our mod, we terminate immediately (this falls into case 2)
-If it is not, there is at least one value in this range that is going to halve, dropping the potential of our entire tree. We recurse to the children.
+If it is not, there is at least one value in this range that is going to halve, dropping the potential of our entire
+tree. We recurse to the children.
 
 So at most we visit O(N logN logC) nodes in our rangeMod.
 

@@ -32,14 +32,15 @@ struct StridedQueries {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n, blockStrides = 0, blockSize = 1, numBlocks = 0, treeStrides = 0;
     vector<T> A;
-    vector<int> offsets;  // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    // offsets[step * (step - 1) / 2 + residue]: where that residue class starts in that stride's list
+    vector<int> offsets;
     vector<T> xorBlocks;
 
     // O(build) -- arr: the initial array
     explicit StridedQueries(const vector<T>& arr) {
         n = (int)arr.size();
         A = arr;
-        blockStrides = max(1, min(n, (int)sqrt((double)n)));
+        blockStrides = min(n, max(1, (int)sqrt((double)n)));
         blockSize = blockStrides;
         numBlocks = n / blockSize + 1;
         int strides = max(blockStrides, treeStrides);
@@ -96,7 +97,8 @@ struct StridedQueries {
         write(i, min(A[i], v));
     }
 
-    // O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedXorQuery: needs step >= 1");

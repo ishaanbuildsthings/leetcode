@@ -56,7 +56,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -85,7 +87,8 @@ struct SparseMaxSubarrayTree {
 
     // walk from the root to leaf i, creating missing nodes; fills path[] with the nodes above the leaf and
     // returns the leaf. len[] / starts[] (when given) receive each path node's range.
-    LEETCODE_NO_SANITIZE int descend(long long i, int* path, int& depth, long long* starts = nullptr, long long* ends = nullptr) {
+    LEETCODE_NO_SANITIZE int descend(long long i, int* path, int& depth, long long* starts = nullptr,
+        long long* ends = nullptr) {
         if (!root) root = make();
         int x = root;
         long long a = lo, b = hi;
@@ -117,7 +120,9 @@ struct SparseMaxSubarrayTree {
         return x;
     }
 
-    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a, const Agg& b) { return Agg{a.sm + b.sm, max(a.pre, a.sm + b.pre), max(b.suf, b.sm + a.suf), max({a.best, b.best, a.suf + b.pre})}; }
+    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a,
+        const Agg& b) { return Agg{a.sm + b.sm, max(a.pre, a.sm + b.pre), max(b.suf, b.sm + a.suf),
+        max({a.best, b.best, a.suf + b.pre})}; }
     LEETCODE_NO_SANITIZE static Agg leaf(T v) { return Agg{S(v), S(v), S(v), S(v)}; }
     LEETCODE_NO_SANITIZE static Agg zero(long long len) { (void)len; return Agg{0, 0, 0, 0}; }  // a block of len zeros
     LEETCODE_NO_SANITIZE Agg agg(int x, long long len) { return pool[x].v; }

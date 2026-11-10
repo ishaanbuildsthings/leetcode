@@ -59,7 +59,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -85,7 +87,8 @@ struct RangeLIS {
         int m = n >> 1;
         int *rank = take(n), *colsLo = take(m), *colsHi = take(n - m), *rowsLo = take(m), *rowsHi = take(n - m);
         int *PLo = take(m), *PHi = take(n - m), *QLo = take(m), *QHi = take(n - m), *RLo = take(m), *RHi = take(n - m);
-        int *rowCol = take(n), *colRow = take(n), *below = take(n + 2), *flags = take(n);  // flags: bit 0 row is lo, bit 1 col is lo
+        // flags: bit 0 row is lo, bit 1 col is lo
+        int *rowCol = take(n), *colRow = take(n), *below = take(n + 2), *flags = take(n);
         fill(flags, flags + n, 0);
         for (int j = 0; j < m; j++) flags[Q[j]] |= 2;  // temporarily: column of Q is in the lo half
         int cl = 0, ch = 0, rl = 0, rh = 0;

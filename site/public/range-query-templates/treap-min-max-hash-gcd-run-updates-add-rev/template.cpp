@@ -613,7 +613,8 @@ struct ImplicitTreap {
         return v;
     }
 
-    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -621,7 +622,8 @@ struct ImplicitTreap {
         return v;
     }
 
-    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)):
+    // a binary search on
     // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
@@ -635,7 +637,8 @@ struct ImplicitTreap {
         return {i - lo, i + lo};
     }
 
-    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1];
+    // (i + 1, i), the empty
     // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     // needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
@@ -669,7 +672,8 @@ struct ImplicitTreap {
         return nd[root].mx;
     }
 
-    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto gcdAll() {
         if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
         return rangeGcd(0, size() - 1);

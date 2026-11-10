@@ -81,7 +81,10 @@ struct SparseEqualRunTree {
         return x;
     }
 
-    static Agg merge(const Agg& a, const Agg& b) { return Agg{a.ln + b.ln, (a.rv == b.lv && a.pre == a.ln) ? a.ln + b.pre : a.pre, (a.rv == b.lv && b.suf == b.ln) ? b.ln + a.suf : b.suf, max({a.best, b.best, a.rv == b.lv ? a.suf + b.pre : 0LL}), a.lv, b.rv}; }
+    static Agg merge(const Agg& a,
+        const Agg& b) { return Agg{a.ln + b.ln, (a.rv == b.lv && a.pre == a.ln) ? a.ln + b.pre : a.pre,
+        (a.rv == b.lv && b.suf == b.ln) ? b.ln + a.suf : b.suf,
+        max({a.best, b.best, a.rv == b.lv ? a.suf + b.pre : 0LL}), a.lv, b.rv}; }
     static Agg leaf(T v) { return Agg{1, 1, 1, 1, v, v}; }
     static Agg zero(long long len) { (void)len; return Agg{len, len, len, len, T(0), T(0)}; }  // a block of len zeros
     Agg agg(int x, long long len) { return x ? pool[x].v : zero(len); }

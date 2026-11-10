@@ -61,7 +61,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -104,7 +106,8 @@ struct SparseBitCountTree {
     LEETCODE_NO_SANITIZE static bool isId(const Tag& t) { return t.a == FULL && t.x == 0; }
 
     // tag o, then tag t
-    LEETCODE_NO_SANITIZE static Tag compose(const Tag& o, const Tag& t) { return Tag{T(o.a & t.a), T((o.x & t.a) ^ t.x)}; }
+    LEETCODE_NO_SANITIZE static Tag compose(const Tag& o,
+        const Tag& t) { return Tag{T(o.a & t.a), T((o.x & t.a) ^ t.x)}; }
 
     // the aggregate of k slots after tag t
     LEETCODE_NO_SANITIZE static Agg applyTag(Agg v, long long k, const Tag& t) {
@@ -133,7 +136,9 @@ struct SparseBitCountTree {
 
     LEETCODE_NO_SANITIZE void pull(int x) { pool[x].v = merge(pool[pool[x].l].v, pool[pool[x].r].v); }
 
-    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a, const Agg& b) { Agg r; for (int j = 0; j < BITS; j++) r.c[j] = a.c[j] + b.c[j]; return r; }
+    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a, const Agg& b) {
+        Agg r; for (int j = 0; j < BITS; j++) r.c[j] = a.c[j] + b.c[j]; return r;
+    }
 
     LEETCODE_NO_SANITIZE void update(int x, long long a, long long b, long long l, long long r, const Tag& t) {
         if (l <= a && b <= r) { applyNode(x, b - a + 1, t); return; }

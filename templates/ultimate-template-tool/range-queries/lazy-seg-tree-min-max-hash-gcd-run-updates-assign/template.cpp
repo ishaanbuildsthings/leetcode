@@ -406,7 +406,8 @@ struct LazySegTree {
         return {i - lo, i + lo};
     }
 
-    // O(log^2(N)) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // O(log^2(N)) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the
+    // empty
     // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     // needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
@@ -440,7 +441,8 @@ struct LazySegTree {
         return rangeMax(0, n - 1);
     }
 
-    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto gcdAll() {
         if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
         return rangeGcd(0, n - 1);

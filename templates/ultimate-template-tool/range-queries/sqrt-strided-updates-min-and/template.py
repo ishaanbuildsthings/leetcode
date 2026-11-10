@@ -36,7 +36,7 @@ class StridedQueries:
         self.A = A = list(arr)
         self.n = n = len(A)
         self.blockStrides = self.treeStrides = 0
-        self.treeStrides = cutoff if cutoff is not None else max(1, min(n, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))
+        self.treeStrides = cutoff if cutoff is not None else min(n, max(1, int(sqrt(n / max(1.0, log2(n + 1)))) // 4))
         if not 0 <= self.treeStrides <= n:
             raise IndexError(f"StridedQueries: needs 0 <= cutoff <= n, got cutoff={cutoff}, n={n}")
         strides = max(self.blockStrides, self.treeStrides)
@@ -108,7 +108,8 @@ class StridedQueries:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i={i}, n={self.n}")
         self._write(i, min(self.A[i], v))
 
-    # O(sqrt(N logN)) -- min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N logN)) -- min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    # raises IndexError
     def stridedMin(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -135,7 +136,8 @@ class StridedQueries:
             high >>= 1
         return res
 
-    # O(sqrt(N logN)) -- a[l] & a[l + step] & ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N logN)) -- a[l] & a[l + step] & ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises
+    # IndexError
     def stridedAndQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedAndQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

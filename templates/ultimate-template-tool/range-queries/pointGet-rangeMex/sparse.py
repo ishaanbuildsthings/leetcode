@@ -104,7 +104,8 @@ class SparsePersistentMex:
         pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
-        self.inner = PersistentMex(self.vals or [0])  # (a dummy element when there are no given values; it is never queried)
+        # (a dummy element when there are no given values; it is never queried)
+        self.inner = PersistentMex(self.vals or [0])
 
     # (i0, i1, zeros): the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
     def _span(self, l, r):

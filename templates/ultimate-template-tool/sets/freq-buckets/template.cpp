@@ -51,7 +51,8 @@ struct FreqBuckets {
         vals.assign(1, T());
         cnt.assign(1, 0), bucketOf.assign(1, 0), prevInBucket.assign(1, 0), nextInBucket.assign(1, 0);
         resetBuckets();
-        unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+        unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count(
+            ) ^ (unsigned long long)(uintptr_t)this;
         seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
         seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
         hashMultiplier = (seed ^ (seed >> 31)) | 1;

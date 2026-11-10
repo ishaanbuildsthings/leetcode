@@ -38,7 +38,8 @@ def baseFn(v: RawVal, i: int) -> Node:
     pass
 
 
-# called once per merge: big is the bigger component's Node (on a tie, either one). Mutating big and returning it is fine, e.g.
+# called once per merge: big is the bigger component's Node (on a tie, either one). Mutating big and returning it is
+# fine, e.g.
 # small-to-large: big |= small; return big (O(n log n) in total)
 def combine(big: Node, small: Node) -> Node:
     # return (big[0] + small[0], max(big[1], small[1]))
@@ -46,7 +47,8 @@ def combine(big: Node, small: Node) -> Node:
 
 
 # dsu = DSU(vals, baseFn, combine)
-# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+# add(val) appends more
 
 
 class DSU:

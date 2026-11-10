@@ -62,7 +62,7 @@ def py_class(left, ranges, rev, point):
     s += "        self.inv = pow(self.base, self.mod - 2, self.mod)\n"
     s += "        self.pw, self.pwi = [1], [1]  # pw[k] = base^k, pwi[k] = base^-k, grown as the window grows (amortized O(1))\n"
     s += "        vals = list(arr)\n"
-    s += "        self._code = ord if vals and isinstance(vals[0], str) else int  # (characters hash by their code)\n"
+    s += "        self._code = self._firstCode  # (characters hash by their code, numbers as they are: the first value decides)\n"
     s += "        self.back = []\n"
     if left:
         s += "        self.front = []  # the first values, stored last to first\n"
@@ -278,7 +278,11 @@ def py_class(left, ranges, rev, point):
 '''
     else:
         s += "    # ---- internals ----\n\n"
-    s += '''    def _powers(self, k):  # pw and pwi with at least k + 1 entries
+    s += '''    def _firstCode(self, v):  # the first value decides how values hash (so starting empty works): characters by code
+        self._code = ord if isinstance(v, str) else int
+        return self._code(v)
+
+    def _powers(self, k):  # pw and pwi with at least k + 1 entries
         pw, pwi = self.pw, self.pwi
         if len(pw) <= k:
             base, inv, mod = self.base, self.inv, self.mod
@@ -299,7 +303,7 @@ def py_class(left, ranges, rev, point):
         if ranges:
             s += "        self._rebuild()\n"
         s += '''
-    def _moveToBack(self):  # the front half's last-stored half (its first values... no: its values nearest the middle) becomes the back
+    def _moveToBack(self):  # the front half's values nearest the middle (stored first) become the back
         k = (len(self.front) + 1) // 2
         moved = self.front[:k]  # (the values nearest the middle are stored first)
         self.front = self.front[k:]

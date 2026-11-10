@@ -109,7 +109,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -175,7 +177,8 @@ struct SqrtSequence {
             for (int k = lo; k <= hi; k++) vals[k] = f(vals[k]);
             vector<int> in, out;
             for (int p : ord) (lo <= p && p <= hi ? in : out).push_back(p);
-            std::merge(in.begin(), in.end(), out.begin(), out.end(), ord.begin(), [&](int x, int y) { return vals[x] < vals[y]; });
+            std::merge(in.begin(), in.end(), out.begin(), out.end(), ord.begin(),
+                [&](int x, int y) { return vals[x] < vals[y]; });
             for (int i = 0; i < size(); i++) srt[i] = vals[ord[i]];
             refresh();
         }
@@ -241,7 +244,8 @@ struct SqrtSequence {
         int below(T x, bool strict) const {  // how many values are < x (strict) or <= x
             if (has) return (strict ? T(asg) < x : T(asg) <= x) ? size() : 0;
             const T& y = x;
-            return int((strict ? lower_bound(srt.begin(), srt.end(), y) : upper_bound(srt.begin(), srt.end(), y)) - srt.begin());
+            return int((strict ? lower_bound(srt.begin(), srt.end(), y) : upper_bound(srt.begin(), srt.end(),
+                y)) - srt.begin());
         }
 
         T kth(int k) const {  // the k-th smallest value, k from 0
@@ -431,7 +435,8 @@ struct SqrtSequence {
     LEETCODE_NO_SANITIZE void paste(int i, SqrtSequence& other) {
         if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int j = splitAt(i);
-        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()), make_move_iterator(other.blocks.end()));
+        blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()),
+            make_move_iterator(other.blocks.end()));
         n += other.n;
         other.blocks.clear(), other.n = 0;
         tidy();
@@ -510,7 +515,8 @@ struct SqrtSequence {
             return false;
         });
         optional<T> lo, hi;
-        for (const Block* b : whole) lo = lo ? min(*lo, b->kth(0)) : b->kth(0), hi = hi ? max(*hi, b->kth(b->size() - 1)) : b->kth(b->size() - 1);
+        for (const Block* b : whole) lo = lo ? min(*lo, b->kth(0)) : b->kth(0),
+            hi = hi ? max(*hi, b->kth(b->size() - 1)) : b->kth(b->size() - 1);
         for (auto& p : parts) lo = lo ? min(*lo, p.front()) : p.front(), hi = hi ? max(*hi, p.back()) : p.back();
         while (*lo < *hi) {
             T mid = *lo + (*hi - *lo) / 2;
@@ -666,7 +672,8 @@ struct SqrtSequence {
 
     LEETCODE_NO_SANITIZE T xorOf(int l, int r, optional<T> lo, optional<T> hi, bool loStrict, bool hiStrict) const {
         T res = T(0);
-        select(l, r, lo, hi, loStrict, hiStrict, [&](const Block& b, int i, int j) { res ^= b.xorFirst(j) ^ b.xorFirst(i); }, [&](T v) { res ^= v; });
+        select(l, r, lo, hi, loStrict, hiStrict,
+            [&](const Block& b, int i, int j) { res ^= b.xorFirst(j) ^ b.xorFirst(i); }, [&](T v) { res ^= v; });
         return res;
     }
 
@@ -713,7 +720,8 @@ struct SqrtSequence {
 
     LEETCODE_NO_SANITIZE T orOf(int l, int r, optional<T> lo, optional<T> hi, bool loStrict, bool hiStrict) const {
         T res = T(0);
-        select(l, r, lo, hi, loStrict, hiStrict, [&](const Block& b, int i, int j) { res |= b.orRange(i, j); }, [&](T v) { res |= v; });
+        select(l, r, lo, hi, loStrict, hiStrict, [&](const Block& b, int i, int j) { res |= b.orRange(i, j); },
+            [&](T v) { res |= v; });
         return res;
     }
 
@@ -726,7 +734,8 @@ struct SqrtSequence {
         return v;
     }
 
-    // O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -734,25 +743,29 @@ struct SqrtSequence {
         return v;
     }
 
-    // O(sqrt(N)*log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(sqrt(N)*log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto minAll() {
         if (size() < 1) throw out_of_range("minAll: needs n >= 1");
         return rangeMin(0, size() - 1);
     }
 
-    // O(sqrt(N)*log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(sqrt(N)*log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto maxAll() {
         if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
         return rangeMax(0, size() - 1);
     }
 
-    // O(sqrt(N)*log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(sqrt(N)*log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto xorAll() {
         if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
         return rangeXorQuery(0, size() - 1);
     }
 
-    // O(sqrt(N)*log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(sqrt(N)*log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto orAll() {
         if (size() < 1) throw out_of_range("orAll: needs n >= 1");
         return rangeOrQuery(0, size() - 1);
@@ -783,7 +796,8 @@ struct SqrtSequence {
         blocks = std::move(out);
     }
 
-    LEETCODE_NO_SANITIZE pair<int, int> at(int i) const {  // (block index, position in it) of a[i]; i == size() gives (number of blocks, 0)
+    LEETCODE_NO_SANITIZE pair<int, int> at(int i) const {
+        // (block index, position in it) of a[i]; i == size() gives (number of blocks, 0)
         for (int j = 0; j < (int)blocks.size(); j++) {
             if (i < blocks[j].size()) return {j, i};
             i -= blocks[j].size();
@@ -814,14 +828,16 @@ struct SqrtSequence {
         }
     }
 
-    LEETCODE_NO_SANITIZE static bool passes(T v, const optional<T>& lo, const optional<T>& hi, bool loStrict, bool hiStrict) {
+    LEETCODE_NO_SANITIZE static bool passes(T v, const optional<T>& lo, const optional<T>& hi, bool loStrict,
+        bool hiStrict) {
         return (!lo || (loStrict ? *lo < v : *lo <= v)) && (!hi || (hiStrict ? v < *hi : v <= *hi));
     }
 
     // the values v of a[l..r] with lo <(=) v <(=) hi (a missing bound: none): whole(b, i, j) for a whole block (its
     // i-th..(j-1)-th smallest pass), part(v) for each passing value of a partial one
     template <class W, class P>
-    LEETCODE_NO_SANITIZE void select(int l, int r, optional<T> lo, optional<T> hi, bool loStrict, bool hiStrict, W whole, P part) const {
+    LEETCODE_NO_SANITIZE void select(int l, int r, optional<T> lo, optional<T> hi, bool loStrict, bool hiStrict,
+        W whole, P part) const {
         span(l, r, [&](const Block& b, int a, int c, bool all, int) {
             if (all) whole(b, lo ? b.below(*lo, !loStrict) : 0, hi ? b.below(*hi, hiStrict) : b.size());
             else
@@ -837,7 +853,8 @@ struct SqrtSequence {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> nearest(int l, int r, T x, bool up, bool strict) const {  // the smallest > (>=) x (up) or largest < (<=)
+    LEETCODE_NO_SANITIZE optional<T> nearest(int l, int r, T x, bool up, bool strict) const {
+        // the smallest > (>=) x (up) or largest < (<=)
         optional<T> best;
         auto take = [&](T v) {
             if (!best || (up ? v < *best : v > *best)) best = v;
@@ -859,7 +876,8 @@ struct SqrtSequence {
 
     // the index of the k-th i in [l, r] (k = -1: the last one) with lo <(=) a[i] <(=) hi, or -1: whole blocks are
     // skipped by their counts, and only the block holding it is read
-    LEETCODE_NO_SANITIZE int kthWhere(int l, int r, int k, optional<T> lo, optional<T> hi, bool loStrict, bool hiStrict) const {
+    LEETCODE_NO_SANITIZE int kthWhere(int l, int r, int k, optional<T> lo, optional<T> hi, bool loStrict,
+        bool hiStrict) const {
         vector<tuple<const Block*, int, int, bool, int>> spans;
         span(l, r, [&](const Block& b, int a, int c, bool whole, int start) {
             spans.emplace_back(&b, a, c, whole, start);

@@ -77,7 +77,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -389,7 +391,8 @@ struct ShrinkSegTree {
         while (p > 1) p >>= 1, pull(p);
     }
 
-    LEETCODE_NO_SANITIZE int cover(int l, int r, int* ns, int* ls) {  // the nodes covering a[l..r] left to right (ns) and their levels (ls)
+    LEETCODE_NO_SANITIZE int cover(int l, int r, int* ns, int* ls) {
+        // the nodes covering a[l..r] left to right (ns) and their levels (ls)
         pushPath(l + n), pushPath(r + n);
         int c = 0, rc = 0, rn[32], rl[32];
         for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
@@ -409,7 +412,8 @@ struct ShrinkSegTree {
     }
 
     template <class F>
-    LEETCODE_NO_SANITIZE void shrinkRange(int l, int r, T lim, const F& f) {  // every value v >= lim in a[l..r] becomes f(v)
+    LEETCODE_NO_SANITIZE void shrinkRange(int l, int r, T lim, const F& f) {
+        // every value v >= lim in a[l..r] becomes f(v)
         pushPath(l + n), pushPath(r + n);
         for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
             if (lo & 1) shrink(lo, s, lim, f), lo++;
@@ -419,7 +423,8 @@ struct ShrinkSegTree {
     }
 
     template <class F>
-    LEETCODE_NO_SANITIZE void shrink(int x, int s, T lim, const F& f) {  // every value v >= lim under node x (level s) becomes f(v)
+    LEETCODE_NO_SANITIZE void shrink(int x, int s, T lim, const F& f) {
+        // every value v >= lim under node x (level s) becomes f(v)
         if (mx[x] < lim) return;
         if (x >= n) { setLeaf(x, f(mx[x])); return; }
         if (mn[x] == mx[x]) { applyAssign(x, f(mx[x])); return; }  // all equal: one assign

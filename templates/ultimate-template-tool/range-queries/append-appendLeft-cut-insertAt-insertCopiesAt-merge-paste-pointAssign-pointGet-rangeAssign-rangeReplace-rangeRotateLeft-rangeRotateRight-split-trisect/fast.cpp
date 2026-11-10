@@ -70,7 +70,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -78,7 +80,8 @@ struct HotVector : vector<U> {
 template <typename T>
 struct ValueMapTreap {
     using Z = int;  // lengths, indices and counts
-    // one node pool shared by every ValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are never
+    // one node pool shared by every ValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are
+    // never
     // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
     // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
     // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
@@ -301,7 +304,8 @@ struct ValueMapTreap {
         return v;
     }
 
-    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -335,7 +339,8 @@ struct ValueMapTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE static int build(const vector<int>& offs) {  // a treap of new nodes holding offs in order: a Cartesian tree, O(len)
+    LEETCODE_NO_SANITIZE static int build(const vector<int>& offs) {
+        // a treap of new nodes holding offs in order: a Cartesian tree, O(len)
         vector<int> st, order;
         for (int o : offs) {
             int x = newNode(o), last = 0;
@@ -363,7 +368,8 @@ struct ValueMapTreap {
         nd[x].sz = nd[l].sz + nd[r].sz + 1;
     }
 
-    LEETCODE_NO_SANITIZE static void applyMap(int x, const int* g) {  // x's subtree goes through map g (newer than anything already in it)
+    LEETCODE_NO_SANITIZE static void applyMap(int x, const int* g) {
+        // x's subtree goes through map g (newer than anything already in it)
         if (!x) return;
         nd[x].val = g[nd[x].val];
         if (nd[x].row < 0) {

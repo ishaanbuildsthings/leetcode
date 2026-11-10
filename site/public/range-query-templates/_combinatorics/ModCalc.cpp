@@ -4,9 +4,11 @@
 
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
-// n in the constructor is basically the biggest number we will operate on. So for instance finding n! % MOD. But also things like interleaving two sequences of length 500 and length 700 would require n=1200. To be safe, can always just put a big number like 1e5.
+// n in the constructor is basically the biggest number we will operate on. So for instance finding n! % MOD.
+// But also things like interleaving two sequences of length 500 and length 700 would require n=1200.
+// To be safe, can always just put a big number like 1e5. n may be >= primeMod: x! % MOD is 0 from x = MOD on,
+// 1/x! doesn't exist there, and nChooseK / nPermuteK / interleave still give the right answer
 class ModCalc {
 public:
     // O(n) time, O(n) space (two arrays of length n+1)
@@ -25,29 +27,30 @@ public:
         return factorialsWithMod[factorial];
     }
 
-    // Gets (1/x! % MOD)
+    // Gets (1/x! % MOD), which only exists for x < MOD
     // O(1) time
     long long getInverseFactorialWithMod(int inverseFactorial) const {
-        assert(0 <= inverseFactorial && inverseFactorial <= n);
+        assert(0 <= inverseFactorial && inverseFactorial <= n && inverseFactorial < mod);
         return inverseFactorialsWithMod[inverseFactorial];
     }
 
-    // Given two sequences of length X and Y, such as "123" and "4567", find the # of ways to interleave them. Note we don't care about the actual items in each sequence, we just care about the # of ways we can interleave the two. We don't even get the actual sequences themselves, just their lengths.
-    // O(1) time
+    // Given two sequences of length X and Y, such as "123" and "4567", find the # of ways to interleave them.
+    // Note we don't care about the actual items in each sequence, we just care about the # of ways we can interleave
+    // the two. We don't even get the actual sequences themselves, just their lengths.
+    // O(1) time (O(log n) if length1 + length2 >= MOD)
     long long interleaveTwoSequencesWithMod(int length1, int length2) const {
         // Interleaving a sequence of length 3 and 4 would be like 7!/(3!4!), which is 7! * (1/3!) * (1/4!)
         int combinedLength = length1 + length2;
         assert(combinedLength <= n); // need the factorial array to reach combinedLength
-        return modMultiply(getFactorialWithMod(combinedLength),
-                           getInverseFactorialWithMod(length1),
-                           getInverseFactorialWithMod(length2));
+        return nChooseKWithMod(combinedLength, length1);
     }
 
     // Calculates the # of ways to select k items from n unique items. Order does not matter.
     // Formula for C(n, k) = n! / (k!(n-k)!)
-    // O(1) time
+    // O(1) time (O(log n) if n >= MOD: Lucas, since those factorials have no inverse)
     long long nChooseKWithMod(int n, int k) const {
         if (k < 0 || k > n) return 0;
+        if (n >= mod) return modMultiply(nChooseKWithMod(n % mod, k % mod), nChooseKWithMod(n / mod, k / mod));
         return modMultiply(getFactorialWithMod(n),
                            getInverseFactorialWithMod(k),
                            getInverseFactorialWithMod(n - k));
@@ -58,6 +61,10 @@ public:
     // O(1) time
     long long nPermuteKWithMod(int n, int k) const {
         if (k < 0 || k > n) return 0;
+        if (n >= mod) {  // k consecutive numbers: 0 if one is a multiple of MOD, else the same as starting from n % MOD
+            if (k > n % mod) return 0;
+            n %= mod;
+        }
         return modMultiply(getFactorialWithMod(n), getInverseFactorialWithMod(n - k));
     }
 
@@ -65,12 +72,16 @@ public:
     // Formula for allowing empty buckets is C(n+k-1, k-1)
     // Formula for NOT allowing empty buckets is C(n-1, k-1)
     // O(1) time
-    long long waysToPutIdenticalItemsIntoDistinctBucketsWithMod(int items, int buckets, bool allowEmptyBuckets = true) const {
+    long long waysToPutIdenticalItemsIntoDistinctBucketsWithMod(int items, int buckets,
+                                                                bool allowEmptyBuckets = true) const {
+        if (buckets == 0) return items == 0 ? 1 % mod : 0;
         if (allowEmptyBuckets) return nChooseKWithMod(items + buckets - 1, buckets - 1);
         return nChooseKWithMod(items - 1, buckets - 1);
     }
 
-    // Putting n distinct items into k distinct buckets is just k options for the first item, k for the second, etc, so k^n. This is if we allow empty buckets. If we don't allow empty buckets, we need Stirling numbers of the second kind.
+    // Putting n distinct items into k distinct buckets is just k options for the first item, k for the second, etc,
+    // so k^n. This is if we allow empty buckets. If we don't allow empty buckets, we need Stirling numbers of the
+    // second kind.
     // O(log items) time
     long long waysToPutDistinctItemsIntoDistinctBucketsAllowingEmptyWithMod(int items, int buckets) const {
         return modPow(buckets, items);
@@ -125,8 +136,9 @@ private:
     // O(n) time to build an inverse factorial mod array
     void buildInverseFactorialsWithMod() {
         inverseFactorialsWithMod.assign(n + 1, 1);
-        inverseFactorialsWithMod[n] = modInv(factorialsWithMod[n]);
-        for (int i = n - 1; i >= 0; i--) {
+        int top = (int)min((long long)n, mod - 1);  // from MOD on, x! % MOD is 0 and has no inverse
+        inverseFactorialsWithMod[top] = modInv(factorialsWithMod[top]);
+        for (int i = top - 1; i >= 0; i--) {
             inverseFactorialsWithMod[i] = inverseFactorialsWithMod[i + 1] * (i + 1) % mod;
         }
     }
@@ -143,7 +155,8 @@ public:
         buildStirling2Dp();
     }
 
-    // Calculate the # of ways to distribute n distinct items into k identical non-empty buckets. For instance with items 'A' and 'B' and 2 buckets, there's only one way, since the buckets are identical.
+    // Calculate the # of ways to distribute n distinct items into k identical non-empty buckets. For instance with
+    // items 'A' and 'B' and 2 buckets, there's only one way, since the buckets are identical.
     // This is stirling2 numbers.
     // O(1) time
     long long waysToPutDistinctItemsIntoIdenticalNonemptyBucketsWithMod(int items, int buckets) const {

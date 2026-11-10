@@ -141,7 +141,8 @@ class DynamicOrderStats:
             raise IndexError(f"countGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return r - l + 1 - self._countBelow(l, r, x)
 
-    # O(logN * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1, else
+    # O(logN * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1,
+    # else
     # IndexError
     def kthSmallest(self, l, r, k):
         if not 0 <= l <= r < self.n:
@@ -247,7 +248,8 @@ class DynamicOrderStats:
             raise IndexError(f"sumLargestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n) - self._sumFirst(l, r, n - k)
 
-    # O(logN * logU) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 0 <= l <= r < n
+    # O(logN * logU) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 0 <= l <= r
+    # < n
     # and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthSmallestRange(self, l, r, kFrom, kTo):
         if not 0 <= l <= r < self.n:
@@ -257,7 +259,8 @@ class DynamicOrderStats:
                              f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, kTo) - self._sumFirst(l, r, kFrom - 1)
 
-    # O(logN * logU) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
+    # O(logN * logU) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3
+    # biggest);
     # needs 0 <= l <= r < n and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthLargestRange(self, l, r, kFrom, kTo):
         if not 0 <= l <= r < self.n:

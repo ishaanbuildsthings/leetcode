@@ -50,7 +50,8 @@ struct ChminChmaxBeats {
     vector<S> tot;
 
     // O(N)
-    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mn(4 * max(1, n)), mn2(4 * max(1, n), POS_INF), cntMn(4 * max(1, n)), tot(4 * max(1, n)) {
+    explicit ChminChmaxBeats(const vector<T>& a) : n((int)a.size()), mn(4 * max(1, n)), mn2(4 * max(1, n), POS_INF),
+        cntMn(4 * max(1, n)), tot(4 * max(1, n)) {
         if (n) build(1, 0, n - 1, a);
     }
 

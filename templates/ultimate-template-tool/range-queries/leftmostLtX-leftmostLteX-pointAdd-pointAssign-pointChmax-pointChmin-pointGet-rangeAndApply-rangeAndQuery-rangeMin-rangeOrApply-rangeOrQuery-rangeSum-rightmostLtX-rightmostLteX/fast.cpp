@@ -40,7 +40,8 @@ using ll = long long;
 // All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x:
 //   and X -> (X, 0)   or X -> (~X, X)
 // and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's
-// values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min / sum just shift.
+// values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min / sum
+// just shift.
 // Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it.
 // No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op.
 // For xor with sums use BitCountTree (per-bit counts), which needs no beats at all.
@@ -73,7 +74,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -88,7 +91,8 @@ struct BitBeats {
 
     // O(N)
     explicit BitBeats(const vector<T>& a, int bits = 20)
-        : n((int)a.size()), FULL(T((T(1) << bits) - 1)), mn(4 * max(1, n)), andAgg(4 * max(1, n), FULL), orAgg(4 * max(1, n)), tagAnd(4 * max(1, n), FULL), tagXor(4 * max(1, n)), tot(4 * max(1, n)) {
+        : n((int)a.size()), FULL(T((T(1) << bits) - 1)), mn(4 * max(1, n)), andAgg(4 * max(1, n), FULL),
+            orAgg(4 * max(1, n)), tagAnd(4 * max(1, n), FULL), tagXor(4 * max(1, n)), tot(4 * max(1, n)) {
         if (n) build(1, 0, n - 1, a);
     }
 
@@ -112,7 +116,8 @@ struct BitBeats {
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
-    // only legal when the node's mixed bits are all kept, so every value shifts by the same delta (k = the node's length)
+    // only legal when the node's mixed bits are all kept, so every value shifts by the same delta (k = the node's
+    // length)
     LEETCODE_NO_SANITIZE void apply(int i, T a, T x, long long k) {
         T keep = (a ^ x) & FULL;
         T delta = (~orAgg[i] & x & FULL) - (andAgg[i] & ~keep & FULL);

@@ -61,7 +61,9 @@ struct FenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     vector<T> vals;  // the sorted distinct values
@@ -74,8 +76,10 @@ struct FenwickMultiset {
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
 
-    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
-    explicit FenwickMultiset(vector<T> allValuesThatWillEverBeInsertedForOfflineCompression) : vals(move(allValuesThatWillEverBeInsertedForOfflineCompression)) {
+    // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order,
+    // duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
+    explicit FenwickMultiset(vector<T> allValuesThatWillEverBeInsertedForOfflineCompression)
+        : vals(move(allValuesThatWillEverBeInsertedForOfflineCompression)) {
         sort(vals.begin(), vals.end());
         vals.erase(unique(vals.begin(), vals.end()), vals.end());
         m = (int)vals.size();
@@ -86,7 +90,8 @@ struct FenwickMultiset {
         run = 0;
         while (z + run < m && vals[z + run] == T(run)) run++;  // vals[z .. z + run - 1] = 0, 1, ..., run - 1
         if constexpr (is_integral_v<T>) {
-            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count(
+                ) ^ (unsigned long long)(uintptr_t)this;
             seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
             seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
             hashMultiplier = (seed ^ (seed >> 31)) | 1;

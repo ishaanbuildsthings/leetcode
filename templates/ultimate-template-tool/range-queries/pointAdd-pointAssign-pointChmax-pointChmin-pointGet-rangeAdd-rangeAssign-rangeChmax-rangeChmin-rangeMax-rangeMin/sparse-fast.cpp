@@ -61,7 +61,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -101,7 +103,9 @@ struct SparseClampMinMaxTree {
     }
 
     LEETCODE_NO_SANITIZE static bool isId(const Tag& t) { return t.hi == INF && t.lo == NEG && t.c == 0; }
-    LEETCODE_NO_SANITIZE static T val(T v, const Tag& t) { v += t.c; v = std::max(v, t.lo); v = std::min(v, t.hi); return v; }
+    LEETCODE_NO_SANITIZE static T val(T v, const Tag& t) {
+        v += t.c; v = std::max(v, t.lo); v = std::min(v, t.hi); return v;
+    }
     // tag o, then tag t; these maps compose into the same form
     LEETCODE_NO_SANITIZE static Tag compose(const Tag& o, const Tag& t) {
         T h = o.hi == INF ? INF : o.hi + t.c;
@@ -118,7 +122,8 @@ struct SparseClampMinMaxTree {
         return v;
     }
 
-    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a, const Agg& b) { return Agg{std::min(a.mn, b.mn), std::max(a.mx, b.mx)}; }
+    LEETCODE_NO_SANITIZE static Agg merge(const Agg& a,
+        const Agg& b) { return Agg{std::min(a.mn, b.mn), std::max(a.mx, b.mx)}; }
 
     // node x (k slots) takes tag t: its aggregate now, its children later
     LEETCODE_NO_SANITIZE void applyNode(int x, long long k, const Tag& t) {

@@ -291,8 +291,8 @@ struct SortedRunsSumXorMinOrHashSeq {
 
     // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty;
     // needs 0 <= l <= r < size(), else throws out_of_range
-    tuple<SortedRunsSumXorMinOrHashSeq, SortedRunsSumXorMinOrHashSeq,
-        SortedRunsSumXorMinOrHashSeq> trisect(int l, int r) {
+    tuple<SortedRunsSumXorMinOrHashSeq, SortedRunsSumXorMinOrHashSeq, SortedRunsSumXorMinOrHashSeq> trisect(int l,
+        int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         SortedRunsSumXorMinOrHashSeq left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
@@ -416,7 +416,8 @@ struct SortedRunsSumXorMinOrHashSeq {
         return v;
     }
 
-    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -424,7 +425,8 @@ struct SortedRunsSumXorMinOrHashSeq {
         return v;
     }
 
-    // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i,
+    // i)): a binary search on
     // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
@@ -438,7 +440,8 @@ struct SortedRunsSumXorMinOrHashSeq {
         return {i - lo, i + lo};
     }
 
-    // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and
+    // a[i+1]; (i + 1, i), the empty
     // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     // needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
@@ -453,32 +456,37 @@ struct SortedRunsSumXorMinOrHashSeq {
         return {i - lo + 1, i + lo};
     }
 
-    // O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    // O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
+    // every structure
     // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
     auto hashAll() {
         if (size() < 1) throw out_of_range("hashAll: needs n >= 1");
         return rangeHash(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto sumAll() {
         if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto minAll() {
         if (size() < 1) throw out_of_range("minAll: needs n >= 1");
         return rangeMin(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     auto xorAll() {
         if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
         return rangeXorQuery(0, size() - 1);
     }
 
-    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto orAll() {
         if (size() < 1) throw out_of_range("orAll: needs n >= 1");
         return rangeOrQuery(0, size() - 1);
@@ -670,7 +678,8 @@ struct SortedRunsSumXorMinOrHashSeq {
         }
     }
 
-    // O(logN + logU) amortized -- a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new nodes (one path) the second
+    // O(logN + logU) amortized -- a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new
+    // nodes (one path) the second
     void split(int t, long long k, long long nl, long long nh, int& a, int& b) {
         if (k <= 0) { a = 0, b = t; return; }
         if (k >= vn[t].cnt) { a = t, b = 0; return; }

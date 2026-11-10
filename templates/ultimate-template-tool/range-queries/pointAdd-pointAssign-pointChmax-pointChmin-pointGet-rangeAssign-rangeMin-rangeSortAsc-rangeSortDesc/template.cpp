@@ -139,7 +139,8 @@ struct SortedRunsMin {
         return out;
     }
 
-    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto minAll() {
         if (n < 1) throw out_of_range("minAll: needs n >= 1");
         return rangeMin(0, n - 1);

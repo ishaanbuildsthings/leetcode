@@ -20,7 +20,8 @@
 #   note: tree holds each node's gcd; arr is a reference
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdSegTree.py
 
-# You are welcome to use this template. Please keep the link in your contest code to prevent automatic detection of copied content. Templates are allowed. Thanks!
+# You are welcome to use this template. Please keep the link in your contest code to prevent automatic detection of
+# copied content. Templates are allowed. Thanks!
 
 # GCD segment tree, bottom-up iterative.
 # Build: O(n log(maxVal))
@@ -42,7 +43,8 @@ class GcdSegmentTree:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(logN * logU) -- Point OVERWRITE (not chmax/add): arr[index] becomes newVal. Point overwrite: a[index] = newVal. Only updates the
+    # O(logN * logU) -- Point OVERWRITE (not chmax/add): arr[index] becomes newVal. Point overwrite: a[index] = newVal.
+    # Only updates the
     # tree; the array you passed in is untouched.; needs 0 <= index < n, else IndexError
     def pointAssign(self, index, newVal):
         if not 0 <= index < self.n:
@@ -63,7 +65,8 @@ class GcdSegmentTree:
         self.arr[index] = newVal
         self.pointAssign(index, newVal)
 
-    # O(logN + logU) -- Inclusive range [l, r]. Requires l <= r. Returns 0 for an empty range.; needs 0 <= l <= r < n, else IndexError
+    # O(logN + logU) -- Inclusive range [l, r]. Requires l <= r. Returns 0 for an empty range.; needs 0 <= l <= r < n,
+    # else IndexError
     def rangeGcd(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

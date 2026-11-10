@@ -214,7 +214,8 @@ class BitCountTree:
             raise IndexError("sumAll: needs n >= 1")
         return self.rangeSum(0, self.n - 1)
 
-    # O(log(N)*log(U)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)*log(U)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def andAll(self):
         if self.n < 1:
             raise IndexError("andAll: needs n >= 1")

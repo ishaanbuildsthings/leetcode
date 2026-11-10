@@ -57,7 +57,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -66,7 +68,8 @@ template <typename T>
 struct MergeSortTree {
     int n = 0, levels = 0;
     HotVector<T> arr, sortedVals;
-    HotVector<int> cnt;  // cnt[d * n + tl + j] = # of the first j + 1 elements of the depth-d node at tl that live in its left child
+    // cnt[d * n + tl + j] = # of the first j + 1 elements of the depth-d node at tl that live in its left child
+    HotVector<int> cnt;
 
     // O(N log N)
     explicit MergeSortTree(const vector<T>& a) : n((int)a.size()), arr(a), sortedVals(a) {
@@ -184,8 +187,12 @@ struct MergeSortTree {
         return -1;
     }
 
-    LEETCODE_NO_SANITIZE int lessThan(const T& x) const { return int(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin()); }
-    LEETCODE_NO_SANITIZE int atMost(const T& x) const { return int(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin()); }
+    LEETCODE_NO_SANITIZE int lessThan(const T& x) const {
+        return int(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+    }
+    LEETCODE_NO_SANITIZE int atMost(const T& x) const {
+        return int(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+    }
 
     // O(logN) -- how many i in [ql, qr] have a[i] >= x
     LEETCODE_NO_SANITIZE int countGteX(int ql, int qr, const T& x) const {

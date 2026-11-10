@@ -64,7 +64,8 @@ class ValueTreeMultiset:
         self.B = (hi - lo).bit_length()  # levels below the root: a value's path is the bits of v - lo, highest first
         self._clearData()
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.mexV = 0  # the mex, kept current (0 for the empty set)
         self.n = self.d = 0
 

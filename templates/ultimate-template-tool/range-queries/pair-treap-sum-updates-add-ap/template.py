@@ -192,8 +192,10 @@ class PairSwapTreap:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAddArithSeq: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         (te, le, he), (to, lo, ho) = self._lanes(l, r)
-        self._upd(te, le, he, lambda x, off: self._applyAP(x, start + 2 * step * off, 2 * step), lambda w, off: w + start + 2 * step * off)
-        self._upd(to, lo, ho, lambda x, off: self._applyAP(x, start + step + 2 * step * off, 2 * step), lambda w, off: w + start + step + 2 * step * off)
+        self._upd(te, le, he, lambda x, off: self._applyAP(x, start + 2 * step * off, 2 * step), lambda w,
+            off: w + start + 2 * step * off)
+        self._upd(to, lo, ho, lambda x, off: self._applyAP(x, start + step + 2 * step * off, 2 * step), lambda w,
+            off: w + start + step + 2 * step * off)
 
     # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is taken
     # mod the length (negative shifts right); needs 0 <= l <= r < size(), else IndexError
@@ -262,7 +264,8 @@ class PairSwapTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -461,13 +464,15 @@ class PairSwapTreap:
             self.val[t] = h(self.val[t], ls - l)
         self._pull(t)
 
-    def _lanes(self, l, r):  # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+    def _lanes(self, l, r):
+        # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
         roots = (self.rE, self.rO)
         e = (roots[l % 2], l // 2, (r - (r - l) % 2) // 2)
         o = (roots[(l + 1) % 2], (l + 1) // 2, (r - (r - l - 1) % 2) // 2) if l < r else (0, 0, -1)
         return e, o
 
-    def _laneNodes(self, l, r):  # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
+    def _laneNodes(self, l, r):
+        # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
         mark = len(self.val)
         (te, le, he), (to, lo, ho) = self._lanes(l, r)
         return self._rq(te, le, he), self._rq(to, lo, ho), mark

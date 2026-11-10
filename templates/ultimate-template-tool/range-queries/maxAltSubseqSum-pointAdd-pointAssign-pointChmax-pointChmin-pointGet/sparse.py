@@ -18,7 +18,8 @@
 #   note: per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; a dict keyed by heap index, a missing key is a block of zeros
 
 NEG = float("-inf")
-# Max alternating subsequence sum +a - b + c ... with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
+# Max alternating subsequence sum +a - b + c ... with point updates, over any index range [lo, hi] (huge or negative is
+# fine); every position starts at 0.
 # Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of zeros.
 # Each node keeps the summary (pp, pm, mp, mm); merging is not commutative, so a query folds a left and a right
 # accumulator, tracking each node's length k (a node at level s covers 2^s slots).

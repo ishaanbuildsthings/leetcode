@@ -255,7 +255,8 @@ class BitXorTries:
         self._rangeCheck("countGteX", l, r)
         return r - l + 1 - self._lt(l, r, x)
 
-    # O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    # O(logN logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r <
+    # size()
     def countInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("countInValRange", l, r)
         return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0
@@ -265,7 +266,8 @@ class BitXorTries:
         self._rangeCheck("countOccurrences", l, r)
         return self._lt(l, r, x + 1) - self._lt(l, r, x)
 
-    # O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    # O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l +
+    # 1,
     # else IndexError
     def kthSmallest(self, l, r, k):
         self._rangeCheck("kthSmallest", l, r)
@@ -376,7 +378,8 @@ class BitXorTries:
     def sumKthSmallestRange(self, l, r, kFrom, kTo):
         self._rangeCheck("sumKthSmallestRange", l, r)
         if not 1 <= kFrom <= kTo <= r - l + 1:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
         return self._sumKth(l, r, kTo) - self._sumKth(l, r, kFrom - 1)
 
     # O(logN logU) -- sum of the kFrom-th .. kTo-th largest values in a[l..r] (1-indexed, inclusive); needs
@@ -385,7 +388,8 @@ class BitXorTries:
         self._rangeCheck("sumKthLargestRange", l, r)
         n = r - l + 1
         if not 1 <= kFrom <= kTo <= n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
         return self._sumKth(l, r, n - kFrom + 1) - self._sumKth(l, r, n - kTo)
 
     # O(logN logU) -- sum of |a[i] - x| over i in [l, r]; needs 0 <= l <= r < size(), else IndexError
@@ -414,7 +418,8 @@ class BitXorTries:
         self._rangeCheck("xorGteX", l, r)
         return self._xorAll(l, r) ^ self._xorLt(l, r, x)
 
-    # O(logN logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal); needs
+    # O(logN logU) -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal);
+    # needs
     # 0 <= l <= r < size()
     def xorInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("xorInValRange", l, r)

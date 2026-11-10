@@ -52,7 +52,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -72,14 +74,19 @@ struct OccurrenceLists {
     LEETCODE_NO_SANITIZE int countOccurrences(int l, int r, const T& x) const {
         if (l < 0 || l > r || r >= size()) throw out_of_range("countOccurrences: needs 0 <= l <= r < size()");
         if (l > r) return 0;
-        return int(lower_bound(pos.begin(), pos.end(), pair<T, int>{x, r + 1}) - lower_bound(pos.begin(), pos.end(), pair<T, int>{x, l}));
+        return int(lower_bound(pos.begin(), pos.end(), pair<T, int>{x, r + 1}) - lower_bound(pos.begin(), pos.end(),
+            pair<T, int>{x, l}));
     }
 
     // O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
-    LEETCODE_NO_SANITIZE int leftmostIndexOf(const T& x) const { return leftmostIndexOfInRange(0, (int)arr.size() - 1, x); }
+    LEETCODE_NO_SANITIZE int leftmostIndexOf(const T& x) const {
+        return leftmostIndexOfInRange(0, (int)arr.size() - 1, x);
+    }
 
     // O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
-    LEETCODE_NO_SANITIZE int rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(0, (int)arr.size() - 1, x); }
+    LEETCODE_NO_SANITIZE int rightmostIndexOf(const T& x) const {
+        return rightmostIndexOfInRange(0, (int)arr.size() - 1, x);
+    }
 
     // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
     // throws out_of_range

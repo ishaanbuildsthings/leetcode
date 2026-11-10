@@ -30,7 +30,8 @@ using ll = long long;
 //   note: the constructor takes every (i, v) a pointAssign will ever use, so N is the array length plus that list's length; worst-case bounds and flat arrays, the fastest of these
 
 // Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
-// inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold, with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
+// inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold,
+// with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
 // point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
 // Offline: the constructor takes every (i, v) that a pointAssign will ever use (read every query first). For adds
 // or chmax / chmin, work out the new value yourself and list that.
@@ -63,7 +64,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -73,7 +76,8 @@ struct MergeSortTreeOffline {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n;
     HotVector<T> A;
-    HotVector<int> start;  // node p's possible values are vals[start[p] .. start[p + 1]); its Fenwick slots 1 .. size sit at
+    // node p's possible values are vals[start[p] .. start[p + 1]); its Fenwick slots 1 .. size sit at
+    HotVector<int> start;
                         // fenStart(p) + 1 .. fenStart(p) + size
     HotVector<T> vals;
     HotVector<int> counts;  // Fenwick trees of copies, one per node
@@ -157,7 +161,8 @@ struct MergeSortTreeOffline {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         T old = A[i];
         if (old == v) return;
-        if (n > 1 && !listed((i + n) >> 1, v)) throw invalid_argument("pointAssign: (i, v) was not in the constructor's updates");
+        if (n > 1 && !listed((i + n) >> 1,
+            v)) throw invalid_argument("pointAssign: (i, v) was not in the constructor's updates");
         for (int p = (i + n) >> 1; p >= 1; p >>= 1) {
             add(p, old, -1);
             add(p, v, 1);
@@ -189,32 +194,37 @@ struct MergeSortTreeOffline {
         return (r - l + 1) - countLess(l, r, x, true);
     }
 
-    // O(log^2(N)) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n,
+    // else throws out_of_range
     LEETCODE_NO_SANITIZE long long countInValRange(int l, int r, T lowVal, T highVal) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
         if (lowVal > highVal) return 0;
         return countLess(l, r, highVal, false) - countLess(l, r, lowVal, true);
     }
 
-    // O(log^2(N)) -- smallest a[i] >= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- smallest a[i] >= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGteX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("smallestGteX: needs 0 <= l <= r < n");
         return firstAtLeast(l, r, x, false);
     }
 
-    // O(log^2(N)) -- smallest a[i] > x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- smallest a[i] > x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGtX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("smallestGtX: needs 0 <= l <= r < n");
         return firstAtLeast(l, r, x, true);
     }
 
-    // O(log^2(N)) -- largest a[i] <= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- largest a[i] <= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLteX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("largestLteX: needs 0 <= l <= r < n");
         return lastBelow(l, r, x, false);
     }
 
-    // O(log^2(N)) -- largest a[i] < x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N)) -- largest a[i] < x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLtX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("largestLtX: needs 0 <= l <= r < n");
         return lastBelow(l, r, x, true);
@@ -230,7 +240,8 @@ struct MergeSortTreeOffline {
         }
     }
 
-    LEETCODE_NO_SANITIZE long long countLess(int l, int r, T x, bool strict) const {  // # of values < x (strict) or <= x in a[l..r]
+    LEETCODE_NO_SANITIZE long long countLess(int l, int r, T x, bool strict) const {
+        // # of values < x (strict) or <= x in a[l..r]
         long long res = 0;
         forNodes(l, r, [&](int p) {
             if (p >= n) res += strict ? A[p - n] < x : !(x < A[p - n]);
@@ -239,7 +250,8 @@ struct MergeSortTreeOffline {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> firstAtLeast(int l, int r, T x, bool strict) const {  // smallest value > x (strict) or >= x
+    LEETCODE_NO_SANITIZE optional<T> firstAtLeast(int l, int r, T x, bool strict) const {
+        // smallest value > x (strict) or >= x
         optional<T> best;
         forNodes(l, r, [&](int p) {
             optional<T> got;
@@ -253,7 +265,8 @@ struct MergeSortTreeOffline {
         return best;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> lastBelow(int l, int r, T x, bool strict) const {  // largest value < x (strict) or <= x
+    LEETCODE_NO_SANITIZE optional<T> lastBelow(int l, int r, T x, bool strict) const {
+        // largest value < x (strict) or <= x
         optional<T> best;
         forNodes(l, r, [&](int p) {
             optional<T> got;
@@ -269,7 +282,8 @@ struct MergeSortTreeOffline {
 
     LEETCODE_NO_SANITIZE int fenStart(int p) const { return start[p] + p - 1; }
 
-    LEETCODE_NO_SANITIZE int slotOf(int p, T x, bool strict) const {  // # of node p's possible values < x (strict) or <= x
+    LEETCODE_NO_SANITIZE int slotOf(int p, T x, bool strict) const {
+        // # of node p's possible values < x (strict) or <= x
         auto first = vals.begin() + start[p], last = vals.begin() + start[p + 1];
         return int((strict ? lower_bound(first, last, x) : upper_bound(first, last, x)) - first);
     }
@@ -289,14 +303,16 @@ struct MergeSortTreeOffline {
         counts[f + j] += delta;
     }
 
-    LEETCODE_NO_SANITIZE long long countBelow(int p, T x, bool strict) const {  // over node p's values < x (strict) or <= x
+    LEETCODE_NO_SANITIZE long long countBelow(int p, T x, bool strict) const {
+        // over node p's values < x (strict) or <= x
         long long res = 0;
         int f = fenStart(p);
         for (int j = slotOf(p, x, strict); j > 0; j &= j - 1) res += counts[f + j];
         return res;
     }
 
-    LEETCODE_NO_SANITIZE T kth(int p, long long k) const {  // node p's k-th smallest value (1-indexed; 1 <= k <= nodeSize[p])
+    LEETCODE_NO_SANITIZE T kth(int p, long long k) const {
+        // node p's k-th smallest value (1-indexed; 1 <= k <= nodeSize[p])
         int f = fenStart(p), size = start[p + 1] - start[p], pos = 0, step = 1;
         while (step * 2 <= size) step *= 2;
         for (; step; step >>= 1) {
@@ -308,13 +324,15 @@ struct MergeSortTreeOffline {
         return vals[start[p] + pos];
     }
 
-    LEETCODE_NO_SANITIZE optional<T> firstIn(int p, T x, bool strict) const {  // smallest value > x (strict) or >= x in node p
+    LEETCODE_NO_SANITIZE optional<T> firstIn(int p, T x, bool strict) const {
+        // smallest value > x (strict) or >= x in node p
         long long below = countBelow(p, x, !strict);
         if (below >= nodeSize[p]) return nullopt;
         return kth(p, below + 1);
     }
 
-    LEETCODE_NO_SANITIZE optional<T> lastIn(int p, T x, bool strict) const {  // largest value < x (strict) or <= x in node p
+    LEETCODE_NO_SANITIZE optional<T> lastIn(int p, T x, bool strict) const {
+        // largest value < x (strict) or <= x in node p
         long long below = countBelow(p, x, strict);
         if (below == 0) return nullopt;
         return kth(p, below);

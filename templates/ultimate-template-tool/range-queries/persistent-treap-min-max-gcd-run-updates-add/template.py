@@ -523,7 +523,8 @@ class PersistentTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    # raises IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -543,7 +544,8 @@ class PersistentTreap:
             raise IndexError("maxAll: needs n >= 1")
         return self.mx[self.root]
 
-    # O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def gcdAll(self):
         if self.size() < 1:
             raise IndexError("gcdAll: needs n >= 1")
@@ -700,7 +702,8 @@ class PersistentTreap:
                 i -= ls + 1
                 t = self.R[t]
 
-    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+    def _pieces(self, t, l, r, out):
+        # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
         if not t or r < 0 or l >= self.sz[t]:
             return
         if l <= 0 and self.sz[t] - 1 <= r:

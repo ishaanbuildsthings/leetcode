@@ -123,7 +123,8 @@ struct SqrtOccurrences {
                     if (it != cnt[b].end()) res += it->second;
                 }
             } else {
-                for (int i = max(l, lo(b)); i <= min(r, hi(b)); i++) res += (hasAsg[b] ? asg[b] : vals[i]) + add[b] == x;
+                for (int i = max(l, lo(b)); i <= min(r, hi(b));
+                    i++) res += (hasAsg[b] ? asg[b] : vals[i]) + add[b] == x;
             }
         }
         return res;

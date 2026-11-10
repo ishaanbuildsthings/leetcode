@@ -85,7 +85,9 @@ struct HotVector : vector<U> {
     using vector<U>::vector;
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -97,7 +99,9 @@ struct BlockMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
@@ -147,7 +151,9 @@ struct BlockMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE int blockOf(T x) const { return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }
+    LEETCODE_NO_SANITIZE int blockOf(T x) const {
+        return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin());
+    }
 
     LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count
         if (due <= 0) recut();  // enough distinct values came or went: cut the blocks again
@@ -162,7 +168,8 @@ struct BlockMultiset {
                 d--, due--;
                 keys[k].erase(keys[k].begin() + j), cnts[k].erase(cnts[k].begin() + j);
                 if (keys[k].empty()) {  // the block is empty: drop it
-                    keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k), bc.erase(bc.begin() + k);
+                    keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k),
+                        bc.erase(bc.begin() + k);
                     stale = true;
                     return 0;
                 }
@@ -196,7 +203,8 @@ struct BlockMultiset {
         return c;
     }
 
-    LEETCODE_NO_SANITIZE void recut() {  // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
+    LEETCODE_NO_SANITIZE void recut() {
+        // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
         due = std::max(d, (long long)LOAD * LOAD) / 2;
         if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average
@@ -291,7 +299,8 @@ struct BlockMultiset {
         return want;
     }
 
-    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, both medians current
+    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {
+        // c copies of x (c < 0 removes); keeps min / max, both medians current
         n += c;
         long long f = insert(x, c);  // x's new count
         if (c > 0) {
@@ -332,7 +341,8 @@ struct BlockMultiset {
         stale = true;
     }
 
-    LEETCODE_NO_SANITIZE long long distinctLt(T x) const {  // distinct values < x: every block before x's, then a binary search in x's block
+    LEETCODE_NO_SANITIZE long long distinctLt(T x) const {
+        // distinct values < x: every block before x's, then a binary search in x's block
         int b = int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin());
         long long res = 0;
         for (int k = 0; k < b; k++) res += (long long)keys[k].size();

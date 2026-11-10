@@ -397,7 +397,8 @@ struct WaveletMatrix {
         for (int lv = 0; lv < bits; lv++) {
             const int* z = row(lv);
             int zl = z[lo], zh = z[hi];
-            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;  // all 0s are below x
+            // all 0s are below x
+            if ((x >> (bits - 1 - lv)) & 1) res += zh - zl, lo = z[n] + lo - zl, hi = z[n] + hi - zh;
             else lo = zl, hi = zh;
         }
         return res;
@@ -413,7 +414,8 @@ struct WaveletMatrix {
             const S* zs = &zsum[(size_t)lv * (n + 1)];
             int zl = z[lo], zh = z[hi];
             if (k <= zh - zl) lo = zl, hi = zh;
-            else k -= zh - zl, res += zs[hi] - zs[lo], rank |= 1 << (bits - 1 - lv), lo = z[n] + lo - zl, hi = z[n] + hi - zh;
+            else k -= zh - zl, res += zs[hi] - zs[lo], rank |= 1 << (bits - 1 - lv), lo = z[n] + lo - zl,
+                hi = z[n] + hi - zh;
         }
         return res + S(k) * srt[rank];  // the last k all equal the k-th smallest
     }

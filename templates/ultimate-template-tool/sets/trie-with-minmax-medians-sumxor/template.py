@@ -73,13 +73,15 @@
 
 
 class TrieMultiset:
-    __slots__ = ("B", "top", "L", "R", "C", "bc", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "d")
+    __slots__ = ("B", "top", "L", "R", "C", "bc", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC",
+        "d")
 
     # O(1) -- an empty multiset for integers in [0, 2^bits) (bits = 30 holds values up to 1073741823)
     def __init__(self, bits):
         self.B = bits
         self.top = (1 << bits) - 1  # the largest value it can hold
-        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]  # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]
         self.bc = [0] * bits  # bc[h] = copies with bit h set
         self.n = self.d = 0
 

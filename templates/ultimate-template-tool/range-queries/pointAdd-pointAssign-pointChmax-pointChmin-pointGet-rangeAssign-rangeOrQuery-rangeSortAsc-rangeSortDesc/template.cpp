@@ -140,7 +140,8 @@ struct SortedRunsOr {
         return out;
     }
 
-    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     auto orAll() {
         if (n < 1) throw out_of_range("orAll: needs n >= 1");
         return rangeOrQuery(0, n - 1);

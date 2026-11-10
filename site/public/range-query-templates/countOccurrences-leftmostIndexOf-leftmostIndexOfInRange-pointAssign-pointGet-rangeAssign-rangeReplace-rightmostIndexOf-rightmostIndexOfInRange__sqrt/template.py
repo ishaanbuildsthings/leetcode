@@ -94,7 +94,8 @@ class _Block:
         self.val[cy] = y
         self.where[ky] = cy
 
-    def assignAll(self, v):  # every value becomes v: every class joined into one (O(1) amortized: each join removes one)
+    def assignAll(self, v):
+        # every value becomes v: every class joined into one (O(1) amortized: each join removes one)
         roots = list(self.where.values())
         r = max(roots, key=lambda c: self.cnt[c])
         for c in roots:

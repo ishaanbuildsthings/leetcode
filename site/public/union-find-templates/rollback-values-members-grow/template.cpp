@@ -32,7 +32,8 @@ using namespace std;
 using ll = long long;
 
 // RollbackDSU<int> dsu(vals);
-// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+// add(val) appends more
 template <typename T>
 struct RollbackDSU {
     vector<T> vals;

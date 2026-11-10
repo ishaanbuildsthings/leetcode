@@ -89,8 +89,10 @@ struct RangeMode {
 
 // ======================================================================================== sparse wrapper
 
-// Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The sqrt mode
-// structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the answer
+// Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The
+// sqrt mode
+// structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the
+// answer
 // whenever that is at least the given values' own mode frequency.
 template <typename T>
 struct SparseStaticRangeMode {
@@ -101,14 +103,16 @@ struct SparseStaticRangeMode {
     vector<int> zc;  // zc[k] = # of the first k given values holding 0
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparseStaticRangeMode(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(split(values)), zc(1) {
+    SparseStaticRangeMode(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi),
+        inner(split(values)), zc(1) {
         for (T v : vals) zc.push_back(zc.back() + (v == T(0)));
     }
 
     vector<T> split(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no given values; never queried)
+        // (a dummy element when there are no given values; never queried)
+        return vals.empty() ? vector<T>{T(0)} : vals;
     }
 
     // the given values inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros

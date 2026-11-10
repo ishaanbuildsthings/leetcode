@@ -173,7 +173,8 @@ class ImplicitTreap:
     def rangeAddArithSeq(self, l, r, start, step):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAddArithSeq: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        self._upd(self.root, l, r, lambda x, off: self._applyAP(x, start + step * off, step), lambda w, off: w + start + step * off)
+        self._upd(self.root, l, r, lambda x, off: self._applyAP(x, start + step * off, step), lambda w,
+            off: w + start + step * off)
 
     # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is taken
     # mod the length (negative shifts right); needs 0 <= l <= r < size(), else IndexError
@@ -223,7 +224,8 @@ class ImplicitTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -334,7 +336,8 @@ class ImplicitTreap:
                 i -= ls + 1
                 t = self.R[t]
 
-    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+    def _pieces(self, t, l, r, out):
+        # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
         if not t or r < 0 or l >= self.sz[t]:
             return
         if l <= 0 and self.sz[t] - 1 <= r:

@@ -3,8 +3,9 @@ import os, random
 from itertools import combinations
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "bit-operations")
-NAMES = ["subsetSums", "supersetSums", "countSubsetsByAnd", "countSubsetsByOr", "countPairsByAnd", "countPairsByOr",
-         "orConvolution", "andConvolution", "xorConvolution", "xorConvolutionMod", "countPairsByXor"]
+NAMES = ["subsetSums", "supersetSums", "countAndSubsetsEqualToKForAllKMod", "countOrSubsetsEqualToKForAllKMod",
+         "countAndSubsetsEqualToKForAllK", "countOrSubsetsEqualToKForAllK", "countAndPairsEqualToKForAllK", "countOrPairsEqualToKForAllK",
+         "sumOfOrPairsEqualToKForAllK", "sumOfAndPairsEqualToKForAllK", "sumOfXorPairsEqualToKForAllK", "sumOfXorPairsEqualToKForAllKMod", "countXorPairsEqualToKForAllK"]
 fns = {}
 for name in NAMES:
     ns = {}
@@ -22,23 +23,23 @@ for it in range(600):
     g = [rng.randrange(-50, 50) for _ in range(n)]
     assert fns["subsetSums"](f) == [sum(f[s] for s in range(n) if s & m == s) for m in range(n)]
     assert fns["supersetSums"](f) == [sum(f[s] for s in range(n) if s & m == m) for m in range(n)]
-    for name, op in (("orConvolution", int.__or__), ("andConvolution", int.__and__), ("xorConvolution", int.__xor__)):
+    for name, op in (("sumOfOrPairsEqualToKForAllK", int.__or__), ("sumOfAndPairsEqualToKForAllK", int.__and__), ("sumOfXorPairsEqualToKForAllK", int.__xor__)):
         want = [0] * n
         for i in range(n):
             for j in range(n):
                 want[op(i, j)] += f[i] * g[j]
         assert fns[name](f, g) == want, name
-        if name == "xorConvolution":
+        if name == "sumOfXorPairsEqualToKForAllK":
             for mod in (7, 10**9 + 7, 1):
-                assert fns["xorConvolutionMod"](f, g, mod) == [x % mod for x in want]
+                assert fns["sumOfXorPairsEqualToKForAllKMod"](f, g, mod) == [x % mod for x in want]
     arr = [rng.randrange(rng.choice([1, 2, 5, 16, 40])) for _ in range(rng.randrange(0, 9))]
     m = size(arr)
-    for name, op in (("countPairsByAnd", int.__and__), ("countPairsByOr", int.__or__), ("countPairsByXor", int.__xor__)):
+    for name, op in (("countAndPairsEqualToKForAllK", int.__and__), ("countOrPairsEqualToKForAllK", int.__or__), ("countXorPairsEqualToKForAllK", int.__xor__)):
         want = [0] * m
         for i, j in combinations(range(len(arr)), 2):
             want[op(arr[i], arr[j])] += 1
         assert fns[name](arr) == want, (name, arr)
-    for name, op in (("countSubsetsByAnd", int.__and__), ("countSubsetsByOr", int.__or__)):
+    for name, op in (("countAndSubsetsEqualToKForAllKMod", int.__and__), ("countOrSubsetsEqualToKForAllKMod", int.__or__)):
         for mod in (10**9 + 7, 5):
             want = [0] * m
             for mask in range(1, 1 << len(arr)):
@@ -48,6 +49,7 @@ for it in range(600):
                         acc = arr[i] if acc is None else op(acc, arr[i])
                 want[acc] += 1
             assert fns[name](arr, mod) == [x % mod for x in want], (name, arr)
+            assert fns[name[:-3]](arr) == want, (name[:-3], arr)
 for bad in ([1, 2, 3], []):
     try:
         fns["subsetSums"](bad)
@@ -55,11 +57,14 @@ for bad in ([1, 2, 3], []):
     except ValueError:
         pass
 try:
-    fns["xorConvolutionMod"]([1, 2], [3, 4], 10)
+    fns["sumOfXorPairsEqualToKForAllKMod"]([1, 2], [3, 4], 10)
     assert False
 except ValueError:
     pass
 # docstring examples
-assert fns["andConvolution"]([1, 2], [3, 4]) == [13, 8]
-assert fns["countSubsetsByOr"]([1, 2, 3], 10**9 + 7) == [0, 1, 1, 5]
+assert fns["sumOfAndPairsEqualToKForAllK"]([1, 2], [3, 4]) == [13, 8]
+assert fns["countOrSubsetsEqualToKForAllKMod"]([1, 2, 3], 10**9 + 7) == [0, 1, 1, 5]
+assert fns["countOrSubsetsEqualToKForAllK"]([1, 2, 3]) == [0, 1, 1, 5]
+assert fns["countAndSubsetsEqualToKForAllK"]([1, 3]) == [0, 2, 0, 1]
+assert fns["countAndSubsetsEqualToKForAllK"]([1] * 200)[1] == (1 << 200) - 1  # (exact, past what long long holds)
 print("python sos tests passed")

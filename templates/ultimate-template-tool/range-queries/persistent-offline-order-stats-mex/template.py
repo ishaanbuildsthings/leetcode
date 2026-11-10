@@ -45,7 +45,8 @@ from random import getrandbits
 class PersistentOfflineOrderStats:
     __slots__ = ('arr', 'n', 'srt', 'm', 'klo', 'khi', 'root', 'L', 'R', 'C', 'mexHi', 'mexRoot', 'ML', 'MR', 'MN')
 
-    # O(N log N) -- arr: the initial array (a list, may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value
+    # O(N log N) -- arr: the initial array (a list, may be empty), 0-indexed;
+    # allValuesThatWillEverBeInsertedForOfflineCompression: every value
     # append will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     def __init__(self, arr, allValuesThatWillEverBeInsertedForOfflineCompression):
         salt = getrandbits(62)  # values are salted while deduping, so no fixed input can make the set collide
@@ -110,7 +111,8 @@ class PersistentOfflineOrderStats:
             raise IndexError(f"countInValRange: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         if lowVal > highVal:
             return 0
-        return self._countBelow(l, r, bisect_right(self.srt, highVal)) - self._countBelow(l, r, bisect_left(self.srt, lowVal))
+        return self._countBelow(l, r, bisect_right(self.srt, highVal)) - self._countBelow(l, r,
+            bisect_left(self.srt, lowVal))
 
     # O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countLtX(self, l, r, x):

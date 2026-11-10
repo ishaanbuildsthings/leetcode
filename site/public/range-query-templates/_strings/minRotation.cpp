@@ -2,7 +2,6 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/minRotation.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // The lexicographically smallest rotation, same type as the input (string, vector<int>, vector<long long>, ...)
 // works on a string or vector of any element type that has < (char, int, long long, pair, ...)

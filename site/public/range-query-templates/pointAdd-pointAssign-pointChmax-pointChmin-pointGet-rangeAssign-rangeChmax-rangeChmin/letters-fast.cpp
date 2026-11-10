@@ -57,7 +57,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -84,7 +86,8 @@ struct ChminChmaxTree {
     LEETCODE_NO_SANITIZE void push(int p) {
         for (int h = 31 - __builtin_clz(p); h > 0; h--) {
             int x = p >> h;
-            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF, B[x] = NINF;
+            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF,
+                B[x] = NINF;
         }
     }
 
@@ -128,7 +131,8 @@ struct ChminChmaxTree {
     // each node's tag is complete when it is pushed), then read the leaves
     LEETCODE_NO_SANITIZE vector<T> getAll() {
         for (int x = 1; x < n; x++)
-            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF, B[x] = NINF;
+            if (A[x] != INF || B[x] != NINF) apply(2 * x, A[x], B[x]), apply(2 * x + 1, A[x], B[x]), A[x] = INF,
+                B[x] = NINF;
         return val;
     }
 

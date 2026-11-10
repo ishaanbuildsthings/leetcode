@@ -86,7 +86,9 @@ struct HotVector : vector<U> {
     using vector<U>::vector;
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -98,7 +100,9 @@ struct BlockFenwickMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
@@ -147,7 +151,8 @@ struct BlockFenwickMultiset {
     }
 
     template <class V>
-    LEETCODE_NO_SANITIZE static void rebuildFrom(HotVector<V>& f, const HotVector<V>& a, int from) {  // only positions >= from changed
+    LEETCODE_NO_SANITIZE static void rebuildFrom(HotVector<V>& f, const HotVector<V>& a, int from) {
+        // only positions >= from changed
         int size = a.size();
         f.resize(size + 1);
         for (int i = from + 1; i <= size; i++) f[i] = 0;
@@ -163,7 +168,9 @@ struct BlockFenwickMultiset {
         rebuildFrom(fcs[k], cnts[k], from);
     }
 
-    LEETCODE_NO_SANITIZE int blockOf(T x) const { return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }
+    LEETCODE_NO_SANITIZE int blockOf(T x) const {
+        return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin());
+    }
 
     LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count
         if (due <= 0) recut();  // enough distinct values came or went: cut the blocks again
@@ -217,7 +224,8 @@ struct BlockFenwickMultiset {
         return c;
     }
 
-    LEETCODE_NO_SANITIZE void recut() {  // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
+    LEETCODE_NO_SANITIZE void recut() {
+        // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
         due = std::max(d, (long long)LOAD * LOAD) / 2;
         if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average
@@ -240,8 +248,11 @@ struct BlockFenwickMultiset {
     }
 
     template <class V>
-    LEETCODE_NO_SANITIZE V below(T x, bool strict, const HotVector<V>& outer, const HotVector<HotVector<V>>& inner, V all) const {  // over values < x / <= x
-        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(), x)) - maxes.begin());
+    LEETCODE_NO_SANITIZE V below(T x, bool strict, const HotVector<V>& outer, const HotVector<HotVector<V>>& inner,
+        V all) const {
+        // over values < x / <= x
+        int k = int((strict ? lower_bound(maxes.begin(), maxes.end(), x) : upper_bound(maxes.begin(), maxes.end(),
+            x)) - maxes.begin());
         if (k == (int)keys.size()) return all;
         const HotVector<T>& b = keys[k];
         int j = int((strict ? lower_bound(b.begin(), b.end(), x) : upper_bound(b.begin(), b.end(), x)) - b.begin());
@@ -258,7 +269,8 @@ struct BlockFenwickMultiset {
         return j < (int)keys[k].size() && keys[k][j] == x ? cnts[k][j] : 0;
     }
 
-    LEETCODE_NO_SANITIZE Info kthInfo(long long k) {  // the k-th smallest, copies before it, its copies: lift over blocks, then inside one
+    LEETCODE_NO_SANITIZE Info kthInfo(long long k) {
+        // the k-th smallest, copies before it, its copies: lift over blocks, then inside one
         int m = (int)bc.size(), b = 0, j = 0;
         long long before = 0;
         for (int step = 1 << (31 - __builtin_clz(m)); step; step >>= 1)
@@ -272,7 +284,8 @@ struct BlockFenwickMultiset {
 
     LEETCODE_NO_SANITIZE T kthAt(long long k) { return kthInfo(k).v; }
 
-    LEETCODE_NO_SANITIZE long long findMex() {  // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
+    LEETCODE_NO_SANITIZE long long findMex() {
+        // smallest non-negative integer not in the set: walk the blocks from 0 while the values run 0, 1, ...
         T base = -off;  // (stored as v - off: the real values >= 0 are the stored ones >= -off)
         int k = blockOf(base);
         if (k == (int)keys.size()) return base;
@@ -310,7 +323,8 @@ struct BlockFenwickMultiset {
             if (f) bk[f].insert(x);
         }
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
                 long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
@@ -357,7 +371,8 @@ struct BlockFenwickMultiset {
         load = LOAD, due = (long long)LOAD * LOAD / 2;
     }
 
-    LEETCODE_NO_SANITIZE long long distinctLt(T x) const {  // distinct values < x: every block before x's, then a binary search in x's block
+    LEETCODE_NO_SANITIZE long long distinctLt(T x) const {
+        // distinct values < x: every block before x's, then a binary search in x's block
         int b = int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin());
         long long res = 0;
         for (int k = 0; k < b; k++) res += (long long)keys[k].size();

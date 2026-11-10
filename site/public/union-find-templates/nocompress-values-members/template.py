@@ -44,7 +44,8 @@ class DSUNoCompress:
         self.cmax = list(self.vals)
         self.nxt = list(range(n))  # each component's members linked in a circle: i -> nxt[i] -> ... -> i
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    # merge
     # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par

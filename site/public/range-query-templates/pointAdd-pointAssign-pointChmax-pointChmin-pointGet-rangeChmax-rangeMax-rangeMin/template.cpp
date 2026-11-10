@@ -40,11 +40,13 @@ struct ChmaxMinMaxTree {
     vector<T> lo;  // N: tags on internal nodes
 
     // O(N)
-    explicit ChmaxMinMaxTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit ChmaxMinMaxTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         mn.assign(2 * n, INF);
         mx.assign(2 * n, NEG);
         for (int i = 0; i < n; i++) mn[n + i] = mx[n + i] = a[i];
-        for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]), mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);
+        for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]),
+            mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);
         lo.assign(n, NEG);
     }
 

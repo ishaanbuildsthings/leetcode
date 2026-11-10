@@ -61,7 +61,8 @@ Node combine(Node big, const Node& small) {
 
 
 // RollbackDSU dsu(vals);
-// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+// add(val) appends more
 struct RollbackDSU {
     using T = RawVal;
     vector<T> vals;
@@ -72,7 +73,8 @@ struct RollbackDSU {
     vector<Node> data;  // data[root]: the Node of root's component
     vector<int> nxt;  // each component's members linked in a circle: i -> nxt[i] -> ... -> i
     vector<int> edges;  // edges[root]: how many unites touched root's component, merging or not
-    struct Frame { int i, j, mx; T lo, hi; Node data; };  // i < 0: a unite that found them already together (j: its root, for the edge count)
+    // i < 0: a unite that found them already together (j: its root, for the edge count)
+    struct Frame { int i, j, mx; T lo, hi; Node data; };
     vector<Frame> stk;  // one frame per unite, so rollback can undo it
 
     // O(n), every element starts in its own component

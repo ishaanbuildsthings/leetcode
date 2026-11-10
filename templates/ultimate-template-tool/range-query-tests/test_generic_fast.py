@@ -17,6 +17,9 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIR = os.environ.get("GENERIC_DIR") or os.path.join(os.path.dirname(HERE), "generic-seg-trees")
 TREES = ("LazyDynamicSeg", "DynamicSeg", "LazySeg", "Seg", "SparseTable", "PersistentLazyTreap", "PersistentTreap", "LazyTreap", "Treap")
+sys.path.insert(0, os.path.dirname(HERE))
+from find_compiler import cxx, sanitize_flags  # noqa: E402
+
 SANITIZE = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all"]
 
 
@@ -179,9 +182,9 @@ def check(base, tmp):
     fast = base[:-4] + ".fast.cpp"
     for seed in (1, 2, 3):
         n, q = (40, 4000) if seed < 3 else (1000, 3000)
-        want, _ = run(base, seed, n, q, "g++", [], tmp)
-        gcc, _ = run(fast, seed, n, q, "g++", [], tmp)
-        checked = run(fast, seed, n, q, "clang++", SANITIZE, tmp)[0] if seed == 1 else want
+        want, _ = run(base, seed, n, q, cxx(), [], tmp)
+        gcc, _ = run(fast, seed, n, q, cxx(), [], tmp)
+        checked = run(fast, seed, n, q, cxx(), sanitize_flags(), tmp)[0] if seed == 1 else want
         if want != gcc or want != checked:
             return f"FAIL  {fast}: seed {seed} gave {gcc} and {checked}, expected {want}"
     return f"PASS  {fast}"

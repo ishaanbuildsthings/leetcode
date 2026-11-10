@@ -304,7 +304,8 @@ class SortedRunsXorMinSeq:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    # raises IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -312,13 +313,15 @@ class SortedRunsXorMinSeq:
         self.cut(0, 0)
         return v
 
-    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def minAll(self):
         if self.size() < 1:
             raise IndexError("minAll: needs n >= 1")
         return self.rangeMin(0, self.size() - 1)
 
-    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    # raises IndexError
     def xorAll(self):
         if self.size() < 1:
             raise IndexError("xorAll: needs n >= 1")

@@ -27,7 +27,8 @@
 #   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] edges[1*N]
 
 # dsu = DSU(vals)
-# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+# vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
+# add(val) appends more
 
 
 class DSU:
@@ -124,7 +125,8 @@ class DSU:
     def componentMax(self, i):
         return self.cmax[self.find(i)]
 
-    # O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an edge
+    # O(α(n)) amortized, how many unites have touched i's component (merging or not): its edges, if each unite is an
+    # edge
     def edgeCount(self, i):
         return self.edges[self.find(i)]
 

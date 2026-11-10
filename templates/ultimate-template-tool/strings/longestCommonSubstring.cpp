@@ -5,8 +5,10 @@ using namespace std;
 
 #ifndef CHILD_TABLE_DEFINED
 #define CHILD_TABLE_DEFINED
-// node -> (item -> child) for tries / automata, in one hash table keyed by (node, item): O(1) expected per lookup whatever
-// the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when there's no child
+// node -> (item -> child) for tries / automata, in one hash table keyed by (node, item): O(1) expected per lookup
+// whatever
+// the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when there's no
+// child
 template <class E>
 struct ChildTable {
     // hash of a (node, item) key: every item hash mixes in a per-run random seed, so colliding inputs can't be
@@ -34,8 +36,12 @@ struct ChildTable {
             return h;
         }
         template <class A, class B>
-        static uint64_t itemHash(const pair<A, B>& p) { return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second)); }
-        size_t operator()(const pair<int, E>& key) const { return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL); }
+        static uint64_t itemHash(const pair<A, B>& p) {
+            return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second));
+        }
+        size_t operator()(const pair<int, E>& key) const {
+            return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL);
+        }
     };
     unordered_map<pair<int, E>, int, KeyHash> table;
     vector<vector<E>> itemsOf;  // itemsOf[node] = the items node has a child on, in the order they were added
@@ -72,7 +78,8 @@ struct ChildTable {
 template <class T1, class T2>
 tuple<int, int, int> longestCommonSubstring(const T1& a, const T2& b) {
     using E = typename T1::value_type;
-    // suffix automaton of a: each state is a group of substrings sharing their end positions, with lengths in (len[link], len]
+    // suffix automaton of a: each state is a group of substrings sharing their end positions, with lengths in
+    // (len[link], len]
     ChildTable<E> nxt;
     nxt.addNode();
     vector<int> link{-1}, len{0}, firstEnd{-1};  // firstEnd[state] = earliest index in a where its substrings end

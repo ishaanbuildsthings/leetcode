@@ -81,7 +81,8 @@ class TrieMultiset:
     def __init__(self, bits):
         self.B = bits
         self.top = (1 << bits) - 1  # the largest value it can hold
-        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]  # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        # child for bit 0 / bit 1, copies below; node 0 = empty, 1 = root
+        self.L, self.R, self.C = [0, 0], [0, 0], [0, 0]
         self.bc = [0] * bits  # bc[h] = copies with bit h set
         self.mask = 0  # every value v is stored as v ^ mask
         self.n = self.d = 0

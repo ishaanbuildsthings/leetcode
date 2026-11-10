@@ -57,7 +57,8 @@ class SortedRunsSumXorMax:
             j = i + (i & -i)
             if j <= n:
                 self.bc[j] += self.bc[i]
-        size = self.size = 1 << max(0, (n - 1).bit_length())  # seg tree over positions: each run's aggregates at its start
+        # seg tree over positions: each run's aggregates at its start
+        size = self.size = 1 << max(0, (n - 1).bit_length())
         self.qs = [0] * (2 * size)
         self.qx = [0] * (2 * size)
         self.qm = [-INF] * (2 * size)
@@ -155,19 +156,22 @@ class SortedRunsSumXorMax:
             s += self.len[s]
         return out
 
-    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def sumAll(self):
         if self.n < 1:
             raise IndexError("sumAll: needs n >= 1")
         return self.rangeSum(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def maxAll(self):
         if self.n < 1:
             raise IndexError("maxAll: needs n >= 1")
         return self.rangeMax(0, self.n - 1)
 
-    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    # raises IndexError
     def xorAll(self):
         if self.n < 1:
             raise IndexError("xorAll: needs n >= 1")

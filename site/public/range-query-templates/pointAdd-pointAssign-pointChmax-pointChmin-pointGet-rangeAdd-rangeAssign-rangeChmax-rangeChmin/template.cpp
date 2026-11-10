@@ -39,7 +39,8 @@ struct ClampTree {
     vector<T> val;      // leaf values
 
     // O(N)
-    explicit ClampTree(const vector<T>& a) : n((int)a.size()), A(a.size(), INF), B(a.size(), NINF), C(a.size(), 0), val(a) {}
+    explicit ClampTree(const vector<T>& a) : n((int)a.size()), A(a.size(), INF), B(a.size(), NINF), C(a.size(), 0),
+        val(a) {}
 
     // apply clamp (a, b, c) on top of whatever node x already holds
     void apply(int x, T a, T b, T c) {

@@ -52,7 +52,9 @@ struct ModMatrix {
         return res;
     }
 
-    bool operator==(const ModMatrix& other) const { return rows == other.rows && cols == other.cols && vals == other.vals; }
+    bool operator==(const ModMatrix& other) const {
+        return rows == other.rows && cols == other.cols && vals == other.vals;
+    }
 
     // A[x, y] * B[y, z] = C[x, z]
     // O(x*y*z)
@@ -136,7 +138,8 @@ struct ModMatrix {
 
     // O(x*y) -- entrywise sum
     ModMatrix operator+(const ModMatrix& other) const {
-        if (rows != other.rows || cols != other.cols) throw invalid_argument(shapeError("add", rows, cols, other.rows, other.cols));
+        if (rows != other.rows || cols != other.cols) throw invalid_argument(shapeError("add", rows, cols, other.rows,
+            other.cols));
         ModMatrix res(rows, cols);
         for (size_t i = 0; i < vals.size(); i++) {
             uint64_t sum = (uint64_t)vals[i] + other.vals[i];
@@ -147,9 +150,11 @@ struct ModMatrix {
 
     // O(x*y) -- entrywise difference
     ModMatrix operator-(const ModMatrix& other) const {
-        if (rows != other.rows || cols != other.cols) throw invalid_argument(shapeError("sub", rows, cols, other.rows, other.cols));
+        if (rows != other.rows || cols != other.cols) throw invalid_argument(shapeError("sub", rows, cols, other.rows,
+            other.cols));
         ModMatrix res(rows, cols);
-        for (size_t i = 0; i < vals.size(); i++) res.vals[i] = vals[i] >= other.vals[i] ? vals[i] - other.vals[i] : vals[i] + (MOD - other.vals[i]);
+        for (size_t i = 0; i < vals.size();
+            i++) res.vals[i] = vals[i] >= other.vals[i] ? vals[i] - other.vals[i] : vals[i] + (MOD - other.vals[i]);
         return res;
     }
 
@@ -179,7 +184,8 @@ private:
     ModMatrix(int x, int y) : rows(x), cols(y), vals((size_t)x * y, 0) {}
 
     // products of two values < MOD that can pile onto a value < MOD before a uint64 overflows
-    static constexpr uint64_t BATCH = min<uint64_t>(1 << 20, (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
+    static constexpr uint64_t BATCH = min<uint64_t>(1 << 20,
+        (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
 
 #pragma GCC push_options
 #pragma GCC optimize("O3") // only this hot loop, so it vectorizes on GCC builds that skip that at -O2
@@ -203,12 +209,14 @@ private:
 #pragma GCC pop_options
 
     void requireSquare(const char* what, long long p) const {
-        if (rows != cols) throw invalid_argument(string(what) + " needs a square matrix, got [" + to_string(rows) + ", " + to_string(cols) + "]");
+        if (rows != cols) throw invalid_argument(string(what) + " needs a square matrix, got [" + to_string(rows)
+            + ", " + to_string(cols) + "]");
         if (p < 0) throw invalid_argument(string(what) + " needs p >= 0");
     }
 
     static string shapeError(const char* what, long long r1, long long c1, long long r2, long long c2) {
-        return string(what) + " shape mismatch: [" + to_string(r1) + ", " + to_string(c1) + "] with [" + to_string(r2) + ", " + to_string(c2) + "]";
+        return string(what) + " shape mismatch: [" + to_string(r1) + ", " + to_string(c1) + "] with [" + to_string(r2)
+            + ", " + to_string(c2) + "]";
     }
 };
 
@@ -225,14 +233,16 @@ struct MatPowQueries {
     MatPowQueries(const ModMatrix<MOD>& M, long long maxPower) : maxPower(maxPower) {
         if (M.rows != M.cols) throw invalid_argument("MatPowQueries needs a square matrix");
         powers.push_back(M);
-        while ((int)powers.size() < 62 && (1LL << powers.size()) <= maxPower) powers.push_back(powers.back() * powers.back());
+        while ((int)powers.size() < 62 && (1LL << powers.size()) <= maxPower) powers.push_back(powers.back()
+            * powers.back());
     }
 
     // vec[1, k] * M^p = vec[1, k], 0 <= p <= maxPower
     // O(k^2 log p)
     template <typename T = long long>
     vector<long long> query(const vector<T>& vec, long long p) const {
-        if (p < 0 || p > maxPower) throw invalid_argument("query power " + to_string(p) + " outside [0, " + to_string(maxPower) + "]");
+        if (p < 0 || p > maxPower) throw invalid_argument("query power " + to_string(p) + " outside [0, "
+            + to_string(maxPower) + "]");
         vector<long long> res = vector<long long>(vec.begin(), vec.end()) * ModMatrix<MOD>::identity(powers[0].rows);
         for (int b = 0; p; b++, p >>= 1) {
             if (p & 1) res = res * powers[b];

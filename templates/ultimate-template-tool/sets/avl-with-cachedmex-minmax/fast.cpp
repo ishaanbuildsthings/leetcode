@@ -50,9 +50,11 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
-// height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies
+// height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
+// the copies
 // and distinct values in its subtree. Each multiset owns its node pool (freed when it goes out of
-// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
+// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums
+// in S.
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.
@@ -120,7 +122,9 @@ struct AVLMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; long long dn; int h, l, r; };  // copies; copies, distinct below; height
@@ -170,7 +174,8 @@ struct AVLMultiset {
         return r;
     }
 
-    LEETCODE_NO_SANITIZE int bal(int t) {  // pull t and restore |height(left) - height(right)| <= 1; returns the subtree's new root
+    LEETCODE_NO_SANITIZE int bal(int t) {
+        // pull t and restore |height(left) - height(right)| <= 1; returns the subtree's new root
         pull(t);
         int b = pool[pool[t].l].h - pool[pool[t].r].h;
         if (b > 1) {
@@ -220,7 +225,8 @@ struct AVLMultiset {
     }
 
     long long newCount = 0;  // ins leaves x's new count here
-    LEETCODE_NO_SANITIZE long long insert(T x, long long c) { root = ins(root, x, c); return newCount; }  // returns x's new count
+    // returns x's new count
+    LEETCODE_NO_SANITIZE long long insert(T x, long long c) { root = ins(root, x, c); return newCount; }
 
     LEETCODE_NO_SANITIZE long long lt(T x) {  // copies of values < x
         int t = root;
@@ -294,7 +300,8 @@ struct AVLMultiset {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, the mex current
+    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {
+        // c copies of x (c < 0 removes); keeps min / max, the mex current
         n += c;
         long long f = insert(x, c);  // x's new count
         if (c > 0) {
@@ -306,7 +313,8 @@ struct AVLMultiset {
             if (x < mn) mn = x;
             if (x > mx) mx = x;
         } else {
-            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;  // the last copy of a value below the mex
+            // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !f) mexV = x;
             if (!n) return;
             if (!f) {  // x is gone: it may have been the min / max
                 if (x == mn) mn = kthAt(1);

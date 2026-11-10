@@ -56,7 +56,8 @@ from random import random
 
 
 class TreapMultiset:
-    __slots__ = ("K", "C", "Z", "D", "P", "L", "R", "free", "root", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "bk", "bkAt", "fh", "fhAt", "off", "salt", "d")
+    __slots__ = ("K", "C", "Z", "D", "P", "L", "R", "free", "root", "n", "lowV", "lowB", "lowC", "highV", "highB",
+        "highC", "mexV", "bk", "bkAt", "fh", "fhAt", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -325,7 +326,8 @@ class TreapMultiset:
         if not self.highB < r <= self.highB + self.highC:
             self.highV, self.highB, self.highC = self._kthInfo(r)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)

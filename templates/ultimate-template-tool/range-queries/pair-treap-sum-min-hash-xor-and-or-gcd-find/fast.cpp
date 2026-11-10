@@ -96,7 +96,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -166,11 +168,13 @@ struct PairSwapTreap {
     LEETCODE_NO_SANITIZE static unsigned long long hadd(unsigned long long a, unsigned long long b) {
         return a + b >= HP ? a + b - HP : a + b;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {  // v as a residue (what an add changes a hash by, per position)
+    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {
+        // v as a residue (what an add changes a hash by, per position)
         long long r = (long long)v % (long long)HP;
         return r < 0 ? (unsigned long long)(r + (long long)HP) : (unsigned long long)r;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {  // the hash of value v: v + an offset random per run, so no common value is 0
+    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {
+        // the hash of value v: v + an offset random per run, so no common value is 0
         static unsigned long long off = 1 + rnd() % (HP - 1);
         return hadd(hraw(v), off);
     }
@@ -520,7 +524,8 @@ struct PairSwapTreap {
         return v;
     }
 
-    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -528,7 +533,8 @@ struct PairSwapTreap {
         return v;
     }
 
-    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)):
+    // a binary search on
     // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
@@ -542,7 +548,8 @@ struct PairSwapTreap {
         return {i - lo, i + lo};
     }
 
-    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1];
+    // (i + 1, i), the empty
     // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     // needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
@@ -557,7 +564,8 @@ struct PairSwapTreap {
         return {i - lo + 1, i + lo};
     }
 
-    // O(log(N)*log(U) expected ?) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    // O(log(N)*log(U) expected ?) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
+    // every structure
     // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE auto hashAll() {
         if (size() < 1) throw out_of_range("hashAll: needs n >= 1");
@@ -570,13 +578,15 @@ struct PairSwapTreap {
         return nd[rE].sm + nd[rO].sm;
     }
 
-    // O(log(N)*log(U) expected ?) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto minAll() {
         if (size() < 1) throw out_of_range("minAll: needs n >= 1");
         return rangeMin(0, size() - 1);
     }
 
-    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE auto gcdAll() {
         if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
         return rangeGcd(0, size() - 1);
@@ -652,7 +662,8 @@ struct PairSwapTreap {
         nd[x].g = gcd(gcd(nd[l].g, v), nd[r].g);
     }
 
-    LEETCODE_NO_SANITIZE void rekey(int t, T old) {  // t's value changed from old: the map follows (find needs distinct values)
+    LEETCODE_NO_SANITIZE void rekey(int t, T old) {
+        // t's value changed from old: the map follows (find needs distinct values)
         auto it = where.find(old);
         if (it != where.end() && it->second == t) where.erase(it);
         where[nd[t].val] = t;
@@ -687,7 +698,8 @@ struct PairSwapTreap {
         return {e1, o1, e2, o2};
     }
 
-    LEETCODE_NO_SANITIZE pair<int, int> pmerge(int e1, int o1, int e2, int o2) {  // lanes of (the first array, then the second)
+    LEETCODE_NO_SANITIZE pair<int, int> pmerge(int e1, int o1, int e2, int o2) {
+        // lanes of (the first array, then the second)
         if ((nd[e1].sz + nd[o1].sz) % 2) swap(e2, o2);  // (after an odd length: its even positions are odd ones)
         return {merge(e1, e2), merge(o1, o2)};
     }
@@ -703,7 +715,8 @@ struct PairSwapTreap {
         tie(rE, rO) = pmerge(e, o, ce, co);
     }
 
-    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {
+        // the node holding a[i], every tag on the way pushed
         int t = i % 2 ? rO : rE, k = i / 2;
         while (true) {
             int ls = nd[nd[t].L].sz;
@@ -809,7 +822,8 @@ struct PairSwapTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+    LEETCODE_NO_SANITIZE void release(size_t mark) {
+        // drop every node made after mark (temporaries: no tree points to them)
         nd.resize(mark);
         nd.resize(mark);
         nd.resize(mark);

@@ -81,9 +81,13 @@ struct SparseAltSumTree {
         return x;
     }
 
-    static Agg merge(const Agg& a, const Agg& b) { return Agg{max({a.pp, b.pp, a.pp + b.mp, a.pm + b.pp}), max({a.pm, b.pm, a.pp + b.mm, a.pm + b.pm}), max({a.mp, b.mp, a.mp + b.mp, a.mm + b.pp}), max({a.mm, b.mm, a.mp + b.mm, a.mm + b.pm})}; }
+    static Agg merge(const Agg& a,
+        const Agg& b) { return Agg{max({a.pp, b.pp, a.pp + b.mp, a.pm + b.pp}),
+        max({a.pm, b.pm, a.pp + b.mm, a.pm + b.pm}), max({a.mp, b.mp, a.mp + b.mp, a.mm + b.pp}),
+        max({a.mm, b.mm, a.mp + b.mm, a.mm + b.pm})}; }
     static Agg leaf(T v) { return Agg{S(v), NEG, NEG, -S(v)}; }
-    static Agg zero(long long len) { (void)len; return Agg{0, len > 1 ? S(0) : NEG, len > 1 ? S(0) : NEG, 0}; }  // a block of len zeros
+    // a block of len zeros
+    static Agg zero(long long len) { (void)len; return Agg{0, len > 1 ? S(0) : NEG, len > 1 ? S(0) : NEG, 0}; }
     Agg agg(int x, long long len) { return x ? pool[x].v : zero(len); }
 
     // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range

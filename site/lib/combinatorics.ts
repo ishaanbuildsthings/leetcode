@@ -31,7 +31,7 @@ export const COMBINATORICS: FillIn[] = [
   },
   {
     label: "Fibonacci: xth term, isFib, list",
-    title: "1-indexed (getXthFib(1) -> 0, getXthFib(2) -> 1). Fast doubling for the xth term, exact or mod; isFib by the 5x² ± 4 square test",
+    title: "1-indexed (getXthFib(1) -> 0, getXthFib(2) -> 1). Fast doubling for the xth term, exact or mod; isFib by the 5x² ± 4 square test in Python, by walking the 93 long long fibs in C++",
     folder: "_combinatorics",
     file: "Fibonacci",
     ops: [

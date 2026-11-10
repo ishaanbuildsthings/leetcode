@@ -47,7 +47,8 @@ class DSUNoCompress:
         self.nxt = list(range(n))  # each component's members linked in a circle: i -> nxt[i] -> ... -> i
         self.edges = [0] * n  # edges[root]: how many unites touched root's component, merging or not
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
+    # merge
     # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par

@@ -50,7 +50,8 @@ struct StridedQueries {
         copy(A.begin(), A.end(), orTable.begin());
     }
 
-    // a[l] + a[l + step] + ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] + a[l + step] + ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     S stridedSum(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
@@ -65,7 +66,8 @@ struct StridedQueries {
         return sumPre[last] - (l >= step ? sumPre[l - step] : S(0));
     }
 
-    // a[l] ^ a[l + step] ^ ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] ^ a[l + step] ^ ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
@@ -80,7 +82,8 @@ struct StridedQueries {
         return xorPre[last] ^ (l >= step ? xorPre[l - step] : T(0));
     }
 
-    // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedAndQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n");
@@ -97,7 +100,8 @@ struct StridedQueries {
         return (andTable[base + l] & andTable[base + last - ((1 << level) - 1) * step]);
     }
 
-    // a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedOrQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n");

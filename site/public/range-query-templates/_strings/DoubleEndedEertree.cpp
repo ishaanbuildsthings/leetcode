@@ -2,12 +2,12 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/DoubleEndedEertree.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // Palindromic tree (eertree) that grows at both ends. A palindrome's longest palindromic suffix is also its longest
 // palindromic prefix, so one set of links serves both sides; it tracks the longest palindromic suffix and prefix of the
 // whole sequence. Only whole-sequence queries: prepending changes the answers at existing positions.
-// works on any element type that has == and a hash (char, int, long long, string, pair of those, ...); E is the element type
+// works on any element type that has == and a hash (char, int, long long, string, pair of those, ...); E is the element
+// type
 // DoubleEndedEertree<char> et("aba");
 // DoubleEndedEertree<int> et(vector<int>{-1, 2, -1});
 // DoubleEndedEertree<int> et;   // empty, then append / appendLeft
@@ -20,7 +20,8 @@ public:
     explicit DoubleEndedEertree(const C& arrOrString) {
         for (const auto& x : arrOrString) appendItem(x);
     }
-    explicit DoubleEndedEertree(const char* arrOrString) : DoubleEndedEertree(string(arrOrString)) {}  // a string literal like "abaab"
+    // a string literal like "abaab"
+    explicit DoubleEndedEertree(const char* arrOrString) : DoubleEndedEertree(string(arrOrString)) {}
 
     // @if append
     // O(1) amortized expected -- adds x to the end
@@ -97,8 +98,12 @@ private:
             return h;
         }
         template <class A, class B>
-        static uint64_t itemHash(const pair<A, B>& p) { return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second)); }
-        size_t operator()(const pair<int, E>& key) const { return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL); }
+        static uint64_t itemHash(const pair<A, B>& p) {
+            return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second));
+        }
+        size_t operator()(const pair<int, E>& key) const {
+            return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL);
+        }
     };
     using Table = unordered_map<pair<int, E>, int, KeyHash>;
 

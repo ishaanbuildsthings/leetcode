@@ -64,7 +64,9 @@ struct HotVector : vector<U> {
     using vector<U>::vector;
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -72,10 +74,12 @@ struct HotVector : vector<U> {
 template <typename T>
 struct FastSet {
     long long lo, hi;
-    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never a real value)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never
+    // a real value)
     T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);
     int u;
-    HotVector<HotVector<unsigned long long>> seg;  // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    HotVector<HotVector<unsigned long long>> seg;
     long long n = 0;
     multiset<long long> gaps;  // differences between neighbouring values
 
@@ -153,14 +157,16 @@ struct FastSet {
         return 1;
     }
 
-    // O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
+    // O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it
+    // instead of building a new one
     LEETCODE_NO_SANITIZE void clear() {
         n = 0;
         gaps.clear();
         clearData();
     }
 
-    LEETCODE_NO_SANITIZE void clearData() {  // zero only the trie words in use (walking down from the top through set bits)
+    LEETCODE_NO_SANITIZE void clearData() {
+        // zero only the trie words in use (walking down from the top through set bits)
         HotVector<pair<int, int>> st{{(int)seg.size() - 1, 0}};
         while (!st.empty()) {
             auto [h, w] = st.back();

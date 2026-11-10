@@ -34,7 +34,8 @@ template <typename T>
 struct MergeSortTree {
     int n = 0, levels = 0;
     vector<T> arr, sortedVals;
-    vector<int> cnt;  // cnt[d * n + tl + j] = # of the first j + 1 elements of the depth-d node at tl that live in its left child
+    // cnt[d * n + tl + j] = # of the first j + 1 elements of the depth-d node at tl that live in its left child
+    vector<int> cnt;
 
     // O(N log N)
     explicit MergeSortTree(const vector<T>& a) : n((int)a.size()), arr(a), sortedVals(a) {
@@ -152,8 +153,12 @@ struct MergeSortTree {
         return -1;
     }
 
-    int lessThan(const T& x) const { return int(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin()); }
-    int atMost(const T& x) const { return int(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin()); }
+    int lessThan(const T& x) const {
+        return int(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+    }
+    int atMost(const T& x) const {
+        return int(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+    }
 
     // O(logN) -- how many i in [ql, qr] have a[i] >= x
     int countGteX(int ql, int qr, const T& x) const {

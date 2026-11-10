@@ -51,7 +51,8 @@ using ll = long long;
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
 // its value, its copies, and the copies in its subtree. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
-// Updates split around x and merge back. T: a number, or anything that compares (pair, tuple, ...); sums in S (long long for small T).
+// Updates split around x and merge back. T: a number, or anything that compares (pair, tuple, ...); sums in S (long
+// long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.
@@ -119,7 +120,9 @@ struct TreapMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; unsigned prio; int l, r; };  // copies; copies below
@@ -199,7 +202,8 @@ struct TreapMultiset {
     }
 
     FlatPool<int> path;  // scratch for insert: the nodes it walked through
-    LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count; a value already present never needs a split or merge
+    LEETCODE_NO_SANITIZE long long insert(T x, long long c) {
+        // returns x's new count; a value already present never needs a split or merge
         path.clear();
         int t = root, cur;
         while (t) {
@@ -224,7 +228,8 @@ struct TreapMultiset {
             d++;
             f = pool[m].c = c;
             int i = 0, walked = int(path.size());
-            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;  // the new node goes where its priority belongs
+            // the new node goes where its priority belongs
+            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;
             if (i < walked) {
                 int a, b;
                 split(path[i], x, a, b);

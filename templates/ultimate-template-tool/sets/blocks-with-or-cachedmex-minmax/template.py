@@ -63,7 +63,8 @@ from operator import or_
 
 
 # Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
-# max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus block totals and each block's OR, and a Fenwick tree over the
+# max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus block totals and each block's OR, and a Fenwick
+# tree over the
 # block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
 # once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
 # follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
@@ -87,7 +88,8 @@ class BlockMultiset:
         self.fc = None  # Fenwick over bc (None: stale)
         self.bo = []  # per block: OR of its values
         self.cnt = {}  # value -> copies
-        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1  # block size; distinct values to add / drop before a cut
+        # block size; distinct values to add / drop before a cut
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.mexV = 0  # the mex, kept current (0 for the empty set)
         self.n = self.d = 0
@@ -459,7 +461,9 @@ class BlockMultiset:
     # IndexError unless 1 <= kFrom <= kTo <= size
     def orOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(sqrtN) -- bitwise OR of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
@@ -467,7 +471,9 @@ class BlockMultiset:
     # unless 1 <= kFrom <= kTo <= size
     def orOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
-            raise IndexError(f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+            raise IndexError(
+                f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
         return self._orIn(self._kth(kFrom), self._kth(kTo))
 
     # O(sqrtN) -- bitwise OR of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k =

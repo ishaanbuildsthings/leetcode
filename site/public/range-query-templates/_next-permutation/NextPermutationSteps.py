@@ -1,9 +1,13 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/next-permutation/NextPermutationSteps.py
 
-# Can pass in a list of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be very large
-# Returns a new permutation in the same format, that many steps forward, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
+# Can pass in a list of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be
+# very large
+# Returns a new permutation in the same format, that many steps forward, with looping behavior around to the
+# lexicographical smallest permutation if we step past the lexicographical max
 def nextPermutation(arrOrString, steps):
+    if steps < 0:
+        raise ValueError(f"nextPermutation: needs steps >= 0, got {steps}")
     n = len(arrOrString)
     if steps == 0:
         return arrOrString[:]  # (a string is returned as is)
@@ -21,7 +25,8 @@ def nextPermutation(arrOrString, steps):
     arrangements, after, afterNext = 1, 0, 0
     s = n
     while after < steps:
-        if s == 0:  # fewer than steps arrangements come after arrOrString: loop around to the smallest and count on from there
+        if s == 0:
+            # fewer than steps arrangements come after arrOrString: loop around to the smallest and count on from there
             r = (steps - after - 1) % arrangements  # arrangements: how many there are in all (or more than steps)
             first = sorted(arrOrString)
             return nextPermutation("".join(first) if isinstance(arrOrString, str) else first, r)

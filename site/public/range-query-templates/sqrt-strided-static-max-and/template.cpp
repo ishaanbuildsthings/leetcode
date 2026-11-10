@@ -42,7 +42,8 @@ struct StridedQueries {
         copy(A.begin(), A.end(), andTable.begin());
     }
 
-    // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedMax(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
@@ -59,7 +60,8 @@ struct StridedQueries {
         return max(maxTable[base + l], maxTable[base + last - ((1 << level) - 1) * step]);
     }
 
-    // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedAndQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n");

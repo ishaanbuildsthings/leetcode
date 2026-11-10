@@ -135,7 +135,8 @@ struct SortedRunsXor {
         return out;
     }
 
-    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else
+    // throws out_of_range
     auto xorAll() {
         if (n < 1) throw out_of_range("xorAll: needs n >= 1");
         return rangeXorQuery(0, n - 1);

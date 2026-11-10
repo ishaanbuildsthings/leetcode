@@ -55,7 +55,8 @@ from random import random
 
 
 class TreapMultiset:
-    __slots__ = ("K", "C", "Z", "P", "L", "R", "free", "root", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "gc", "gmin", "gmax", "dups", "salt", "d")
+    __slots__ = ("K", "C", "Z", "P", "L", "R", "free", "root", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC",
+        "gc", "gmin", "gmax", "dups", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -63,7 +64,8 @@ class TreapMultiset:
         self.P, self.L, self.R = [0.0], [0], [0]  # priority, children
         self.free = []  # removed nodes, reused first
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.root = self.n = self.d = 0
 
     def _new(self, x):

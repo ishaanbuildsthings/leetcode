@@ -55,7 +55,8 @@ class MergeSortTree:
         self.n = n = len(arr)
         self.levels = levels = 0
         self.sortedVals = sorted(arr)  # root's sorted values — the only list ever binary-searched
-        self.cnt = cnt = []            # cnt[d][tl + j] = # of the first (j+1) elements of the depth-d node starting at tl that live in its left child
+        # cnt[d][tl + j] = # of the first (j+1) elements of the depth-d node starting at tl that live in its left child
+        self.cnt = cnt = []
         if n == 0:
             return
         width = 1

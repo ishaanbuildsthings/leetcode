@@ -30,7 +30,8 @@ template <typename T>
 struct MergeSortTree {
     int n = 0, levels = 0;
     vector<T> arr, sortedVals;
-    vector<int> cnt;  // cnt[d * n + tl + j] = # of the first j + 1 elements of the depth-d node at tl that live in its left child
+    // cnt[d * n + tl + j] = # of the first j + 1 elements of the depth-d node at tl that live in its left child
+    vector<int> cnt;
 
     // O(N log N)
     explicit MergeSortTree(const vector<T>& a) : n((int)a.size()), arr(a), sortedVals(a) {
@@ -148,8 +149,12 @@ struct MergeSortTree {
         return -1;
     }
 
-    int lessThan(const T& x) const { return int(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin()); }
-    int atMost(const T& x) const { return int(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin()); }
+    int lessThan(const T& x) const {
+        return int(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+    }
+    int atMost(const T& x) const {
+        return int(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+    }
 
     // O(logN) -- how many i in [ql, qr] have a[i] >= x
     int countGteX(int ql, int qr, const T& x) const {
@@ -210,7 +215,8 @@ struct MergeSortTree {
 // ======================================================================================== sparse wrapper
 
 // Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built
-// from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros
+// from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone;
+// the zeros
 // of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.
 // FAST MODE drawbacks compared with sparse.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -240,7 +246,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -253,12 +261,14 @@ struct SparseStaticMergeSortTree {
     MergeSortTree<T> inner;
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparseStaticMergeSortTree(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(split(values)) {}
+    SparseStaticMergeSortTree(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi),
+        inner(split(values)) {}
 
     LEETCODE_NO_SANITIZE vector<T> split(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no given values; never queried)
+        // (a dummy element when there are no given values; never queried)
+        return vals.empty() ? vector<T>{T(0)} : vals;
     }
 
     // the given values inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
@@ -278,10 +288,12 @@ struct SparseStaticMergeSortTree {
         return inside + (valLow <= T(0) && T(0) <= valHigh ? zeros : 0);
     }
 
-    // the k-th i in [l, r] whose value passes the test; qual(t) = qualifying given values among i0..t-1; zeroOk: 0 passes;
+    // the k-th i in [l, r] whose value passes the test; qual(t) = qualifying given values among i0..t-1; zeroOk: 0
+    // passes;
     // denseKth(i0, i1, k) = the dense k-th among the given values (-1 if none)
     template <class Q, class K>
-    LEETCODE_NO_SANITIZE long long kthWithZeros(long long l, long long r, long long k, bool zeroOk, Q qual, K denseKth) const {
+    LEETCODE_NO_SANITIZE long long kthWithZeros(long long l, long long r, long long k, bool zeroOk, Q qual,
+        K denseKth) const {
         int i0, i1;
         long long zeros;
         span(l, r, i0, i1, zeros);
@@ -311,7 +323,8 @@ struct SparseStaticMergeSortTree {
     // else throws out_of_range
     LEETCODE_NO_SANITIZE long long kthGteX(long long l, long long r, long long k, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthGteX: needs lo <= l <= r <= hi");
-        return kthWithZeros(l, r, k, T(0) >= x, [&](int i0, int t) -> long long { return t > i0 ? inner.countGteX(i0, t - 1, x) : 0; },
+        return kthWithZeros(l, r, k, T(0) >= x,
+            [&](int i0, int t) -> long long { return t > i0 ? inner.countGteX(i0, t - 1, x) : 0; },
                             [&](int a, int b, int kk) { return inner.kthGteX(a, b, kk, x); });
     }
 
@@ -319,7 +332,8 @@ struct SparseStaticMergeSortTree {
     // else throws out_of_range
     LEETCODE_NO_SANITIZE long long kthGtX(long long l, long long r, long long k, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthGtX: needs lo <= l <= r <= hi");
-        return kthWithZeros(l, r, k, T(0) > x, [&](int i0, int t) -> long long { return t > i0 ? inner.countGteX(i0, t - 1, x + 1) : 0; },
+        return kthWithZeros(l, r, k, T(0) > x,
+            [&](int i0, int t) -> long long { return t > i0 ? inner.countGteX(i0, t - 1, x + 1) : 0; },
                             [&](int a, int b, int kk) { return inner.kthGtX(a, b, kk, x); });
     }
 
@@ -327,7 +341,8 @@ struct SparseStaticMergeSortTree {
     // else throws out_of_range
     LEETCODE_NO_SANITIZE long long kthLteX(long long l, long long r, long long k, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthLteX: needs lo <= l <= r <= hi");
-        return kthWithZeros(l, r, k, T(0) <= x, [&](int i0, int t) -> long long { return t > i0 ? inner.countLteX(i0, t - 1, x) : 0; },
+        return kthWithZeros(l, r, k, T(0) <= x,
+            [&](int i0, int t) -> long long { return t > i0 ? inner.countLteX(i0, t - 1, x) : 0; },
                             [&](int a, int b, int kk) { return inner.kthLteX(a, b, kk, x); });
     }
 
@@ -335,7 +350,8 @@ struct SparseStaticMergeSortTree {
     // else throws out_of_range
     LEETCODE_NO_SANITIZE long long kthLtX(long long l, long long r, long long k, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthLtX: needs lo <= l <= r <= hi");
-        return kthWithZeros(l, r, k, T(0) < x, [&](int i0, int t) -> long long { return t > i0 ? inner.countLteX(i0, t - 1, x - 1) : 0; },
+        return kthWithZeros(l, r, k, T(0) < x,
+            [&](int i0, int t) -> long long { return t > i0 ? inner.countLteX(i0, t - 1, x - 1) : 0; },
                             [&](int a, int b, int kk) { return inner.kthLtX(a, b, kk, x); });
     }
 

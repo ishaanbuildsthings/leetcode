@@ -53,7 +53,8 @@ using ll = long long;
 template <typename T>
 struct ValueMapTreap {
     using Z = int;  // lengths, indices and counts
-    // one node pool shared by every ValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are never
+    // one node pool shared by every ValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are
+    // never
     // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
     // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
     // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
@@ -306,7 +307,8 @@ struct ValueMapTreap {
         return v;
     }
 
-    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);

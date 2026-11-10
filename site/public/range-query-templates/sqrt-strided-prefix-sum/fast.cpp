@@ -46,7 +46,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -58,12 +60,13 @@ struct StridedQueries {
     HotVector<T> A;
     HotVector<S> sumPre;
 
-    // O(build) -- arr: the initial array. cutoff: prefix arrays are kept for steps up to it; leave it out for sqrt(n), and
+    // O(build) -- arr: the initial array. cutoff: prefix arrays are kept for steps up to it; leave it out for sqrt(n),
+    // and
     // lower it when memory is tight (each kept step costs n values)
     explicit StridedQueries(const vector<T>& arr, int cutoff = -1) {
         n = (int)arr.size();
         A = arr;
-        strides = cutoff != -1 ? cutoff : max(1, min(n, (int)sqrt((double)n)));
+        strides = cutoff != -1 ? cutoff : min(n, max(1, (int)sqrt((double)n)));
         if (strides < 0 || strides > n) throw out_of_range("StridedQueries: needs 0 <= cutoff <= n");
         sumPre.assign((size_t)strides * n, 0);
         for (int step = 1; step <= strides; step++) {
@@ -72,7 +75,8 @@ struct StridedQueries {
         }
     }
 
-    // a[l] + a[l + step] + ..., up to at most r. O(1) for a kept step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // a[l] + a[l + step] + ..., up to at most r. O(1) for a kept step; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE S stridedSum(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedSum: needs step >= 1");

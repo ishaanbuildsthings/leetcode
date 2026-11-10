@@ -446,7 +446,8 @@ class SqrtSequence:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    # raises IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -558,13 +559,16 @@ class SqrtSequence:
     # the index of the k-th i in [l, r] (k = -1: the last one) with lo <(=) a[i] <(=) hi, or -1: whole blocks are
     # skipped by their counts, and only the block holding it is read
     def _kthWhere(self, l, r, k, lo, hi, loStrict, hiStrict):
-        ok = lambda v: (lo is None or (lo < v if loStrict else lo <= v)) and (hi is None or (v < hi if hiStrict else v <= hi))  # noqa: E731
+        # noqa: E731
+        ok = lambda v: (lo is None or (lo < v if loStrict else lo <= v)) and (hi is None
+            or (v < hi if hiStrict else v <= hi))
         spans = list(self._span(l, r))
         if k < 0:
             spans.reverse()
         for b, a, c, full, start in spans:
             if full:
-                cnt = (len(b.vals) if hi is None else b.below(hi, hiStrict)) - (0 if lo is None else b.below(lo, not loStrict))
+                cnt = (len(b.vals) if hi is None else b.below(hi, hiStrict)) - (0 if lo is None else b.below(lo,
+                    not loStrict))
                 if max(k, 1) > cnt:
                     k -= cnt
                     continue

@@ -2,7 +2,6 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/longestPalAroundEachCenter.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // two vectors of size n, from Manacher:
 //   atI[i] = {l, r} of the longest palindrome centered on index i
@@ -14,7 +13,8 @@ using ll = long long;
 // auto [atI, atIPlusOne] = longestPalAroundEachCenter(vector<int>{-1, 2, -1});
 //   atI        -> {0, 0}, {0, 2}, {2, 2}
 //   atIPlusOne -> {1, 0}, {2, 1}, {3, 2}
-// pass a container, not a string literal: longestPalAroundEachCenter(string("abc")), not longestPalAroundEachCenter("abc")
+// pass a container, not a string literal: longestPalAroundEachCenter(string("abc")), not
+// longestPalAroundEachCenter("abc")
 // O(n) time and space
 template <class T>
 pair<vector<pair<int, int>>, vector<pair<int, int>>> longestPalAroundEachCenter(const T& arrOrString) {

@@ -4,6 +4,8 @@ import os, shutil, subprocess, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from eertree_strip import strip
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from find_compiler import cxx, sanitize_flags  # noqa: E402
 
 OPS = ["append", "appendLeft", "pop", "popLeft", "numDistinctPals", "numPalsTotal", "longestPalEndingAtCurrentR",
        "longestPalStartingAtCurrentL", "longestPal", "numPalsEndingAtCurrentR", "numPalsStartingAtCurrentL"]
@@ -14,7 +16,7 @@ try:
     for link in ["quickLinks", "itemLinks", "persistentLinks"]:
         open(os.path.join(work, "deque_eertree_under_test.cpp"), "w").write(strip(src, set(OPS) | {link}))
         exe = os.path.join(work, "t")
-        subprocess.run(["g++", "-std=c++17", "-O1", "-Wall", "-Wextra", "-fsanitize=address,undefined",
+        subprocess.run([cxx(), "-std=c++17", "-O1", "-Wall", "-Wextra", *sanitize_flags(),
                         os.path.join(work, "test_deque_eertree.cpp"), "-o", exe], check=True)
         out = subprocess.run([exe], capture_output=True, text=True)
         assert out.returncode == 0, (link, out.stdout[-2000:], out.stderr[-2000:])

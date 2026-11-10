@@ -402,8 +402,6 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
         lines += ["    int bits; cin >> bits;", f"    {name}<{K}> s(bits);"]
     else:
         lines += [f"    {name}<{K}> s;"]
-    if "resetPool" in text:
-        lines.insert(-1, f"    {name}<{K}>::resetPool();")
     lines += ["    int q; cin >> q;", "    while (q--) {", "      string op; cin >> op;", "      if (false) {}"]
     for op in ops:
         kind = ARG_KINDS[op]

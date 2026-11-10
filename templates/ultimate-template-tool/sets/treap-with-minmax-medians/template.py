@@ -51,7 +51,8 @@ from random import random
 
 
 class TreapMultiset:
-    __slots__ = ("K", "C", "Z", "P", "L", "R", "free", "root", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "d")
+    __slots__ = ("K", "C", "Z", "P", "L", "R", "free", "root", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV",
+        "highB", "highC", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):

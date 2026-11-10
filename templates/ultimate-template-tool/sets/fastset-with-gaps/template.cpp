@@ -45,10 +45,12 @@ using ll = long long;
 template <typename T>
 struct FastSetMultiset {
     long long lo, hi;
-    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never a real value)
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never
+    // a real value)
     T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);
     int u;
-    vector<vector<unsigned long long>> seg;  // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
+    vector<vector<unsigned long long>> seg;
     vector<long long> cnt;                   // copies of lo + i
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
@@ -119,7 +121,8 @@ struct FastSetMultiset {
         return -1;
     }
 
-    T kthAt(long long k) const { return T(lo + (k == 1 ? next(0) : prev(u - 1))); }  // only the min (k = 1) or the max (k = n): no ranks
+    // only the min (k = 1) or the max (k = n): no ranks
+    T kthAt(long long k) const { return T(lo + (k == 1 ? next(0) : prev(u - 1))); }
 
     Info kthInfo(long long k) const { return {kthAt(k), 0, 0}; }  // never called: this structure has no median ops
 
@@ -128,7 +131,8 @@ struct FastSetMultiset {
         long long f = insert(x, c);  // x's new count
         long long g = f - c;  // x's old count
         {  // gaps
-            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
+            // values with 2+ copies (then the smallest difference is 0)
+            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
                 T below = largestLtX(x), above = smallestGtX(x);  // (NONE is outside [lo, hi] here)
                 optional<T> p, q;
@@ -280,7 +284,8 @@ struct FastSetMultiset {
     long long removeInValRange(T lo, T hi) {
         if (hi < lo) return 0;
         long long removed = 0;
-        for (long long i = next((long long)lo - this->lo); i >= 0 && this->lo + i <= (long long)hi; i = next(i + 1)) {  // each present value in [lo, hi]
+        for (long long i = next((long long)lo - this->lo); i >= 0 && this->lo + i <= (long long)hi; i = next(i + 1)) {
+            // each present value in [lo, hi]
             long long k = cnt[i];
             addRaw(T(this->lo + i), -k), removed += k;
         }

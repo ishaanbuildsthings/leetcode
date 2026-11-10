@@ -301,7 +301,8 @@ class ValueMapTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -309,7 +310,8 @@ class ValueMapTreap:
         self.cut(0, 0)
         return v
 
-    # O(U*log(N) expected) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(U*log(N) expected) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def sumAll(self):
         if self.size() < 1:
             raise IndexError("sumAll: needs n >= 1")

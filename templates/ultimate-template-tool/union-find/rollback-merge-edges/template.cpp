@@ -65,7 +65,8 @@ struct RollbackDSU {
     int comps, mx;
     vector<Node> data;  // data[root]: the Node of root's component
     vector<int> edges;  // edges[root]: how many unites touched root's component, merging or not
-    struct Frame { int i, j, mx; Node data; };  // i < 0: a unite that found them already together (j: its root, for the edge count)
+    // i < 0: a unite that found them already together (j: its root, for the edge count)
+    struct Frame { int i, j, mx; Node data; };
     vector<Frame> stk;  // one frame per unite, so rollback can undo it
 
     // O(n), every element starts in its own component

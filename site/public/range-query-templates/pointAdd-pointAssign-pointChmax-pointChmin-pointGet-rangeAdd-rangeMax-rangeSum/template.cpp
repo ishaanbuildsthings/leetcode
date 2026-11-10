@@ -41,7 +41,8 @@ struct AddSumMaxTree {
     vector<T> add;  // N: tags on internal nodes
 
     // O(N)
-    explicit AddSumMaxTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+    explicit AddSumMaxTree(const vector<T>& a) : n((int)a.size()),
+        h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
         sm.assign(2 * n, 0);
         mx.assign(2 * n, NEG);
         for (int i = 0; i < n; i++) {

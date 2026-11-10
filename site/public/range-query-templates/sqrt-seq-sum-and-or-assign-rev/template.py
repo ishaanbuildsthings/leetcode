@@ -632,7 +632,8 @@ class SqrtSequence:
         return c * x - s + self.rangeSum(l, r) - s - (r - l + 1 - c) * x
 
     def _sum(self, l, r, lo, hi, loStrict, hiStrict):
-        return sum(b.sumFirst(j) - b.sumFirst(i) if b else sum(i) for b, i, j in self._sel(l, r, lo, hi, loStrict, hiStrict))
+        return sum(b.sumFirst(j) - b.sumFirst(i) if b else sum(i) for b, i,
+            j in self._sel(l, r, lo, hi, loStrict, hiStrict))
 
     def _sumFirst(self, l, r, k):  # the sum of the k smallest values of a[l..r]
         if k == 0:
@@ -751,7 +752,8 @@ class SqrtSequence:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else
+    # raises IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -777,13 +779,15 @@ class SqrtSequence:
             raise IndexError("maxAll: needs n >= 1")
         return self.rangeMax(0, self.size() - 1)
 
-    # O(sqrt(N)*log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(sqrt(N)*log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def andAll(self):
         if self.size() < 1:
             raise IndexError("andAll: needs n >= 1")
         return self.rangeAndQuery(0, self.size() - 1)
 
-    # O(sqrt(N)*log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    # O(sqrt(N)*log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises
+    # IndexError
     def orAll(self):
         if self.size() < 1:
             raise IndexError("orAll: needs n >= 1")
@@ -881,13 +885,16 @@ class SqrtSequence:
     # the index of the k-th i in [l, r] (k = -1: the last one) with lo <(=) a[i] <(=) hi, or -1: whole blocks are
     # skipped by their counts, and only the block holding it is read
     def _kthWhere(self, l, r, k, lo, hi, loStrict, hiStrict):
-        ok = lambda v: (lo is None or (lo < v if loStrict else lo <= v)) and (hi is None or (v < hi if hiStrict else v <= hi))  # noqa: E731
+        # noqa: E731
+        ok = lambda v: (lo is None or (lo < v if loStrict else lo <= v)) and (hi is None
+            or (v < hi if hiStrict else v <= hi))
         spans = list(self._span(l, r))
         if k < 0:
             spans.reverse()
         for b, a, c, full, start in spans:
             if full:
-                cnt = (len(b.vals) if hi is None else b.below(hi, hiStrict)) - (0 if lo is None else b.below(lo, not loStrict))
+                cnt = (len(b.vals) if hi is None else b.below(hi, hiStrict)) - (0 if lo is None else b.below(lo,
+                    not loStrict))
                 if max(k, 1) > cnt:
                     k -= cnt
                     continue

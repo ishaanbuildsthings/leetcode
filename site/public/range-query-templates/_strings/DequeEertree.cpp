@@ -2,7 +2,6 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/DequeEertree.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // Palindromic tree (eertree) over a deque: append, appendLeft, pop, popLeft.
 // Works on any E that is integral, has std::hash (e.g. string), or is a pair of those, with operator==.
@@ -59,8 +58,12 @@ class DequeEertree {
             return h;
         }
         template <class A, class B>
-        static uint64_t itemHash(const pair<A, B>& p) { return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second)); }
-        size_t operator()(const pair<int, E>& key) const { return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL); }
+        static uint64_t itemHash(const pair<A, B>& p) {
+            return mix(itemHash(p.first) * 0x9e3779b97f4a7c15ULL + itemHash(p.second));
+        }
+        size_t operator()(const pair<int, E>& key) const {
+            return mix(itemHash(key.second) + (uint64_t)key.first * 0x9e3779b97f4a7c15ULL);
+        }
     };
 
     // node 0: imaginary root (len -1), node 1: empty root (len 0); 0 in preSurf / sufSurf means "no surface"
@@ -69,7 +72,8 @@ class DequeEertree {
     vector<int> quick{0, 0};
     // @endif
     // @if itemLinks
-    // itemLink[node] = for each item x, the longest proper palindromic suffix of node with x right before it (absent: the
+    // itemLink[node] = for each item x, the longest proper palindromic suffix of node with x right before it (absent:
+    // the
     // imaginary root); a plain list, since making a palindrome copies it anyway
     vector<vector<pair<E, int>>> itemLink = vector<vector<pair<E, int>>>(2);
     // @endif
@@ -319,7 +323,8 @@ class DequeEertree {
         distinct--;
         // @endif
         // @if longestPal
-        if (!--lenCount[lens[node]] && longestOfParity[lens[node] & 1] == lens[node]) longestOfParity[lens[node] & 1] -= 2;
+        if (!--lenCount[lens[node]]
+            && longestOfParity[lens[node] & 1] == lens[node]) longestOfParity[lens[node] & 1] -= 2;
         // @endif
     }
 

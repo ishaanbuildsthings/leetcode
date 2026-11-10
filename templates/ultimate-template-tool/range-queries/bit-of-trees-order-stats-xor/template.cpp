@@ -42,7 +42,8 @@ using ll = long long;
 //   note: BIT over positions, each BIT node a dynamic value seg tree over [valLo, valHi] (U = its size); nodes are never freed, so each point update adds up to 2 log N log U of them
 
 // a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over positions: BIT node j is a dynamic
-// value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT
+// value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the
+// BIT
 // prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
 // subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.
 // T: int, long long, ....
@@ -108,7 +109,8 @@ struct DynamicOrderStats {
         return countInValRange(l, r, x, x);
     }
 
-    // O(logN * logU) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN * logU) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < n, else throws
+    // out_of_range
     long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
         if (highVal < lowVal) return 0;
@@ -139,7 +141,8 @@ struct DynamicOrderStats {
         return r - l + 1 - countBelow(l, r, lb(x));
     }
 
-    // O(logN * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1, else
+    // O(logN * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1,
+    // else
     // throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("kthSmallest: needs 0 <= l <= r < n");

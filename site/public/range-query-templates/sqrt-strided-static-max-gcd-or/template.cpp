@@ -47,7 +47,8 @@ struct StridedQueries {
         copy(A.begin(), A.end(), orTable.begin());
     }
 
-    // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedMax(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
@@ -64,7 +65,8 @@ struct StridedQueries {
         return max(maxTable[base + l], maxTable[base + last - ((1 << level) - 1) * step]);
     }
 
-    // gcd of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // gcd of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedGcd(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedGcd: needs 0 <= l <= r < n");
@@ -81,7 +83,8 @@ struct StridedQueries {
         return std::gcd(gcdTable[base + l], gcdTable[base + last - ((1 << level) - 1) * step]);
     }
 
-    // a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
+    // a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
+    // grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedOrQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n");
@@ -118,7 +121,8 @@ struct StridedQueries {
             if (jump >= n) break;
             const T* previous = gcdTable.data() + (size_t)(level - 1) * n;
             T* current = gcdTable.data() + (size_t)level * n;
-            for (int i = 0; i < n; i++) current[i] = i + jump < n ? std::gcd(previous[i], previous[i + jump]) : previous[i];
+            for (int i = 0; i < n; i++) current[i] = i + jump < n ? std::gcd(previous[i],
+                previous[i + jump]) : previous[i];
         }
     }
 

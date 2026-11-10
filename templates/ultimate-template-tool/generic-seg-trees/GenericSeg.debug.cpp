@@ -6,8 +6,10 @@ using ll = long long;
 
 const bool DEBUG = true;  // print the tree after every operation
 const bool TRACE = false;  // also print every node the recursion visits
-const int PRINT_FULL_TREE_UP_TO_N_OTHERWISE_SIMPLIFIED = 64;  // longer arrays only print the operation line, not the tree
-ostream& debugAndTraceOutput = cout;  // where DEBUG and TRACE print: LeetCode shows cout, use cerr on judges that grade stdout
+// longer arrays only print the operation line, not the tree
+const int PRINT_FULL_TREE_UP_TO_N_OTHERWISE_SIMPLIFIED = 64;
+// where DEBUG and TRACE print: LeetCode shows cout, use cerr on judges that grade stdout
+ostream& debugAndTraceOutput = cout;
 
 // e.g. long long, char, pair, struct, ...
 using RawVal = long long;
@@ -62,7 +64,8 @@ struct Seg {
     }
 
     void _trace(int nodeI, int tl, int tr, const string& what) {
-        if (TRACE) debugAndTraceOutput << string(4 * __lg(nodeI), ' ') << "[" << tl << "," << tr << "] " << what << "\n";
+        if (TRACE) debugAndTraceOutput << string(4 * __lg(nodeI),
+            ' ') << "[" << tl << "," << tr << "] " << what << "\n";
     }
 
     void _show(const string& op) {
@@ -123,7 +126,8 @@ struct Seg {
         Node leftResult = _rangeQuery(2 * nodeI, tl, tm, l, r);
         Node rightResult = _rangeQuery(2 * nodeI + 1, tm + 1, tr, l, r);
         Node res = combine(leftResult, rightResult);
-        _trace(nodeI, tl, tr, "combined " + nodeStr(leftResult) + " and " + nodeStr(rightResult) + " into " + nodeStr(res));
+        _trace(nodeI, tl, tr,
+            "combined " + nodeStr(leftResult) + " and " + nodeStr(rightResult) + " into " + nodeStr(res));
         return res;
     }
 

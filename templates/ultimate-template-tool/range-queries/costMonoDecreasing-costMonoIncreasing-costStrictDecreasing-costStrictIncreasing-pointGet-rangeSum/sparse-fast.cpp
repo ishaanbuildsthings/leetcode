@@ -42,7 +42,8 @@ struct PieceCost {
 
     // O(N log N)
     PieceCost(vector<long long> starts_, vector<long long> v_, vector<long long> w_, vector<int> slope_)
-        : n((int)v_.size()), starts(move(starts_)), v(move(v_)), w(move(w_)), slope(move(slope_)), Wp(n + 1), Bp(n + 1), suff(n + 1) {
+        : n((int)v_.size()), starts(move(starts_)), v(move(v_)), w(move(w_)), slope(move(slope_)), Wp(n + 1),
+            Bp(n + 1), suff(n + 1) {
         for (int k = 0; k < n; k++) {
             Wp[k + 1] = Wp[k] + W(w[k]);
             Bp[k + 1] = Bp[k] + W(w[k]) * W(v[k]) - (slope[k] ? tri(w[k]) : W(0));
@@ -106,13 +107,16 @@ struct PieceCost {
         return (long long)(pref - sum(l, r));
     }
 
-    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted given values over [lo, hi]
+    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted given values over [lo,
+    // hi]
     template <typename T>
     static PieceCost of(long long lo, long long hi, const vector<pair<long long, T>>& pts, int c) {
         vector<long long> st, v, w;
         vector<int> sl;
         long long prev = lo - 1;
-        auto gap = [&](long long s, long long e) { st.push_back(s), v.push_back(c * (s - lo)), w.push_back(e - s + 1), sl.push_back(c); };
+        auto gap = [&](long long s, long long e) {
+            st.push_back(s), v.push_back(c * (s - lo)), w.push_back(e - s + 1), sl.push_back(c);
+        };
         for (auto& [i, x] : pts) {
             if (i > prev + 1) gap(prev + 1, i - 1);
             st.push_back(i), v.push_back((long long)x + c * (i - lo)), w.push_back(1), sl.push_back(0);
@@ -156,7 +160,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -173,7 +179,8 @@ struct SparseMonoCosts {
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
     SparseMonoCosts(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), pts(move(values)) {
         sort(pts.begin(), pts.end());
-        for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v), mirrored.push_back({lo + hi - i, v}), pf.push_back(pf.back() + (unsigned long long)(long long)v);
+        for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v), mirrored.push_back({lo + hi - i, v}),
+            pf.push_back(pf.back() + (unsigned long long)(long long)v);
         reverse(mirrored.begin(), mirrored.end());
     }
 
@@ -187,7 +194,8 @@ struct SparseMonoCosts {
     LEETCODE_NO_SANITIZE long long rangeSum(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         if (l > r) return 0;
-        size_t a = lower_bound(idx.begin(), idx.end(), l) - idx.begin(), b = upper_bound(idx.begin(), idx.end(), r) - idx.begin();
+        size_t a = lower_bound(idx.begin(), idx.end(), l) - idx.begin(),
+            b = upper_bound(idx.begin(), idx.end(), r) - idx.begin();
         return (long long)(pf[b] - pf[a]);
     }
 

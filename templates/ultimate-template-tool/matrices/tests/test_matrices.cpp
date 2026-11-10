@@ -22,7 +22,8 @@ VV naiveMul(const VV& A, const VV& B, long long mod) {
     VV C(A.size(), vector<long long>(B[0].size(), 0));
     for (size_t i = 0; i < A.size(); i++)
         for (size_t k = 0; k < B.size(); k++)
-            for (size_t j = 0; j < B[0].size(); j++) C[i][j] = (C[i][j] + (__int128)md(A[i][k], mod) * md(B[k][j], mod)) % mod;
+            for (size_t j = 0; j < B[0].size();
+                j++) C[i][j] = (C[i][j] + (__int128)md(A[i][k], mod) * md(B[k][j], mod)) % mod;
     return C;
 }
 VV naivePow(const VV& M, int p, long long mod) {
@@ -106,14 +107,18 @@ void testBool() {
         for (int i = 0; i < n; i++) cur[i][i] = 1;
         for (int t = 0; t < p; t++) {
             vector<vector<int>> nx(n, vector<int>(n, 0));
-            for (int i = 0; i < n; i++) for (int k = 0; k < n; k++) if (cur[i][k]) for (int j = 0; j < n; j++) nx[i][j] |= adj[k][j];
+            for (int i = 0; i < n; i++) for (int k = 0; k < n; k++) if (cur[i][k]) for (int j = 0; j < n;
+                j++) nx[i][j] |= adj[k][j];
             cur = nx;
         }
         CHECK(M.pow(p).toVector() == cur);
         auto R = M.closure().toVector();
         for (int s = 0; s < n; s++) {
             vector<int> seen(n, 0), st{s}; seen[s] = 1;
-            while (!st.empty()) { int u = st.back(); st.pop_back(); for (int w = 0; w < n; w++) if (adj[u][w] && !seen[w]) seen[w] = 1, st.push_back(w); }
+            while (!st.empty()) {
+                int u = st.back(); st.pop_back(); for (int w = 0; w < n; w++) if (adj[u][w] && !seen[w]) seen[w] = 1,
+                    st.push_back(w);
+            }
             CHECK(R[s] == seen);
         }
     }
@@ -136,13 +141,15 @@ void testLinearRecurrence() {
 }
 
 int main() {
-    testModMatrix<1'000'000'007>(); testModMatrix<998244353>(); testModMatrix<7>(); testModMatrix<2>(); testModMatrix<4294967291u>(); testModMatrix<1u << 31>();
+    testModMatrix<1'000'000'007>(); testModMatrix<998244353>(); testModMatrix<7>(); testModMatrix<2>();
+        testModMatrix<4294967291u>(); testModMatrix<1u << 31>();
     cout << "ModMatrix ok" << endl;
     testTropical<MinPlusMatrix>(MinPlusMatrix::INF, true);
     testTropical<MaxPlusMatrix>(MaxPlusMatrix::NEG_INF, false);
     cout << "MinPlusMatrix + MaxPlusMatrix ok" << endl;
     testBool();
     cout << "BoolMatrix ok" << endl;
-    testLinearRecurrence<1'000'000'007>(); testLinearRecurrence<998244353>(); testLinearRecurrence<7>(); testLinearRecurrence<2>(); testLinearRecurrence<4294967291u>();
+    testLinearRecurrence<1'000'000'007>(); testLinearRecurrence<998244353>(); testLinearRecurrence<7>();
+        testLinearRecurrence<2>(); testLinearRecurrence<4294967291u>();
     cout << "LinearRecurrence ok" << endl;
 }

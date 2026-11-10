@@ -22,12 +22,13 @@ from operator import xor
 
 
 class StridedQueries:
-    # O(build) -- arr: the initial array. cutoff: prefix arrays are kept for steps up to it; leave it out for sqrt(n), and
+    # O(build) -- arr: the initial array. cutoff: prefix arrays are kept for steps up to it; leave it out for sqrt(n),
+    # and
     # lower it when memory is tight (each kept step costs n values)
     def __init__(self, arr, cutoff=None):
         self.A = A = list(arr)
         self.n = n = len(A)
-        self.strides = cutoff if cutoff is not None else max(1, min(n, int(sqrt(n))))
+        self.strides = cutoff if cutoff is not None else min(n, max(1, int(sqrt(n))))
         if not 0 <= self.strides <= n:
             raise IndexError(f"StridedQueries: needs 0 <= cutoff <= n, got cutoff={cutoff}, n={n}")
         self.sumPre = [None] * (self.strides + 1)
@@ -43,7 +44,8 @@ class StridedQueries:
                 pre[residue::step] = list(accumulate(pre[residue::step], xor))
             self.xorPre[step] = pre
 
-    # a[l] + a[l + step] + ..., up to at most r. O(1) for a kept step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # a[l] + a[l + step] + ..., up to at most r. O(1) for a kept step; needs 0 <= l <= r < n and step >= 1, else raises
+    # IndexError
     def stridedSum(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -55,7 +57,8 @@ class StridedQueries:
         pre = self.sumPre[step]
         return pre[last] - pre[l - step] if l >= step else pre[last]
 
-    # a[l] ^ a[l + step] ^ ..., up to at most r. O(1) for a kept step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # a[l] ^ a[l + step] ^ ..., up to at most r. O(1) for a kept step; needs 0 <= l <= r < n and step >= 1, else raises
+    # IndexError
     def stridedXorQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedXorQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

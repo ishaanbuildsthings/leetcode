@@ -54,7 +54,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -120,7 +122,8 @@ struct SparseStaticOccurrences {
         return best >= l ? best : lo - 1;
     }
 
-    LEETCODE_NO_SANITIZE long long firstGap(long long i) const {  // the smallest index >= i that wasn't given (it holds 0)
+    LEETCODE_NO_SANITIZE long long firstGap(long long i) const {
+        // the smallest index >= i that wasn't given (it holds 0)
         long long k = lower_bound(idx.begin(), idx.end(), i) - idx.begin();
         if (k == (long long)idx.size() || idx[k] != i) return i;
         long long a = k, b = (long long)idx.size() - 1;  // idx[k..a] = i, i + 1, ...: the largest such a
@@ -132,7 +135,8 @@ struct SparseStaticOccurrences {
         return i + (a - k) + 1;
     }
 
-    LEETCODE_NO_SANITIZE long long lastGap(long long i) const {  // the largest index <= i that wasn't given (it holds 0)
+    LEETCODE_NO_SANITIZE long long lastGap(long long i) const {
+        // the largest index <= i that wasn't given (it holds 0)
         long long k = (upper_bound(idx.begin(), idx.end(), i) - idx.begin()) - 1;
         if (k < 0 || idx[k] != i) return i;
         long long a = 0, b = k;  // idx[a..k] = ..., i - 1, i: the smallest such a

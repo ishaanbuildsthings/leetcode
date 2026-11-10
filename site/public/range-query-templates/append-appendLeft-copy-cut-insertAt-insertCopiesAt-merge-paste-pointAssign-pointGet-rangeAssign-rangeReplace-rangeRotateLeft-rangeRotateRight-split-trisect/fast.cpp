@@ -72,7 +72,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -80,7 +82,8 @@ struct HotVector : vector<U> {
 template <typename T>
 struct PersistentValueMapTreap {
     using Z = long long;  // lengths, indices and counts (long long: copies can make the array huge)
-    // one node pool shared by every PersistentValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are never
+    // one node pool shared by every PersistentValueMapTreap<T>: pieces move between them (node 0 = the empty tree).
+    // Nodes are never
     // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
     // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
     // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
@@ -178,7 +181,8 @@ struct PersistentValueMapTreap {
         root = mergeNodes(mergeNodes(a, other.root), c);
         other.root = 0;
     }
-    LEETCODE_NO_SANITIZE void paste(Z i, PersistentValueMapTreap&& other) { paste(i, other); }  // (a temporary: paste(i, t.copy(l, r))
+    // (a temporary: paste(i, t.copy(l, r))
+    LEETCODE_NO_SANITIZE void paste(Z i, PersistentValueMapTreap&& other) { paste(i, other); }
 
     // O(U*logN) expected -- append all of other at the end; other is left empty
     LEETCODE_NO_SANITIZE void merge(PersistentValueMapTreap& other) {
@@ -199,7 +203,8 @@ struct PersistentValueMapTreap {
 
     // O(U*logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty;
     // needs 0 <= l <= r < size(), else throws out_of_range
-    LEETCODE_NO_SANITIZE tuple<PersistentValueMapTreap, PersistentValueMapTreap, PersistentValueMapTreap> trisect(Z l, Z r) {
+    LEETCODE_NO_SANITIZE tuple<PersistentValueMapTreap, PersistentValueMapTreap, PersistentValueMapTreap> trisect(Z l,
+        Z r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         PersistentValueMapTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cutNodes(l, r, left.root, mid.root, right.root);
@@ -317,7 +322,8 @@ struct PersistentValueMapTreap {
         return v;
     }
 
-    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -361,7 +367,8 @@ struct PersistentValueMapTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE static int build(const vector<int>& offs, size_t lo = 0, size_t hi = SIZE_MAX) {  // balanced, offs[lo..hi) in order
+    LEETCODE_NO_SANITIZE static int build(const vector<int>& offs, size_t lo = 0, size_t hi = SIZE_MAX) {
+        // balanced, offs[lo..hi) in order
         if (hi == SIZE_MAX) hi = offs.size();
         if (lo >= hi) return 0;
         size_t mid = (lo + hi) / 2;
@@ -377,7 +384,8 @@ struct PersistentValueMapTreap {
         nd[x].sz = nd[l].sz + nd[r].sz + 1;
     }
 
-    LEETCODE_NO_SANITIZE static void applyMap(int x, const int* g) {  // x's subtree goes through map g (newer than anything already in it)
+    LEETCODE_NO_SANITIZE static void applyMap(int x, const int* g) {
+        // x's subtree goes through map g (newer than anything already in it)
         if (!x) return;
         nd[x].val = g[nd[x].val];
         if (nd[x].row < 0) {
@@ -402,7 +410,8 @@ struct PersistentValueMapTreap {
         for (int v = 0; v < U; v++) if (m[v] == a) m[v] = b;
     }
 
-    LEETCODE_NO_SANITIZE static void push(int x) {  // hand x's pending tags to its children (fresh copies of them: x is a copy only this tree has)
+    LEETCODE_NO_SANITIZE static void push(int x) {
+        // hand x's pending tags to its children (fresh copies of them: x is a copy only this tree has)
         if (nd[x].row < 0) return;
         if (nd[x].L) {
             int c = clone(nd[x].L);

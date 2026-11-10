@@ -69,7 +69,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -107,11 +109,13 @@ struct SegTree {
     LEETCODE_NO_SANITIZE static unsigned long long hadd(unsigned long long a, unsigned long long b) {
         return a + b >= HP ? a + b - HP : a + b;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {  // v as a residue (what an add changes a hash by, per position)
+    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {
+        // v as a residue (what an add changes a hash by, per position)
         long long r = (long long)v % (long long)HP;
         return r < 0 ? (unsigned long long)(r + (long long)HP) : (unsigned long long)r;
     }
-    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {  // the hash of value v: v + an offset random per run, so no common value is 0
+    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {
+        // the hash of value v: v + an offset random per run, so no common value is 0
         static unsigned long long off = 1 + rnd() % (HP - 1);
         return hadd(hraw(v), off);
     }
@@ -419,7 +423,8 @@ struct SegTree {
         return {i - lo, i + lo};
     }
 
-    // O(log^2(N)) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // O(log^2(N)) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the
+    // empty
     // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
     // needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
@@ -469,7 +474,8 @@ struct SegTree {
         for (int s = 1; p > 1; s++) p >>= 1, pull(p, s);
     }
 
-    LEETCODE_NO_SANITIZE int cover(int l, int r, int* ns, int* ls) {  // the nodes covering a[l..r] left to right (ns) and their levels (ls)
+    LEETCODE_NO_SANITIZE int cover(int l, int r, int* ns, int* ls) {
+        // the nodes covering a[l..r] left to right (ns) and their levels (ls)
         int c = 0, rc = 0, rn[32], rl[32];
         for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
             if (lo & 1) ns[c] = lo++, ls[c++] = s;

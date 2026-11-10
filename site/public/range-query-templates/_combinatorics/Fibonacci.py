@@ -6,6 +6,8 @@ from math import isqrt
 # example: n=10 -> [0, 1, 1, 2, 3, 5, 8]
 # O(log(n)) time and space
 def getFibList(n):
+    if n < 0:
+        return []
     fibs = [0]
     nxt = 1
     while nxt <= n:
@@ -29,8 +31,11 @@ def isFib(x):
 # getXthFib(2) -> 1
 # getXthFib(3) -> 1
 # getXthFib(10) -> 34
+# x is 1-indexed: needs x >= 1
 # O(log(x))
 def getXthFib(x):
+    if x < 1:
+        raise ValueError(f"getXthFib: x is 1-indexed, needs x >= 1, got {x}")
     def pair(k):
         if k == 0:
             return (0, 1)
@@ -42,6 +47,8 @@ def getXthFib(x):
 
 # same as above with mod
 def getXthFibMod(x, mod):
+    if x < 1:
+        raise ValueError(f"getXthFibMod: x is 1-indexed, needs x >= 1, got {x}")
     def pair(k):
         if k == 0:
             return (0, 1 % mod)

@@ -169,7 +169,8 @@ class ImplicitTreap:
     def rangeAffineMod(self, l, r, mult, add):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAffineMod: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        self._upd(self.root, l, r, lambda x, off: self._applyAff(x, mult % self.mod, add % self.mod), lambda w, off: (w * (mult % self.mod) + add % self.mod) % self.mod)
+        self._upd(self.root, l, r, lambda x, off: self._applyAff(x, mult % self.mod, add % self.mod), lambda w,
+            off: (w * (mult % self.mod) + add % self.mod) % self.mod)
 
     # O(logN) expected -- a[i] = v % MOD for i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def rangeAssignMod(self, l, r, v):
@@ -181,7 +182,8 @@ class ImplicitTreap:
     def rangeMultMod(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMultMod: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        self._upd(self.root, l, r, lambda x, off: self._applyAff(x, v % self.mod, 0), lambda w, off: w * (v % self.mod) % self.mod)
+        self._upd(self.root, l, r, lambda x, off: self._applyAff(x, v % self.mod, 0), lambda w,
+            off: w * (v % self.mod) % self.mod)
 
     # O(logN) expected -- reverse a[l..r] in place; needs 0 <= l <= r < size(), else IndexError
     def rangeReverse(self, l, r):
@@ -248,7 +250,8 @@ class ImplicitTreap:
         self.cut(n - 1, n - 1)
         return v
 
-    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises
+    # IndexError
     def popLeft(self):
         if self.size() < 1:
             raise IndexError("popLeft: needs size() >= 1")
@@ -371,7 +374,8 @@ class ImplicitTreap:
                 i -= ls + 1
                 t = self.R[t]
 
-    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+    def _pieces(self, t, l, r, out):
+        # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
         if not t or r < 0 or l >= self.sz[t]:
             return
         if l <= 0 and self.sz[t] - 1 <= r:

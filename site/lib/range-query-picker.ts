@@ -59,6 +59,11 @@ export type OpId =
   | "countInValRange"
   | "sumInValRange"
   | "kthSmallest"
+  | "kthLargest"
+  | "medianLow"
+  | "medianHigh"
+  | "sumAbsDiffToMedian"
+  | "eraseRange"
   | "countLtX"
   | "countLteX"
   | "countGtX"
@@ -241,9 +246,9 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeSortAsc", signature: "rangeSortAsc(l, r)", description: "Sort l..r ascending in place" },
           { id: "rangeSortDesc", signature: "rangeSortDesc(l, r)", description: "Sort l..r descending in place" },
           { id: "rangeAddArithSeq", signature: "rangeAddArithSeq(l, r, start, step)", description: "a[l] += start, a[l+1] += start+step, …" },
-          { id: "rangeMod", signature: "rangeMod(l, r, mod)", description: "a[i] %= mod" },
-          { id: "rangeFloorDiv", signature: "rangeFloorDiv(l, r, divisor)", description: "a[i] = ⌊a[i] / divisor⌋" },
-          { id: "rangeFloorSqrt", signature: "rangeFloorSqrt(l, r)", description: "a[i] = ⌊√a[i]⌋" },
+          { id: "rangeMod", signature: "rangeMod(l, r, mod)", description: "a[i] %= mod (needs a[i] ≥ 0, mod > 0)" },
+          { id: "rangeFloorDiv", signature: "rangeFloorDiv(l, r, divisor)", description: "a[i] = ⌊a[i] / divisor⌋ (needs a[i] ≥ 0, divisor > 0)" },
+          { id: "rangeFloorSqrt", signature: "rangeFloorSqrt(l, r)", description: "a[i] = ⌊√a[i]⌋ (needs a[i] ≥ 0)" },
           { id: "rangeAddMod", signature: "rangeAddMod(l, r, v)", description: "a[i] = (a[i] + v) % MOD" },
           { id: "rangeAssignMod", signature: "rangeAssignMod(l, r, v)", description: "a[i] = v % MOD" },
           { id: "rangeMultMod", signature: "rangeMultMod(l, r, m)", description: "a[i] = (a[i] · m) % MOD" },
@@ -342,6 +347,7 @@ export const OP_GROUPS: OpGroup[] = [
         ops: [
           { id: "size", signature: "size()", description: "How many elements the array has right now" },
           { id: "split", signature: "split(k)", description: "Split into two arrays: 0..k−1 and a[k]… (the original is left empty)" },
+          { id: "eraseRange", signature: "eraseRange(l, r)", description: "Remove l..r" },
           { id: "cut", signature: "cut(l, r)", description: "Remove l..r and get it back as a separate array of the same type" },
           { id: "trisect", signature: "trisect(l, r)", description: "Split into three arrays: 0..l−1, l..r, a[r+1]… (the original is left empty)" },
           { id: "merge", signature: "merge(treap)", description: "Append all of another treap of the same type (that treap ends up empty)" },
@@ -376,6 +382,10 @@ export const OP_GROUPS: OpGroup[] = [
         label: "Rank",
         ops: [
           { id: "kthSmallest", signature: "kthSmallest(l, r, k)", description: "k-th smallest of l..r (k = 1 is the min)" },
+          { id: "kthLargest", signature: "kthLargest(l, r, k)", description: "k-th largest of l..r (k = 1 is the max)" },
+          { id: "medianLow", signature: "medianLow(l, r)", description: "Lower median of l..r" },
+          { id: "medianHigh", signature: "medianHigh(l, r)", description: "Upper median of l..r" },
+          { id: "sumAbsDiffToMedian", signature: "sumAbsDiffToMedian(l, r)", description: "Σ |a[i] − median| over l..r" },
         ],
       },
       {

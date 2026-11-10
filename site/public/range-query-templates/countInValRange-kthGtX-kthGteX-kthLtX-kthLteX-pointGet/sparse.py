@@ -51,7 +51,8 @@ class MergeSortTree:
         self.n = n = len(arr)
         self.levels = levels = 0
         self.sortedVals = sorted(arr)  # root's sorted values — the only list ever binary-searched
-        self.cnt = cnt = []            # cnt[d][tl + j] = # of the first (j+1) elements of the depth-d node starting at tl that live in its left child
+        # cnt[d][tl + j] = # of the first (j+1) elements of the depth-d node starting at tl that live in its left child
+        self.cnt = cnt = []
         if n == 0:
             return
         width = 1
@@ -396,7 +397,8 @@ from bisect import bisect_left, bisect_right
 
 
 # Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built
-# from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros
+# from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone;
+# the zeros
 # of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.
 
 

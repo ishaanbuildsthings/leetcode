@@ -89,7 +89,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -566,7 +568,8 @@ struct ImplicitTreap {
         return v;
     }
 
-    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -624,7 +627,8 @@ struct ImplicitTreap {
         return rt;
     }
 
-    LEETCODE_NO_SANITIZE void pull(int x) {  // recompute x from its children (its own value is one more value of the subtree)
+    LEETCODE_NO_SANITIZE void pull(int x) {
+        // recompute x from its children (its own value is one more value of the subtree)
         int l = nd[x].L, r = nd[x].R;
         nd[x].sz = nd[l].sz + nd[r].sz + 1;
         T v = nd[x].val;
@@ -665,7 +669,8 @@ struct ImplicitTreap {
         nd[t].mn2 = INF, nd[t].cmn = n;
     }
 
-    LEETCODE_NO_SANITIZE void applyChmin(int t, T v) {  // chmin by v on t, with mx2 < v < mx: only the copies of the max move
+    LEETCODE_NO_SANITIZE void applyChmin(int t, T v) {
+        // chmin by v on t, with mx2 < v < mx: only the copies of the max move
         if (nd[t].mx2 == NEG) { applyAssign(t, v); return; }  // (all equal)
         if (nd[t].val == nd[t].mx) nd[t].val = v;
         if (nd[t].mn2 == nd[t].mx) nd[t].mn2 = v;
@@ -673,7 +678,8 @@ struct ImplicitTreap {
         nd[t].mx = v;
     }
 
-    LEETCODE_NO_SANITIZE void chmin(int t, T x) {  // a[i] = min(a[i], x) over t's subtree, walking down only where x <= the second max
+    LEETCODE_NO_SANITIZE void chmin(int t, T x) {
+        // a[i] = min(a[i], x) over t's subtree, walking down only where x <= the second max
         if (!t || nd[t].mx <= x) return;
         if (nd[t].mx2 < x) { applyChmin(t, x); return; }
         push(t);
@@ -682,7 +688,8 @@ struct ImplicitTreap {
         pull(t);
     }
 
-    LEETCODE_NO_SANITIZE void applyChmax(int t, T v) {  // chmax by v on t, with mn < v < mn2: only the copies of the min move
+    LEETCODE_NO_SANITIZE void applyChmax(int t, T v) {
+        // chmax by v on t, with mn < v < mn2: only the copies of the min move
         if (nd[t].mn2 == INF) { applyAssign(t, v); return; }  // (all equal)
         if (nd[t].val == nd[t].mn) nd[t].val = v;
         if (nd[t].mx2 == nd[t].mn) nd[t].mx2 = v;
@@ -690,7 +697,8 @@ struct ImplicitTreap {
         nd[t].mn = v;
     }
 
-    LEETCODE_NO_SANITIZE void chmax(int t, T x) {  // a[i] = max(a[i], x) over t's subtree, walking down only where x >= the second min
+    LEETCODE_NO_SANITIZE void chmax(int t, T x) {
+        // a[i] = max(a[i], x) over t's subtree, walking down only where x >= the second min
         if (!t || nd[t].mn >= x) return;
         if (nd[t].mn2 > x) { applyChmax(t, x); return; }
         push(t);
@@ -699,7 +707,8 @@ struct ImplicitTreap {
         pull(t);
     }
 
-    LEETCODE_NO_SANITIZE void push(int t) {  // hand t's pending changes to its children: one value (an assign), else the add, then the clamp
+    LEETCODE_NO_SANITIZE void push(int t) {
+        // hand t's pending changes to its children: one value (an assign), else the add, then the clamp
         int l = nd[t].L, r = nd[t].R;
         if (nd[t].mn == nd[t].mx) {
             applyAssign(l, nd[t].mx), applyAssign(r, nd[t].mx);
@@ -738,7 +747,8 @@ struct ImplicitTreap {
         split(b, r - l + 1, b, c);
     }
 
-    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {
+        // the node holding a[i], every tag on the way pushed
         int t = root;
         while (true) {
             push(t);
@@ -796,7 +806,8 @@ struct ImplicitTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+    LEETCODE_NO_SANITIZE void release(size_t mark) {
+        // drop every node made after mark (temporaries: no tree points to them)
         nd.resize(mark);
         nd.resize(mark);
         nd.resize(mark);

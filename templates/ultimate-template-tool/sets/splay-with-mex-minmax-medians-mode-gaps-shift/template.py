@@ -58,7 +58,8 @@ from heapq import heappop, heappush
 
 
 class SplayMultiset:
-    __slots__ = ("K", "C", "Z", "D", "L", "R", "P", "free", "root", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "bk", "bkAt", "fh", "fhAt", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
+    __slots__ = ("K", "C", "Z", "D", "L", "R", "P", "free", "root", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV",
+        "highB", "highC", "bk", "bkAt", "fh", "fhAt", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -68,7 +69,8 @@ class SplayMultiset:
         self.free = []  # removed nodes, reused first
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
-        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.bk, self.bkAt = {}, {}  # mode: count -> list of the values with that many copies; value -> its index there
         self.fh, self.fhAt = [], {}  # mode: max-heap of the counts that have a bucket; count -> its index in it
         self.root = self.n = self.d = 0
@@ -366,7 +368,8 @@ class SplayMultiset:
         if not self.highB < r <= self.highB + self.highC:
             self.highV, self.highB, self.highC = self._kthInfo(r)
 
-    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+    def _swapFreq(self, old, new):
+        # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
         h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
         if old:
             i = at.pop(old ^ salt)

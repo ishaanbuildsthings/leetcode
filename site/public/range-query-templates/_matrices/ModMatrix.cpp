@@ -2,7 +2,6 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/ModMatrix.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // Matrix with entries mod MOD (default 1e9+7, any MOD < 2^32). Row-vector convention: vec[1, x] * M[x, y] = vec[1, y]
 // ModMatrix M({{1, 1}, {1, 0}});            from vector<vector<int / long long>>, negatives fine (stored in [0, MOD))
@@ -35,7 +34,9 @@ struct ModMatrix {
         return res;
     }
 
-    bool operator==(const ModMatrix& other) const { return rows == other.rows && cols == other.cols && vals == other.vals; }
+    bool operator==(const ModMatrix& other) const {
+        return rows == other.rows && cols == other.cols && vals == other.vals;
+    }
 
     // A[x, y] * B[y, z] = C[x, z]
     // O(x*y*z)
@@ -121,7 +122,8 @@ private:
     ModMatrix(int x, int y) : rows(x), cols(y), vals((size_t)x * y, 0) {}
 
     // products of two values < MOD that can pile onto a value < MOD before a uint64 overflows
-    static constexpr uint64_t BATCH = min<uint64_t>(1 << 20, (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
+    static constexpr uint64_t BATCH = min<uint64_t>(1 << 20,
+        (UINT64_MAX - MOD) / max<uint64_t>(1, (uint64_t)(MOD - 1) * (MOD - 1)));
 
 #pragma GCC push_options
 #pragma GCC optimize("O3") // only this hot loop, so it vectorizes on GCC builds that skip that at -O2
@@ -145,11 +147,13 @@ private:
 #pragma GCC pop_options
 
     void requireSquare(const char* what, long long p) const {
-        if (rows != cols) throw invalid_argument(string(what) + " needs a square matrix, got [" + to_string(rows) + ", " + to_string(cols) + "]");
+        if (rows != cols) throw invalid_argument(string(what) + " needs a square matrix, got [" + to_string(rows)
+            + ", " + to_string(cols) + "]");
         if (p < 0) throw invalid_argument(string(what) + " needs p >= 0");
     }
 
     static string shapeError(const char* what, long long r1, long long c1, long long r2, long long c2) {
-        return string(what) + " shape mismatch: [" + to_string(r1) + ", " + to_string(c1) + "] with [" + to_string(r2) + ", " + to_string(c2) + "]";
+        return string(what) + " shape mismatch: [" + to_string(r1) + ", " + to_string(c1) + "] with [" + to_string(r2)
+            + ", " + to_string(c2) + "]";
     }
 };

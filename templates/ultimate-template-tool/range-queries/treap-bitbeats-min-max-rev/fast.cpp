@@ -92,7 +92,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -588,7 +590,8 @@ struct ImplicitTreap {
         return v;
     }
 
-    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T popLeft() {
         if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
         T v = pointGet(0);
@@ -652,7 +655,8 @@ struct ImplicitTreap {
         return rt;
     }
 
-    LEETCODE_NO_SANITIZE void pull(int x) {  // recompute x from its children (its own value is one more value of the subtree)
+    LEETCODE_NO_SANITIZE void pull(int x) {
+        // recompute x from its children (its own value is one more value of the subtree)
         int l = nd[x].L, r = nd[x].R;
         nd[x].sz = nd[l].sz + nd[r].sz + 1;
         T v = nd[x].val;
@@ -692,7 +696,8 @@ struct ImplicitTreap {
         if (x) swap(nd[x].L, nd[x].R), nd[x].rev ^= 1;
     }
 
-    LEETCODE_NO_SANITIZE void push(int t) {  // hand t's pending map to its children (it is uniform at each of them, so O(1))
+    LEETCODE_NO_SANITIZE void push(int t) {
+        // hand t's pending map to its children (it is uniform at each of them, so O(1))
         int l = nd[t].L, r = nd[t].R;
         if (nd[t].rev) applyRev(l), applyRev(r), nd[t].rev = 0;
         if (nd[t].tA != ~T(0) || nd[t].tO != T(0)) {
@@ -728,7 +733,8 @@ struct ImplicitTreap {
         split(b, r - l + 1, b, c);
     }
 
-    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    LEETCODE_NO_SANITIZE int locate(int i, vector<int>* path = nullptr) {
+        // the node holding a[i], every tag on the way pushed
         int t = root;
         while (true) {
             push(t);
@@ -786,7 +792,8 @@ struct ImplicitTreap {
         return (int)nd.size() - 1;
     }
 
-    LEETCODE_NO_SANITIZE void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+    LEETCODE_NO_SANITIZE void release(size_t mark) {
+        // drop every node made after mark (temporaries: no tree points to them)
         nd.resize(mark);
         nd.resize(mark);
         nd.resize(mark);

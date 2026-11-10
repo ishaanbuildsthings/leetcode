@@ -38,7 +38,8 @@ using ll = long long;
 //   note: no value range and nothing up front; each update makes at most log N new treap nodes and none are reused, so N counts updates too
 
 // Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
-// inner node keeping its positions' values in a searchable structure (a treap keyed by value, copies counted, with subtree sizes / sums / xors). a[l..r] is O(log n) nodes, and a
+// inner node keeping its positions' values in a searchable structure (a treap keyed by value, copies counted, with
+// subtree sizes / sums / xors). a[l..r] is O(log n) nodes, and a
 // point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
@@ -69,7 +70,9 @@ struct HotVector : vector<U> {
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 #ifdef __GLIBCXX__
     LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
-    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
     LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
 #endif
 };
@@ -171,32 +174,37 @@ struct MergeSortTreeUpdates {
         return (r - l + 1) - countLess(l, r, x, true);
     }
 
-    // O(log^2(N) expected) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N) expected) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <=
+    // r < n, else throws out_of_range
     LEETCODE_NO_SANITIZE long long countInValRange(int l, int r, T lowVal, T highVal) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
         if (lowVal > highVal) return 0;
         return countLess(l, r, highVal, false) - countLess(l, r, lowVal, true);
     }
 
-    // O(log^2(N) expected) -- smallest a[i] >= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N) expected) -- smallest a[i] >= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGteX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("smallestGteX: needs 0 <= l <= r < n");
         return firstAtLeast(l, r, x, false);
     }
 
-    // O(log^2(N) expected) -- smallest a[i] > x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N) expected) -- smallest a[i] > x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGtX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("smallestGtX: needs 0 <= l <= r < n");
         return firstAtLeast(l, r, x, true);
     }
 
-    // O(log^2(N) expected) -- largest a[i] <= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N) expected) -- largest a[i] <= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLteX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("largestLteX: needs 0 <= l <= r < n");
         return lastBelow(l, r, x, false);
     }
 
-    // O(log^2(N) expected) -- largest a[i] < x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N) expected) -- largest a[i] < x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLtX(int l, int r, T x) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("largestLtX: needs 0 <= l <= r < n");
         return lastBelow(l, r, x, true);
@@ -226,7 +234,8 @@ struct MergeSortTreeUpdates {
         return sumAll(l, r) - sumLess(l, r, x, true);
     }
 
-    // O(log^2(N) expected) -- sum of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <= l <= r < n, else throws out_of_range
+    // O(log^2(N) expected) -- sum of a[i] with lowVal <= a[i] <= highVal in [l, r] (0 if lowVal > highVal); needs 0 <=
+    // l <= r < n, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumInValRange(int l, int r, T lowVal, T highVal) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("sumInValRange: needs 0 <= l <= r < n");
         if (lowVal > highVal) return 0;
@@ -257,7 +266,8 @@ struct MergeSortTreeUpdates {
         }
     }
 
-    LEETCODE_NO_SANITIZE long long countLess(int l, int r, T x, bool strict) const {  // # of values < x (strict) or <= x in a[l..r]
+    LEETCODE_NO_SANITIZE long long countLess(int l, int r, T x, bool strict) const {
+        // # of values < x (strict) or <= x in a[l..r]
         long long res = 0;
         forNodes(l, r, [&](int p) {
             if (p >= n) res += strict ? A[p - n] < x : !(x < A[p - n]);
@@ -266,7 +276,8 @@ struct MergeSortTreeUpdates {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> firstAtLeast(int l, int r, T x, bool strict) const {  // smallest value > x (strict) or >= x
+    LEETCODE_NO_SANITIZE optional<T> firstAtLeast(int l, int r, T x, bool strict) const {
+        // smallest value > x (strict) or >= x
         optional<T> best;
         forNodes(l, r, [&](int p) {
             optional<T> got;
@@ -280,7 +291,8 @@ struct MergeSortTreeUpdates {
         return best;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> lastBelow(int l, int r, T x, bool strict) const {  // largest value < x (strict) or <= x
+    LEETCODE_NO_SANITIZE optional<T> lastBelow(int l, int r, T x, bool strict) const {
+        // largest value < x (strict) or <= x
         optional<T> best;
         forNodes(l, r, [&](int p) {
             optional<T> got;
@@ -346,7 +358,8 @@ struct MergeSortTreeUpdates {
         subSum[t] = subSum[leftChild[t]] + subSum[rightChild[t]] + S(key[t]) * copies[t];
     }
 
-    LEETCODE_NO_SANITIZE int buildTreap(const vector<T>& sortedVals) {  // a treap of sortedVals (sorted) in O(len): a Cartesian tree by priority
+    LEETCODE_NO_SANITIZE int buildTreap(const vector<T>& sortedVals) {
+        // a treap of sortedVals (sorted) in O(len): a Cartesian tree by priority
         vector<int> stack;
         for (size_t k = 0; k < sortedVals.size();) {
             size_t next = k;
@@ -445,7 +458,8 @@ struct MergeSortTreeUpdates {
         return res;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> firstIn(int p, T x, bool strict) const {  // smallest value > x (strict) or >= x in node p
+    LEETCODE_NO_SANITIZE optional<T> firstIn(int p, T x, bool strict) const {
+        // smallest value > x (strict) or >= x in node p
         optional<T> best;
         for (int t = root[p]; t;) {
             if (strict ? x < key[t] : !(key[t] < x)) {
@@ -458,7 +472,8 @@ struct MergeSortTreeUpdates {
         return best;
     }
 
-    LEETCODE_NO_SANITIZE optional<T> lastIn(int p, T x, bool strict) const {  // largest value < x (strict) or <= x in node p
+    LEETCODE_NO_SANITIZE optional<T> lastIn(int p, T x, bool strict) const {
+        // largest value < x (strict) or <= x in node p
         optional<T> best;
         for (int t = root[p]; t;) {
             if (strict ? key[t] < x : !(x < key[t])) {

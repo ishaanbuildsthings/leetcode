@@ -53,8 +53,10 @@ struct SparseMax {
 
 // ======================================================================================== sparse wrapper
 
-// Range max over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
-// of zeros adds nothing more than a single 0, so SparseMax runs on the compressed array of given values with one 0 per gap,
+// Range max over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A
+// maximal gap
+// of zeros adds nothing more than a single 0, so SparseMax runs on the compressed array of given values with one 0 per
+// gap,
 // and a query maps l and r to the compressed elements containing them.
 template <typename T>
 struct SparseStaticMax {
@@ -64,7 +66,8 @@ struct SparseStaticMax {
     SparseMax<T> inner;
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparseStaticMax(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(compress(values)) {}
+    SparseStaticMax(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi),
+        inner(compress(values)) {}
 
     vector<T> compress(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
