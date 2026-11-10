@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-max-hash-run-updates-add/letters.py
-# @operations: getAll hashAll isPalindrome leftmostGtX leftmostGteX longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
+# @operations: getAll hashAll hashAllReversed isPalindrome leftmostGtX leftmostGteX longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -22,6 +22,7 @@
 #   longestPalCenteredAtIPlusOne: log^2(N)
 #   hashAll: log(N)
 #   maxAll: log(N)
+#   hashAllReversed: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -312,6 +313,14 @@ class LazySegTree:
         if self.n < 1:
             raise IndexError("maxAll: needs n >= 1")
         return self.rangeMax(0, self.n - 1)
+
+    # O(log(N)) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same
+    # base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any
+    # structure's hashes this run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.n < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.rangeHashReversed(0, self.n - 1)
 
     # ---- internals ----
 

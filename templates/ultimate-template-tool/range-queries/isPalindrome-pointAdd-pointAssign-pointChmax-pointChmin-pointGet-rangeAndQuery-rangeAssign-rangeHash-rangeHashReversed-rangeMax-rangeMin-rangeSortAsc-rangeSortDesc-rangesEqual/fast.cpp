@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: andAll getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeSortAsc rangeSortDesc rangesEqual
+// @operations: andAll getAll hashAll hashAllReversed isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeSortAsc rangeSortDesc rangesEqual
 // @data-structure-type: sorted-runs
 // @complexities:
 //   getAll: N*log(U)
@@ -29,6 +29,7 @@ using ll = long long;
 //   minAll: log(N)+log(U) amortized
 //   maxAll: log(N)+log(U) amortized
 //   andAll: log(N)+log(U) amortized
+//   hashAllReversed: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -337,6 +338,14 @@ struct SortedRunsMinMaxAndHash {
     LEETCODE_NO_SANITIZE auto andAll() {
         if (n < 1) throw out_of_range("andAll: needs n >= 1");
         return rangeAndQuery(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1));
+    // it uses the same base and mod as rangeHash, so it equals rangeHash of any range holding those values in that
+    // order (and any structure's hashes this run); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAllReversed() {
+        if (n < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, n - 1);
     }
 
     // ---- internals: runs ----

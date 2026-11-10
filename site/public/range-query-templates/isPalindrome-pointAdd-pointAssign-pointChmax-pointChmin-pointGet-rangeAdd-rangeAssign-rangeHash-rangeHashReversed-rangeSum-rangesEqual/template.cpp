@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeSum rangesEqual sumAll
+// @operations: getAll hashAll hashAllReversed isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeSum rangesEqual sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -24,6 +24,7 @@ using ll = long long;
 //   longestPalCenteredAtIPlusOne: log^2(N)
 //   hashAll: log(N)
 //   sumAll: log(N)
+//   hashAllReversed: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -267,6 +268,14 @@ struct LazySegTree {
     auto sumAll() {
         if (n < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same
+    // base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any
+    // structure's hashes this run); needs n >= 1, else throws out_of_range
+    auto hashAllReversed() {
+        if (n < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, n - 1);
     }
 
     // ---- internals ----

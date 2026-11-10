@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: andAll append appendLeft cut find getAll hashAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rangesEqual rightmostGtX rightmostGteX size split trisect xorAll
+// @operations: andAll append appendLeft cut find getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rangesEqual rightmostGtX rightmostGteX size split trisect xorAll
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N) expected
@@ -47,6 +47,7 @@ using ll = long long;
 //   maxAll: log(N) expected
 //   xorAll: 1
 //   andAll: 1
+//   hashAllReversed: log(N) expected
 //   build: N
 // @memory:
 //   layout: none
@@ -525,6 +526,14 @@ struct PairSwapTreap {
     auto andAll() {
         if (size() < 1) throw out_of_range("andAll: needs n >= 1");
         return nd[rE].an & nd[rO].an;
+    }
+
+    // O(log(N) expected) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses
+    // the same base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and
+    // any structure's hashes this run); needs n >= 1, else throws out_of_range
+    auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, size() - 1);
     }
 
     // ---- internals ----

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-min-hash-xor-gcd/template.py
-# @operations: gcdAll getAll hashAll isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeMin rangeXorQuery rangesEqual rightmostLtX rightmostLteX xorAll
+# @operations: gcdAll getAll hashAll hashAllReversed isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeMin rangeXorQuery rangesEqual rightmostLtX rightmostLteX xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -26,6 +26,7 @@
 #   minAll: log(N)
 #   gcdAll: log(N)+log(U) ?
 #   xorAll: log(N)
+#   hashAllReversed: log(N)
 #   build: N*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -317,6 +318,14 @@ class SegTree:
         if self.n < 1:
             raise IndexError("xorAll: needs n >= 1")
         return self.rangeXorQuery(0, self.n - 1)
+
+    # O(log(N)) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same
+    # base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any
+    # structure's hashes this run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.n < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.rangeHashReversed(0, self.n - 1)
 
     # ---- internals ----
 

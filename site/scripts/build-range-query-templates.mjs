@@ -42,7 +42,7 @@ const manifestPath = path.join(siteDir, "lib/generated/range-query-templates.ts"
 const TAGS = ["operations", "data-structure-type", "fractional-cascading", "values", "letters", "complexities", "memory", "original-file-url"];
 const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading", "values", "letters"];
 
-const FREE_OPS = new Set(["getAll", "size", "pop", "popLeft", "hashAll", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne"]);
+const FREE_OPS = new Set(["getAll", "size", "pop", "popLeft", "hashAll", "hashAllReversed", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne"]);
 const FAST_FILES = ["fast.cpp", "sparse-fast.cpp", "letters-fast.cpp"];  // made by gen_fast.py: the picker's fast mode
 const errors = [];
 const entries = [];

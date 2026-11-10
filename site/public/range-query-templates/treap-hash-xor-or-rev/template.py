@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-hash-xor-or-rev/template.py
-# @operations: append appendLeft cut getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual size split trisect xorAll
+# @operations: append appendLeft cut getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -35,6 +35,7 @@
 #   hashAll: 1
 #   xorAll: 1
 #   orAll: 1
+#   hashAllReversed: 1
 #   build: N
 # @memory:
 #   layout: none
@@ -364,6 +365,14 @@ class ImplicitTreap:
         if self.size() < 1:
             raise IndexError("orAll: needs n >= 1")
         return self.orr[self.root]
+
+    # O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    # rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes this
+    # run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.size() < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.bh[self.root]
 
     # ---- internals ----
 

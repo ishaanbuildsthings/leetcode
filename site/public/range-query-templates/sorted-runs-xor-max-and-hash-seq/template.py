@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sorted-runs-xor-max-and-hash-seq/template.py
-# @operations: andAll append appendLeft cut getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery rangesEqual size split trisect xorAll
+# @operations: andAll append appendLeft cut getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery rangesEqual size split trisect xorAll
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
@@ -40,6 +40,7 @@
 #   maxAll: log(N)+log(U) amortized
 #   xorAll: log(N)+log(U) amortized
 #   andAll: log(N)+log(U) amortized
+#   hashAllReversed: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -445,6 +446,14 @@ class SortedRunsXorMaxAndHashSeq:
         if self.size() < 1:
             raise IndexError("andAll: needs n >= 1")
         return self.rangeAndQuery(0, self.size() - 1)
+
+    # O(log(N)+log(U) amortized) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1));
+    # it uses the same base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order
+    # (and any structure's hashes this run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.size() < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.rangeHashReversed(0, self.size() - 1)
 
     # ---- internals: the treap of runs ----
 

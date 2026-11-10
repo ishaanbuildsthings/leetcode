@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangesEqual size split sumAll trisect
+// @operations: append appendLeft cut getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangesEqual size split sumAll trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
@@ -40,6 +40,7 @@ using ll = long long;
 //   longestPalCenteredAtIPlusOne: log^2(N)+log(N)*log(U) amortized
 //   hashAll: log(N)+log(U) amortized
 //   sumAll: log(N)+log(U) amortized
+//   hashAllReversed: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -465,6 +466,14 @@ struct SortedRunsSumHashSeq {
     LEETCODE_NO_SANITIZE auto sumAll() {
         if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
         return rangeSum(0, size() - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1));
+    // it uses the same base and mod as rangeHash, so it equals rangeHash of any range holding those values in that
+    // order (and any structure's hashes this run); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, size() - 1);
     }
 
     // ---- internals: the treap of runs ----

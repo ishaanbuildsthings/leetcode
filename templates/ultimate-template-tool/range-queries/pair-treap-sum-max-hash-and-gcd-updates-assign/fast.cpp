@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: andAll append appendLeft cut gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangeMax rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangesEqual rightmostGtX rightmostGteX size split sumAll trisect
+// @operations: andAll append appendLeft cut gcdAll getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangeMax rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangesEqual rightmostGtX rightmostGteX size split sumAll trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -48,6 +48,7 @@ using ll = long long;
 //   maxAll: log(N)*log(U) expected ?
 //   gcdAll: log(N)*log(U) expected ?
 //   andAll: 1
+//   hashAllReversed: log(N)*log(U) expected ?
 //   build: N*log(U) ?
 // @memory:
 //   layout: none
@@ -545,6 +546,14 @@ struct PairSwapTreap {
     LEETCODE_NO_SANITIZE auto andAll() {
         if (size() < 1) throw out_of_range("andAll: needs n >= 1");
         return nd[rE].an & nd[rO].an;
+    }
+
+    // O(log(N)*log(U) expected ?) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1));
+    // it uses the same base and mod as rangeHash, so it equals rangeHash of any range holding those values in that
+    // order (and any structure's hashes this run); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, size() - 1);
     }
 
     // ---- internals ----

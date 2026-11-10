@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-min-max-hash-xor-and-or-gcd-run-alt-rev-find/template.py
-# @operations: andAll append appendLeft cut find gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll maxAltSubseqSum merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect xorAll
+# @operations: andAll append appendLeft cut find gcdAll getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll maxAltSubseqSum merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -54,6 +54,7 @@
 #   xorAll: 1
 #   andAll: 1
 #   orAll: 1
+#   hashAllReversed: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none
@@ -756,6 +757,14 @@ class ImplicitTreap:
         if self.size() < 1:
             raise IndexError("orAll: needs n >= 1")
         return self.orr[self.root]
+
+    # O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    # rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes this
+    # run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.size() < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.bh[self.root]
 
     # ---- internals ----
 

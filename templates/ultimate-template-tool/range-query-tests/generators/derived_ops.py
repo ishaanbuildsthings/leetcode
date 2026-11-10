@@ -3,6 +3,7 @@ written (note_lang.write_template) and by the rewrite pass (python3 note_lang.py
 
   pop(), popLeft()                       on everything with cut, pointGet and size: read the end value, cut it out
   hashAll()                              on everything with rangeHash (dense files): rangeHash of the whole array
+  hashAllReversed()                      on everything with rangeHashReversed (dense files): the same, reversed
   sumAll(), minAll(), maxAll(), gcdAll(), xorAll(), andAll(), orAll()   on everything with the range op (dense files):
                                          O(1) off the root where a treap keeps it, else the range op over everything
   longestPalCenteredAtI(i)               on everything with isPalindrome (dense files): (l, r) by a binary search on the
@@ -12,6 +13,7 @@ They are left out of folder names (note_lang.FREE_OPS), like getAll and size.
 """
 import math
 import re
+import textwrap
 
 FACTORS = {"1": 1, "N": 2e5, "log(N)": math.log2(2e5), "log^2(N)": math.log2(2e5) ** 2, "sqrt(N)": math.sqrt(2e5),
            "sqrt(NlogN)": math.sqrt(2e5 * math.log2(2e5)), "sqrt(N/logN)": math.sqrt(2e5 / math.log2(2e5)),
@@ -147,6 +149,20 @@ def _root_hash(cls, lang):
     return None
 
 
+def _root_hash_rev(cls, lang):
+    """the O(1) expression for the whole array's reversed hash when the structure keeps it at a root (treaps: the root
+    node's backward hash), else None"""
+    if lang == "py":
+        m = re.search(r"    def rangeHashReversed\(self, l, r\):(.*?)\n    def ", cls, re.S)
+        if m and "res = self.bh[b]" in m.group(1) and re.search(r"self\.root = ", cls):
+            return "self.bh[self.root]"
+        return None
+    m = re.search(r" rangeHashReversed\((?:int|long long) l, (?:int|long long) r\)[^{]*\{(.*?)\n    \}", cls, re.S)
+    if m and "U64 res = nd[b].bh;" in m.group(1) and re.search(r"^    int root\b", cls, re.M):
+        return "nd[root].bh"
+    return None
+
+
 AGGREGATES = {"rangeSum": ("sumAll", "sum"), "rangeMin": ("minAll", "min"), "rangeMax": ("maxAll", "max"),
               "rangeGcd": ("gcdAll", "gcd"), "rangeXorQuery": ("xorAll", "xor"), "rangeAndQuery": ("andAll", "AND"),
               "rangeOrQuery": ("orAll", "OR")}
@@ -240,6 +256,45 @@ def _hash_all_block(lang, cost, length, root=None):
 '''
 
 
+def _hash_all_rev_block(lang, cost, length, root=None):
+    cm = "#" if lang == "py" else "//"
+    where = "read off the root" if root else "rangeHashReversed(0, n - 1)"
+    call = "self.rangeHashReversed" if lang == "py" else "rangeHashReversed"
+    body = root or f"{call}(0, {length} - 1)"
+    error = "raises IndexError" if lang == "py" else "throws out_of_range"
+    text = (f"O({cost}) -- hash of the whole array reversed, a[n-1], ..., a[0] ({where}); it uses the same base and mod"
+            f" as rangeHash, so it equals rangeHash of any range holding those values in that order (and any"
+            f" structure's hashes this run); needs n >= 1, else {error}")
+    comment = textwrap.fill(text, 120, initial_indent=f"    {cm} ", subsequent_indent=f"    {cm} ",
+                            break_long_words=False, break_on_hyphens=False) + "\n"
+    if lang == "py":
+        return comment + f'''    def hashAllReversed(self):
+        if {length} < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return {body}
+'''
+    return comment + f'''    auto hashAllReversed() {{
+        if ({length} < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return {body};
+    }}
+'''
+
+
+def remove_hash_all_reversed(text, lang):
+    """text without hashAllReversed (its method and header lines), so it can be re-added"""
+    cm = "#" if lang == "py" else "//"
+    m, _ = _header(text, cm)
+    if not m or " hashAllReversed " not in " " + m.group(1) + " ":
+        return text
+    end = r"        return [^\n]*\n\n?" if lang == "py" else r"        return [^\n]*;\n    \}\n\n?"
+    pat = rf"    {re.escape(cm)} O\([^\n]*\) -- hash of the whole array reversed.*?hashAllReversed\(.*?{end}"
+    text, k = re.subn(pat, "", text, count=1, flags=re.S)
+    assert k == 1, "hashAllReversed block not found"
+    ops = [o for o in m.group(1).split() if o != "hashAllReversed"]
+    text = text.replace(m.group(0), f"{cm} @operations: {' '.join(ops)}", 1)
+    return re.sub(rf"^{re.escape(cm)}   hashAllReversed: .*\n", "", text, count=1, flags=re.M)
+
+
 def _pal_block(lang, cost, length):
     if lang == "py":
         return f'''    # O({cost}) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
@@ -316,6 +371,8 @@ def add_derived_ops(text, lang):
         wanted.append((("pop", "popLeft"), _max_cost(costs["cut"], costs["pointGet"]), "pop", ("cut", "pointGet", "size")))
     if "rangeHash" in ops and "hashAll" not in ops and not sparse:
         wanted.append((("hashAll",), costs["rangeHash"], "hash", ("rangeHash",)))
+    if "rangeHashReversed" in ops and "hashAllReversed" not in ops and not sparse:
+        wanted.append((("hashAllReversed",), costs["rangeHashReversed"], "hashrev", ("rangeHashReversed",)))
     for op, (name, word) in AGGREGATES.items():
         if op in ops and name not in ops and not sparse:
             wanted.append(((name,), costs[op], ("agg", op, word), (op,)))
@@ -341,6 +398,11 @@ def add_derived_ops(text, lang):
                 if root:
                     cost = "1"
                 block = _hash_all_block(lang, cost, length, root)
+            elif kind == "hashrev":
+                root = _root_hash_rev(cls, lang)
+                if root:
+                    cost = "1"
+                block = _hash_all_rev_block(lang, cost, length, root)
             elif isinstance(kind, tuple):  # ("agg", the range op, its word)
                 root = _root_aggregate(cls, lang, kind[1])
                 if root:

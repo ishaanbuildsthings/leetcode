@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft copy cut getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangesEqual size split trisect
+// @operations: append appendLeft copy cut getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangesEqual size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -39,6 +39,7 @@ using ll = long long;
 //   longestPalCenteredAtIPlusOne: log^2(N) expected
 //   hashAll: 1
 //   orAll: 1
+//   hashAllReversed: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -399,6 +400,14 @@ struct PersistentTreap {
     auto orAll() {
         if (size() < 1) throw out_of_range("orAll: needs n >= 1");
         return nd[root].orr;
+    }
+
+    // O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    // rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes
+    // this run); needs n >= 1, else throws out_of_range
+    auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return nd[root].bh;
     }
 
     // ---- internals ----

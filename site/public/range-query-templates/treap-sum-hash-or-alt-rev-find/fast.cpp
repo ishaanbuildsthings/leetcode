@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut find getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAltSubseqSum merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual size split sumAll trisect
+// @operations: append appendLeft cut find getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAltSubseqSum merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual size split sumAll trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
@@ -41,6 +41,7 @@ using ll = long long;
 //   hashAll: 1
 //   sumAll: 1
 //   orAll: 1
+//   hashAllReversed: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -496,6 +497,14 @@ struct ImplicitTreap {
     LEETCODE_NO_SANITIZE auto orAll() {
         if (size() < 1) throw out_of_range("orAll: needs n >= 1");
         return nd[root].orr;
+    }
+
+    // O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    // rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes
+    // this run); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return nd[root].bh;
     }
 
     // ---- internals ----

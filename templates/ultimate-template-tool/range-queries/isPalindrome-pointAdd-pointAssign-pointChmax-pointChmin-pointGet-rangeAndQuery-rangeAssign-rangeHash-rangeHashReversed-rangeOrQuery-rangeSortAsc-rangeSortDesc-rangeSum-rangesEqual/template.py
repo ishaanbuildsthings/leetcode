@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeHash-rangeHashReversed-rangeOrQuery-rangeSortAsc-rangeSortDesc-rangeSum-rangesEqual/template.py
-# @operations: andAll getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeOrQuery rangeSortAsc rangeSortDesc rangeSum rangesEqual sumAll
+# @operations: andAll getAll hashAll hashAllReversed isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeOrQuery rangeSortAsc rangeSortDesc rangeSum rangesEqual sumAll
 # @data-structure-type: sorted-runs
 # @complexities:
 #   getAll: N*log(U)
@@ -25,6 +25,7 @@
 #   sumAll: log(N)+log(U) amortized
 #   andAll: log(N)+log(U) amortized
 #   orAll: log(N)+log(U) amortized
+#   hashAllReversed: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -272,6 +273,14 @@ class SortedRunsSumOrAndHash:
         if self.n < 1:
             raise IndexError("orAll: needs n >= 1")
         return self.rangeOrQuery(0, self.n - 1)
+
+    # O(log(N)+log(U) amortized) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1));
+    # it uses the same base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order
+    # (and any structure's hashes this run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.n < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.rangeHashReversed(0, self.n - 1)
 
     # ---- internals: runs ----
 

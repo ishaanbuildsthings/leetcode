@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft copy cut gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeGcd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostLtX rightmostLteX size split trisect xorAll
+// @operations: append appendLeft copy cut gcdAll getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeGcd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostLtX rightmostLteX size split trisect xorAll
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -47,6 +47,7 @@ using ll = long long;
 //   minAll: 1
 //   gcdAll: 1
 //   xorAll: 1
+//   hashAllReversed: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none
@@ -590,6 +591,14 @@ struct PersistentTreap {
     LEETCODE_NO_SANITIZE auto xorAll() {
         if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
         return nd[root].xr;
+    }
+
+    // O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    // rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes
+    // this run); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return nd[root].bh;
     }
 
     // ---- internals ----

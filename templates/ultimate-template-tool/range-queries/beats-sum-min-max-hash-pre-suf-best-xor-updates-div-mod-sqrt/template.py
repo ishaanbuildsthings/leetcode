@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-sum-min-max-hash-pre-suf-best-xor-updates-div-mod-sqrt/template.py
-# @operations: getAll hashAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll maxPrefixSum maxSubarraySum maxSuffixSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll xorAll
+# @operations: getAll hashAll hashAllReversed isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll maxPrefixSum maxSubarraySum maxSuffixSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll xorAll
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -42,6 +42,7 @@
 #   minAll: log(N)
 #   maxAll: log(N)
 #   xorAll: log(N)
+#   hashAllReversed: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -557,6 +558,14 @@ class ShrinkSegTree:
         if self.n < 1:
             raise IndexError("xorAll: needs n >= 1")
         return self.rangeXorQuery(0, self.n - 1)
+
+    # O(log(N)) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same
+    # base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any
+    # structure's hashes this run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.n < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.rangeHashReversed(0, self.n - 1)
 
     # ---- internals ----
 

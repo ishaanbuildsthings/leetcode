@@ -158,6 +158,7 @@ export type OpId =
   | "pop"
   | "popLeft"
   | "hashAll"
+  | "hashAllReversed"
   | "sumAll"
   | "minAll"
   | "maxAll"
@@ -210,6 +211,19 @@ export interface OpGroup {
 }
 
 export const OP_GROUPS: OpGroup[] = [
+  {
+    id: "useful",
+    title: "Useful",
+    tiers: [
+      {
+        kind: "common",
+        ops: [
+          { id: "getAll", signature: "getAll()", description: "Get the whole array (for final answer)" },
+          { id: "size", signature: "size()", description: "How many elements the array has right now" },
+        ],
+      },
+    ],
+  },
   {
     id: "point",
     title: "Point operations",
@@ -298,25 +312,15 @@ export const OP_GROUPS: OpGroup[] = [
         kind: "common",
         ops: [
           { id: "rangeSum", signature: "rangeSum(l, r)", description: "a[l] + … + a[r]" },
+          { id: "sumAll", signature: "sumAll()", description: "a[0] + … + a[n-1]" },
           { id: "rangeMin", signature: "rangeMin(l, r)", description: "min of l..r" },
+          { id: "minAll", signature: "minAll()", description: "min of the whole array" },
           { id: "rangeMax", signature: "rangeMax(l, r)", description: "max of l..r" },
+          { id: "maxAll", signature: "maxAll()", description: "max of the whole array" },
           { id: "rangeGcd", signature: "rangeGcd(l, r)", description: "gcd of l..r" },
+          { id: "gcdAll", signature: "gcdAll()", description: "gcd of the whole array" },
           { id: "maxSubarraySum", signature: "maxSubarraySum(l, r)", description: "Max sum of non-empty subarray within l..r" },
           { id: "minSubarraySum", signature: "minSubarraySum(l, r)", description: "Min sum of non-empty subarray within l..r" },
-          { id: "getAll", signature: "getAll()", description: "Get the whole array (for final answer)" },
-        ],
-      },
-      {
-        kind: "topic",
-        label: "Whole array",
-        ops: [
-          { id: "sumAll", signature: "sumAll()", description: "a[0] + … + a[n-1]" },
-          { id: "minAll", signature: "minAll()", description: "min of the whole array" },
-          { id: "maxAll", signature: "maxAll()", description: "max of the whole array" },
-          { id: "gcdAll", signature: "gcdAll()", description: "gcd of the whole array" },
-          { id: "xorAll", signature: "xorAll()", description: "xor of the whole array" },
-          { id: "andAll", signature: "andAll()", description: "AND of the whole array" },
-          { id: "orAll", signature: "orAll()", description: "OR of the whole array" },
         ],
       },
       {
@@ -345,7 +349,10 @@ export const OP_GROUPS: OpGroup[] = [
       {
         kind: "common",
         ops: [
-          { id: "size", signature: "size()", description: "How many elements the array has right now" },
+          { id: "append", signature: "append(val)", description: "Add val at the end" },
+          { id: "appendLeft", signature: "appendLeft(val)", description: "Add val at the front (every index shifts up by 1)" },
+          { id: "pop", signature: "pop()", description: "Remove and return the last value" },
+          { id: "popLeft", signature: "popLeft()", description: "Remove and return the first value (every index shifts down by 1)" },
           { id: "split", signature: "split(k)", description: "Split into two arrays: 0..k−1 and a[k]… (the original is left empty)" },
           { id: "eraseRange", signature: "eraseRange(l, r)", description: "Remove l..r" },
           { id: "cut", signature: "cut(l, r)", description: "Remove l..r and get it back as a separate array of the same type" },
@@ -363,10 +370,6 @@ export const OP_GROUPS: OpGroup[] = [
         ops: [
           { id: "rangeRotateLeft", signature: "rangeRotateLeft(l, r, k)", description: "Cyclic shift l..r left by k (a[l+k] moves to l)" },
           { id: "rangeRotateRight", signature: "rangeRotateRight(l, r, k)", description: "Cyclic shift l..r right by k (a[r−k+1…r] move to the front)" },
-          { id: "append", signature: "append(val)", description: "Add val at the end" },
-          { id: "appendLeft", signature: "appendLeft(val)", description: "Add val at the front (every index shifts up by 1)" },
-          { id: "pop", signature: "pop()", description: "Remove and return the last value" },
-          { id: "popLeft", signature: "popLeft()", description: "Remove and return the first value (every index shifts down by 1)" },
           { id: "insertCopiesAt", signature: "insertCopiesAt(i, val, k)", description: "Insert k copies of val so they become i..i+k−1" },
           { id: "rangeTwinSpin", signature: "rangeTwinSpin(l, r)", description: "Swap a[l]↔a[l+1], a[l+2]↔a[l+3], … (an odd last one stays)" },
         ],
@@ -483,6 +486,7 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "isPalindrome", signature: "isPalindrome(l, r)", description: "Is l..r a palindrome" },
           { id: "rangesEqual", signature: "rangesEqual(l1, r1, l2, r2)", description: "Are l1..r1 and l2..r2 equal" },
           { id: "hashAll", signature: "hashAll()", description: "Hash of the whole array (compares with any structure's hashes this run)" },
+          { id: "hashAllReversed", signature: "hashAllReversed()", description: "Hash of the whole array reversed, a[n-1] … a[0] (compares with any structure's hashes this run)" },
           { id: "longestPalCenteredAtI", signature: "longestPalCenteredAtI(i)", description: "(l, r) of the longest odd palindrome centred on a[i]" },
           { id: "longestPalCenteredAtIPlusOne", signature: "longestPalCenteredAtIPlusOne(i)", description: "(l, r) of the longest even palindrome centred between a[i] and a[i+1]; (i+1, i) if none" },
         ],
@@ -536,6 +540,7 @@ export const OP_GROUPS: OpGroup[] = [
         label: "Range query",
         ops: [
           { id: "rangeXorQuery", signature: "rangeXorQuery(l, r)", description: "a[l] ^ … ^ a[r]" },
+          { id: "xorAll", signature: "xorAll()", description: "xor of the whole array" },
         ],
       },
       {
@@ -603,6 +608,7 @@ export const OP_GROUPS: OpGroup[] = [
         label: "Range query",
         ops: [
           { id: "rangeOrQuery", signature: "rangeOrQuery(l, r)", description: "a[l] | … | a[r]" },
+          { id: "orAll", signature: "orAll()", description: "OR of the whole array" },
         ],
       },
       {
@@ -635,6 +641,7 @@ export const OP_GROUPS: OpGroup[] = [
         label: "Range query",
         ops: [
           { id: "rangeAndQuery", signature: "rangeAndQuery(l, r)", description: "a[l] & … & a[r]" },
+          { id: "andAll", signature: "andAll()", description: "AND of the whole array" },
         ],
       },
       {
@@ -677,16 +684,25 @@ export const OP_GROUPS: OpGroup[] = [
   },
 ];
 
-// Ordered lightest to heaviest constant factor; used to break ties between templates.
+// Ordered lightest to heaviest constant factor; used to break ties between templates (after cost, before memory).
+// Flat arrays first, then the seg tree family, then plain arrays with O(1) hash or palindrome reads, then node pools
+// (persistent / nested trees), then treap-likes, then sqrt blocks.
 export const DATA_STRUCTURE_TYPES = [
+  "prefix-sum",
+  "difference-array",
   "positions",
   "interval-map",
   "sparse-table",
   "BIT",
   "seg-tree",
   "lazy-seg-tree",
+  "beats",
   "merge-sort-tree",
   "wavelet",
+  // a few flat arrays each: lighter than any node pool or treap, but a modular multiply per point update, so a plain
+  // array tree still wins a tie on point ops; Manacher first (no hashing, less memory) on an isPalindrome tie
+  "manacher",
+  "rolling-hash",
   "persistent",
   "persistent-trie",
   "bit-of-trees",
@@ -698,16 +714,15 @@ export const DATA_STRUCTURE_TYPES = [
   "pair-treap",
   "persistent-treap",
   "sorted-runs",
-  "beats",
   "sqrt",
   "sqrt-tries",
-  "rolling-hash",
-  "manacher",
 ] as const;
 
 export type DataStructureType = (typeof DATA_STRUCTURE_TYPES)[number];
 
 export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
+  "prefix-sum": "Prefix sums",
+  "difference-array": "Difference array (sweep line)",
   positions: "Position lists",
   "interval-map": "Interval map (runs of equal values)",
   "sparse-table": "Sparse table",

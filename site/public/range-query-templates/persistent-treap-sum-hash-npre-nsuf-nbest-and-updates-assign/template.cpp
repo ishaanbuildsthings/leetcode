@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: andAll append appendLeft copy cut getAll hashAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect
+// @operations: andAll append appendLeft copy cut getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -47,6 +47,7 @@ using ll = long long;
 //   hashAll: 1
 //   sumAll: 1
 //   andAll: 1
+//   hashAllReversed: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -590,6 +591,14 @@ struct PersistentTreap {
     auto andAll() {
         if (size() < 1) throw out_of_range("andAll: needs n >= 1");
         return nd[root].an;
+    }
+
+    // O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    // rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes
+    // this run); needs n >= 1, else throws out_of_range
+    auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return nd[root].bh;
     }
 
     // ---- internals ----

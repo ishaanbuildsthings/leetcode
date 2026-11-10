@@ -75,7 +75,7 @@ CHAR_SAFE = {
     "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "merge",
     "copyRange", "copy", "rangeTwinSpin", "rangeMin", "rangeMax", "minAll", "maxAll", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
     "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange", "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome", "rangeHash",
-    "rangeHashReversed", "rangesEqual", "hashAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
+    "rangeHashReversed", "rangesEqual", "hashAll", "hashAllReversed", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
     "medianHigh", "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
     "largestLtX", "largestLteX", "kthLtX", "kthLteX", "kthGtX", "kthGteX", "rangeReplace",
 } | {f"{side}{c}X" for side in ("leftmost", "rightmost") for c in ("Gt", "Gte", "Lt", "Lte")}
@@ -296,6 +296,8 @@ def order_stat(op, tot, n, xs):
 BRUTE_QUERIES = {
     # hashAll(): compared with a fresh structure built from the current a[l..r] (equal only when that is the whole array)
     "hashAll": ("hall", lambda a, l, r, c: a == a[l:r + 1]),
+    # hashAllReversed(): compared with rangeHashReversed(l, r) (equal only when a[l..r] is the whole array)
+    "hashAllReversed": ("hall", lambda a, l, r, c: a == a[l:r + 1]),
     "sumAll": ("all", lambda a, c: sum(a)),
     "minAll": ("all", lambda a, c: min(a)),
     "maxAll": ("all", lambda a, c: max(a)),
@@ -1264,6 +1266,8 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
                 objs[name] = build(name, a0, extra, k)
             if op in ("rangeHash", "rangeHashReversed"):
                 res = getattr(objs[name], op)(*args[:2]) == objs[name].rangeHash(*args[2:])
+            elif op == "hashAllReversed":  # (against rangeHashReversed(l, r): equal only on the whole array)
+                res = objs[name].hashAllReversed() == objs[name].rangeHashReversed(*args)
             elif op == "hashAll":  # (against the hash of a[l..r]: equal only when that is the whole array)
                 if "rangeHash" in ops:
                     res = objs[name].hashAll() == objs[name].rangeHash(*args)
@@ -1405,6 +1409,8 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
                 body = f"long long l, r; cin >> l >> r; out({s}.{op}(l, r));"
             elif kind == "lrs":
                 body = f"long long l, r, step; cin >> l >> r >> step; out({s}.{op}(l, r, step));"
+            elif op == "hashAllReversed":
+                body = f"long long l, r; cin >> l >> r; out({s}.{op}() == {s}.rangeHashReversed(l, r));"
             elif kind == "hall":
                 body = (f"long long l, r; cin >> l >> r; out({s}.{op}() == {s}.rangeHash(l, r));" if "rangeHash" in ops else
                         f"long long l, r; cin >> l >> r; auto w = {s}.getAll(); "

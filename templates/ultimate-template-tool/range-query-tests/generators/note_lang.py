@@ -192,7 +192,7 @@ def folder_name(ops):
 
 
 # ops a template gets for free from ones it has (add_derived_ops): also left out of folder names
-FREE_OPS = {"getAll", "size", "pop", "popLeft", "hashAll", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne"}
+FREE_OPS = {"getAll", "size", "pop", "popLeft", "hashAll", "hashAllReversed", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne"}
 LENGTH_OPS = {"append", "appendLeft", "insertAt", "insertCopiesAt", "cut", "paste", "merge", "split", "trisect"}
 
 
@@ -224,7 +224,7 @@ def add_size_method(code, lang):
     return code[:k] + block + code[k:]
 
 
-WHOLE_OPS = ("getAll", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "hashAll")
+WHOLE_OPS = ("getAll", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "hashAll", "hashAllReversed")
 
 
 def drop_get_all(text):

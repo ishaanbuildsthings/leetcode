@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne pointGet pop popLeft rangeHash rangeHashReversed rangesEqual size
+// @operations: append appendLeft getAll hashAll hashAllReversed isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne pointGet pop popLeft rangeHash rangeHashReversed rangesEqual size
 // @data-structure-type: rolling-hash
 // @letters: same
 // @complexities:
@@ -22,6 +22,7 @@ using ll = long long;
 //   hashAll: 1
 //   longestPalCenteredAtI: log(N)
 //   longestPalCenteredAtIPlusOne: log(N)
+//   hashAllReversed: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -224,6 +225,14 @@ struct RollingHashPalindromeDeque {
             else hi = mid - 1;
         }
         return {i - lo + 1, i + lo};
+    }
+
+    // O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same base
+    // and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's
+    // hashes this run); needs n >= 1, else throws out_of_range
+    auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, size() - 1);
     }
 
     // ---- internals ----

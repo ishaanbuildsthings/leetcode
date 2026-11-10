@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut find gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxPrefixSum maxSubarraySum maxSuffixSum merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split sumAll trisect
+// @operations: append appendLeft cut find gcdAll getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxPrefixSum maxSubarraySum maxSuffixSum merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split sumAll trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -53,6 +53,7 @@ using ll = long long;
 //   sumAll: 1
 //   minAll: 1
 //   gcdAll: 1
+//   hashAllReversed: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none
@@ -756,6 +757,14 @@ struct ImplicitTreap {
     auto gcdAll() {
         if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
         return nd[root].g;
+    }
+
+    // O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    // rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes
+    // this run); needs n >= 1, else throws out_of_range
+    auto hashAllReversed() {
+        if (size() < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return nd[root].bh;
     }
 
     // ---- internals ----

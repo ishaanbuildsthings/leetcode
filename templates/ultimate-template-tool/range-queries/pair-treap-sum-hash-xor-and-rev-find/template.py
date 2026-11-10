@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-sum-hash-xor-and-rev-find/template.py
-# @operations: andAll append appendLeft cut find getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rangesEqual size split sumAll trisect xorAll
+# @operations: andAll append appendLeft cut find getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rangesEqual size split sumAll trisect xorAll
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
@@ -39,6 +39,7 @@
 #   sumAll: 1
 #   xorAll: 1
 #   andAll: 1
+#   hashAllReversed: log(N) expected
 #   build: N
 # @memory:
 #   layout: none
@@ -426,6 +427,14 @@ class PairSwapTreap:
         if self.size() < 1:
             raise IndexError("andAll: needs n >= 1")
         return self.an[self.rE] & self.an[self.rO]
+
+    # O(log(N) expected) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses
+    # the same base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and
+    # any structure's hashes this run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.size() < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.rangeHashReversed(0, self.size() - 1)
 
     # ---- internals ----
 

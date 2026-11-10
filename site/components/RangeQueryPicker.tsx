@@ -143,7 +143,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   memoryGroups: (template) => {
     const { memory, dataStructureType: type } = template;
     const groups: { id: "node" | "tags" | "other"; label: string }[] = [
-      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : type === "wavelet" ? "Arrays" : "Node data" },
+      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : type === "wavelet" || type === "prefix-sum" || type === "difference-array" ? "Arrays" : "Node data" },
     ];
     const tree = memory.layout !== "none" && (memory.layout !== "sparse" || ["seg-tree", "lazy-seg-tree", "beats"].includes(type));
     if (tree || memory.tags.arrays.length > 0) groups.push({ id: "tags", label: "Lazy tags" });
@@ -213,7 +213,6 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "centroid decomposition",
     "tree paths / subtrees / general tree movement (LCA, path templates)",
     "subset xors, linear bases",
-    "basic range queries: AP add get all, sweep line add get all, 1D prefix sums",
     "custom hash tables",
     "Mo's page, Mo's with updates",
     "all prime / prime factor stuff",

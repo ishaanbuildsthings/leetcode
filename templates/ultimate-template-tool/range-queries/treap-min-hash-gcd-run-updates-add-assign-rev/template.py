@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-min-hash-gcd-run-updates-add-assign-rev/template.py
-# @operations: append appendLeft cut gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAdd rangeAssign rangeGcd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostLtX rightmostLteX size split trisect
+# @operations: append appendLeft cut gcdAll getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAdd rangeAssign rangeGcd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -42,6 +42,7 @@
 #   hashAll: 1
 #   minAll: 1
 #   gcdAll: log(N)*log(U) expected ?
+#   hashAllReversed: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none
@@ -523,6 +524,14 @@ class ImplicitTreap:
         if self.size() < 1:
             raise IndexError("gcdAll: needs n >= 1")
         return self.rangeGcd(0, self.size() - 1)
+
+    # O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    # rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes this
+    # run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.size() < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.bh[self.root]
 
     # ---- internals ----
 

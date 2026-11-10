@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-sum-hash-pre-suf-npre-nsuf-nbest-updates-assign-rev/template.py
-# @operations: append appendLeft copy cut getAll hashAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxPrefixSum maxSuffixSum merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect
+# @operations: append appendLeft copy cut getAll hashAll hashAllReversed insertAt insertCopiesAt isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxPrefixSum maxSuffixSum merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect
 # @data-structure-type: persistent-treap
 # @complexities:
 #   append: log(N) expected
@@ -48,6 +48,7 @@
 #   longestPalCenteredAtIPlusOne: log^2(N) expected
 #   hashAll: 1
 #   sumAll: 1
+#   hashAllReversed: 1
 #   build: N
 # @memory:
 #   layout: none
@@ -703,6 +704,14 @@ class PersistentTreap:
         if self.size() < 1:
             raise IndexError("sumAll: needs n >= 1")
         return self.sm[self.root]
+
+    # O(1) -- hash of the whole array reversed, a[n-1], ..., a[0] (read off the root); it uses the same base and mod as
+    # rangeHash, so it equals rangeHash of any range holding those values in that order (and any structure's hashes this
+    # run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.size() < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.bh[self.root]
 
     # ---- internals ----
 

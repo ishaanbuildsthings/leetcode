@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll hashAll isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne minAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeSum rangeXorQuery rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
+// @operations: getAll hashAll hashAllReversed isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne minAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeSum rangeXorQuery rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -34,6 +34,7 @@ using ll = long long;
 //   sumAll: log(N)
 //   minAll: log(N)
 //   xorAll: log(N)
+//   hashAllReversed: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -412,6 +413,14 @@ struct LazySegTree {
     auto xorAll() {
         if (n < 1) throw out_of_range("xorAll: needs n >= 1");
         return rangeXorQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same
+    // base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any
+    // structure's hashes this run); needs n >= 1, else throws out_of_range
+    auto hashAllReversed() {
+        if (n < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, n - 1);
     }
 
     // ---- internals ----

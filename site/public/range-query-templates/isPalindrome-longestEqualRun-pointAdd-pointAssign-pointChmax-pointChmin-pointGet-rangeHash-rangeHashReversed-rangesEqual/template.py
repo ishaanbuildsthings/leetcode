@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangesEqual/template.py
-# @operations: getAll hashAll isPalindrome longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangesEqual
+# @operations: getAll hashAll hashAllReversed isPalindrome longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangesEqual
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -17,6 +17,7 @@
 #   longestPalCenteredAtI: log^2(N)
 #   longestPalCenteredAtIPlusOne: log^2(N)
 #   hashAll: log(N)
+#   hashAllReversed: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -205,6 +206,14 @@ class SegTree:
         if self.n < 1:
             raise IndexError("hashAll: needs n >= 1")
         return self.rangeHash(0, self.n - 1)
+
+    # O(log(N)) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same
+    # base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any
+    # structure's hashes this run); needs n >= 1, else raises IndexError
+    def hashAllReversed(self):
+        if self.n < 1:
+            raise IndexError("hashAllReversed: needs n >= 1")
+        return self.rangeHashReversed(0, self.n - 1)
 
     # ---- internals ----
 
