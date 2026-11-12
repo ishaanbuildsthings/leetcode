@@ -46,7 +46,7 @@ using ll = long long;
 // go further down. A node's own mx doubles as its pending clamp: push clamps each child to it, so there is no chmin /
 // chmax tag. There is no assign tag either: when all of a node's values are equal (no second max), push hands that
 // value to both children as an assign. An add shifts everything a node keeps and goes in the one add tag. Amortized
-// O(log^2 U) per update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
+// O(logU * logU) per update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with sparse.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -228,19 +228,20 @@ struct SparseChminChmaxBeats {
         return min(qmin(nd[i].Lc, tl, tm, ql, qr), qmin(nd[i].Rc, tm + 1, tr, ql, qr));
     }
 
-    // amortized O(log^2 U) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // amortized O(logU * logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE void rangeChmin(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeChmin: needs lo <= l <= r <= hi");
         if (l <= r) chmin(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U) -- a[i] += x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // amortized O(logU * logU) -- a[i] += x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeAdd(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
         if (l <= r) add(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U) -- a[i] = x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // amortized O(logU * logU) -- a[i] = x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeAssign(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
         if (l <= r) assign(root, lo, hi, l, r, x);
@@ -270,25 +271,25 @@ struct SparseChminChmaxBeats {
         return rangeMax(i, i);
     }
 
-    // amortized O(log^2 U) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    // amortized O(logU * logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         rangeAssign(i, i, v);
     }
 
-    // amortized O(log^2 U) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
+    // amortized O(logU * logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         rangeAdd(i, i, v);
     }
 
-    // amortized O(log^2 U) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // amortized O(logU * logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         if (v > pointGet(i)) rangeAssign(i, i, v);
     }
 
-    // amortized O(log^2 U) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // amortized O(logU * logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         rangeChmin(i, i, v);

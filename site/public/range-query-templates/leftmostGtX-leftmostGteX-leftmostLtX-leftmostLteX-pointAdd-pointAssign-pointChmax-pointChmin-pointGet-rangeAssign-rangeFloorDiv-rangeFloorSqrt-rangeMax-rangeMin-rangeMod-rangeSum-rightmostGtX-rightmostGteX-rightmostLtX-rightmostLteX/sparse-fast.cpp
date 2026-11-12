@@ -227,7 +227,8 @@ struct SparseShrinkSeg {
         return qmin(root, lo, hi, l, r);
     }
 
-    // O(logU) -- a[i] = v, an overwrite that may raise the value; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = v, an overwrite that may raise the value; needs lo <= i <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         rangeAssign(i, i, v);
@@ -239,19 +240,19 @@ struct SparseShrinkSeg {
         return rangeMax(i, i);
     }
 
-    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
 
-    // a[i] += delta (the result must stay >= 0); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] += delta (the result must stay >= 0); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);

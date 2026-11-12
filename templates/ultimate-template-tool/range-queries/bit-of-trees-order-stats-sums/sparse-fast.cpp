@@ -121,7 +121,7 @@ struct SparseDynamicOrderStats {
         return vals.count(i) ? vals.at(i) : T(0);
     }
 
-    // O(logN logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         T old = pointGet(i);
@@ -131,82 +131,83 @@ struct SparseDynamicOrderStats {
         else vals.erase(i);
     }
 
-    // O(logN logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + v);
     }
 
-    // O(logN logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         pointAssign(i, max(pointGet(i), v));
     }
 
-    // O(logN logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         pointAssign(i, min(pointGet(i), v));
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long countOccurrences(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
         return countInValRange(l, r, x, x);
     }
 
-    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         if (highVal < lowVal) return 0;
         return countBelow(l, r, ub(highVal)) - countBelow(l, r, lb(lowVal));
     }
 
-    // O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long countLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countLtX: needs lo <= l <= r <= hi");
         return countBelow(l, r, lb(x));
     }
 
-    // O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long countLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countLteX: needs lo <= l <= r <= hi");
         return countBelow(l, r, ub(x));
     }
 
-    // O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long countGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countGtX: needs lo <= l <= r <= hi");
         return r - l + 1 - countBelow(l, r, ub(x));
     }
 
-    // O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long countGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countGteX: needs lo <= l <= r <= hi");
         return r - l + 1 - countBelow(l, r, lb(x));
     }
 
-    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
-    // else throws out_of_range
+    // O(logU * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l +
+    // 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T kthSmallest(long long l, long long r, long long k) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthSmallest: needs lo <= l <= r <= hi");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
 
-    // O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeMin(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         return kth(l, r, 1);
     }
 
-    // O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeMax(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         return kth(l, r, r - l + 1);
     }
 
-    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- smallest value >= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("smallestGteX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, lb(x));
@@ -214,7 +215,7 @@ struct SparseDynamicOrderStats {
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- smallest value > x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("smallestGtX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, ub(x));
@@ -222,7 +223,7 @@ struct SparseDynamicOrderStats {
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- largest value <= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("largestLteX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, ub(x));
@@ -230,7 +231,7 @@ struct SparseDynamicOrderStats {
         return kth(l, r, c);
     }
 
-    // O(logN) -- largest value < x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- largest value < x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("largestLtX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, lb(x));
@@ -238,13 +239,13 @@ struct SparseDynamicOrderStats {
         return kth(l, r, c);
     }
 
-    // O(logN) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S rangeSum(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         return sumFirst(l, r, r - l + 1);
     }
 
-    // O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws
+    // O(logU * logU) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws
     // out_of_range
     LEETCODE_NO_SANITIZE S sumInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumInValRange: needs lo <= l <= r <= hi");
@@ -252,31 +253,31 @@ struct SparseDynamicOrderStats {
         return sumBelow(l, r, ub(highVal)) - sumBelow(l, r, lb(lowVal));
     }
 
-    // O(logN) -- sum of the values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- sum of the values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumLtX: needs lo <= l <= r <= hi");
         return sumBelow(l, r, lb(x));
     }
 
-    // O(logN) -- sum of the values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- sum of the values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumLteX: needs lo <= l <= r <= hi");
         return sumBelow(l, r, ub(x));
     }
 
-    // O(logN) -- sum of the values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- sum of the values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumGtX: needs lo <= l <= r <= hi");
         return sumFirst(l, r, r - l + 1) - sumBelow(l, r, ub(x));
     }
 
-    // O(logN) -- sum of the values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- sum of the values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumGteX: needs lo <= l <= r <= hi");
         return sumFirst(l, r, r - l + 1) - sumBelow(l, r, lb(x));
     }
 
-    // O(logN) -- sum of the k smallest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
+    // O(logU * logU) -- sum of the k smallest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
     // throws out_of_range
     LEETCODE_NO_SANITIZE S sumSmallestK(long long l, long long r, long long k) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumSmallestK: needs lo <= l <= r <= hi");
@@ -284,7 +285,7 @@ struct SparseDynamicOrderStats {
         return sumFirst(l, r, k);
     }
 
-    // O(logN) -- sum of the k largest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
+    // O(logU * logU) -- sum of the k largest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
     // throws out_of_range
     LEETCODE_NO_SANITIZE S sumLargestK(long long l, long long r, long long k) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumLargestK: needs lo <= l <= r <= hi");
@@ -293,7 +294,7 @@ struct SparseDynamicOrderStats {
         return sumFirst(l, r, n) - sumFirst(l, r, n - k);
     }
 
-    // O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs
+    // O(logU * logU) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs
     // lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumKthSmallestRange: needs lo <= l <= r <= hi");
@@ -302,7 +303,7 @@ struct SparseDynamicOrderStats {
         return sumFirst(l, r, kTo) - sumFirst(l, r, kFrom - 1);
     }
 
-    // O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3
+    // O(logU * logU) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3
     // biggest); needs lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumKthLargestRange(long long l, long long r, long long kFrom, long long kTo) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumKthLargestRange: needs lo <= l <= r <= hi");
@@ -312,7 +313,7 @@ struct SparseDynamicOrderStats {
         return sumFirst(l, r, n - kFrom + 1) - sumFirst(l, r, n - kTo);
     }
 
-    // O(logN) -- sum of |a[i] - x| over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- sum of |a[i] - x| over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S sumAbsDiffToX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("sumAbsDiffToX: needs lo <= l <= r <= hi");
         long long rk = lb(x), c = countBelow(l, r, rk);

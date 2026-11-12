@@ -101,7 +101,7 @@ struct WaveletMatrix {
         order(bits);  // (the final order)
     }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];
@@ -797,7 +797,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.orInValRange(i0, i1, lowVal, highVal) : T(0);
     }
 
-    // O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // O(log^2 N) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     // throws out_of_range
     LEETCODE_NO_SANITIZE T andLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andLtX: needs lo <= l <= r <= hi");
@@ -806,7 +806,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andLtX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // O(log^2 N) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     // throws out_of_range
     LEETCODE_NO_SANITIZE T andLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andLteX: needs lo <= l <= r <= hi");
@@ -815,7 +815,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andLteX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // O(log^2 N) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     // throws out_of_range
     LEETCODE_NO_SANITIZE T andGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andGtX: needs lo <= l <= r <= hi");
@@ -824,7 +824,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andGtX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // O(log^2 N) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     // throws out_of_range
     LEETCODE_NO_SANITIZE T andGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andGteX: needs lo <= l <= r <= hi");
@@ -833,7 +833,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andGteX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
+    // O(log^2 N) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
     // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T andInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andInValRange: needs lo <= l <= r <= hi");

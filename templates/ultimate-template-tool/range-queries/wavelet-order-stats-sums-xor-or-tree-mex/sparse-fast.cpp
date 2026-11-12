@@ -106,7 +106,7 @@ struct WaveletMatrix {
         buildMex();
     }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];
@@ -843,7 +843,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.xorInValRange(i0, i1, lowVal, highVal) : T(0);
     }
 
-    // O(logN) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // O(log^2 N) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T orLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("orLtX: needs lo <= l <= r <= hi");
@@ -851,7 +851,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.orLtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // O(log^2 N) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T orLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("orLteX: needs lo <= l <= r <= hi");
@@ -859,7 +859,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.orLteX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // O(log^2 N) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T orGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("orGtX: needs lo <= l <= r <= hi");
@@ -867,7 +867,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.orGtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // O(log^2 N) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T orGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("orGteX: needs lo <= l <= r <= hi");
@@ -875,7 +875,7 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.orGteX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none (the zeros add
+    // O(log^2 N) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none (the zeros add
     // nothing); needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T orInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("orInValRange: needs lo <= l <= r <= hi");

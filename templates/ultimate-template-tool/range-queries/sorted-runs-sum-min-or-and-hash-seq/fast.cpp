@@ -330,7 +330,8 @@ struct SortedRunsSumMinOrAndHashSeq {
     // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty;
     // needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE tuple<SortedRunsSumMinOrAndHashSeq, SortedRunsSumMinOrAndHashSeq,
-        SortedRunsSumMinOrAndHashSeq> trisect(int l, int r) {
+        SortedRunsSumMinOrAndHashSeq> trisect(int l,
+        int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         SortedRunsSumMinOrAndHashSeq left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
@@ -723,7 +724,8 @@ struct SortedRunsSumMinOrAndHashSeq {
         }
     }
 
-    // a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new nodes (one path) the second
+    // O(logN + logU) amortized -- a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new
+    // nodes (one path) the second
     LEETCODE_NO_SANITIZE void split(int t, long long k, long long nl, long long nh, int& a, int& b) {
         if (k <= 0) { a = 0, b = t; return; }
         if (k >= vn[t].cnt) { a = t, b = 0; return; }
@@ -746,7 +748,7 @@ struct SortedRunsSumMinOrAndHashSeq {
         a = t, b = nb;
     }
 
-    // the union of a and b, overlaid node by node (b's nodes where both have one are freed)
+    // O(logN + logU) amortized -- the union of a and b, overlaid node by node (b's nodes where both have one are freed)
     LEETCODE_NO_SANITIZE int merge(int a, int b, long long nl, long long nh) {
         if (!a || !b) return a ? a : b;
         if (nl == nh) {

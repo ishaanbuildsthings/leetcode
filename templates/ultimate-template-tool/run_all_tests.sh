@@ -59,6 +59,9 @@ done
 if [[ " ${LANGS[*]} " == *" --py "* ]]; then  # the Python letters check, only when Python is chosen
     run range-letters python3 range-query-tests/test_templates.py --letters --py
 fi
+if [[ " ${LANGS[*]} " == *" --cpp "* ]]; then  # every fast.cpp matches what gen_fast.py makes from its source
+    run range-fast-fresh python3 range-query-tests/check_fast_fresh.py
+fi
 run range-generic python3 range-query-tests/test_generic_fast.py
 run range-catalog python3 range-query-tests/check_catalog.py
 

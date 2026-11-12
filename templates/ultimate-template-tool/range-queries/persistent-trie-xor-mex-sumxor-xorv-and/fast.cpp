@@ -711,7 +711,8 @@ struct PersistentXorTrie {
     // res holds the result's bits above h. Along the path that matches bound, each step off it (to the side the bound
     // allows) is a free subtree: take it at once if its result bit beats the path's, else remember the deepest one
     LEETCODE_NO_SANITIZE optional<long long> oneSide(int a, int b, int h, long long bound, long long x, int big,
-        int lower, long long res) const {
+        int lower,
+        long long res) const {
         if (nd[a].C == nd[b].C) return nullopt;
         int fa = -1, fb = 0, fh = 0;
         long long fres = 0;

@@ -251,7 +251,7 @@ struct SparseBitBeats {
         return l > r ? T(0) : T(query(root, lo, hi, l, r, 3));
     }
 
-    // O(logU) -- a[i] = v & FULL; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = v & FULL; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         set(root, lo, hi, i, v & FULL);
@@ -263,27 +263,19 @@ struct SparseBitBeats {
         return rangeAndQuery(i, i);
     }
 
-    LEETCODE_NO_SANITIZE void getAllRec(int i, long long tl, long long tr, vector<T>& out) {
-        if (tl == tr) { out.push_back(nd[i].andAgg); return; }
-        push(i, tl, tr);
-        kids(i);
-        long long tm = tl + (tr - tl) / 2;
-        getAllRec(nd[i].Lc, tl, tm, out), getAllRec(nd[i].Rc, tm + 1, tr, out);
-    }
-
-    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
 
-    // O(logU) -- a[i] = (a[i] + delta) & FULL; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = (a[i] + delta) & FULL; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);

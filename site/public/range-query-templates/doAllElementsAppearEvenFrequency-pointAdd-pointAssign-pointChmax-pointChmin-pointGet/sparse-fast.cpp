@@ -185,25 +185,25 @@ struct SparseXorEven {
         pool[leafOf(i)].v = v;
     }
 
-    // a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return valueAt(i);
     }
 
-    // a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);
     }
 
-    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);

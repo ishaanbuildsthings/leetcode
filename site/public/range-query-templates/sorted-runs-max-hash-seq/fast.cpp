@@ -651,7 +651,8 @@ struct SortedRunsMaxHashSeq {
         }
     }
 
-    // a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new nodes (one path) the second
+    // O(logN + logU) amortized -- a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new
+    // nodes (one path) the second
     LEETCODE_NO_SANITIZE void split(int t, long long k, long long nl, long long nh, int& a, int& b) {
         if (k <= 0) { a = 0, b = t; return; }
         if (k >= vn[t].cnt) { a = t, b = 0; return; }
@@ -674,7 +675,7 @@ struct SortedRunsMaxHashSeq {
         a = t, b = nb;
     }
 
-    // the union of a and b, overlaid node by node (b's nodes where both have one are freed)
+    // O(logN + logU) amortized -- the union of a and b, overlaid node by node (b's nodes where both have one are freed)
     LEETCODE_NO_SANITIZE int merge(int a, int b, long long nl, long long nh) {
         if (!a || !b) return a ? a : b;
         if (nl == nh) {

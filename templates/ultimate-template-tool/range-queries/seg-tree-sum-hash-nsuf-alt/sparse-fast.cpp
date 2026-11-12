@@ -131,7 +131,7 @@ struct SparseSegTree {
         newZero(D);
     }
 
-    // O(logN) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE bool isPalindrome(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("isPalindrome: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -142,7 +142,7 @@ struct SparseSegTree {
         return f == b;
     }
 
-    // O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    // O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
     // throws out_of_range
     LEETCODE_NO_SANITIZE S maxAltSubseqSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxAltSubseqSum: needs lo <= l <= r <= hi");
@@ -152,7 +152,7 @@ struct SparseSegTree {
         return max(a[0], a[1]);
     }
 
-    // O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S minSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -196,7 +196,7 @@ struct SparseSegTree {
         return leaf(leafOf(i, path));
     }
 
-    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
+    // O(logU) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
     // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE U64 rangeHash(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeHash: needs lo <= l <= r <= hi");
@@ -206,7 +206,7 @@ struct SparseSegTree {
         return res;
     }
 
-    // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
+    // O(logU) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
     // else throws out_of_range
     LEETCODE_NO_SANITIZE U64 rangeHashReversed(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeHashReversed: needs lo <= l <= r <= hi");
@@ -225,7 +225,7 @@ struct SparseSegTree {
         return res;
     }
 
-    // O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
+    // O(logU) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
     // lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE bool rangesEqual(long long l1, long long r1, long long l2, long long r2) {
         if (l1 < first || l1 > r1 || r1 > last || l2 < first || l2 > r2 || r2 > last)

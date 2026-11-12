@@ -129,31 +129,32 @@ struct StridedQueries {
         return A[i];
     }
 
-    // a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range
+    // O(3 * sqrt NlogN) -- a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         write(i, v);
     }
 
-    // a[i] += v; needs 0 <= i < n, else throws out_of_range
+    // O(3 * sqrt NlogN) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         write(i, T(A[i] + v));
     }
 
-    // a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(3 * sqrt NlogN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         write(i, max(A[i], v));
     }
 
-    // a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(3 * sqrt NlogN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         write(i, min(A[i], v));
     }
 
-    // min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T stridedMin(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMin: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedMin: needs step >= 1");
@@ -174,7 +175,8 @@ struct StridedQueries {
         return res;
     }
 
-    // max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T stridedMax(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedMax: needs step >= 1");
@@ -195,7 +197,8 @@ struct StridedQueries {
         return res;
     }
 
-    // a[l] & a[l + step] & ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- a[l] & a[l + step] & ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T stridedAndQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedAndQuery: needs step >= 1");

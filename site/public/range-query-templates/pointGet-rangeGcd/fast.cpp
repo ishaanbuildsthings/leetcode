@@ -75,7 +75,7 @@ struct SparseGcd {
         }
     }
 
-    // O(logU) because of the gcd call, O(1) -- gcd of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logU) -- gcd of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeGcd(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeGcd: needs 0 <= l <= r < n");
         int k = 31 - __builtin_clz(r - l + 1);

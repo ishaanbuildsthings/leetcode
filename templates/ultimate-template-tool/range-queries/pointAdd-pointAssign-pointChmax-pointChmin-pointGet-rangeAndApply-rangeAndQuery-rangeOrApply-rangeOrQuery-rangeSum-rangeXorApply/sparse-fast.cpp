@@ -160,53 +160,53 @@ struct SparseBitCountTree {
         return merge(query(pool[x].l, a, m, l, r, down), query(pool[x].r, m + 1, b, l, r, down));
     }
 
-    // O(logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeAndApply(long long l, long long r, T X) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAndApply: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{T(X & FULL), 0});
     }
 
-    // O(logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeOrApply(long long l, long long r, T X) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeOrApply: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{T(~X & FULL), T(X & FULL)});
     }
 
-    // O(logU) -- a[i] ^= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] ^= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeXorApply(long long l, long long r, T X) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeXorApply: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{FULL, T(X & FULL)});
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S rangeSum(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return [&] { S s = 0; for (int b = 0; b < BITS; b++) s += S(res.c[b]) << b; return s; }();
     }
 
-    // O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeAndQuery(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return [&] { T v = 0; for (int b = 0; b < BITS; b++) if (res.c[b] == r - l + 1) v |= T(1) << b; return v; }();
     }
 
-    // O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeOrQuery(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeOrQuery: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return [&] { T v = 0; for (int b = 0; b < BITS; b++) if (res.c[b]) v |= T(1) << b; return v; }();
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         Agg res = query(root, lo, hi, i, i, ID);
         return [&] { T v = 0; for (int b = 0; b < BITS; b++) v |= T(res.c[b]) << b; return v; }();
     }
 
-    // O(logU) -- a[i] = v & FULL; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = v & FULL; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[130], d = 0, y = root;
@@ -222,19 +222,19 @@ struct SparseBitCountTree {
         while (d--) pull(path[d]);
     }
 
-    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);
     }
 
-    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);

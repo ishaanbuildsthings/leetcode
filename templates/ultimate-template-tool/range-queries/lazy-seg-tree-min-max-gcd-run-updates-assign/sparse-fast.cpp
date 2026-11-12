@@ -190,7 +190,7 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
+    // O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     LEETCODE_NO_SANITIZE long long longestEqualRun(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
@@ -252,7 +252,7 @@ struct SparseLazySegTree {
         update(1, D, first, l, r, [&](int t, int s, long long) { applyAssign(t, s, v); });
     }
 
-    // O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeGcd(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);

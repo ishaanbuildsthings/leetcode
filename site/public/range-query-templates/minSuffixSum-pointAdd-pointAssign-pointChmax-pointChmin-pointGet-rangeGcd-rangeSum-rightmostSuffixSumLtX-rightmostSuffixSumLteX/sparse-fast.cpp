@@ -86,7 +86,7 @@ struct SparseSegTree {
         newZero(D);
     }
 
-    // O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S minSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -130,7 +130,7 @@ struct SparseSegTree {
         return leaf(leafOf(i, path));
     }
 
-    // O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeGcd(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);

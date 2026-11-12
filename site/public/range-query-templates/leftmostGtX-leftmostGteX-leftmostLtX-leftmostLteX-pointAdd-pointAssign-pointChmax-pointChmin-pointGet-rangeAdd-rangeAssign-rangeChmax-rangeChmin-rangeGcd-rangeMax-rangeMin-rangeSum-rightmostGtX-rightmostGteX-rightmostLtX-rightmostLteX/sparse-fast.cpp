@@ -274,27 +274,27 @@ struct SparseBeatsGcd {
         return std::gcd(qgcd(Lc[i], tl, tm, ql, qr), qgcd(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(log^2 U logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
+    // amortized O(logU * logU * logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     LEETCODE_NO_SANITIZE void rangeChmin(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeChmin: needs lo <= l <= r <= hi");
         if (l <= r) chmin(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U logU) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
+    // amortized O(logU * logU * logU) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     LEETCODE_NO_SANITIZE void rangeChmax(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeChmax: needs lo <= l <= r <= hi");
         if (l <= r) chmax(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U logU) -- a[i] += x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // amortized O(logU * logU * logU) -- a[i] += x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeAdd(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
         if (l <= r) add(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U logU) -- a[i] = x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // amortized O(logU * logU * logU) -- a[i] = x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeAssign(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
         if (l <= r) assign(root, lo, hi, l, r, x);
@@ -330,25 +330,25 @@ struct SparseBeatsGcd {
         return rangeMax(i, i);
     }
 
-    // a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         rangeAssign(i, i, v);
     }
 
-    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         rangeChmax(i, i, v);
     }
 
-    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         rangeChmin(i, i, v);
     }
 
-    // a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         rangeAdd(i, i, delta);

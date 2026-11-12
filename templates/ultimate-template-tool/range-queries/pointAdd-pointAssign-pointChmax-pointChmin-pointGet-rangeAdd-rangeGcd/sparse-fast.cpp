@@ -134,7 +134,7 @@ struct SparseRangeAddRangeGcd {
         return res;
     }
 
-    // O(logU logV) -- adds x to every a[l..r], x may be negative; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- adds x to every a[l..r], x may be negative; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeAdd(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
         if (l > r) return;
@@ -148,7 +148,7 @@ struct SparseRangeAddRangeGcd {
         return prefix(i);
     }
 
-    // O(logU + logV) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0); needs
+    // O(logU) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0); needs
     // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeGcd(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
@@ -157,25 +157,25 @@ struct SparseRangeAddRangeGcd {
         return res;
     }
 
-    // O(logU logV) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         rangeAdd(i, i, delta);
     }
 
-    // O(logU logV) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         rangeAdd(i, i, v - prefix(i));
     }
 
-    // O(logU logV) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         T cur = prefix(i); if (v > cur) rangeAdd(i, i, v - cur);
     }
 
-    // O(logU logV) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         T cur = prefix(i); if (v < cur) rangeAdd(i, i, v - cur);
