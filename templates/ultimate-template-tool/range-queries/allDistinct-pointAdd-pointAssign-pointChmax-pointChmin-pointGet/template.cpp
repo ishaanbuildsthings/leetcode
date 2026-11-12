@@ -15,13 +15,13 @@ using ll = long long;
 //   pointChmax: log(N)
 //   pointChmin: log(N)
 //   pointGet: 1
-//   build: N*log(N)
+//   build: N
 // @memory:
 //   layout: 2n-iterative
 //   node: tree[2*N]
 //   tags: none
 //   other: a[1*N] chains[1*N]
-//   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (std::set); the build is O(N log N), one std::map lookup per element
+//   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (std::set); the build is O(N): integer values group in a salted hash map (other types use std::map, O(N log N))
 
 // "Are all values in a[l..r] distinct?" with point updates. All indices 0-based, ranges inclusive [l, r].
 // nxt[i] = next j > i with a[j] == a[i], else n. a[l..r] has a repeat iff some i in [l, r] has nxt[i] <= r,
@@ -30,10 +30,21 @@ using ll = long long;
 // T: any type usable as a std::map key.
 template <typename T>
 struct DistinctTree {
+    struct SaltedHash {  // splitmix64 with a per-run salt, so no fixed input makes the hash map slow
+        size_t operator()(unsigned long long x) const {
+            static const unsigned long long salt = chrono::steady_clock::now().time_since_epoch().count();
+            x += salt + 0x9e3779b97f4a7c15ULL;
+            x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+            x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+            return x ^ (x >> 31);
+        }
+    };
+    // integer values: a hash map (O(1) expected per lookup, so the build is O(N)); others (pairs, strings): std::map
+    using Chains = conditional_t<is_integral_v<T>, unordered_map<T, set<int>, SaltedHash>, map<T, set<int>>>;
     int n;
     vector<T> a;
     vector<int> tree;          // min tree over nxt; leaves are tree[n + i] = nxt[i]
-    map<T, set<int>> chains;   // value -> sorted positions holding it
+    Chains chains;   // value -> sorted positions holding it
 
     // O(N log N) -- one std::map lookup per element (positions arrive in increasing order, so each set insert is an
     // amortized O(1) hint insert at the end)

@@ -21,8 +21,7 @@
 # every position starts at 0.
 # Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of zeros.
 # Each node keeps the summary (ln, pre, suf, best, lv, rv); merging is not commutative, so a query folds a left and a
-# right
-# accumulator, tracking each node's length k (a node at level s covers 2^s slots).
+# right accumulator, tracking each node's length k (a node at level s covers 2^s slots).
 
 
 

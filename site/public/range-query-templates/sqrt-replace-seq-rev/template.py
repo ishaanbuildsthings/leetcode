@@ -44,10 +44,9 @@ from random import getrandbits
 # array is cut into blocks of about sqrt(N) values. Inside a block equal values form a class, and the classes are
 # joined by a union-find: rangeReplace(l, r, x, y) on a whole block renames x's class to y, or joins it into y's, in
 # O(1); rangeAssign joins every class. Only the (at most two) partly covered blocks are touched value by value. Any
-# values work (each block hashes them). The blocks form a list you can insert into anywhere, reverse, rotate, cut
-# pieces out of (that is how to erase) and paste back; a[i] then walks the list (O(sqrt(N))). All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies.
+# values work (each block hashes them). The blocks form a list you can insert into anywhere, reverse, rotate, cut pieces
+# out of (that is how to erase) and paste back; a[i] then walks the list (O(sqrt(N))). All indices 0-based, ranges
+# inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 class _Block:
     # a run of the array: cls[k] is the class of its k-th value (read backwards when rev). Classes form a union-find
     # (par);

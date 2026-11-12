@@ -17,14 +17,6 @@
 #   countLtX: log(U)
 #   countLteX: log(U)
 #   firstIndex: log(U)
-#   kth: log(U)
-#   largestLtX: log(U)
-#   largestLteX: log(U)
-#   lastIndex: log(U)
-#   max: 1
-#   medianHigh: log(U)
-#   medianLow: log(U)
-#   min: 1
 #   gcdOfAll: 1
 #   gcdOfGtX: log(U)*log(U)
 #   gcdOfGteX: log(U)*log(U)
@@ -35,6 +27,14 @@
 #   gcdOfLtX: log(U)*log(U)
 #   gcdOfLteX: log(U)*log(U)
 #   gcdOfSmallestK: log(U)*log(U)
+#   kth: log(U)
+#   largestLtX: log(U)
+#   largestLteX: log(U)
+#   lastIndex: log(U)
+#   max: 1
+#   medianHigh: log(U)
+#   medianLow: log(U)
+#   min: 1
 #   pop: log(U)*log(U)
 #   popMax: log(U)*log(U)
 #   popMin: log(U)*log(U)
@@ -54,12 +54,13 @@
 #   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-# each node keeping how many copies, their gcd are below it. Sparse: dicts keyed by heap
-# index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend
-# by counts.
+# each node keeping how many copies, their gcd are below it. Sparse: dicts keyed by heap index over a power-of-two cover
+# of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend by counts.
 
 
 from math import gcd
+
+
 class ValueTreeMultiset:
     __slots__ = ("lo", "hi", "B", "L", "R", "c", "g", "n", "mn", "mx", "d")
 
@@ -394,8 +395,7 @@ class ValueTreeMultiset:
         return v
 
     # O(logU * logU) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there, e.g.
-    # on an
-    # empty set)
+    # on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -411,8 +411,7 @@ class ValueTreeMultiset:
         return k
 
     # O(logU * logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't there,
-    # e.g. on
-    # an empty set)
+    # e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

@@ -4,8 +4,8 @@
 using namespace std;
 using ll = long long;
 
-// Minimum adjacent swaps to turn sequence into target, or -1 if target isn't a rearrangement of sequence
-// sequence, target: vectors or strings of values that compare with each other: int, long long, negatives, chars ok
+// Minimum adjacent swaps to turn sequence into target, or -1 if target isn't a rearrangement of sequence sequence,
+// target: vectors or strings of values that compare with each other: int, long long, negatives, chars ok
 template <typename Seq>
 long long minAdjacentSwapsToTarget(const Seq& sequence, const Seq& target) {
     int n = sequence.size();

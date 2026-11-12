@@ -3,8 +3,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// sum over every pair i < j of the AND of arr[i] and arr[j], mod mod (mod < 2^62)
-// values must be >= 0; B = number of bits in max(arr)
+// sum over every pair i < j of the AND of arr[i] and arr[j], mod mod (mod < 2^62) values must be >= 0; B = number of
+// bits in max(arr)
 // Each bit is counted on its own: a pair has bit b exactly when both have it
 // sumOfPairAndsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 3   // 1&2 + 1&3 + 2&3 = 0 + 1 + 2
 // O(N * B)

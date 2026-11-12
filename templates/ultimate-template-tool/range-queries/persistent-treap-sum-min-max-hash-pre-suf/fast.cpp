@@ -67,10 +67,10 @@ using ll = long long;
 // Persistent implicit treap with composable aggregates: an array you can insert into anywhere, rotate, cut pieces out
 // of (that is how to erase), paste them back and copy (copy(l, r): a[l..r] as a treap of its own in O(logN) however
 // long, since the copy shares the same nodes; this one is unchanged); each node keeps its sum, its min, its max, its
-// forward / backward hash (and B^size), its best prefix sum, its best suffix sum over its subtree. No node changes
-// once another tree can see it: an op copies the nodes on its paths, so a copy and its original never affect each
-// other. Lengths and indices are long long. All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array; searches return -1 when nothing qualifies.
+// forward / backward hash (and B^size), its best prefix sum, its best suffix sum over its subtree. No node changes once
+// another tree can see it: an op copies the nodes on its paths, so a copy and its original never affect each other.
+// Lengths and indices are long long. All indices 0-based, ranges inclusive [l, r], an index always the position in the
+// CURRENT array; searches return -1 when nothing qualifies.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -787,8 +787,7 @@ struct PersistentTreap {
     }
 
     // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    // search on
-    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    // search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
         if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");

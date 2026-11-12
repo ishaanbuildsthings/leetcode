@@ -4,8 +4,7 @@
 using namespace std;
 // @if masterFileOnly
 // This is the master file: it holds every op, and doesn't compile as it stands, because the @if / @else blocks below
-// are
-// alternatives. Pick your ops on the Strings tab of the site and copy the result from there.
+// are alternatives. Pick your ops on the Strings tab of the site and copy the result from there.
 // @endif
 
 // Palindromic tree (eertree) over a sequence: every distinct palindromic substring is one node inside, but every method
@@ -319,14 +318,12 @@ private:
     // @endif
     // @if append+pop+itemLinks
     // itemLink[node] = for each item x, the longest proper palindromic suffix of node with x right before it (absent:
-    // the
-    // imaginary root); a plain list, since append copies it anyway
+    // the imaginary root); a plain list, since append copies it anyway
     vector<vector<pair<E, int>>> itemLink = vector<vector<pair<E, int>>>(2);
     // @endif
     // @if append+pop+persistentLinks
     // the same links as a persistent array per palindrome: item -> id, then a binary trie over the id's bits where a
-    // new
-    // palindrome copies only the O(log alphabet) trie nodes on one path of its suffix link's trie
+    // new palindrome copies only the O(log alphabet) trie nodes on one path of its suffix link's trie
     struct ItemHash {
         size_t operator()(const E& x) const { return KeyHash::itemHash(x); }
     };

@@ -24,9 +24,9 @@ using ll = long long;
 // Letters version: the values are characters (Python: a list of characters, e.g. list(s); C++: T = char), and only the
 // operations that make sense on characters are listed.
 // rangeChmax + point ops with no range aggregates. All indices 0-based, ranges inclusive [l, r].
-// rangeChmax composes with itself in any order, so a range update only tags the O(logN) covering nodes and
-// pointGet folds the tags on the leaf-to-root path. Only overwrites (pointAssign etc.) push those tags off
-// the path first, so they aren't re-applied to the new value. T: int, long long, ...
+// rangeChmax composes with itself in any order, so a range update only tags the O(logN) covering nodes and pointGet
+// folds the tags on the leaf-to-root path. Only overwrites (pointAssign etc.) push those tags off the path first, so
+// they aren't re-applied to the new value. T: int, long long, ...
 // FAST MODE drawbacks compared with letters.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.

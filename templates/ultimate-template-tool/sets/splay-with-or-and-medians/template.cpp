@@ -68,8 +68,8 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-// keeps its value, its copies, and the copies, OR, AND in its subtree; every operation splays the
-// last node it touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
+// keeps its value, its copies, and totals over its subtree: copies, OR, AND; every operation splays the last node it
+// touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // T: an integer type; sums in S (long long for small T).
 template <typename T>
@@ -248,8 +248,8 @@ struct SplayMultiset {
         } else {
             if (!n) return;
         }
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
+        // each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        // leaves the tracked value
         if (x < low.v) low.before += c;
         else if (x == low.v) low.c += c;
         long long r = (n + 1) / 2;

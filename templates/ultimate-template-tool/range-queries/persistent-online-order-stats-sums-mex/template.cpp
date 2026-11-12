@@ -48,10 +48,10 @@ using ll = long long;
 //   other: root[1*N] arr[1*N] mexRoot[1*N] ML[1*N*log(U)] MR[1*N*log(U)] MN[1*N*log(U)]
 //   note: N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)
 
-// An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
-// front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is
-// version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal,
-// ...) can be anything. 0-indexed, inclusive.
+// An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so
+// the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1
+// minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be
+// anything. 0-indexed, inclusive.
 // rangeMex: a second persistent tree, over the values 0..min(valHi, 2^30) + 1, holding each value's last index.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>

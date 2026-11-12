@@ -27,11 +27,10 @@ MASK = (1 << 64) - 1
 
 class XorEven:
     # Range "is every value's count even?" via XOR hashing.
-    # Each distinct value gets a 64-bit tag, splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a
-    # random per-run seed, so equal values share a tag, distinct ints never collide, and no table is needed.
-    # XOR over a range cancels tags
-    # in pairs, so an all-even range hashes to 0. False positives (nonzero counts
-    # that happen to cancel) have probability ~q/2^64.
+    # Each distinct value gets a 64-bit tag, splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random
+    # per-run seed, so equal values share a tag, distinct ints never collide, and no table is needed.
+    # XOR over a range cancels tags in pairs, so an all-even range hashes to 0. False positives (nonzero counts that
+    # happen to cancel) have probability ~q/2^64.
     # XOR is invertible, so a Fenwick tree suffices — no segment tree needed.
     # Values may be any hashable type. O(n) build, O(log n) update, O(log n) query.
     # All indices 0-based, all ranges inclusive.

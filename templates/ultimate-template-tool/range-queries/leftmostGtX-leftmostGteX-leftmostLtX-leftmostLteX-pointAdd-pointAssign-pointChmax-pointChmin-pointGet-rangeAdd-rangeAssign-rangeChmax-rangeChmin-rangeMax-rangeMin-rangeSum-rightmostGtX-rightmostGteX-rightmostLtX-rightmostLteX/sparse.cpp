@@ -48,8 +48,7 @@ using ll = long long;
 // node's own mx / mn doubles as its pending clamp: push clamps each child to it, so there is no chmin / chmax tag.
 // There is no assign tag either: when all of a node's values are equal (mn == mx), push hands that value to both
 // children as an assign. An add shifts everything a node keeps and goes in the one add tag. Amortized O(logU * logU)
-// per
-// update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
+// per update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct SparseChminChmaxBeats {
@@ -365,8 +364,8 @@ struct SparseChminChmaxBeats {
 
     static constexpr long long NONE = LLONG_MIN;  // ("no index": any long long can be an index here)
 
-    // the first index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the first index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     long long firstPass(int i, long long tl, long long tr, long long l, long long r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return NONE;
@@ -376,8 +375,8 @@ struct SparseChminChmaxBeats {
         return res != NONE ? res : firstPass(nd[i].Rc, tm + 1, tr, l, r, ok);
     }
 
-    // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     long long lastPass(int i, long long tl, long long tr, long long l, long long r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return NONE;

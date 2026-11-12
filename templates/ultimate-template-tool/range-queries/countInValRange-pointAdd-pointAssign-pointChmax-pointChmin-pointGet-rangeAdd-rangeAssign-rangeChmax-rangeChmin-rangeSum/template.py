@@ -32,12 +32,7 @@
 # O(n log n) build
 
 # O(root n * log n) for:
-# range add
-# range chmin
-# range chmax
-# range sum
-# range assign
-# range count values in value range a...b
+# range add range chmin range chmax range sum range assign range count values in value range a...b
 
 # O(root n) pointAssign
 
@@ -48,17 +43,13 @@
 # the bottom for guidance.
 
 # Technically, we can get O(n * root(n * log n)) for the range operations by making _refreshSortedBlockAndPfSum take
-# rootN time
-# normally we update some values in self.valsBeforeTags (unsorted space) directly, then refresh the block
-# instead, we will modify sortedBeforeTag to store (value, indexInUnSortedSpace) instead of just values
-# now when we want to update some positions in self.valsBeforeTags and then call refresh, instead we loop over sorted
-# space
-# any index (which we now have access to from the tuple) that is getting updated goes into one bucket, otherwise it goes
-# into another bucket
-# each of these two buckets have a sorted value range since it came from a sorted array
-# for the bucket that gets updated, we apply our update operations, whether assign, add, chmin, chmax, it will stay
-# sorted
-# now we merge the two sorted lists back in O(rootN)
+# rootN time normally we update some values in self.valsBeforeTags (unsorted space) directly, then refresh the block
+# instead, we will modify sortedBeforeTag to store (value, indexInUnSortedSpace) instead of just values now when we want
+# to update some positions in self.valsBeforeTags and then call refresh, instead we loop over sorted space any index
+# (which we now have access to from the tuple) that is getting updated goes into one bucket, otherwise it goes into
+# another bucket each of these two buckets have a sorted value range since it came from a sorted array for the bucket
+# that gets updated, we apply our update operations, whether assign, add, chmin, chmax, it will stay sorted now we merge
+# the two sorted lists back in O(rootN)
 
 from bisect import bisect_left, bisect_right, insort
 from math import isqrt
@@ -560,9 +551,9 @@ class SqrtBlocks_CLEAN_CODE:
         self.pfSum[b] = pf
     
     # O(Root(N))
-    # update both valsBeforeTags and sortedBeforeTags (and pfSum) to now have lazies applied
-    # we can update each of those separately and safely, instead of updating valsBeforeTags and re-sorting
-    # since if we apply tags to a sorted list, it stays sorted
+    # update both valsBeforeTags and sortedBeforeTags (and pfSum) to now have lazies applied we can update each of those
+    # separately and safely, instead of updating valsBeforeTags and re-sorting since if we apply tags to a sorted list,
+    # it stays sorted
     def _pushLaziesAndClearLazies(self, b):
         add, chmin, chmax = self.lazyAdd[b], self.lazyChmin[b], self.lazyChmax[b]
         # not required, prune
@@ -634,9 +625,8 @@ class SqrtBlocks_CLEAN_CODE:
         self.pfSum[b] = pf
     
     # O(root(N) * logN)
-    # instead of manually writing chmin, chmax, assign, and add
-    # define a function which tells us how to update lazyTags, and also how to update individual indices for the
-    # partials
+    # instead of manually writing chmin, chmax, assign, and add define a function which tells us how to update lazyTags,
+    # and also how to update individual indices for the partials
     def _rangeApply(self, l, r, tagOp, indexOp):
         if l > r:
             return

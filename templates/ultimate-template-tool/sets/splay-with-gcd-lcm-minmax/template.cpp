@@ -12,16 +12,6 @@ using ll = long long;
 // @complexities:
 //   add: log(N)*log(U) amortized
 //   addCount: log(N)*log(U) amortized
-//   lcmOfAll: 1
-//   lcmOfGtX: log(N)*log(U) amortized
-//   lcmOfGteX: log(N)*log(U) amortized
-//   lcmOfInValRange: log(N)*log(U) amortized
-//   lcmOfKthLargestRange: log(N)*log(U) amortized
-//   lcmOfKthSmallestRange: log(N)*log(U) amortized
-//   lcmOfLargestK: log(N)*log(U) amortized
-//   lcmOfLtX: log(N)*log(U) amortized
-//   lcmOfLteX: log(N)*log(U) amortized
-//   lcmOfSmallestK: log(N)*log(U) amortized
 //   clear: 1 amortized
 //   count: log(N) amortized
 //   countDistinct: 1
@@ -31,14 +21,6 @@ using ll = long long;
 //   countLtX: log(N) amortized
 //   countLteX: log(N) amortized
 //   firstIndex: log(N) amortized
-//   kth: log(N) amortized
-//   largestLtX: log(N) amortized
-//   largestLteX: log(N) amortized
-//   lastIndex: log(N) amortized
-//   max: 1
-//   medianHigh: log(N) amortized
-//   medianLow: log(N) amortized
-//   min: 1
 //   gcdOfAll: 1
 //   gcdOfGtX: log(N)*log(U) amortized
 //   gcdOfGteX: log(N)*log(U) amortized
@@ -49,6 +31,24 @@ using ll = long long;
 //   gcdOfLtX: log(N)*log(U) amortized
 //   gcdOfLteX: log(N)*log(U) amortized
 //   gcdOfSmallestK: log(N)*log(U) amortized
+//   kth: log(N) amortized
+//   largestLtX: log(N) amortized
+//   largestLteX: log(N) amortized
+//   lastIndex: log(N) amortized
+//   lcmOfAll: 1
+//   lcmOfGtX: log(N)*log(U) amortized
+//   lcmOfGteX: log(N)*log(U) amortized
+//   lcmOfInValRange: log(N)*log(U) amortized
+//   lcmOfKthLargestRange: log(N)*log(U) amortized
+//   lcmOfKthSmallestRange: log(N)*log(U) amortized
+//   lcmOfLargestK: log(N)*log(U) amortized
+//   lcmOfLtX: log(N)*log(U) amortized
+//   lcmOfLteX: log(N)*log(U) amortized
+//   lcmOfSmallestK: log(N)*log(U) amortized
+//   max: 1
+//   medianHigh: log(N) amortized
+//   medianLow: log(N) amortized
+//   min: 1
 //   pop: log(N)*log(U) amortized
 //   popMax: log(N)*log(U) amortized
 //   popMin: log(N)*log(U) amortized
@@ -67,13 +67,14 @@ using ll = long long;
 //   other: children[2*N] parent[1*N]
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 // lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest T
-// (2^63 - 1 for long long) by default; pass your own, e.g. SplayMultiset<long long> s(1000000000LL). Removing values
-// is safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap are
-// gone, lcmOf... is exact again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+// (2^63 - 1 for long long) by default; pass your own, e.g. SplayMultiset<long long> s(1000000000LL). Removing values is
+// safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone,
+// lcmOf... is exact again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives
+// the identity: gcd 0, LCM 1.
 
 // Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-// keeps its value, its copies, and the copies, gcd, LCM in its subtree; every operation splays the
-// last node it touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
+// keeps its value, its copies, and totals over its subtree: copies, gcd, LCM; every operation splays the last node it
+// touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // T: an integer type; sums in S (long long for small T).
 template <typename T>
@@ -383,13 +384,15 @@ struct SplayMultiset {
         return res;
     }
 
-    // O(logN * logU amortized) -- add one copy of x
+    // O(logN * logU amortized) -- add one copy of x; throws invalid_argument if x < 0
     void add(T x) {
+        if (x < 0) throw invalid_argument("SplayMultiset::add: negative value (the LCM needs values >= 0)");
         addRaw(x, 1);
     }
 
-    // O(logN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(logN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0); throws invalid_argument if val < 0
     void addCount(T val, long long cnt) {
+        if (val < 0) throw invalid_argument("SplayMultiset::addCount: negative value (the LCM needs values >= 0)");
         if (cnt > 0) addRaw(val, cnt);
     }
 
@@ -438,8 +441,8 @@ struct SplayMultiset {
 
     // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k largest values; k is a COUNT, not an index: k =
     // 0 takes no values
-    // (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2
-    // takes 5 and 5); throws out_of_range unless 0 <= k <= size
+    // (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    // throws out_of_range unless 0 <= k <= size
     T lcmOfLargestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("lcmOfLargestK: needs 0 <= k <= size");
         return k ? lcmGe(kthAt(n - k + 1)) : T(1);
@@ -458,8 +461,8 @@ struct SplayMultiset {
 
     // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k smallest values; k is a COUNT, not an index: k =
     // 0 takes no values
-    // (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2
-    // takes 2 and 2); throws out_of_range unless 0 <= k <= size
+    // (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    // throws out_of_range unless 0 <= k <= size
     T lcmOfSmallestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("lcmOfSmallestK: needs 0 <= k <= size");
         return k ? lcmLe(kthAt(k)) : T(1);
@@ -659,8 +662,7 @@ struct SplayMultiset {
     }
 
     // O(logN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    // there,
-    // e.g. on an empty set)
+    // there, e.g. on an empty set)
     long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
@@ -668,8 +670,7 @@ struct SplayMultiset {
     }
 
     // O(logN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g.
-    // on an
-    // empty set)
+    // on an empty set)
     long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
@@ -677,8 +678,7 @@ struct SplayMultiset {
     }
 
     // O(logN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    // isn't
-    // there, e.g. on an empty set)
+    // isn't there, e.g. on an empty set)
     long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

@@ -19,8 +19,8 @@
 #   other: none
 #   note: each internal node holds one pending affine map x -> x * M + K (% MOD); val holds the leaf values
 
-# Range add / assign / multiply / affine % MOD + point ops, no range aggregates. All indices 0-based, ranges
-# inclusive. Every update is an affine map (m, k): x -> m * x + k (% MOD):
+# Range add / assign / multiply / affine % MOD + point ops, no range aggregates. All indices 0-based, ranges inclusive.
+# Every update is an affine map (m, k): x -> m * x + k (% MOD):
 #   add v -> (1, v)    mult m -> (m, 0)    assign v -> (0, v)    affine (m, b) -> (m, b)
 # Affine maps compose but not commutatively, so the paths to l and r are pushed before tagging.
 # Values are kept in [0, mod);

@@ -19,8 +19,8 @@
 #   note: a small step is a range add on that step's Fenwick tree of differences, a big step walks its positions, and a point read adds up every small step
 
 # Strided add with point reads and writes: stridedAdd(l, r, step, v) adds v to a[l], a[l + step], ... up to at most r
-# (the last position used may be below r). A strided sum on top of this has no good bound: two different steps
-# overlap in a pattern that depends on both. All indices 0-based, ranges inclusive.
+# (the last position used may be below r). A strided sum on top of this has no good bound: two different steps overlap
+# in a pattern that depends on both. All indices 0-based, ranges inclusive.
 from math import log2, sqrt
 
 

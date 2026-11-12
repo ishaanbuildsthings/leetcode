@@ -50,8 +50,8 @@ struct SparseMaxSubarrayTree {
         return (int)pool.size() - 1;
     }
 
-    // walk from the root to leaf i, creating missing nodes; fills path[] with the nodes above the leaf and
-    // returns the leaf. len[] / starts[] (when given) receive each path node's range.
+    // walk from the root to leaf i, creating missing nodes; fills path[] with the nodes above the leaf and returns the
+    // leaf. len[] / starts[] (when given) receive each path node's range.
     int descend(long long i, int* path, int& depth, long long* starts = nullptr, long long* ends = nullptr) {
         if (!root) root = make();
         int x = root;

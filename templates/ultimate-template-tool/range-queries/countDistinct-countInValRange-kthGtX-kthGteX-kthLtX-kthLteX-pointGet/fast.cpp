@@ -216,8 +216,8 @@ struct MergeSortTree {
     }
 };
 
-// Static range count distinct: countDistinct(l, r) = # of i in [l, r] whose next occurrence nxt[i] > r,
-// a count-gte query on the MergeSortTree above built over nxt[].
+// Static range count distinct: countDistinct(l, r) = # of i in [l, r] whose next occurrence nxt[i] > r, a count-gte
+// query on the MergeSortTree above built over nxt[].
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.

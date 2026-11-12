@@ -47,9 +47,9 @@ using ll = long long;
 
 // Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
 // (that is how to erase) and paste them back in O(logN) expected each, and find any value's index (values distinct);
-// each node keeps its sum, its max, its first / last value and the equal runs at its ends and inside over its
-// subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches
-// return -1 when nothing qualifies.
+// each node keeps its sum, its max, its first / last value and the equal runs at its ends and inside over its subtree.
+// All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1
+// when nothing qualifies.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct ImplicitTreap {

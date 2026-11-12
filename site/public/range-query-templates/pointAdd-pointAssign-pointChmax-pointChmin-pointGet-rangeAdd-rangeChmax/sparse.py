@@ -20,8 +20,8 @@
 
 NEG = float("-inf")
 
-# Range add / chmax + point ops. A tag is the map x -> max(lo, x + add); these maps compose into the same
-# form. Only leaves' values matter, so nothing is pulled.
+# Range add / chmax + point ops. A tag is the map x -> max(lo, x + add); these maps compose into the same form. Only
+# leaves' values matter, so nothing is pulled.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
 # into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags
 # down and apply them to what they return, so they create no nodes. Sparse: lists of nodes; node 0 is the shared

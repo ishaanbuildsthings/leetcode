@@ -32,8 +32,8 @@ using ll = long long;
 // Values live in [0, 2^bits). Each node counts, for every bit, how many of its values have that bit set. A xor X
 // flips the bits set in X: per bit, a flip turns the count c into length - c, so the tag is just the mask to
 // flip (this is BitCountTree without the AND tag that only and= / or= need).
-// So every update is an ordinary lazy tag, a true O(log N * bits) with no amortization (unlike bitwise beats,
-// which cannot apply xor to a node whose values disagree on a bit). Sum = sum over bits of count * 2^bit.
+// So every update is an ordinary lazy tag, a true O(log N * bits) with no amortization (unlike bitwise beats, which
+// cannot apply xor to a node whose values disagree on a bit). Sum = sum over bits of count * 2^bit.
 // Iterative 2N lazy tree; a covering node at level s is a perfect subtree of 2^s leaves.
 // T: int, long long, ...; sums accumulate in S (long long for small T).
 template <typename T>

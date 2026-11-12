@@ -3,9 +3,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Every start index whose rotation is the lexicographically largest one (ascending)
-// more than one only when the sequence repeats: those rotations are all equal
-// works on a string or vector of any element type that has < (char, int, long long, pair, ...)
+// Every start index whose rotation is the lexicographically largest one (ascending) more than one only when the
+// sequence repeats: those rotations are all equal works on a string or vector of any element type that has < (char,
+// int, long long, pair, ...)
 // maxRotationIndices(string("bcabca")) -> {1, 4}
 // maxRotationIndices(vector<int>{2, -1, 2, -1}) -> {0, 2}
 // O(n) time, O(1) extra space besides the result

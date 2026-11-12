@@ -20,8 +20,8 @@
 #   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes
 
 # Range affine maps % MOD (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v) with range sum % MOD,
-# plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into
-# the same form, and a node's sum of k slots becomes mul * sum + add * k.
+# plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same form,
+# and a node's sum of k slots becomes mul * sum + add * k.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
 # into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags
 # down and apply them to what they return, so they create no nodes. Sparse: lists of nodes; node 0 is the shared

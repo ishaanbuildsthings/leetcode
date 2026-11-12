@@ -52,8 +52,7 @@
 # Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
 # (that is how to erase) and paste them back in O(logN) expected each, with rangeFloorDiv, rangeMod, rangeFloorSqrt;
 # each node keeps its sum, its max, its best prefix sum, its best suffix sum over its subtree. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies.
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 from math import isqrt
 

@@ -46,8 +46,7 @@
 # (that is how to erase) and paste them back in O(logN) expected each, and find any value's index (values distinct);
 # each node keeps its xor, its AND, its OR, its gcd, its first / last value and the equal runs at its ends and inside,
 # its best alternating (+ - + ...) subsequence sum for each start / end sign over its subtree. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies.
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 from math import gcd
 

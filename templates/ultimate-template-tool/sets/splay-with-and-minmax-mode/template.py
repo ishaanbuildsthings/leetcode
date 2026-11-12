@@ -56,7 +56,7 @@
 from random import getrandbits
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-# keeps its value, its copies, and the copies, AND in its subtree; every operation splays the
+# keeps its value, its copies, and totals over its subtree: copies, AND; every operation splays the
 # last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
 # node 0 is the empty tree) and removed nodes are reused.
 

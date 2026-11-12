@@ -49,9 +49,8 @@
 # long, since the copy shares the same nodes; this one is unchanged), with rangeAdd, rangeAssign; each node keeps its
 # sum, its max, its gcd over its subtree. No node changes once another tree can see it: an op copies the nodes on its
 # paths, so a copy and its original never affect each other. Lengths and indices are long long. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies. Lazy tags mean "already applied to this node, not yet to its children"; a pending assign comes before a
-# pending add.
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
+# Lazy tags mean "already applied to this node, not yet to its children"; a pending assign comes before a pending add.
 import random
 from math import gcd
 

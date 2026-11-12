@@ -28,8 +28,8 @@ using ll = long long;
 // is past r, so countDistinct(l, r) = #{i in [l, r] : nxt[i] > r}, a 2D count; an assign changes at most 3 nxt values.
 // Positions with nxt[i] == n (last occurrences) always count, so a plain Fenwick tree tracks them. Every other nxt
 // value is a distinct position < n, kept in a Fenwick tree of order-statistics sets (GCC pb_ds): node j holds the nxt
-// values of the lowbit(j) positions it covers, so a prefix count of "nxt > r" visits log N nodes with one
-// order_of_key each. chains[v] = the positions holding value v, for the predecessor / successor an assign rewires.
+// values of the lowbit(j) positions it covers, so a prefix count of "nxt > r" visits log N nodes with one order_of_key
+// each. chains[v] = the positions holding value v, for the predecessor / successor an assign rewires.
 // T: any type usable as a std::map key.
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>

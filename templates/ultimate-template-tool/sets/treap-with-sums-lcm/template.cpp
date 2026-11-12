@@ -12,16 +12,6 @@ using ll = long long;
 // @complexities:
 //   add: log(N)*log(U) expected
 //   addCount: log(N)*log(U) expected
-//   lcmOfAll: 1
-//   lcmOfGtX: log(N)*log(U) expected
-//   lcmOfGteX: log(N)*log(U) expected
-//   lcmOfInValRange: log(N)*log(U) expected
-//   lcmOfKthLargestRange: log(N)*log(U) expected
-//   lcmOfKthSmallestRange: log(N)*log(U) expected
-//   lcmOfLargestK: log(N)*log(U) expected
-//   lcmOfLtX: log(N)*log(U) expected
-//   lcmOfLteX: log(N)*log(U) expected
-//   lcmOfSmallestK: log(N)*log(U) expected
 //   clear: 1 amortized
 //   count: log(N) expected
 //   countDistinct: 1
@@ -35,6 +25,16 @@ using ll = long long;
 //   largestLtX: log(N) expected
 //   largestLteX: log(N) expected
 //   lastIndex: log(N) expected
+//   lcmOfAll: 1
+//   lcmOfGtX: log(N)*log(U) expected
+//   lcmOfGteX: log(N)*log(U) expected
+//   lcmOfInValRange: log(N)*log(U) expected
+//   lcmOfKthLargestRange: log(N)*log(U) expected
+//   lcmOfKthSmallestRange: log(N)*log(U) expected
+//   lcmOfLargestK: log(N)*log(U) expected
+//   lcmOfLtX: log(N)*log(U) expected
+//   lcmOfLteX: log(N)*log(U) expected
+//   lcmOfSmallestK: log(N)*log(U) expected
 //   max: log(N) expected
 //   medianHigh: log(N) expected
 //   medianLow: log(N) expected
@@ -69,12 +69,13 @@ using ll = long long;
 //   other: children[2*N] prio[1*N]
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 // lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest T
-// (2^63 - 1 for long long) by default; pass your own, e.g. TreapMultiset<long long> s(1000000000LL). Removing values
-// is safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap are
-// gone, lcmOf... is exact again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+// (2^63 - 1 for long long) by default; pass your own, e.g. TreapMultiset<long long> s(1000000000LL). Removing values is
+// safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone,
+// lcmOf... is exact again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives
+// the identity: gcd 0, LCM 1.
 
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies, sum, LCM in its subtree. Each multiset owns its node pool
+// its value, its copies, and totals over its subtree: copies, sum, LCM. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 template <typename T>
@@ -355,13 +356,15 @@ struct TreapMultiset {
         return res;
     }
 
-    // O(logN * logU expected) -- add one copy of x
+    // O(logN * logU expected) -- add one copy of x; throws invalid_argument if x < 0
     void add(T x) {
+        if (x < 0) throw invalid_argument("TreapMultiset::add: negative value (the LCM needs values >= 0)");
         addRaw(x, 1);
     }
 
-    // O(logN * logU expected) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(logN * logU expected) -- add cnt copies of val (nothing if cnt <= 0); throws invalid_argument if val < 0
     void addCount(T val, long long cnt) {
+        if (val < 0) throw invalid_argument("TreapMultiset::addCount: negative value (the LCM needs values >= 0)");
         if (cnt > 0) addRaw(val, cnt);
     }
 
@@ -410,8 +413,8 @@ struct TreapMultiset {
 
     // O(logN * logU expected) -- LCM (-1 once it passes cap) of the k largest values; k is a COUNT, not an index: k = 0
     // takes no values
-    // (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2
-    // takes 5 and 5); throws out_of_range unless 0 <= k <= size
+    // (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    // throws out_of_range unless 0 <= k <= size
     T lcmOfLargestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("lcmOfLargestK: needs 0 <= k <= size");
         return k ? lcmGe(kthAt(n - k + 1)) : T(1);
@@ -430,8 +433,8 @@ struct TreapMultiset {
 
     // O(logN * logU expected) -- LCM (-1 once it passes cap) of the k smallest values; k is a COUNT, not an index: k =
     // 0 takes no values
-    // (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2
-    // takes 2 and 2); throws out_of_range unless 0 <= k <= size
+    // (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    // throws out_of_range unless 0 <= k <= size
     T lcmOfSmallestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("lcmOfSmallestK: needs 0 <= k <= size");
         return k ? lcmLe(kthAt(k)) : T(1);
@@ -563,8 +566,7 @@ struct TreapMultiset {
     }
 
     // O(logN * logU expected) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    // there,
-    // e.g. on an empty set)
+    // there, e.g. on an empty set)
     long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
@@ -572,8 +574,7 @@ struct TreapMultiset {
     }
 
     // O(logN * logU expected) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on
-    // an
-    // empty set)
+    // an empty set)
     long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
@@ -581,8 +582,7 @@ struct TreapMultiset {
     }
 
     // O(logN * logU expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    // isn't
-    // there, e.g. on an empty set)
+    // isn't there, e.g. on an empty set)
     long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

@@ -486,8 +486,8 @@ struct WaveletMatrix {
 // The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 // The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and
 // zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so
-// the
-// k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.
+// the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k -
+// zeros)-th.
 template <typename T>
 struct SparseWaveletMatrix {
     long long lo, hi;

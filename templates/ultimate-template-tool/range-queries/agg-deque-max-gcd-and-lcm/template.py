@@ -30,8 +30,8 @@
 # assign or range query: for those, use a seg tree or treap. All indices 0-based. A gcd or LCM is a Euclid run, O(log
 # U), so a push and gcdAll / lcmAll cost that. lcmAll answers -1 once the LCM passes cap, so it can't overflow. cap
 # defaults to 2**63 - 1; pass your own after arr, e.g. AggDequeMaxGcdAndLcm(arr, cap=10**9). Removing values is safe:
-# each half keeps the LCM (or -1) of every prefix of its stack, so once the values that pushed it past cap are
-# popped, lcmAll is exact again.
+# each half keeps the LCM (or -1) of every prefix of its stack, so once the values that pushed it past cap are popped,
+# lcmAll is exact again.
 from math import gcd
 
 

@@ -27,8 +27,8 @@ using namespace std;
 using ll = long long;
 
 // DSUNoCompress<int> dsu(vals);
-// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1
-// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
+// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1 potential:
+// every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
 // diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 template <typename T>
@@ -50,8 +50,7 @@ struct DSUNoCompress {
     }
 
     // O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    // merge
-    // only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
+    // merge only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     int find(int i) {
         while (par[i] != i) i = par[i];
         return i;
@@ -65,9 +64,9 @@ struct DSUNoCompress {
     }
 
     // O(log n), merges the two components, returns {winner, loser}: the new root and the old root now under it,
-    // or {-1, -1} if they were already together
-    // w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    // only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
+    // or {-1, -1} if they were already together w: value[j] - value[i] = w. Already together: nothing changes (diff(i,
+    // j) == w says if this agrees) only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a
+    // chain, then this is O(n)
     pair<int, int> uniteWeighted(int i, int j, long long w) {
         auto [ri, wi] = rootAndWeight(i);
         auto [rj, wj] = rootAndWeight(j);
@@ -89,9 +88,8 @@ struct DSUNoCompress {
     }
 
     // O(log n), forces a's root under b's root, false if already together
-    // skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
-    // walks up is O(n); their O(log n) holds only if you never force unions
-    // w: value[b] - value[a] = w
+    // skips union by size, so these can build a chain n deep: then this, find, unite and every other call that walks up
+    // is O(n); their O(log n) holds only if you never force unions w: value[b] - value[a] = w
     bool uniteAUnderBWeighted(int a, int b, long long w) {
         auto [ra, wa] = rootAndWeight(a);
         auto [rb, wb] = rootAndWeight(b);

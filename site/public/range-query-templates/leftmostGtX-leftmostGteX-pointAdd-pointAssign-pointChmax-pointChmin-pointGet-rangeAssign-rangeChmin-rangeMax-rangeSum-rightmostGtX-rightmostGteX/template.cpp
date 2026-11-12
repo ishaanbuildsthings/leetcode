@@ -222,8 +222,8 @@ struct ChminChmaxBeats {
         return l > r || !n ? -1 : lastPass(1, 0, n - 1, l, r, [&](int i) { return mx[i] >= x; });
     }
 
-    // the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     int firstPass(int i, int tl, int tr, int l, int r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return -1;
@@ -233,8 +233,8 @@ struct ChminChmaxBeats {
         return res != -1 ? res : firstPass(2 * i + 1, tm + 1, tr, l, r, ok);
     }
 
-    // the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     int lastPass(int i, int tl, int tr, int l, int r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return -1;

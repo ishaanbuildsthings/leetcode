@@ -44,8 +44,8 @@ class PersistentOfflineOrderStats:
     __slots__ = ('arr', 'n', 'srt', 'm', 'klo', 'khi', 'root', 'L', 'R', 'C')
 
     # O(N log N) -- arr: the initial array (a list, may be empty), 0-indexed;
-    # allValuesThatWillEverBeInsertedForOfflineCompression: every value
-    # append will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
+    # allValuesThatWillEverBeInsertedForOfflineCompression: every value append will ever get (any order, duplicates
+    # fine; arr's own values are included for you). N = # of distinct values
     def __init__(self, arr, allValuesThatWillEverBeInsertedForOfflineCompression):
         salt = getrandbits(62)  # values are salted while deduping, so no fixed input can make the set collide
         seen = {v ^ salt for v in allValuesThatWillEverBeInsertedForOfflineCompression}

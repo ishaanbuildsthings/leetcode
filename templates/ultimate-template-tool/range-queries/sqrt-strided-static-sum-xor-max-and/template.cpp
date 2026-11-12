@@ -51,8 +51,7 @@ struct StridedQueries {
     }
 
     // a[l] + a[l + step] + ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    // grouped by
-    // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // grouped by step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     S stridedSum(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedSum: needs step >= 1");
@@ -67,8 +66,7 @@ struct StridedQueries {
     }
 
     // a[l] ^ a[l + step] ^ ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    // grouped by
-    // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // grouped by step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedXorQuery: needs step >= 1");
@@ -83,8 +81,7 @@ struct StridedQueries {
     }
 
     // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    // grouped by
-    // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // grouped by step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedMax(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedMax: needs step >= 1");
@@ -101,8 +98,7 @@ struct StridedQueries {
     }
 
     // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    // grouped by
-    // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // grouped by step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedAndQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedAndQuery: needs step >= 1");

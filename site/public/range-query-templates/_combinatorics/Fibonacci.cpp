@@ -4,8 +4,7 @@
 using namespace std;
 // by ishaanbuildsthings
 
-// returns a list of all fibs <= n
-// example: n=10 -> [0, 1, 1, 2, 3, 5, 8]
+// returns a list of all fibs <= n example: n=10 -> [0, 1, 1, 2, 3, 5, 8]
 // O(log(n)) time and space
 vector<long long> getFibList(long long n) {
     if (n < 0) {

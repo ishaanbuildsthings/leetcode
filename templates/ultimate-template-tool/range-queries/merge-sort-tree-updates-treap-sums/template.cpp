@@ -37,10 +37,10 @@ using ll = long long;
 //   other: A[1*N] total[2*N] root[1*N]
 //   note: no value range and nothing up front; each update makes at most log N new treap nodes and none are reused, so N counts updates too
 
-// Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
-// inner node keeping its positions' values in a searchable structure (a treap keyed by value, copies counted, with
-// subtree sizes / sums / xors). a[l..r] is O(log n) nodes, and a
-// point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
+// Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each inner
+// node keeping its positions' values in a searchable structure (a treap keyed by value, copies counted, with subtree
+// sizes / sums / xors). a[l..r] is O(log n) nodes, and a point update changes one value in each of the O(log n) nodes
+// above it. All indices 0-based, ranges inclusive.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct MergeSortTreeUpdates {

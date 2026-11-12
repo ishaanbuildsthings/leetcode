@@ -255,8 +255,7 @@ class DynamicOrderStats:
         return self._sumFirst(l, r, n) - self._sumFirst(l, r, n - k)
 
     # O(logN * logU) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 0 <= l <= r
-    # < n
-    # and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
+    # < n and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthSmallestRange(self, l, r, kFrom, kTo):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"sumKthSmallestRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

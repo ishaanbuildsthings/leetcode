@@ -31,11 +31,11 @@ using ll = long long;
 //   note: cnt keeps, per node and per bit, how many values below have that bit set (bits = log U, 20 by default); tags live on internal nodes only
 
 // Range and= / or= / xor= with range sum / and / or queries, plus point ops. All indices 0-based, ranges inclusive.
-// Values live in [0, 2^bits). Each node counts, for every bit, how many of its values have that bit set. Every
-// update is v -> (v & a) ^ x (and X = (X, 0), or X = (~X, X), xor X = (FULL, X)), and per bit that is "keep",
-// "force 0", "force 1" or "flip": force sets the count to 0 or the node length, flip turns c into length - c.
-// So every update is an ordinary lazy tag, a true O(log N * bits) with no amortization (unlike bitwise beats,
-// which cannot apply xor to a node whose values disagree on a bit). Sum = sum over bits of count * 2^bit.
+// Values live in [0, 2^bits). Each node counts, for every bit, how many of its values have that bit set. Every update
+// is v -> (v & a) ^ x (and X = (X, 0), or X = (~X, X), xor X = (FULL, X)), and per bit that is "keep", "force 0",
+// "force 1" or "flip": force sets the count to 0 or the node length, flip turns c into length - c.
+// So every update is an ordinary lazy tag, a true O(log N * bits) with no amortization (unlike bitwise beats, which
+// cannot apply xor to a node whose values disagree on a bit). Sum = sum over bits of count * 2^bit.
 // Iterative 2N lazy tree; a covering node at level s is a perfect subtree of 2^s leaves.
 // T: int, long long, ...; sums accumulate in S (long long for small T).
 template <typename T>

@@ -30,10 +30,10 @@
 #   other: none
 #   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
-# Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN)
-# expected; the values are characters, openChar = +1 and any other character = -1, and a range is a regular bracket
-# sequence iff its sum is 0 and no prefix sum is negative; each node keeps its subtree's sum and min prefix sum (over
-# prefixes including the empty one). All indices 0-based, ranges inclusive [l, r], an index always the position in the
+# Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN) expected;
+# the values are characters, openChar = +1 and any other character = -1, and a range is a regular bracket sequence iff
+# its sum is 0 and no prefix sum is negative; each node keeps its subtree's sum and min prefix sum (over prefixes
+# including the empty one). All indices 0-based, ranges inclusive [l, r], an index always the position in the
 # CURRENT array.
 import random
 

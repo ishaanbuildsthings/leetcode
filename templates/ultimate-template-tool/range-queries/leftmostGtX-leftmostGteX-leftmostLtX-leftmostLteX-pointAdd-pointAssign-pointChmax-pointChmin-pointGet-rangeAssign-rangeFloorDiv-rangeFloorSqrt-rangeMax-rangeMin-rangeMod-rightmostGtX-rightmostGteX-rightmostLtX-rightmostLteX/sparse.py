@@ -23,10 +23,10 @@
 #   other: none
 #   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow
 
-# Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root
-# is one block of zeros; children are created on demand as blocks of zeros (every count = their length)
-# right before anything descends past a node or pushes its tags. Otherwise the beats logic below is the
-# dense tree's, with children in L / R instead of at 2i / 2i + 1.
+# Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root is one
+# block of zeros; children are created on demand as blocks of zeros (every count = their length) right before anything
+# descends past a node or pushes its tags. Otherwise the beats logic below is the dense tree's, with children in L / R
+# instead of at 2i / 2i + 1.
 
 # ========================
 # COMPLEXITIES
@@ -46,9 +46,9 @@
 # O(logU):  pointGet(pos)
 # O(n) space
 #
-# Values must be NON-NEGATIVE. C++ % truncates toward zero and Python // floors toward negative
-# infinity, so negatives misbehave in both, differently -- and the max-pruning hides it, because a
-# subtree whose max is negative gets skipped entirely.
+# Values must be NON-NEGATIVE. C++ % truncates toward zero and Python // floors toward negative infinity, so negatives
+# misbehave in both, differently -- and the max-pruning hides it, because a subtree whose max is negative gets skipped
+# entirely.
 #
 # In C++ the sum is long long, so you need n * maxValue < 9.2e18. Python ints cannot overflow.
 #

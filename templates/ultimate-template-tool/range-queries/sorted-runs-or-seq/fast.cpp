@@ -112,8 +112,8 @@ struct SortedRunsOrSeq {
     };
     static inline HotVector<Run> rn{Run{}};  // node 0 = the empty tree
     static inline HotVector<int> freeList;  // value nodes freed by merges, reused first
-    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    // subtree length TS, pending reverse TF, subtree or
+    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    // length TS, pending reverse TF, subtree or
     static inline HotVector<int> tfree;
     long long vlo, vhi;  // (each one's value range)
     int n = 0, rt = 0;

@@ -12,7 +12,7 @@
 #   pointChmin: log(N) amortized
 #   pointGet: log(N)
 #   rangeAssign: log(N) amortized
-#   build: N*log(N)
+#   build: N
 # @memory:
 #   layout: 2n-iterative
 #   node: tree[2*N]

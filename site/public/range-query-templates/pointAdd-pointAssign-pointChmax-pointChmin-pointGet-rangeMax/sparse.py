@@ -19,8 +19,8 @@
 
 NEG = float("-inf")
 # Point updates + range max, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-# Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of zeros,
-# so only the log U nodes on each updated path exist. Same bottom-up loops as the dense tree.
+# Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of zeros, so only
+# the log U nodes on each updated path exist. Same bottom-up loops as the dense tree.
 
 
 from random import getrandbits

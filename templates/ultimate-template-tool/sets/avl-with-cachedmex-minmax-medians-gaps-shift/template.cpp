@@ -54,10 +54,8 @@ using ll = long long;
 
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 // height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-// the copies
-// and distinct values in its subtree. Each multiset owns its node pool (freed when it goes out of
-// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums
-// in S.
+// totals over its subtree: copies, distinct values. Each multiset owns its node pool (freed when it goes out of scope;
+// clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
 template <typename T>
 struct AVLMultiset {
     template <class K>
@@ -231,9 +229,9 @@ struct AVLMultiset {
         return res;
     }
 
-    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
-    // in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
-    // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0 in order v_0 <
+    // v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j with v_j > j (or
+    // how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     long long findMex() {
         T base = -off;  // (stored as v - off: the real values >= 0 are the stored ones >= -off)
         // before: distinct values >= 0 left of t's subtree
@@ -289,8 +287,8 @@ struct AVLMultiset {
                 if (x == mx) mx = kthAt(n);
             }
         }
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
+        // each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        // leaves the tracked value
         if (x < low.v) low.before += c;
         else if (x == low.v) low.c += c;
         long long r = (n + 1) / 2;

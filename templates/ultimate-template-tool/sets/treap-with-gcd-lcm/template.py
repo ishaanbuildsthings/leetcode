@@ -8,16 +8,6 @@
 # @complexities:
 #   add: log(N)*log(U) expected
 #   addCount: log(N)*log(U) expected
-#   lcmOfAll: 1
-#   lcmOfGtX: log(N)*log(U) expected
-#   lcmOfGteX: log(N)*log(U) expected
-#   lcmOfInValRange: log(N)*log(U) expected
-#   lcmOfKthLargestRange: log(N)*log(U) expected
-#   lcmOfKthSmallestRange: log(N)*log(U) expected
-#   lcmOfLargestK: log(N)*log(U) expected
-#   lcmOfLtX: log(N)*log(U) expected
-#   lcmOfLteX: log(N)*log(U) expected
-#   lcmOfSmallestK: log(N)*log(U) expected
 #   clear: 1 amortized
 #   count: log(N) expected
 #   countDistinct: 1
@@ -27,14 +17,6 @@
 #   countLtX: log(N) expected
 #   countLteX: log(N) expected
 #   firstIndex: log(N) expected
-#   kth: log(N) expected
-#   largestLtX: log(N) expected
-#   largestLteX: log(N) expected
-#   lastIndex: log(N) expected
-#   max: log(N) expected
-#   medianHigh: log(N) expected
-#   medianLow: log(N) expected
-#   min: log(N) expected
 #   gcdOfAll: 1
 #   gcdOfGtX: log(N)*log(U) expected
 #   gcdOfGteX: log(N)*log(U) expected
@@ -45,6 +27,24 @@
 #   gcdOfLtX: log(N)*log(U) expected
 #   gcdOfLteX: log(N)*log(U) expected
 #   gcdOfSmallestK: log(N)*log(U) expected
+#   kth: log(N) expected
+#   largestLtX: log(N) expected
+#   largestLteX: log(N) expected
+#   lastIndex: log(N) expected
+#   lcmOfAll: 1
+#   lcmOfGtX: log(N)*log(U) expected
+#   lcmOfGteX: log(N)*log(U) expected
+#   lcmOfInValRange: log(N)*log(U) expected
+#   lcmOfKthLargestRange: log(N)*log(U) expected
+#   lcmOfKthSmallestRange: log(N)*log(U) expected
+#   lcmOfLargestK: log(N)*log(U) expected
+#   lcmOfLtX: log(N)*log(U) expected
+#   lcmOfLteX: log(N)*log(U) expected
+#   lcmOfSmallestK: log(N)*log(U) expected
+#   max: log(N) expected
+#   medianHigh: log(N) expected
+#   medianLow: log(N) expected
+#   min: log(N) expected
 #   pop: log(N)*log(U) expected
 #   popMax: log(N)*log(U) expected
 #   popMin: log(N)*log(U) expected
@@ -65,14 +65,15 @@
 # lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest
 # value (2**63 - 1) by default; pass your own, e.g. TreapMultiset(cap=10**9). Removing values is safe: every node
 # keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone, lcmOf... is exact
-# again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+# again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives the identity:
+# gcd 0, LCM 1.
 from math import gcd
 from random import random
 
 
 # Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-# its value, its copies, and the copies, gcd, LCM in its subtree. Nodes live in parallel lists (a node
-# pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
+# its value, its copies, and totals over its subtree: copies, gcd, LCM. Nodes live in parallel lists (a node pool; node
+# 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
 
 
 class TreapMultiset:
@@ -362,13 +363,17 @@ class TreapMultiset:
                 u = L[u]
         return res
 
-    # O(logN * logU expected) -- add one copy of x
+    # O(logN * logU expected) -- add one copy of x; raises ValueError if x < 0
     def add(self, x):
+        if x < 0:
+            raise ValueError(f"TreapMultiset.add: {x} is negative (the LCM needs values >= 0)")
         self.n += 1
         self._insert(x, 1)
 
-    # O(logN * logU expected) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(logN * logU expected) -- add cnt copies of val (nothing if cnt <= 0); raises ValueError if val < 0
     def addCount(self, val, cnt):
+        if val < 0:
+            raise ValueError(f"TreapMultiset.addCount: {val} is negative (the LCM needs values >= 0)")
         if cnt > 0:
             self._add(val, cnt)
 
@@ -412,8 +417,8 @@ class TreapMultiset:
 
     # O(logN * logU expected) -- LCM (-1 once it passes cap) of the k largest values; k is a COUNT, not an index: k = 0
     # takes no values
-    # (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes
-    # 5 and 5); raises IndexError unless 0 <= k <= size
+    # (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    # raises IndexError unless 0 <= k <= size
     def lcmOfLargestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"lcmOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -429,8 +434,8 @@ class TreapMultiset:
 
     # O(logN * logU expected) -- LCM (-1 once it passes cap) of the k smallest values; k is a COUNT, not an index: k = 0
     # takes no values
-    # (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2
-    # takes 2 and 2); raises IndexError unless 0 <= k <= size
+    # (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    # raises IndexError unless 0 <= k <= size
     def lcmOfSmallestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"lcmOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -608,8 +613,7 @@ class TreapMultiset:
         return v
 
     # O(logN * logU expected) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    # there,
-    # e.g. on an empty set)
+    # there, e.g. on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -618,8 +622,7 @@ class TreapMultiset:
         return 1
 
     # O(logN * logU expected) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on
-    # an
-    # empty set)
+    # an empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
@@ -627,8 +630,7 @@ class TreapMultiset:
         return k
 
     # O(logN * logU expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    # isn't
-    # there, e.g. on an empty set)
+    # isn't there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

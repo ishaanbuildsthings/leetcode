@@ -33,8 +33,7 @@ using ll = long long;
 // r}.
 // Points with nxt == n always count, so a plain Fenwick tree tracks them; every other nxt is a distinct run start < n,
 // kept in a Fenwick tree of order-statistics sets (GCC pb_ds): node j holds the nxt values of the lowbit(j) positions
-// it covers, so a prefix
-// count of "nxt > r" visits log N nodes with one order_of_key each.
+// it covers, so a prefix count of "nxt > r" visits log N nodes with one order_of_key each.
 // An assign removes the runs it covers (each one was made by an earlier op, so that is O(1) amortized of them) and
 // changes O(1) points per run added or removed. No two positions may share an nxt value < n at any moment (the C++
 // version keeps them in sets, not multisets), so a point is always cleared before its value is handed on.

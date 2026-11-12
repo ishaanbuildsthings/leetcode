@@ -251,15 +251,13 @@ struct BeatsGcd {
         return std::gcd(qgcd(2 * i, tl, tm, ql, qr), qgcd(2 * i + 1, tm + 1, tr, ql, qr));
     }
 
-    // amortized O(log^2 N logU) -- a[i] = min(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else throws
-    // out_of_range
+    // amortized O(log^2 N logU) -- a[i] = min(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeChmin(int l, int r, T x) {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmin: needs 0 <= l <= r < n");
         if (l <= r && n) chmin(1, 0, n - 1, l, r, x);
     }
 
-    // amortized O(log^2 N logU) -- a[i] = max(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else throws
-    // out_of_range
+    // amortized O(log^2 N logU) -- a[i] = max(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     LEETCODE_NO_SANITIZE void rangeChmax(int l, int r, T x) {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmax: needs 0 <= l <= r < n");
         if (l <= r && n) chmax(1, 0, n - 1, l, r, x);
@@ -402,8 +400,8 @@ struct BeatsGcd {
         return l > r || !n ? -1 : lastPass(1, 0, n - 1, l, r, [&](int i) { return t[i].mn <= x; });
     }
 
-    // the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     LEETCODE_NO_SANITIZE int firstPass(int i, int tl, int tr, int l, int r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return -1;
@@ -413,8 +411,8 @@ struct BeatsGcd {
         return res != -1 ? res : firstPass(2 * i + 1, tm + 1, tr, l, r, ok);
     }
 
-    // the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     LEETCODE_NO_SANITIZE int lastPass(int i, int tl, int tr, int l, int r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return -1;

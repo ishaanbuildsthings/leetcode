@@ -90,8 +90,8 @@ struct SortedRunsSumMinMaxAndSeq {
     };
     static inline vector<Run> rn{Run{}};  // node 0 = the empty tree
     static inline vector<int> freeList;  // value nodes freed by merges, reused first
-    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    // subtree length TS, pending reverse TF, subtree sum / min / max / and (O: the run's own min / max)
+    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    // length TS, pending reverse TF, subtree sum / min / max / and (O: the run's own min / max)
     static inline vector<int> tfree;
     long long vlo, vhi;  // (each one's value range)
     int n = 0, rt = 0;

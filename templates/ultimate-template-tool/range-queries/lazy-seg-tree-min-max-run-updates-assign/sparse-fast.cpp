@@ -37,8 +37,8 @@ using ll = long long;
 // its min, its max, its first / last value and the equal runs at its ends and inside over its range. Ranges inclusive
 // [l, r]; searches return lo - 1 when nothing qualifies. The root covers 2^D >= U positions from lo (the ones past hi
 // are zeros nobody reads), so a node of level s covers 2^s positions; children are created on demand as blocks of
-// zeros, right before anything descends past a node, and a node's pending tags ("applied here, not yet to my
-// children") go down as it is passed.
+// zeros, right before anything descends past a node, and a node's pending tags ("applied here, not yet to my children")
+// go down as it is passed.
 // T: int, long long, ...
 // FAST MODE drawbacks compared with sparse.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

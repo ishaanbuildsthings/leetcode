@@ -5,8 +5,8 @@ using namespace std;
 
 // TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
 // edgeList = {{a, b, w}, {c, d, w}, ...}
-// roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label
-// 0-indexed input -> children goes up to children[n-1]; 1-indexed -> up to children[n], children[0] empty and unused
+// roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label 0-indexed input ->
+// children goes up to children[n-1]; 1-indexed -> up to children[n], children[0] empty and unused
 // children[node] = {{child, weight}, ...} where weight is the edge from node to child
 vector<vector<pair<int, int>>> edgeListToTree(const vector<array<int, 3>>& edgeList, int root) {
     int size = root + 1;

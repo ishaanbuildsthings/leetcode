@@ -51,7 +51,7 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies and distinct values in its subtree. Each multiset owns its node pool
+// its value, its copies, and totals over its subtree: copies, distinct values. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
@@ -312,9 +312,9 @@ struct TreapMultiset {
         return res;
     }
 
-    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
-    // in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
-    // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0 in order v_0 <
+    // v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j with v_j > j (or
+    // how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     LEETCODE_NO_SANITIZE long long findMex() {
         T base = -off;  // (stored as v - off: the real values >= 0 are the stored ones >= -off)
         // before: distinct values >= 0 left of t's subtree
@@ -343,8 +343,8 @@ struct TreapMultiset {
             if constexpr (is_integral_v<T>) if (x >= -off && x < T(mexV) && !f) mexV = x;
             if (!n) return;
         }
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
+        // each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        // leaves the tracked value
         if (x < low.v) low.before += c;
         else if (x == low.v) low.c += c;
         long long r = (n + 1) / 2;

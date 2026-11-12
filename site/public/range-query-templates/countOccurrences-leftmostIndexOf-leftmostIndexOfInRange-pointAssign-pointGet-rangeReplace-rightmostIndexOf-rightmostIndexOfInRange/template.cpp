@@ -26,8 +26,8 @@ using ll = long long;
 //   note: one dynamic seg tree over the positions per distinct value; at most about N log N nodes live at once (freed nodes are reused); values are hashed, so any values work
 
 // One seg tree over the positions per value (mass change, CF 911G): rangeReplace(l, r, x, y) turns every x in a[l..r]
-// into y in O(log N) amortized, for any values. Each distinct value keeps a seg tree over 0..n-1 holding the
-// positions where it is; a change splits x's tree at [l, r] (O(log N) new nodes) and merges the cut part into y's
+// into y in O(log N) amortized, for any values. Each distinct value keeps a seg tree over 0..n-1 holding the positions
+// where it is; a change splits x's tree at [l, r] (O(log N) new nodes) and merges the cut part into y's
 // tree (each step of a merge frees a node, so merges cost O(log N) amortized over the whole run). Also: where x first
 // / last appears (in a range), how many times x appears in a range, a[i] and a[i] = v. All indices 0-based, ranges
 // inclusive [l, r]; searches return -1 when nothing qualifies.

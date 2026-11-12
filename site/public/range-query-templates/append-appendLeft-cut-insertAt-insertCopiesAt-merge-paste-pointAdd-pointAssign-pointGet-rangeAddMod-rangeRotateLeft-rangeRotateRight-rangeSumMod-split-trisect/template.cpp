@@ -35,10 +35,10 @@ using ll = long long;
 //   other: none
 //   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
-// Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN)
-// expected; values live % MOD; each node keeps its subtree's sum, and every update is x -> x * m + c (% MOD). All
-// indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean
-// "already applied to this node, not yet to its children".
+// Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN) expected;
+// values live % MOD; each node keeps its subtree's sum, and every update is x -> x * m + c (% MOD). All indices
+// 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean "already applied
+// to this node, not yet to its children".
 // T: int, long long, ...
 template <typename T>
 struct ImplicitTreap {

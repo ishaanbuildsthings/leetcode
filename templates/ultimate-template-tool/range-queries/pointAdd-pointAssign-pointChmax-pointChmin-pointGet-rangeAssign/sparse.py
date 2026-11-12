@@ -18,9 +18,9 @@
 #   note: per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it. A dict keyed by heap index, storing only the covering nodes (so point assign is O(1))
 
 # Range assign + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-# No pushing anywhere: assignments are stamped with an increasing counter, every node remembers the newest one
-# covering it, and pointGet returns the newest on the leaf's root path. A point write is a newer stamp on the leaf,
-# so it is O(1). Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi] -> (stamp, value).
+# No pushing anywhere: assignments are stamped with an increasing counter, every node remembers the newest one covering
+# it, and pointGet returns the newest on the leaf's root path. A point write is a newer stamp on the leaf, so it is
+# O(1). Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi] -> (stamp, value).
 
 
 from random import getrandbits

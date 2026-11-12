@@ -20,9 +20,9 @@
 # Letters version: the values are characters (Python: a list of characters, e.g. list(s); C++: T = char), and only the
 # operations that make sense on characters are listed.
 # rangeChmax + point ops with no range aggregates. All indices 0-based, ranges inclusive [l, r].
-# rangeChmax composes with itself in any order, so a range update only tags the O(logN) covering nodes and
-# pointGet folds the tags on the leaf-to-root path. Only pointAssign-style overwrites need to push those
-# tags off the path first, because they must not be re-applied to the new value.
+# rangeChmax composes with itself in any order, so a range update only tags the O(logN) covering nodes and pointGet
+# folds the tags on the leaf-to-root path. Only pointAssign-style overwrites need to push those tags off the path first,
+# because they must not be re-applied to the new value.
 class RangeChmaxTree:
     __slots__ = ("n", "tree")
 

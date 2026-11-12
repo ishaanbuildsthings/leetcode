@@ -31,10 +31,10 @@
 #   other: none
 #   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow
 
-# Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root
-# is one block of zeros; children are created on demand as blocks of zeros (every count = their length)
-# right before anything descends past a node or pushes its tags. Otherwise the beats logic below is the
-# dense tree's, with children in L / R instead of at 2i / 2i + 1.
+# Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root is one
+# block of zeros; children are created on demand as blocks of zeros (every count = their length) right before anything
+# descends past a node or pushes its tags. Otherwise the beats logic below is the dense tree's, with children in L / R
+# instead of at 2i / 2i + 1.
 
 # Segment tree beats: range chmin (a[i] = min(a[i], x)) and chmax (a[i] = max(a[i], x)), range add and range assign,
 # with range sums and the range max / min, plus point ops. All indices 0-based, ranges inclusive. How it works: a
@@ -392,8 +392,8 @@ class SparseChminChmaxBeats:
         res = self._lastPass(1, self.lo, self.hi, l, r, lambda i: F[i] <= x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # the first index in [l, r] under node i whose value passes ok(node), or None: O(logU), since only one
-    # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    # the first index in [l, r] under node i whose value passes ok(node), or None: O(logU), since only one node fully
+    # inside [l, r] that passes is ever walked down (it always holds an answer)
     def _firstPass(self, i, tl, tr, l, r, ok):
         if r < tl or tr < l or not ok(i):
             return None
@@ -405,8 +405,8 @@ class SparseChminChmaxBeats:
         res = self._firstPass(self.L[i], tl, tm, l, r, ok)
         return res if res is not None else self._firstPass(self.R[i], tm + 1, tr, l, r, ok)
 
-    # the last index in [l, r] under node i whose value passes ok(node), or None: O(logU), since only one
-    # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    # the last index in [l, r] under node i whose value passes ok(node), or None: O(logU), since only one node fully
+    # inside [l, r] that passes is ever walked down (it always holds an answer)
     def _lastPass(self, i, tl, tr, l, r, ok):
         if r < tl or tr < l or not ok(i):
             return None

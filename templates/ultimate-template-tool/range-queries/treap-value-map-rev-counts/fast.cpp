@@ -45,8 +45,8 @@ using ll = long long;
 // r, x, y) (every x in a[l..r] becomes y) and rangeAssign, in O(U log N) expected, U = valHi - valLo + 1: good when
 // the values are few. A pending tag is a map old value -> new value, so any mix of changes composes into one map.
 // Each node also keeps how many times each value appears in its subtree (countOccurrences, where x first / last
-// appears; read without changing anything). All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array; searches return -1 when nothing qualifies.
+// appears; read without changing anything). All indices 0-based, ranges inclusive [l, r], an index always the position
+// in the CURRENT array; searches return -1 when nothing qualifies.
 // T: int, long long, char, ...: the values; valLo / valHi bound every value the array will ever hold
 
 // FAST MODE drawbacks compared with template.cpp:
@@ -88,10 +88,9 @@ template <typename T>
 struct ValueMapTreap {
     using Z = int;  // lengths, indices and counts
     // one node pool shared by every ValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are
-    // never
-    // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
-    // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
-    // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
+    // never freed, so there is nothing to reset between test cases; every one shares the value range too (the last
+    // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the map
+    // it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
     // handed down, it is reused
     struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
         unsigned long long pri = 0;

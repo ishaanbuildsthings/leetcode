@@ -31,10 +31,10 @@
 #   other: root[1*N] arr[1*N]
 #   note: N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi]
 
-# An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
-# front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is
-# version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal,
-# ...) can be anything. 0-indexed, inclusive.
+# An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so
+# the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1
+# minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be
+# anything. 0-indexed, inclusive.
 
 
 class PersistentOnlineOrderStats:

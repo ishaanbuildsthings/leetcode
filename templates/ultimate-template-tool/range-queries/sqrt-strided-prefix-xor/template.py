@@ -22,8 +22,7 @@ from operator import xor
 
 class StridedQueries:
     # O(build) -- arr: the initial array. cutoff: prefix arrays are kept for steps up to it; leave it out for sqrt(n),
-    # and
-    # lower it when memory is tight (each kept step costs n values)
+    # and lower it when memory is tight (each kept step costs n values)
     def __init__(self, arr, cutoff=None):
         self.A = A = list(arr)
         self.n = n = len(A)

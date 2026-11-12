@@ -48,8 +48,7 @@ Node baseFn(const RawVal& v, int i) {
 }
 
 // called once per merge: big is the bigger component's Node (on a tie, either one). big is moved in, so adding small's
-// items into big and returning it costs O(size of small) (small-to-large: O(n log n) in total)
-// rollback keeps a copy of
+// items into big and returning it costs O(size of small) (small-to-large: O(n log n) in total) rollback keeps a copy of
 // the bigger Node every unite, so keep Nodes small here
 Node combine(Node big, const Node& small) {
     // Node res;
@@ -95,8 +94,8 @@ struct RollbackDSU {
     }
 
     // O(log n), merges the two components, false if i and j were already together
-    // either way it counts as an edge of the component (edgeCount)
-    // either way it records a frame, so it always takes exactly one rollbackLastUnion to undo
+    // either way it counts as an edge of the component (edgeCount) either way it records a frame, so it always takes
+    // exactly one rollbackLastUnion to undo
     bool unite(int i, int j) {
         i = find(i), j = find(j);
         if (i == j) {

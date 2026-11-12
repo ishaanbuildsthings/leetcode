@@ -8,16 +8,6 @@
 # @complexities:
 #   add: sqrt(N)*log(U) amortized
 #   addCount: sqrt(N)*log(U) amortized
-#   lcmOfAll: sqrt(N)*log(U)
-#   lcmOfGtX: sqrt(N)*log(U)
-#   lcmOfGteX: sqrt(N)*log(U)
-#   lcmOfInValRange: sqrt(N)*log(U)
-#   lcmOfKthLargestRange: sqrt(N)*log(U)
-#   lcmOfKthSmallestRange: sqrt(N)*log(U)
-#   lcmOfLargestK: sqrt(N)*log(U)
-#   lcmOfLtX: sqrt(N)*log(U)
-#   lcmOfLteX: sqrt(N)*log(U)
-#   lcmOfSmallestK: sqrt(N)*log(U)
 #   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
@@ -28,15 +18,6 @@
 #   countLtX: sqrt(N)
 #   countLteX: sqrt(N)
 #   firstIndex: sqrt(N)
-#   kth: sqrt(N)
-#   largestLtX: sqrt(N)
-#   largestLteX: sqrt(N)
-#   lastIndex: sqrt(N)
-#   max: 1
-#   medianHigh: sqrt(N)
-#   medianLow: sqrt(N)
-#   mex: sqrt(N)
-#   min: 1
 #   gcdOfAll: sqrt(N)*log(U)
 #   gcdOfGtX: sqrt(N)*log(U)
 #   gcdOfGteX: sqrt(N)*log(U)
@@ -47,6 +28,25 @@
 #   gcdOfLtX: sqrt(N)*log(U)
 #   gcdOfLteX: sqrt(N)*log(U)
 #   gcdOfSmallestK: sqrt(N)*log(U)
+#   kth: sqrt(N)
+#   largestLtX: sqrt(N)
+#   largestLteX: sqrt(N)
+#   lastIndex: sqrt(N)
+#   lcmOfAll: sqrt(N)*log(U)
+#   lcmOfGtX: sqrt(N)*log(U)
+#   lcmOfGteX: sqrt(N)*log(U)
+#   lcmOfInValRange: sqrt(N)*log(U)
+#   lcmOfKthLargestRange: sqrt(N)*log(U)
+#   lcmOfKthSmallestRange: sqrt(N)*log(U)
+#   lcmOfLargestK: sqrt(N)*log(U)
+#   lcmOfLtX: sqrt(N)*log(U)
+#   lcmOfLteX: sqrt(N)*log(U)
+#   lcmOfSmallestK: sqrt(N)*log(U)
+#   max: 1
+#   medianHigh: sqrt(N)
+#   medianLow: sqrt(N)
+#   mex: sqrt(N)
+#   min: 1
 #   pop: sqrt(N)*log(U) amortized
 #   popMax: sqrt(N)*log(U) amortized
 #   popMin: sqrt(N)*log(U) amortized
@@ -67,7 +67,8 @@
 # lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest
 # value (2**63 - 1) by default; pass your own, e.g. BlockMultiset(cap=10**9). Removing values is safe: every node
 # keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone, lcmOf... is exact
-# again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+# again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives the identity:
+# gcd 0, LCM 1.
 from math import gcd
 from random import getrandbits
 from bisect import bisect_left, bisect_right, insort
@@ -78,15 +79,13 @@ from math import isqrt
 
 # Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
 # max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus block totals and each block's gcd / LCM, and a
-# Fenwick tree over the
-# block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
-# once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
-# follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-# bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
-# many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
-# updates since the last one. A query
-# finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block
-# with C-level list operations.
+# Fenwick tree over the block totals (rebuilt only after a block splits or empties). A block splits in half past twice
+# the block size, and once N / 2 distinct values have come or gone since the last cut, every block is cut again at that
+# size: blocks follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N)
+# keeps the bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can
+# leave many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
+# updates since the last one. A query finds its block by binary search (or by lifting over the block Fenwick for k-th)
+# and then works inside one block with C-level list operations.
 
 
 class BlockMultiset:
@@ -384,12 +383,16 @@ class BlockMultiset:
             res = reduce(self._lc, keys[b][:bisect_right(keys[b], hi)], res)
         return res
 
-    # O(sqrtN * logU amortized) -- add one copy of x
+    # O(sqrtN * logU amortized) -- add one copy of x; raises ValueError if x < 0
     def add(self, x):
+        if x < 0:
+            raise ValueError(f"BlockMultiset.add: {x} is negative (the LCM needs values >= 0)")
         self._add(x, 1)
 
-    # O(sqrtN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(sqrtN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0); raises ValueError if val < 0
     def addCount(self, val, cnt):
+        if val < 0:
+            raise ValueError(f"BlockMultiset.addCount: {val} is negative (the LCM needs values >= 0)")
         if cnt > 0:
             self._add(val, cnt)
 
@@ -410,8 +413,8 @@ class BlockMultiset:
         return self._lcmIn(lo, hi) if lo <= hi else 1
 
     # O(sqrtN * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and
-    # inclusive: (1, 1) is
-    # just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies
+    # count); raises
     # IndexError unless 1 <= kFrom <= kTo <= size
     def lcmOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
@@ -421,9 +424,8 @@ class BlockMultiset:
         return self._lcmIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(sqrtN * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed
-    # and inclusive: (1, 1) is
-    # just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError
-    # unless 1 <= kFrom <= kTo <= size
+    # and inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies
+    # count); raises IndexError unless 1 <= kFrom <= kTo <= size
     def lcmOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(
@@ -639,8 +641,7 @@ class BlockMultiset:
         return v
 
     # O(sqrtN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    # there,
-    # e.g. on an empty set)
+    # there, e.g. on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -648,8 +649,7 @@ class BlockMultiset:
         return 1
 
     # O(sqrtN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g.
-    # on an
-    # empty set)
+    # on an empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
@@ -657,8 +657,7 @@ class BlockMultiset:
         return k
 
     # O(sqrtN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    # isn't
-    # there, e.g. on an empty set)
+    # isn't there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

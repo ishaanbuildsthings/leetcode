@@ -3,8 +3,8 @@
 
 from random import getrandbits
 
-# number of distinct non-empty contiguous substrings (suffix automaton)
-# works on a str, list or tuple holding any hashable items (ints, chars, tuples, ...)
+# number of distinct non-empty contiguous substrings (suffix automaton) works on a str, list or tuple holding any
+# hashable items (ints, chars, tuples, ...)
 # countDistinctSubstrings("abab") -> 7   # a, b, ab, ba, aba, bab, abab
 # countDistinctSubstrings([-1, 2, -1]) -> 5   # [-1], [2], [-1, 2], [2, -1], [-1, 2, -1]
 # O(n) expected time and space

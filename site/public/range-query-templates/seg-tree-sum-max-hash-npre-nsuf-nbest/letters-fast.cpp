@@ -37,8 +37,8 @@ using ll = long long;
 // Letters version: the values are characters (Python: a list of characters, e.g. list(s); C++: T = char), and only the
 // operations that make sense on characters are listed.
 // Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
-// its sum, its max, its forward / backward hash (and B^size), its min prefix sum, its min suffix sum, its min
-// subarray sum over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing
+// its sum, its max, its forward / backward hash (and B^size), its min prefix sum, its min suffix sum, its min subarray
+// sum over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing
 // qualifies. Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s leaves (s = its level);
 // an update rewrites a leaf, then its ancestors.
 // T: int, long long, ...; sums are kept in S (long long for small T).

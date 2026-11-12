@@ -35,10 +35,10 @@ using ll = long long;
 //   other: none
 //   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
-// Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN)
-// expected; the values are characters, openChar = +1 and closeChar = -1, and a range is a regular bracket sequence
-// iff its sum is 0 and no prefix sum is negative; each node keeps its subtree's sum and min prefix sum (over prefixes
-// including the empty one), and its max prefix sum (a flip negates every value: min and max swap and change sign).
+// Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN) expected;
+// the values are characters, openChar = +1 and closeChar = -1, and a range is a regular bracket sequence iff its sum is
+// 0 and no prefix sum is negative; each node keeps its subtree's sum and min prefix sum (over prefixes including the
+// empty one), and its max prefix sum (a flip negates every value: min and max swap and change sign).
 // All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean
 // "already applied to this node, not yet to its children".
 // T: char (or any type: openChar is the one that opens, closeChar the one that closes).

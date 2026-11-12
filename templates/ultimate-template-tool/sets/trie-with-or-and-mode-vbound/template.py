@@ -88,9 +88,9 @@ from random import getrandbits
 
 # Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
 # how many copies, the smallest and largest value, their OR, their AND are below it. Besides the usual ordered queries
-# it answers questions
-# about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v) by walking one bit
-# per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and are never removed.
+# it answers questions about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v) by
+# walking one bit per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and are
+# never removed.
 
 
 class TrieMultiset:

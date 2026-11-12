@@ -47,12 +47,12 @@
 # reads / writes, rangeAssign, range sums, range xors, range ors, range ands, insert / erase / reverse / rotate / move
 # anywhere and the whole array. It is kept as a sequence of sorted runs: each run is a dynamic value seg tree over
 # [valLo, valHi] (copies per node) and an up / down flag, and the runs, in order, are the nodes of an implicit treap
-# (random priorities, expected depth log N), each also keeping its subtree's length and sum / xor / or / and; a
-# reverse flips the order of the runs and each run's up / down flag. Sorting [l, r] cuts the runs at l and r + 1 and
-# merges every run inside into one; a[i] is the k-th value of the run holding it; a query cuts at l and r + 1 too,
-# then reads whole runs. Merges cost about as many nodes as they free and every run is merged away at most once, hence
-# the amortized bounds (the treap's are expected as well). Indices 0-based, ranges inclusive, every index is a
-# position in the current array.
+# (random priorities, expected depth log N), each also keeping its subtree's length and sum / xor / or / and; a reverse
+# flips the order of the runs and each run's up / down flag. Sorting [l, r] cuts the runs at l and r + 1 and merges
+# every run inside into one; a[i] is the k-th value of the run holding it; a query cuts at l and r + 1 too, then reads
+# whole runs. Merges cost about as many nodes as they free and every run is merged away at most once, hence the
+# amortized bounds (the treap's are expected as well). Indices 0-based, ranges inclusive, every index is a position in
+# the current array.
 
 import random
 
@@ -67,8 +67,8 @@ class SortedRunsSumXorOrAndSeq:
     ov = [0]
     av = [-1]
     free = []  # value nodes freed by merges, reused first
-    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    # subtree length TS, pending reverse TF, subtree sum / xor / or / and
+    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    # length TS, pending reverse TF, subtree sum / xor / or / and
     TL = [0]
     TR = [0]
     TP = [0]

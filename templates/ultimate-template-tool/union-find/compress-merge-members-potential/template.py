@@ -44,10 +44,9 @@ def combine(big: Node, small: Node) -> Node:
 
 
 # dsu = DSU(vals, baseFn, combine)
-# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1
-# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
-# j)
-# reads it back (for parity / two-colouring, swap + and - for ^ throughout)
+# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1 potential:
+# every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j) reads
+# it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
 class DSU:

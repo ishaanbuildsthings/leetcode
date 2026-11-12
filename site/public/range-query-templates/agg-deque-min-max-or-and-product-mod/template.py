@@ -25,11 +25,11 @@
 #   other: none
 #   note: the front half (stored last to first) and the back half hold the window; each half also keeps the min, max, OR, AND, product % MOD of its bottom..top, so the whole window's is one combine of the two tops; a pop that empties a half moves half of the other over and rebuilds both (amortized O(1)); the sum and xor are running totals
 # Aggregate deque (two stacks): a window that grows and shrinks at both ends (sliding windows, deques) with the min,
-# max, OR, AND, product % MOD, sum and xor of the whole window in O(1). Each half is a stack that keeps the
-# aggregates of its bottom..top, so a push or pop is O(1) and the whole window is one combine of the two tops; a pop
-# that empties its half moves half of the other over and rebuilds both, amortized O(1). The sum and xor are running
-# totals. No point assign or range query: for those, use a seg tree or treap. All indices 0-based. The product is
-# kept % MOD (pass mod to the constructor).
+# max, OR, AND, product % MOD, sum and xor of the whole window in O(1). Each half is a stack that keeps the aggregates
+# of its bottom..top, so a push or pop is O(1) and the whole window is one combine of the two tops; a pop that empties
+# its half moves half of the other over and rebuilds both, amortized O(1). The sum and xor are running totals. No point
+# assign or range query: for those, use a seg tree or treap. All indices 0-based. The product is kept % MOD (pass mod to
+# the constructor).
 
 
 class AggDequeMinMaxOrAndProductMod:

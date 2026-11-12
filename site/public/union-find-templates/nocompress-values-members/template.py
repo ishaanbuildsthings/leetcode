@@ -45,8 +45,7 @@ class DSUNoCompress:
         self.nxt = list(range(n))  # each component's members linked in a circle: i -> nxt[i] -> ... -> i
 
     # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    # merge
-    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    # merge only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par
         while par[i] != i:
@@ -54,8 +53,8 @@ class DSUNoCompress:
         return i
 
     # O(log n), merges the two components, returns (winner, loser): the new root and the old root now under it, or
-    # None if they were already together
-    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    # None if they were already together only O(log n) if you never call uniteAUnderB: forced unions can build a chain,
+    # then this is O(n)
     def unite(self, i, j):
         i, j = self.find(i), self.find(j)
         if i == j:
@@ -76,8 +75,8 @@ class DSUNoCompress:
         return i, j
 
     # O(log n), forces a's root under b's root, False if already together
-    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
-    # walks up is O(n); their O(log n) holds only if you never force unions
+    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that walks up
+    # is O(n); their O(log n) holds only if you never force unions
     def uniteAUnderB(self, a, b):
         a, b = self.find(a), self.find(b)
         if a == b:

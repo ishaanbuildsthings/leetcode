@@ -65,9 +65,8 @@
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 # height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-# the copies, OR, AND
-# in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
-# nodes are reused.
+# totals over its subtree: copies, OR, AND. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and
+# removed nodes are reused.
 
 
 class AVLMultiset:

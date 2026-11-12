@@ -12,12 +12,12 @@ using namespace std;
 // n = current length. Pops follow Wang, Yang, Zhu "Double-Ended Palindromic Trees" (surface recording).
 // A surface is a palindrome occurrence that isn't a prefix or suffix of a longer palindrome occurrence.
 // A palindrome occurs iff it's a surface or a link-tree ancestor of one, so a node is alive while
-// (its surface count) + (its alive link children) > 0. The longest palindrome at either end is always
-// a surface, and a position has at most one surface starting / ending there, kept in preSurf / sufSurf.
-// Popping the right end kills its surface t; the copy of link(t) at the front of t becomes a surface
-// unless some surface already ends where that copy ends. Pushing is the mirror. So every op changes O(1)
-// surfaces and creates or deletes at most one node. Positions are global indices into a ring buffer, so nothing shifts
-// on appendLeft. A push has to find the longest palindrome at that end that the new item extends, without amortization
+// (its surface count) + (its alive link children) > 0. The longest palindrome at either end is always a surface, and a
+// position has at most one surface starting / ending there, kept in preSurf / sufSurf.
+// Popping the right end kills its surface t; the copy of link(t) at the front of t becomes a surface unless some
+// surface already ends where that copy ends. Pushing is the mirror. So every op changes O(1) surfaces and creates or
+// deletes at most one node. Positions are global indices into a ring buffer, so nothing shifts on appendLeft. A push
+// has to find the longest palindrome at that end that the new item extends, without amortization
 // (pops would break it):
 // @if quickLinks
 // quick links skip a whole run of equal-difference palindromic suffixes per jump, so O(log n) jumps worst case.
@@ -73,8 +73,7 @@ class DequeEertree {
     // @endif
     // @if itemLinks
     // itemLink[node] = for each item x, the longest proper palindromic suffix of node with x right before it (absent:
-    // the
-    // imaginary root); a plain list, since making a palindrome copies it anyway
+    // the imaginary root); a plain list, since making a palindrome copies it anyway
     vector<vector<pair<E, int>>> itemLink = vector<vector<pair<E, int>>>(2);
     // @endif
     // @if persistentLinks
@@ -196,8 +195,8 @@ class DequeEertree {
         mask = newMask;
     }
 
-    // longest palindromic suffix (step = -1) or prefix (step = 1) of the current string that is
-    // preceded / followed by x, where x is already written at pos; lo..hi is the valid range
+    // longest palindromic suffix (step = -1) or prefix (step = 1) of the current string that is preceded / followed by
+    // x, where x is already written at pos; lo..hi is the valid range
     int walk(int cur, const E& x, long long pos, int step, long long lo, long long hi) const {
         // @if quickLinks
         while (true) {

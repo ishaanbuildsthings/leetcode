@@ -52,10 +52,8 @@ using ll = long long;
 
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 // height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-// the copies
-// in its subtree. Each multiset owns its node pool (freed when it goes out of
-// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums
-// in S.
+// totals over its subtree: copies. Each multiset owns its node pool (freed when it goes out of scope; clear() keeps it
+// for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.
@@ -319,8 +317,8 @@ struct AVLMultiset {
         } else {
             if (!n) return;
         }
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
+        // each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        // leaves the tracked value
         if (x < low.v) low.before += c;
         else if (x == low.v) low.c += c;
         long long r = (n + 1) / 2;

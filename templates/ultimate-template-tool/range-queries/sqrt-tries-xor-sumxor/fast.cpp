@@ -62,9 +62,8 @@ using ll = long long;
 
 // a[l..r] as a multiset, asked about v ^ x over its values v, with range xor-apply, range assign and point assign. The
 // array is cut into blocks of about sqrt(N); each block keeps a binary trie (one level per bit, highest bit first) of
-// its
-// stored values, a lazy xor (its real values are stored ^ tag) and a lazy assign (the trie is one path of copies). A
-// whole block updates in O(log U); a partly covered one is rewritten and its trie rebuilt. A query walks the tries of
+// its stored values, a lazy xor (its real values are stored ^ tag) and a lazy assign (the trie is one path of copies).
+// A whole block updates in O(log U); a partly covered one is rewritten and its trie rebuilt. A query walks the tries of
 // the whole blocks inside l..r down together, each through its own lazy xor, plus a scratch trie of the partly covered
 // ends. Values and every x must lie in [0, 2^bits); thresholds (k, m, lo, hi) can be any integers. 0-indexed,
 // inclusive.
@@ -402,8 +401,7 @@ struct SqrtXorTries {
     }
 
     // O(sqrt(N) logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r -
-    // l + 1,
-    // else throws out_of_range
+    // l + 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T kthSmallest(long long l, long long r, long long k) const {
         rangeCheck("kthSmallest", l, r);
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");

@@ -3,8 +3,8 @@
 
 from operator import add, sub
 
-# res of size 2^B: res[v] = number of pairs i < j with arr[i] | arr[j] == v
-# values must be >= 0; B = number of bits in max(arr), so the list is about 2 * max(arr) long
+# res of size 2^B: res[v] = number of pairs i < j with arr[i] | arr[j] == v values must be >= 0; B = number of bits in
+# max(arr), so the list is about 2 * max(arr) long
 # countOrPairsEqualToKForAllK([1, 3, 2]) -> [0, 0, 0, 3]
 # O(B * 2^B + N)
 def countOrPairsEqualToKForAllK(arr):

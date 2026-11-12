@@ -64,8 +64,8 @@ class ImplicitTreap:
     __slots__ = ('root', 'oc', 'cc')
 
     # O(N) -- brackets: the sequence, a list of characters like ["(", ")", "("] (a str like "()(" works too);
-    # openChar: the character that opens ("(" unless you pass e.g. "[")
-    # closeChar: the character that closes (every character must be one of the two)
+    # openChar: the character that opens ("(" unless you pass e.g. "[") closeChar: the character that closes (every
+    # character must be one of the two)
     def __init__(self, brackets, openChar="(", closeChar=")"):
         self.oc = openChar
         self.cc = closeChar

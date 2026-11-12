@@ -22,8 +22,8 @@ using ll = long long;
 //   note: tags live on the N internal nodes only; each is a pending multiplier (% MOD)
 
 // Range multiply + range sum, all % MOD, plus point ops. All indices 0-based, ranges inclusive [l, r].
-// One tag per internal node: a pending multiplier ("applied here, not yet pushed"). Multipliers compose by
-// multiplying, and v -> v * m turns a node's sum into sum * m. Leaner than the affine tree: one tag instead of two.
+// One tag per internal node: a pending multiplier ("applied here, not yet pushed"). Multipliers compose by multiplying,
+// and v -> v * m turns a node's sum into sum * m. Leaner than the affine tree: one tag instead of two.
 // Values are residues in [0, mod). T: int, long long, ...
 template <typename T>
 struct MultSumTree {

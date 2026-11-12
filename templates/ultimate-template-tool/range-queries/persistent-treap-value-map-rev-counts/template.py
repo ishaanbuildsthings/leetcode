@@ -49,8 +49,8 @@ import random
 # inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 class PersistentValueMapTreap:
     # one node pool shared by every PersistentValueMapTreap: pieces move between them (node 0 = the empty tree); nodes
-    # are never
-    # freed. val[x]: x's value - valLo (every map that reached x already applied); mp[x]: the map x still owes its
+    # are never freed. val[x]: x's value - valLo (every map that reached x already applied); mp[x]: the map x still owes
+    # its
     # children (None: none)
     val = [0]
     L = [0]
@@ -102,8 +102,7 @@ class PersistentValueMapTreap:
             self.root = self._merge(self._merge(a, self._build([o] * k)), c)
 
     # O(U*logN) expected -- a[l..r] (leave out l and r: the whole array, O(1)) as a PersistentValueMapTreap of its own;
-    # this
-    # one is unchanged. The copy shares this one's nodes, so it costs O(U*logN) however long it is
+    # this one is unchanged. The copy shares this one's nodes, so it costs O(U*logN) however long it is
     def copy(self, l=0, r=None):
         n = self.size()
         if r is None:

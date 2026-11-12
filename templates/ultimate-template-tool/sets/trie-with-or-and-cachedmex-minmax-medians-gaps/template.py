@@ -93,9 +93,9 @@ from heapq import heappop, heappush
 
 # Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
 # how many copies, how many distinct values, their OR, their AND are below it. Besides the usual ordered queries it
-# answers questions
-# about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, mex) by walking one bit
-# per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and are never removed.
+# answers questions about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, mex)
+# by walking one bit per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and
+# are never removed.
 
 
 class TrieMultiset:
@@ -366,8 +366,8 @@ class TrieMultiset:
                     self.mn = self._kth(1)
                 if x == self.mx:
                     self.mx = self._kth(n)
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

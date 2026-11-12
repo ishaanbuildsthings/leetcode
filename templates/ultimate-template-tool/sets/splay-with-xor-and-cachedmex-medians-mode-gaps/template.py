@@ -71,7 +71,8 @@ from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-# keeps its value, its copies, and the copies, xor, AND and distinct values in its subtree; every operation splays the
+# keeps its value, its copies, and totals over its subtree: copies, xor, AND, distinct values; every operation splays
+# the
 # last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
 # node 0 is the empty tree) and removed nodes are reused.
 
@@ -284,9 +285,9 @@ class SplayMultiset:
         self._touch(last)
         return res
 
-    # smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
-    # in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
-    # with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    # smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0 in order v_0 <
+    # v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j with v_j > j (or
+    # how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     def _findMex(self):
         K, D, L, R = self.K, self.D, self.L, self.R
         c0 = self._distinctLt(0)
@@ -374,8 +375,8 @@ class SplayMultiset:
                 self.mexV = x
             if not n:
                 return
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

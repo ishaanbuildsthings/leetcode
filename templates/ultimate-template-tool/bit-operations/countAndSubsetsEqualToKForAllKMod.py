@@ -3,8 +3,8 @@
 
 from operator import add, sub
 
-# res of size 2^B: res[v] = number of non-empty subsets (by position) whose AND is exactly v, mod mod
-# values must be >= 0; B = number of bits in max(arr), so the list is about 2 * max(arr) long
+# res of size 2^B: res[v] = number of non-empty subsets (by position) whose AND is exactly v, mod mod values must be >=
+# 0; B = number of bits in max(arr), so the list is about 2 * max(arr) long
 # countAndSubsetsEqualToKForAllKMod([1, 3], 10**9 + 7) -> [0, 2, 0, 1]   # {1}, {1, 3} AND to 1; {3} ANDs to 3
 # O(B * 2^B + N)
 def countAndSubsetsEqualToKForAllKMod(arr, mod):

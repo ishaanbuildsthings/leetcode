@@ -33,8 +33,8 @@ using ll = long long;
 
 // Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
 // inner node keeping its positions' values in a searchable structure (sorted buckets of 256 to 512 values, with a
-// Fenwick tree over the bucket sizes). a[l..r] is O(log n) nodes, and a
-// point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
+// Fenwick tree over the bucket sizes). a[l..r] is O(log n) nodes, and a point update changes one value in each of the
+// O(log n) nodes above it. All indices 0-based, ranges inclusive.
 // Counts and nearest values only: sums and xors need the treap or offline versions.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:

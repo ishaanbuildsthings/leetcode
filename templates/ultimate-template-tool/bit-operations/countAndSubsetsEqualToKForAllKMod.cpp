@@ -3,8 +3,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// res of size 2^B: res[v] = number of non-empty subsets (by position) whose AND is exactly v, mod mod
-// values must be >= 0; B = number of bits in max(arr), so the vector is about 2 * max(arr) long; mod < 2^62
+// res of size 2^B: res[v] = number of non-empty subsets (by position) whose AND is exactly v, mod mod values must be >=
+// 0; B = number of bits in max(arr), so the vector is about 2 * max(arr) long; mod < 2^62
 // countAndSubsetsEqualToKForAllKMod(vector<int>{1, 3}, 1'000'000'007) -> {0, 2, 0, 1}   // {1}, {1, 3} AND to 1; {3}
 // ANDs to 3
 // O(B * 2^B + N)

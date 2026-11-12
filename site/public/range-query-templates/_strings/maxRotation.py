@@ -1,8 +1,8 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/maxRotation.py
 
-# The lexicographically largest rotation, same type as the input (string, list, tuple)
-# works on a str, list or tuple holding any items that can be ordered with < (ints, chars, tuples, ...)
+# The lexicographically largest rotation, same type as the input (string, list, tuple) works on a str, list or tuple
+# holding any items that can be ordered with < (ints, chars, tuples, ...)
 # maxRotation("bcabca") -> "cabcab"
 # maxRotation([3, -1, 2]) -> [3, -1, 2]
 # O(n) time, O(n) space

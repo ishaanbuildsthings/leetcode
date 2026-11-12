@@ -45,10 +45,9 @@ LEETCODE_NO_SANITIZE Node blank(long long lo, long long hi) {
     // return 0;  // (the max of elements that are all 0)
 }
 
-// return a new node: this node after tag is applied to it
-// this function is never called with a tag that never existed, but tags can have things like pending false values or
-// pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
-// return original node)
+// return a new node: this node after tag is applied to it this function is never called with a tag that never existed,
+// but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
+// still need to check for this and no-op (could just return original node)
 LEETCODE_NO_SANITIZE Node apply(Node node, const Tag& tag) {
     // return node + tag;  // (adding to every element raises the max by as much)
 }

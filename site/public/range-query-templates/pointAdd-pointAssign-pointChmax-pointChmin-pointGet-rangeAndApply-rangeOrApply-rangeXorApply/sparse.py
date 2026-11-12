@@ -19,9 +19,8 @@
 #   other: children[8*log(U)]
 #   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). Lists of nodes
 
-# Range and= / or= / xor= + point ops. Every update is a bit map v -> (v & a) ^ x (and X = (X, 0),
-# or X = (~X, X), xor X = (all ones, X)), and these maps compose into the same form. Only leaves' values
-# matter, so nothing is pulled.
+# Range and= / or= / xor= + point ops. Every update is a bit map v -> (v & a) ^ x (and X = (X, 0), or X = (~X, X), xor
+# X = (all ones, X)), and these maps compose into the same form. Only leaves' values matter, so nothing is pulled.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
 # into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags
 # down and apply them to what they return, so they create no nodes. Sparse: lists of nodes; node 0 is the shared

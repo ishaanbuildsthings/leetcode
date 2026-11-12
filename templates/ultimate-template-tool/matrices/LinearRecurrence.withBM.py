@@ -26,8 +26,8 @@ def nthTerm(coeffs, initial, n):
     if n < d:
         return initial[n] % MOD
     # a[n] = [x^n] P(x) / Q(x) with Q = 1 - coeffs[0] x - ... - coeffs[d-1] x^d and P = (initial * Q) mod x^d
-    # Bostan-Mori: P/Q = P(x)Q(-x) / Q(x)Q(-x), the denominator is even, so keep the half of the numerator
-    # matching n's parity and halve n
+    # Bostan-Mori: P/Q = P(x)Q(-x) / Q(x)Q(-x), the denominator is even, so keep the half of the numerator matching n's
+    # parity and halve n
     Q = [1] + [(-c) % MOD for c in coeffs]
     P = _polyMul([x % MOD for x in initial], Q)[:d]
     while n:

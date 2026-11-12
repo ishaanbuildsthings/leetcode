@@ -18,10 +18,9 @@
 #   note: per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. A dict keyed by heap index, a missing key is a block of zeros
 
 # Range mod + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-# Requires a[i] >= 0, mod >= 1. Mods don't compose into one tag, so rangeMod descends into every covering node
-# whose max is still >= mod; each value that changes at least halves, so the work is amortized. Sparse: a dict
-# keyed by heap index over a power-of-two cover of [lo, hi]; a missing node is all zeros, so rangeMod never
-# enters one.
+# Requires a[i] >= 0, mod >= 1. Mods don't compose into one tag, so rangeMod descends into every covering node whose max
+# is still >= mod; each value that changes at least halves, so the work is amortized. Sparse: a dict keyed by heap index
+# over a power-of-two cover of [lo, hi]; a missing node is all zeros, so rangeMod never enters one.
 
 
 from random import getrandbits

@@ -54,9 +54,8 @@
 #   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-# each node keeping how many copies, their AND are below it. Sparse: dicts keyed by heap
-# index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend
-# by counts.
+# each node keeping how many copies, their AND are below it. Sparse: dicts keyed by heap index over a power-of-two cover
+# of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend by counts.
 
 
 class ValueTreeMultiset:

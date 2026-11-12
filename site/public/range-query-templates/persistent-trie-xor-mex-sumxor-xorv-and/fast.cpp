@@ -528,8 +528,7 @@ struct PersistentXorTrie {
     }
 
     // O(logU * logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are
-    // none); needs 0 <= l <= r < size(), else
-    // throws out_of_range
+    // none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long andInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("andInValRange", l, r);
         return andIn(l, r, lowVal, highVal);

@@ -24,8 +24,8 @@ using ll = long long;
 //   note: every node remembers the last assignment that covered it and when; a point takes the newest one on its path; leaves count as node data, internal nodes as tags
 
 // Range assign + point ops, no pushing anywhere. All indices 0-based, ranges inclusive [l, r].
-// Assignments are stamped with an increasing counter; pointGet returns the value with the largest stamp
-// among the leaf and its ancestors. A point write is just a newer stamp on the leaf, so it is O(1).
+// Assignments are stamped with an increasing counter; pointGet returns the value with the largest stamp among the leaf
+// and its ancestors. A point write is just a newer stamp on the leaf, so it is O(1).
 // T: int, long long, ...
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

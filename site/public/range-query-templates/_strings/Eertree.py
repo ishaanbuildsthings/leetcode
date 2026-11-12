@@ -51,8 +51,7 @@ class Eertree:
         # @endif
         # @if append+pop+persistentLinks
         # the same links as a persistent array per palindrome: item -> id, then a binary trie over the id's bits where a
-        # new
-        # palindrome copies only the O(log alphabet) trie nodes on one path of its suffix link's trie
+        # new palindrome copies only the O(log alphabet) trie nodes on one path of its suffix link's trie
         self.idOf = {}
         self.trieLeft, self.trieRight, self.trieVal = [0], [0], [0]  # trie node 0 = empty
         self.linkRoot, self.linkDepth = [0, 0], [0, 0]

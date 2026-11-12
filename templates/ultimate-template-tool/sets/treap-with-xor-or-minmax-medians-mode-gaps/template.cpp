@@ -71,7 +71,7 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies, xor, OR in its subtree. Each multiset owns its node pool
+// its value, its copies, and totals over its subtree: copies, xor, OR. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 template <typename T>
@@ -314,8 +314,8 @@ struct TreapMultiset {
                 if (x == mx) mx = kthAt(n);
             }
         }
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
+        // each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        // leaves the tracked value
         if (x < low.v) low.before += c;
         else if (x == low.v) low.c += c;
         long long r = (n + 1) / 2;

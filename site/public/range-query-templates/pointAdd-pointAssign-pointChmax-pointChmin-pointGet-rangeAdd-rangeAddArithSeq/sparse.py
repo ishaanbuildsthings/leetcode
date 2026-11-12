@@ -18,9 +18,8 @@
 #   other: children[4*log(U)]
 #   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A Fenwick tree in a dict (no child pointers)
 
-# Range add of an arithmetic sequence (and plain range add), point get. Adding start + (i - l) * step on
-# [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of
-# two difference arrays.
+# Range add of an arithmetic sequence (and plain range add), point get. Adding start + (i - l) * step on [l, r] is
+# adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of two difference arrays.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a Fenwick tree in a
 # dict keyed by offset x = i - lo, so only the O(logU) entries above changed positions exist.
 

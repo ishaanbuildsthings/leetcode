@@ -1905,7 +1905,7 @@ def treap(sums, mex, bits=(False, False, False)):
 
 
 # Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-# its value, its copies, and the copies{", sum" if s else ""}{agg}{" and distinct values" if M else ""} in its subtree. Nodes live in parallel lists (a node
+# its value, its copies, and totals over its subtree: copies{", sum" if s else ""}{agg}{", distinct values" if M else ""}. Nodes live in parallel lists (a node
 # pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
 
 
@@ -2034,7 +2034,7 @@ class TreapMultiset:
     sfield = "S s; " if s else ""
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies{", sum" if s else ""}{agg}{" and distinct values" if M else ""} in its subtree. Each multiset owns its node pool
+// its value, its copies, and totals over its subtree: copies{", sum" if s else ""}{agg}{", distinct values" if M else ""}. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 template <typename T>
@@ -2183,9 +2183,7 @@ def avl(sums, mex, bits=(False, False, False)):
     agg = "".join(f", {w}" for w, on in (("xor", X), ("OR", O), ("AND", A)) if on)
     py = f'''
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
-# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies{", sum" if s else ""}{agg}
-# {"and distinct values " if M else ""}in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
-# nodes are reused.
+# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and totals over its subtree: copies{", sum" if s else ""}{agg}{", distinct values" if M else ""}. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused.
 
 
 class AVLMultiset:
@@ -2298,9 +2296,7 @@ class AVLMultiset:
     sfield = "S s; " if s else ""
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
-// height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies{", sum" if s else ""}{agg}
-// {"and distinct values " if M else ""}in its subtree. Each multiset owns its node pool (freed when it goes out of
-// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
+// height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and totals over its subtree: copies{", sum" if s else ""}{agg}{", distinct values" if M else ""}. Each multiset owns its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
 template <typename T>
 struct AVLMultiset {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
@@ -2666,7 +2662,7 @@ def splay(sums, mex, bits=(False, False, False)):
     agg = "".join(f", {w}" for w, on in (("xor", X), ("OR", O), ("AND", A)) if on)
     py = f'''
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-# keeps its value, its copies, and the copies{", sum" if s else ""}{agg}{" and distinct values" if M else ""} in its subtree; every operation splays the
+# keeps its value, its copies, and totals over its subtree: copies{", sum" if s else ""}{agg}{", distinct values" if M else ""}; every operation splays the
 # last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
 # node 0 is the empty tree) and removed nodes are reused.
 
@@ -2797,7 +2793,7 @@ class SplayMultiset:
     sfield = "S s; " if s else ""
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-// keeps its value, its copies, and the copies{", sum" if s else ""}{agg}{" and distinct values" if M else ""} in its subtree; every operation splays the
+// keeps its value, its copies, and totals over its subtree: copies{", sum" if s else ""}{agg}{", distinct values" if M else ""}; every operation splays the
 // last node it touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // T: an integer type; sums in S (long long for small T).
@@ -7161,8 +7157,9 @@ def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=
 
 if __name__ == "__main__":
     import shutil
+    HANDWRITTEN = {"prime-exponents-lcm-mod"}  # (not generated: kept as is)
     for d in os.listdir(ROOT):  # every variant folder is regenerated (names follow the variants; loose files stay)
-        if os.path.isdir(os.path.join(ROOT, d)):
+        if os.path.isdir(os.path.join(ROOT, d)) and d not in HANDWRITTEN:
             shutil.rmtree(os.path.join(ROOT, d))
     written = []
     BOOL = (False, True)

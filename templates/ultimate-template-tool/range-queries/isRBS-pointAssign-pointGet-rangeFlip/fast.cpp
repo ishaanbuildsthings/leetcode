@@ -23,11 +23,11 @@ using ll = long long;
 
 // Bracket sequence with RANGE FLIP (every open becomes a close and vice versa): isRBS(l, r) asks whether s[l..r] is a
 // regular (balanced) bracket sequence. With open = +1 and close = -1, s[l..r] is regular iff its total is 0 and no
-// prefix of it dips below 0. Each node keeps (sum, min prefix sum, max prefix sum) of its range, prefixes including
-// the empty one; two halves combine as sum = L.sum + R.sum, minPre = min(L.minPre, L.sum + R.minPre), maxPre
-// likewise. A flip negates every value: sum -> -sum, and min / max prefix swap and change sign. Recursive lazy tree
-// over 4N slots; the characters themselves are not stored (a +1 reads back as openChar, a -1 as closeChar). All
-// indices 0-based, ranges inclusive.
+// prefix of it dips below 0. Each node keeps (sum, min prefix sum, max prefix sum) of its range, prefixes including the
+// empty one; two halves combine as sum = L.sum + R.sum, minPre = min(L.minPre, L.sum + R.minPre), maxPre likewise. A
+// flip negates every value: sum -> -sum, and min / max prefix swap and change sign. Recursive lazy tree over 4N slots;
+// the characters themselves are not stored (a +1 reads back as openChar, a -1 as closeChar). All indices 0-based,
+// ranges inclusive.
 // T: char (or any type: openChar / closeChar are the ones that open / close).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

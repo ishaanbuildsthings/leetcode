@@ -36,8 +36,7 @@ _NEVER = 1 << 62  # (the time of a root: it never got a parent)
 # dsu = DSUNoCompress(vals)
 # vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1
 # potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
-# j)
-# reads it back (for parity / two-colouring, swap + and - for ^ throughout)
+# j) reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
 class DSUNoCompress:
@@ -60,8 +59,7 @@ class DSUNoCompress:
         self.tm = [_NEVER] * n  # tm[i]: the unite (0, 1, 2, ...) that gave i its parent
 
     # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    # merge
-    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
+    # merge only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par
         while par[i] != i:
@@ -78,11 +76,10 @@ class DSUNoCompress:
         return i, w
 
     # O(log n), merges the two components, returns (winner, loser): the new root and the old root now under it, or
-    # None if they were already together
-    # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    # either way it counts as an edge of the component (edgeCount)
-    # each call is the next unite in time (0, 1, 2, ...), failed ones too
-    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
+    # None if they were already together w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w
+    # says if this agrees) either way it counts as an edge of the component (edgeCount) each call is the next unite in
+    # time (0, 1, 2, ...), failed ones too only O(log n) if you never call uniteAUnderBWeighted: forced unions can build
+    # a chain, then this is O(n)
     def uniteWeighted(self, i, j, w):
         t = self.time
         self.time += 1
@@ -112,9 +109,8 @@ class DSUNoCompress:
         return i, j
 
     # O(log n), forces a's root under b's root, False if already together
-    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
-    # walks up is O(n); their O(log n) holds only if you never force unions
-    # w: value[b] - value[a] = w
+    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that walks up
+    # is O(n); their O(log n) holds only if you never force unions w: value[b] - value[a] = w
     def uniteAUnderBWeighted(self, a, b, w):
         t = self.time
         self.time += 1
@@ -219,8 +215,8 @@ class DSUNoCompress:
         return wj - wi if ri == rj else None
 
     # O(log n), how many unites (failed ones too) it took for i and j to end up together: 0 if i == j, -1 if
-    # they still aren't. Climbs from both ends, always moving the one that got its parent first
-    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
+    # they still aren't. Climbs from both ends, always moving the one that got its parent first only O(log n) if you
+    # never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def firstConnectedTime(self, i, j):
         if self.find(i) != self.find(j):
             return -1

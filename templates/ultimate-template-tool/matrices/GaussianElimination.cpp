@@ -13,8 +13,8 @@ using namespace std;
 // determinant({{1, 2}, {3, 4}}) -> MOD - 2
 // inverse({{2, 0}, {0, 4}}) -> {{500000004, 0}, {0, 250000002}}
 // solve({{1, 1}, {1, -1}}, {10, 2}) -> {6, 4}
-// spanning trees of a graph (Kirchhoff): determinant of the Laplacian (degree on the diagonal, -1 per edge)
-// with any one row and column deleted
+// spanning trees of a graph (Kirchhoff): determinant of the Laplacian (degree on the diagonal, -1 per edge) with any
+// one row and column deleted
 
 #pragma GCC push_options
 #pragma GCC optimize("O3") // only this hot loop, so it vectorizes on GCC builds that skip that at -O2

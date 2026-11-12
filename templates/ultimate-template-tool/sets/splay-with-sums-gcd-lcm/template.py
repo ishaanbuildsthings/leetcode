@@ -8,16 +8,6 @@
 # @complexities:
 #   add: log(N)*log(U) amortized
 #   addCount: log(N)*log(U) amortized
-#   lcmOfAll: 1
-#   lcmOfGtX: log(N)*log(U) amortized
-#   lcmOfGteX: log(N)*log(U) amortized
-#   lcmOfInValRange: log(N)*log(U) amortized
-#   lcmOfKthLargestRange: log(N)*log(U) amortized
-#   lcmOfKthSmallestRange: log(N)*log(U) amortized
-#   lcmOfLargestK: log(N)*log(U) amortized
-#   lcmOfLtX: log(N)*log(U) amortized
-#   lcmOfLteX: log(N)*log(U) amortized
-#   lcmOfSmallestK: log(N)*log(U) amortized
 #   clear: 1 amortized
 #   count: log(N) amortized
 #   countDistinct: 1
@@ -27,14 +17,6 @@
 #   countLtX: log(N) amortized
 #   countLteX: log(N) amortized
 #   firstIndex: log(N) amortized
-#   kth: log(N) amortized
-#   largestLtX: log(N) amortized
-#   largestLteX: log(N) amortized
-#   lastIndex: log(N) amortized
-#   max: log(N) amortized
-#   medianHigh: log(N) amortized
-#   medianLow: log(N) amortized
-#   min: log(N) amortized
 #   gcdOfAll: 1
 #   gcdOfGtX: log(N)*log(U) amortized
 #   gcdOfGteX: log(N)*log(U) amortized
@@ -45,6 +27,24 @@
 #   gcdOfLtX: log(N)*log(U) amortized
 #   gcdOfLteX: log(N)*log(U) amortized
 #   gcdOfSmallestK: log(N)*log(U) amortized
+#   kth: log(N) amortized
+#   largestLtX: log(N) amortized
+#   largestLteX: log(N) amortized
+#   lastIndex: log(N) amortized
+#   lcmOfAll: 1
+#   lcmOfGtX: log(N)*log(U) amortized
+#   lcmOfGteX: log(N)*log(U) amortized
+#   lcmOfInValRange: log(N)*log(U) amortized
+#   lcmOfKthLargestRange: log(N)*log(U) amortized
+#   lcmOfKthSmallestRange: log(N)*log(U) amortized
+#   lcmOfLargestK: log(N)*log(U) amortized
+#   lcmOfLtX: log(N)*log(U) amortized
+#   lcmOfLteX: log(N)*log(U) amortized
+#   lcmOfSmallestK: log(N)*log(U) amortized
+#   max: log(N) amortized
+#   medianHigh: log(N) amortized
+#   medianLow: log(N) amortized
+#   min: log(N) amortized
 #   pop: log(N)*log(U) amortized
 #   popMax: log(N)*log(U) amortized
 #   popMin: log(N)*log(U) amortized
@@ -77,15 +77,18 @@
 # lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest
 # value (2**63 - 1) by default; pass your own, e.g. SplayMultiset(cap=10**9). Removing values is safe: every node
 # keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone, lcmOf... is exact
-# again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+# again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives the identity:
+# gcd 0, LCM 1.
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-# keeps its value, its copies, and the copies, sum, gcd, LCM in its subtree; every operation splays the
+# keeps its value, its copies, and totals over its subtree: copies, sum, gcd, LCM; every operation splays the
 # last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
 # node 0 is the empty tree) and removed nodes are reused.
 
 
 from math import gcd
+
+
 class SplayMultiset:
     __slots__ = ("K", "C", "Z", "S", "G", "M", "L", "R", "P", "free", "root", "n", "total", "d", "cap")
 
@@ -445,14 +448,18 @@ class SplayMultiset:
         self._touch(a if na >= nb else b)  # the end of the longer path pays for both
         return res
 
-    # O(logN * logU amortized) -- add one copy of x
+    # O(logN * logU amortized) -- add one copy of x; raises ValueError if x < 0
     def add(self, x):
+        if x < 0:
+            raise ValueError(f"SplayMultiset.add: {x} is negative (the LCM needs values >= 0)")
         self.n += 1
         self.total += x
         self._insert(x, 1)
 
-    # O(logN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(logN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0); raises ValueError if val < 0
     def addCount(self, val, cnt):
+        if val < 0:
+            raise ValueError(f"SplayMultiset.addCount: {val} is negative (the LCM needs values >= 0)")
         if cnt > 0:
             self._add(val, cnt)
 
@@ -496,8 +503,8 @@ class SplayMultiset:
 
     # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k largest values; k is a COUNT, not an index: k = 0
     # takes no values
-    # (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes
-    # 5 and 5); raises IndexError unless 0 <= k <= size
+    # (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    # raises IndexError unless 0 <= k <= size
     def lcmOfLargestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"lcmOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -513,8 +520,8 @@ class SplayMultiset:
 
     # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k smallest values; k is a COUNT, not an index: k =
     # 0 takes no values
-    # (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2
-    # takes 2 and 2); raises IndexError unless 0 <= k <= size
+    # (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    # raises IndexError unless 0 <= k <= size
     def lcmOfSmallestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"lcmOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -692,8 +699,7 @@ class SplayMultiset:
         return v
 
     # O(logN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    # there,
-    # e.g. on an empty set)
+    # there, e.g. on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -703,8 +709,7 @@ class SplayMultiset:
         return 1
 
     # O(logN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on
-    # an
-    # empty set)
+    # an empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
@@ -712,8 +717,7 @@ class SplayMultiset:
         return k
 
     # O(logN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    # isn't
-    # there, e.g. on an empty set)
+    # isn't there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

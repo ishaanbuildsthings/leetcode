@@ -109,8 +109,8 @@ class ModMatrix:
                 base = base @ base
         return res
 
-    # I + M + M^2 + ... + M^(p-1) for M[k, k], p >= 0 (p = 0 gives zeros)
-    # e.g. vec @ M.powSum(p) sums vec @ M^i over 0 <= i < p (walks of length < p)
+    # I + M + M^2 + ... + M^(p-1) for M[k, k], p >= 0 (p = 0 gives zeros) e.g. vec @ M.powSum(p) sums vec @ M^i over
+    # 0 <= i < p (walks of length < p)
     # O(k^3 log p)
     def powSum(self, p):
         if self.n != self.m:
@@ -152,8 +152,8 @@ def _mulRows(rowsA, B):  # rowsA (entries in [0, MOD)) @ B -> list of rows
     if inner <= 8:  # tiny: plain dot products are fastest
         cols = list(zip(*B.rows))
         return [[sum(map(mul, row, col)) % MOD for col in cols] for row in rowsA]
-    # each row of B packed into one big int (fixed-width slots), so a row of the result is
-    # sum of A[i][k] * packedRow[k], done in C by Python's big int arithmetic
+    # each row of B packed into one big int (fixed-width slots), so a row of the result is sum of A[i][k] *
+    # packedRow[k], done in C by Python's big int arithmetic
     width = ((inner * (MOD - 1) ** 2).bit_length() + 7) // 8
     total = width * m
     fromBytes = int.from_bytes

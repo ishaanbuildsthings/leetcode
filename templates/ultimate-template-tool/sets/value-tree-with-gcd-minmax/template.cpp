@@ -21,14 +21,6 @@ using ll = long long;
 //   countLtX: log(U)
 //   countLteX: log(U)
 //   firstIndex: log(U)
-//   kth: log(U)
-//   largestLtX: log(U)
-//   largestLteX: log(U)
-//   lastIndex: log(U)
-//   max: 1
-//   medianHigh: log(U)
-//   medianLow: log(U)
-//   min: 1
 //   gcdOfAll: 1
 //   gcdOfGtX: log(U)*log(U)
 //   gcdOfGteX: log(U)*log(U)
@@ -39,6 +31,14 @@ using ll = long long;
 //   gcdOfLtX: log(U)*log(U)
 //   gcdOfLteX: log(U)*log(U)
 //   gcdOfSmallestK: log(U)*log(U)
+//   kth: log(U)
+//   largestLtX: log(U)
+//   largestLteX: log(U)
+//   lastIndex: log(U)
+//   max: 1
+//   medianHigh: log(U)
+//   medianLow: log(U)
+//   min: 1
 //   pop: log(U)*log(U)
 //   popMax: log(U)*log(U)
 //   popMin: log(U)*log(U)
@@ -58,8 +58,8 @@ using ll = long long;
 //   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
 
 // Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-// each node keeping how many copies, their gcd are below it. Each multiset owns
-// its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
+// each node keeping how many copies, their gcd are below it. Each multiset owns its node pool (freed when it goes out
+// of scope; clear() keeps it for reuse); node 0 is the empty block.
 // k-th / sums of the k smallest descend by counts.
 // T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
@@ -430,8 +430,7 @@ struct ValueTreeMultiset {
     }
 
     // O(logU * logU) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
-    // e.g. on an
-    // empty set)
+    // e.g. on an empty set)
     long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);

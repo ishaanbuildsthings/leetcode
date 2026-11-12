@@ -44,8 +44,7 @@ class GcdSegmentTree:
     ################ PUBLIC METHODS START HERE ################
 
     # O(logN * logU) -- Point OVERWRITE (not chmax/add): arr[index] becomes newVal. Point overwrite: a[index] = newVal.
-    # Only updates the
-    # tree; the array you passed in is untouched.; needs 0 <= index < n, else IndexError
+    # Only updates the tree; the array you passed in is untouched.; needs 0 <= index < n, else IndexError
     def pointAssign(self, index, newVal):
         if not 0 <= index < self.n:
             raise IndexError(f"pointAssign: needs 0 <= index < n, got index = {index}, n = {self.n}")

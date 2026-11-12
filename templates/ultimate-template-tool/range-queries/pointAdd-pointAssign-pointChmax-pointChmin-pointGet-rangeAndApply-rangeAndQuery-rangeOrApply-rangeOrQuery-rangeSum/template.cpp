@@ -91,8 +91,8 @@ struct BitBeats {
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
-    // (v & a) ^ x == v for every v in the node? keep bits are fine, flip bits never are, force-0 needs all 0,
-    // force-1 needs all 1
+    // (v & a) ^ x == v for every v in the node? keep bits are fine, flip bits never are, force-0 needs all 0, force-1
+    // needs all 1
     bool noEffect(int i, T a, T x) const {
         if (a & x & FULL) return false;
         if (~a & ~x & orAgg[i] & FULL) return false;

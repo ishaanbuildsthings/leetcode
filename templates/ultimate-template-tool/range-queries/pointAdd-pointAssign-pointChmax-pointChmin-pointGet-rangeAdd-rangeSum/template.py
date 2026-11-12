@@ -21,8 +21,8 @@
 #   note: two Fenwick trees over the difference array d (d[i] = a[i] - a[i-1]): b1 over d[i], b2 over d[i] * i
 
 # Range add + range sum with two Fenwick trees, no lazy tags. All indices 0-based, ranges inclusive [l, r].
-# With d the difference array, a[0] + ... + a[x] = (x + 1) * sum(d[0..x]) - sum(d[i] * i for i in 0..x),
-# so one BIT over d[i] and one over d[i] * i answer any prefix sum, and a range add touches two entries of d.
+# With d the difference array, a[0] + ... + a[x] = (x + 1) * sum(d[0..x]) - sum(d[i] * i for i in 0..x), so one BIT over
+# d[i] and one over d[i] * i answer any prefix sum, and a range add touches two entries of d.
 
 
 class RangeAddSumBIT:

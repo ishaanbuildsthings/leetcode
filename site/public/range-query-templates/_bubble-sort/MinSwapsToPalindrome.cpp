@@ -5,8 +5,8 @@ using namespace std;
 using ll = long long;
 
 // Minimum adjacent swaps to turn sequence into a palindrome, or -1 if no rearrangement of it is one (more than one
-// value with an odd count)
-// sequence: a vector or a string of values that compare with each other: int, long long, negatives, chars ok
+// value with an odd count) sequence: a vector or a string of values that compare with each other: int, long long,
+// negatives, chars ok
 template <typename Seq>
 long long minAdjacentSwapsToPalindrome(const Seq& sequence) {
     int n = sequence.size();

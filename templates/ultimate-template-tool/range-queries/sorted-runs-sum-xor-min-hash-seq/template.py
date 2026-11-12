@@ -80,8 +80,8 @@ class SortedRunsSumXorMinHashSeq:
     bh = [0]
     free = []  # value nodes freed by merges, reused first
     pw, gs = [1], [0]
-    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    # subtree length TS, pending reverse TF, subtree sum / xor / min / hashes (O: the run's own min / max)
+    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    # length TS, pending reverse TF, subtree sum / xor / min / hashes (O: the run's own min / max)
     TL = [0]
     TR = [0]
     TP = [0]
@@ -386,8 +386,7 @@ class SortedRunsSumXorMinHashSeq:
         return v
 
     # O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i,
-    # i)): a binary search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # i)): a binary search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
         if not 0 <= i < n:
@@ -419,8 +418,7 @@ class SortedRunsSumXorMinHashSeq:
         return i - lo + 1, i + lo
 
     # O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
-    # every structure
-    # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
+    # every structure this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
     def hashAll(self):
         if self.size() < 1:
             raise IndexError("hashAll: needs n >= 1")

@@ -12,16 +12,6 @@ using ll = long long;
 // @complexities:
 //   add: log(U)*log(U)
 //   addCount: log(U)*log(U)
-//   lcmOfAll: 1
-//   lcmOfGtX: log(U)*log(U)
-//   lcmOfGteX: log(U)*log(U)
-//   lcmOfInValRange: log(U)*log(U)
-//   lcmOfKthLargestRange: log(U)*log(U)
-//   lcmOfKthSmallestRange: log(U)*log(U)
-//   lcmOfLargestK: log(U)*log(U)
-//   lcmOfLtX: log(U)*log(U)
-//   lcmOfLteX: log(U)*log(U)
-//   lcmOfSmallestK: log(U)*log(U)
 //   clear: 1 amortized
 //   count: log(U)
 //   countDistinct: 1
@@ -35,6 +25,16 @@ using ll = long long;
 //   largestLtX: log(U)
 //   largestLteX: log(U)
 //   lastIndex: log(U)
+//   lcmOfAll: 1
+//   lcmOfGtX: log(U)*log(U)
+//   lcmOfGteX: log(U)*log(U)
+//   lcmOfInValRange: log(U)*log(U)
+//   lcmOfKthLargestRange: log(U)*log(U)
+//   lcmOfKthSmallestRange: log(U)*log(U)
+//   lcmOfLargestK: log(U)*log(U)
+//   lcmOfLtX: log(U)*log(U)
+//   lcmOfLteX: log(U)*log(U)
+//   lcmOfSmallestK: log(U)*log(U)
 //   max: log(U)
 //   medianHigh: log(U)
 //   medianLow: log(U)
@@ -59,11 +59,12 @@ using ll = long long;
 // lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest T
 // (2^63 - 1 for long long) by default; pass your own, e.g. FlatPool<long long> s(lo, hi, 1000000000LL). Removing
 // values is safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap
-// are gone, lcmOf... is exact again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+// are gone, lcmOf... is exact again. Values must be >= 0 (add / addCount of a negative one is an error). An empty
+// selection gives the identity: gcd 0, LCM 1.
 
 // Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-// each node keeping how many copies, their LCM are below it. Each multiset owns
-// its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
+// each node keeping how many copies, their LCM are below it. Each multiset owns its node pool (freed when it goes out
+// of scope; clear() keeps it for reuse); node 0 is the empty block.
 // k-th / sums of the k smallest descend by counts.
 // T: int, long long, ...; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
@@ -285,13 +286,15 @@ struct ValueTreeMultiset {
     LEETCODE_NO_SANITIZE T lcmLe(T x) const { return lcmWalk(root, lo, hi, lo, x); }  // capped LCM of the values <= x
     LEETCODE_NO_SANITIZE T lcmGe(T x) const { return lcmWalk(root, lo, hi, x, hi); }  // capped LCM of the values >= x
 
-    // O(logU * logU) -- add one copy of x
+    // O(logU * logU) -- add one copy of x; throws invalid_argument if x < 0
     LEETCODE_NO_SANITIZE void add(T x) {
+        if (x < 0) throw invalid_argument("FlatPool::add: negative value (the LCM needs values >= 0)");
         addRaw(x, 1);
     }
 
-    // O(logU * logU) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(logU * logU) -- add cnt copies of val (nothing if cnt <= 0); throws invalid_argument if val < 0
     LEETCODE_NO_SANITIZE void addCount(T val, long long cnt) {
+        if (val < 0) throw invalid_argument("FlatPool::addCount: negative value (the LCM needs values >= 0)");
         if (cnt > 0) addRaw(val, cnt);
     }
 
@@ -317,9 +320,8 @@ struct ValueTreeMultiset {
     }
 
     // O(logU * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and
-    // inclusive: (1, 1) is
-    // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
-    // out_of_range unless 1 <= kFrom <= kTo <= size
+    // inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies
+    // count); throws out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T lcmOfKthLargestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo
             || kTo > n) throw out_of_range("lcmOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
@@ -328,9 +330,8 @@ struct ValueTreeMultiset {
     }
 
     // O(logU * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed
-    // and inclusive: (1, 1) is
-    // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
-    // out_of_range unless 1 <= kFrom <= kTo <= size
+    // and inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies
+    // count); throws out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T lcmOfKthSmallestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo
             || kTo > n) throw out_of_range("lcmOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
@@ -493,8 +494,7 @@ struct ValueTreeMultiset {
     }
 
     // O(logU * logU) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
-    // e.g. on an
-    // empty set)
+    // e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);

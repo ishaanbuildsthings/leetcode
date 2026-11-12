@@ -60,8 +60,8 @@ using ll = long long;
 // long, since the copy shares the same nodes; this one is unchanged); each node keeps its sum, its min, its max, its
 // min prefix sum, its first / last value and the equal runs at its ends and inside over its subtree. No node changes
 // once another tree can see it: an op copies the nodes on its paths, so a copy and its original never affect each
-// other. Lengths and indices are long long. All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array; searches return -1 when nothing qualifies.
+// other. Lengths and indices are long long. All indices 0-based, ranges inclusive [l, r], an index always the position
+// in the CURRENT array; searches return -1 when nothing qualifies.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

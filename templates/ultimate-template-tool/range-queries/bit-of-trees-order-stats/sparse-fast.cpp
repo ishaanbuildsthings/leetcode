@@ -34,10 +34,9 @@ using ll = long long;
 //   note: any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update
 
 // a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a
-// dynamic
-// value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the
-// BIT
-// prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
+// dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r]
+// is the
+// BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
 // subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.
 // Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length
 // minus the stored values in it) sit between the stored negatives and positives.

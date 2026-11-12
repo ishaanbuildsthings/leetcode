@@ -13,8 +13,8 @@ MOD = 10**9 + 7  # must be prime (pivots get divided out)
 # determinant([[1, 2], [3, 4]]) -> MOD - 2
 # inverse([[2, 0], [0, 4]]) -> [[500000004, 0], [0, 250000002]]
 # solve([[1, 1], [1, -1]], [10, 2]) -> [6, 4]
-# spanning trees of a graph (Kirchhoff): determinant of the Laplacian (degree on the diagonal, -1 per edge)
-# with any one row and column deleted
+# spanning trees of a graph (Kirchhoff): determinant of the Laplacian (degree on the diagonal, -1 per edge) with any one
+# row and column deleted
 
 
 # det of M[k, k]
@@ -65,8 +65,8 @@ def solve(A, b):
 
 
 # Gauss(-Jordan) elimination on the first numVars columns -> (rows in [0, MOD), pivot column of each pivot row, det)
-# pivot rows come first, each scaled so its pivot is 1; full: clear pivot columns in every row, not just below
-# each row lives in one big int (fixed-width slots) so a row update is one big int multiply-add done in C
+# pivot rows come first, each scaled so its pivot is 1; full: clear pivot columns in every row, not just below each row
+# lives in one big int (fixed-width slots) so a row update is one big int multiply-add done in C
 def _eliminate(matrix, numVars, full):
     n = len(matrix)
     m = len(matrix[0]) if matrix else 0

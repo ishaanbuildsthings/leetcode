@@ -54,8 +54,7 @@ def combine(big: Node, small: Node) -> Node:
 # vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
 # add(val) appends more
 # potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
-# j)
-# reads it back (for parity / two-colouring, swap + and - for ^ throughout)
+# j) reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
 class RollbackDSU:
@@ -94,8 +93,8 @@ class RollbackDSU:
         return i, w
 
     # O(log n), merges the two components, False if i and j were already together
-    # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    # either way it records a frame, so it always takes exactly one rollbackLastUnion to undo
+    # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees) either way it
+    # records a frame, so it always takes exactly one rollbackLastUnion to undo
     def uniteWeighted(self, i, j, w):
         i, wi = self._rootAndWeight(i)
         j, wj = self._rootAndWeight(j)

@@ -110,8 +110,8 @@ def _pieces(lo, hi, pts, c):
 
 # Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing,
 # and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
-# Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the
-# non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.
+# Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the non-strict
+# ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.
 
 
 class SparseMonoCosts:

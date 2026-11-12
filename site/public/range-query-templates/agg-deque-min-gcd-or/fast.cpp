@@ -27,10 +27,10 @@ using ll = long long;
 //   other: none
 //   note: the front half (stored last to first) and the back half hold the window; each half also keeps the min, gcd, OR of its bottom..top, so the whole window's is one combine of the two tops; a pop that empties a half moves half of the other over and rebuilds both (amortized O(1)); the sum and xor are running totals
 // Aggregate deque (two stacks): a window that grows and shrinks at both ends (sliding windows, deques) with the min,
-// gcd, OR, sum and xor of the whole window in O(1). Each half is a stack that keeps the aggregates of its
-// bottom..top, so a push or pop is O(1) and the whole window is one combine of the two tops; a pop that empties its
-// half moves half of the other over and rebuilds both, amortized O(1). The sum and xor are running totals. No point
-// assign or range query: for those, use a seg tree or treap. All indices 0-based. A gcd or LCM is a Euclid run,
+// gcd, OR, sum and xor of the whole window in O(1). Each half is a stack that keeps the aggregates of its bottom..top,
+// so a push or pop is O(1) and the whole window is one combine of the two tops; a pop that empties its half moves half
+// of the other over and rebuilds both, amortized O(1). The sum and xor are running totals. No point assign or range
+// query: for those, use a seg tree or treap. All indices 0-based. A gcd or LCM is a Euclid run,
 // O(log U), so a push and gcdAll / lcmAll cost that.
 // T: int, long long, ...; the sum is kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:

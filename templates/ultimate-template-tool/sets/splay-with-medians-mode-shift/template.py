@@ -47,7 +47,7 @@
 from random import getrandbits
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-# keeps its value, its copies, and the copies in its subtree; every operation splays the
+# keeps its value, its copies, and totals over its subtree: copies; every operation splays the
 # last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
 # node 0 is the empty tree) and removed nodes are reused.
 
@@ -278,8 +278,8 @@ class SplayMultiset:
         else:
             if not n:
                 return
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

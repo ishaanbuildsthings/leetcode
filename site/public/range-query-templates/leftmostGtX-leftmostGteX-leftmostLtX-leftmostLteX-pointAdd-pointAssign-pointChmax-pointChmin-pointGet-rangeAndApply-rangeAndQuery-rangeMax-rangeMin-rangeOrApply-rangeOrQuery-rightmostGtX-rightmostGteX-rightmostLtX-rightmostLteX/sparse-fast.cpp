@@ -156,8 +156,8 @@ struct SparseBitBeats {
         nd[i].tagAnd = FULL, nd[i].tagXor = 0;
     }
 
-    // (v & a) ^ x == v for every v in the node? keep bits are fine, flip bits never are, force-0 needs all 0,
-    // force-1 needs all 1
+    // (v & a) ^ x == v for every v in the node? keep bits are fine, flip bits never are, force-0 needs all 0, force-1
+    // needs all 1
     LEETCODE_NO_SANITIZE bool noEffect(int i, T a, T x) const {
         if (a & x & FULL) return false;
         if (~a & ~x & nd[i].orAgg & FULL) return false;
@@ -356,8 +356,8 @@ struct SparseBitBeats {
 
     static constexpr long long NONE = LLONG_MIN;  // ("no index": any long long can be an index here)
 
-    // the first index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the first index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     LEETCODE_NO_SANITIZE long long firstPass(int i, long long tl, long long tr, long long l, long long r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return NONE;
@@ -367,8 +367,8 @@ struct SparseBitBeats {
         return res != NONE ? res : firstPass(nd[i].Rc, tm + 1, tr, l, r, ok);
     }
 
-    // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     LEETCODE_NO_SANITIZE long long lastPass(int i, long long tl, long long tr, long long l, long long r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return NONE;

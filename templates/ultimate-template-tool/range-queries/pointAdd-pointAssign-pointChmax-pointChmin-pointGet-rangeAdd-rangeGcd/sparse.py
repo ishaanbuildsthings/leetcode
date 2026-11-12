@@ -18,11 +18,11 @@
 #   other: children[4*log(U)]
 #   note: per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. Dicts keyed by heap index
 
-# Range add + range gcd + point ops over any index range [lo, hi] (huge or negative is fine); every position
-# starts at 0. gcd(a[l], ..., a[r]) == gcd(a[l], a[l+1] - a[l], ..., a[r] - a[r-1]), and a range add only changes
-# two adjacent differences. One sparse tree over the differences d[i] = a[i] - a[i-1] (d[lo] = a[lo]) keeps
-# their sum (a prefix sum is a point value) and the gcd of their absolute values. Sparse: dicts keyed by heap
-# index over a power-of-two cover of [lo, hi]; a missing key is a block of zero differences.
+# Range add + range gcd + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at
+# 0. gcd(a[l], ..., a[r]) == gcd(a[l], a[l+1] - a[l], ..., a[r] - a[r-1]), and a range add only changes two adjacent
+# differences. One sparse tree over the differences d[i] = a[i] - a[i-1] (d[lo] = a[lo]) keeps their sum (a prefix sum
+# is a point value) and the gcd of their absolute values. Sparse: dicts keyed by heap index over a power-of-two cover of
+# [lo, hi]; a missing key is a block of zero differences.
 
 from math import gcd
 

@@ -42,11 +42,10 @@ using ll = long long;
 
 // Lazy segment tree with composable aggregates (2N iterative): range updates (rangeAssign) and range queries in
 // O(logN); each node keeps its sum, its min, its best prefix sum, its min prefix sum, its min suffix sum, its min
-// subarray sum over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing
-// qualifies. Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s leaves (s = its level),
-// and every internal node holds its pending tags ("applied here, not yet to my children"): an update pushes the tags
-// on its two boundary leaf paths, tags the covering nodes, then rebuilds both paths, each node redoing its own
-// pending tag.
+// subarray sum over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing qualifies.
+// Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s leaves (s = its level), and every
+// internal node holds its pending tags ("applied here, not yet to my children"): an update pushes the tags on its two
+// boundary leaf paths, tags the covering nodes, then rebuilds both paths, each node redoing its own pending tag.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

@@ -61,8 +61,7 @@ struct StridedQueries {
     HotVector<S> sumPre;
 
     // O(build) -- arr: the initial array. cutoff: prefix arrays are kept for steps up to it; leave it out for sqrt(n),
-    // and
-    // lower it when memory is tight (each kept step costs n values)
+    // and lower it when memory is tight (each kept step costs n values)
     explicit StridedQueries(const vector<T>& arr, int cutoff = -1) {
         n = (int)arr.size();
         A = arr;

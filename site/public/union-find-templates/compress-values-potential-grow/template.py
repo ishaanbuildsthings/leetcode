@@ -29,8 +29,7 @@
 # vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and
 # add(val) appends more
 # potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
-# j)
-# reads it back (for parity / two-colouring, swap + and - for ^ throughout)
+# j) reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
 class DSU:

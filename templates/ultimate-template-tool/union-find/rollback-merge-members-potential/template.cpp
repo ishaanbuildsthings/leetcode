@@ -44,8 +44,7 @@ Node baseFn(const RawVal& v, int i) {
 }
 
 // called once per merge: big is the bigger component's Node (on a tie, either one). big is moved in, so adding small's
-// items into big and returning it costs O(size of small) (small-to-large: O(n log n) in total)
-// rollback keeps a copy of
+// items into big and returning it costs O(size of small) (small-to-large: O(n log n) in total) rollback keeps a copy of
 // the bigger Node every unite, so keep Nodes small here
 Node combine(Node big, const Node& small) {
     // Node res;
@@ -56,8 +55,8 @@ Node combine(Node big, const Node& small) {
 
 
 // RollbackDSU dsu(vals);
-// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1
-// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
+// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1 potential:
+// every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
 // diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 struct RollbackDSU {
@@ -98,8 +97,8 @@ struct RollbackDSU {
     }
 
     // O(log n), merges the two components, false if i and j were already together
-    // w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    // either way it records a frame, so it always takes exactly one rollbackLastUnion to undo
+    // w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees) either way it
+    // records a frame, so it always takes exactly one rollbackLastUnion to undo
     bool uniteWeighted(int i, int j, long long w) {
         auto [ri, wi] = rootAndWeight(i);
         auto [rj, wj] = rootAndWeight(j);

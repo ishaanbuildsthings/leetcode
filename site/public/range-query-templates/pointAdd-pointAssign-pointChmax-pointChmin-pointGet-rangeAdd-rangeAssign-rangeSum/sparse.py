@@ -47,8 +47,8 @@ def _compose(o, t):  # tag o, then tag t (an add on an assign shifts the assigne
 # A tag is (assigned value or None, add): an assign, or an add (an add on an assigned node shifts the value).
 # Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they
 # carry the ancestors' tags down and apply them to what they return, so they create no nodes.
-# Sparse: parallel lists of nodes; node 0 is the shared all-zeros block (its sum, min and max are 0 at any
-# length), node 1 is the root.
+# Sparse: parallel lists of nodes; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length), node
+# 1 is the root.
 
 
 class SparseAddAssignSumTree:

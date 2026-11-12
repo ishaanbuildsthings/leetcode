@@ -29,11 +29,11 @@
 # An array whose ranges you can sort in place (ascending or descending), amortized O(log N + log U) a sort, with point
 # reads / writes, rangeAssign, range xors, range mins, range ands and the whole array. It is kept as a sequence of
 # sorted runs: each run is a dynamic value seg tree over [valLo, valHi] (copies per node) and an up / down flag, and a
-# Fenwick tree over positions marks where runs start, and a seg tree over positions holds each run's xor / min / and
-# at its start. Sorting [l, r] cuts the runs at l and r + 1 and merges every run inside into one; a[i] is the k-th
-# value of the run holding it; a query cuts at l and r + 1 too, then reads whole runs. Merges cost about as many nodes
-# as they free and every run is merged away at most once, hence the amortized bounds. Indices 0-based, ranges
-# inclusive, every index is a position in the current array.
+# Fenwick tree over positions marks where runs start, and a seg tree over positions holds each run's xor / min / and at
+# its start. Sorting [l, r] cuts the runs at l and r + 1 and merges every run inside into one; a[i] is the k-th value of
+# the run holding it; a query cuts at l and r + 1 too, then reads whole runs. Merges cost about as many nodes as they
+# free and every run is merged away at most once, hence the amortized bounds. Indices 0-based, ranges inclusive, every
+# index is a position in the current array.
 
 INF = float("inf")
 

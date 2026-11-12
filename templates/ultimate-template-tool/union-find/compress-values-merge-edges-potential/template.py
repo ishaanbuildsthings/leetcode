@@ -51,8 +51,7 @@ def combine(big: Node, small: Node) -> Node:
 # dsu = DSU(vals, baseFn, combine)
 # vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1
 # potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
-# j)
-# reads it back (for parity / two-colouring, swap + and - for ^ throughout)
+# j) reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
 class DSU:
@@ -94,8 +93,8 @@ class DSU:
         return r, self.pot[i]
 
     # O(α(n)) amortized, merges the two components, False if i and j were already together
-    # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    # either way it counts as an edge of the component (edgeCount)
+    # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees) either way it
+    # counts as an edge of the component (edgeCount)
     def uniteWeighted(self, i, j, w):
         i, wi = self._rootAndWeight(i)
         j, wj = self._rootAndWeight(j)

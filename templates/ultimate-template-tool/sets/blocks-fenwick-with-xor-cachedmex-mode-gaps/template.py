@@ -68,9 +68,9 @@ from operator import and_, sub, xor
 
 # Ordered multiset (online: any values, nothing known ahead), sqrt-style with a Fenwick tree inside every block: the
 # distinct values in sorted blocks of max(LOAD, sqrt(N) / 8), each block keeping its values' copies and xor plus a
-# Fenwick
-# tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
-# one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N), C-level).
+# Fenwick tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then
+# inside one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N),
+# C-level).
 # A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
 # cut, every block is cut again at that size, and also as soon as there are more than 2 * N / size + 2 blocks
 # (never more than 20 sqrt(N) + 2): a cut is O(N), paid for by the N / 4 or more updates since the last one.

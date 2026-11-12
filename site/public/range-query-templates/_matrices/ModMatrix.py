@@ -102,8 +102,8 @@ def _mulRows(rowsA, B):  # rowsA (entries in [0, MOD)) @ B -> list of rows
     if inner <= 8:  # tiny: plain dot products are fastest
         cols = list(zip(*B.rows))
         return [[sum(map(mul, row, col)) % MOD for col in cols] for row in rowsA]
-    # each row of B packed into one big int (fixed-width slots), so a row of the result is
-    # sum of A[i][k] * packedRow[k], done in C by Python's big int arithmetic
+    # each row of B packed into one big int (fixed-width slots), so a row of the result is sum of A[i][k] *
+    # packedRow[k], done in C by Python's big int arithmetic
     width = ((inner * (MOD - 1) ** 2).bit_length() + 7) // 8
     total = width * m
     fromBytes = int.from_bytes

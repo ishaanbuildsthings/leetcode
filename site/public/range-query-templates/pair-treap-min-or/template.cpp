@@ -47,9 +47,9 @@ using ll = long long;
 // Implicit treap pair: an array you can insert into anywhere, swap adjacent pairs in a range (rangeTwinSpin: a[l] <->
 // a[l + 1], a[l + 2] <-> a[l + 3], ...), rotate, cut pieces out of (that is how to erase) and paste them back in
 // O(logN) expected each. The values at even positions a[0], a[2], ... are one treap (lane E) and the odd ones another
-// (lane O), in one node pool; a range [l, r] is a slice of each, and each node keeps its min, its OR over its
-// subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches
-// return -1 when nothing qualifies.
+// (lane O), in one node pool; a range [l, r] is a slice of each, and each node keeps its min, its OR over its subtree.
+// All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1
+// when nothing qualifies.
 // T: int, long long, ...
 template <typename T>
 struct PairSwapTreap {

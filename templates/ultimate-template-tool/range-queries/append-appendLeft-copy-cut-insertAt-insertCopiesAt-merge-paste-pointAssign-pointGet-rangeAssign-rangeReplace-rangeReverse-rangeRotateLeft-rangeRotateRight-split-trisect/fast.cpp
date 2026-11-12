@@ -40,9 +40,9 @@ using ll = long long;
 // into anywhere, reverse, rotate, cut pieces out of (that is how to erase) and paste them back, and copy (copy(l, r):
 // a[l..r] as a treap of its own in O(log N) however long; every op copies the nodes it changes, so copies never
 // affect each other); plus rangeReplace(l, r, x, y) (every x in a[l..r] becomes y) and rangeAssign, in O(U log N)
-// expected, U = valHi - valLo + 1: good when the values are few. A pending tag is a map old value -> new value, so
-// any mix of changes composes into one map. All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array; searches return -1 when nothing qualifies.
+// expected, U = valHi - valLo + 1: good when the values are few. A pending tag is a map old value -> new value, so any
+// mix of changes composes into one map. All indices 0-based, ranges inclusive [l, r], an index always the position in
+// the CURRENT array; searches return -1 when nothing qualifies.
 // T: int, long long, char, ...: the values; valLo / valHi bound every value the array will ever hold
 
 // FAST MODE drawbacks compared with template.cpp:
@@ -84,10 +84,9 @@ template <typename T>
 struct PersistentValueMapTreap {
     using Z = long long;  // lengths, indices and counts (long long: copies can make the array huge)
     // one node pool shared by every PersistentValueMapTreap<T>: pieces move between them (node 0 = the empty tree).
-    // Nodes are never
-    // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
-    // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
-    // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
+    // Nodes are never freed, so there is nothing to reset between test cases; every one shares the value range too (the
+    // last constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied);
+    // the map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
     // handed down, it is reused
     struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
         int val = 0, L = 0, R = 0;
@@ -151,8 +150,7 @@ struct PersistentValueMapTreap {
     PersistentValueMapTreap copy() const { return *this; }
 
     // O(U*logN) expected -- a[l..r] as a PersistentValueMapTreap of its own; this one is unchanged. The copy shares
-    // this one's nodes, so it costs O(U*logN) however long it is; needs 0 <= l <= r < size(), else throws
-    // out_of_range
+    // this one's nodes, so it costs O(U*logN) however long it is; needs 0 <= l <= r < size(), else throws out_of_range
     PersistentValueMapTreap copy(Z l, Z r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("copy: needs 0 <= l <= r < size()");
         int a, b, c;

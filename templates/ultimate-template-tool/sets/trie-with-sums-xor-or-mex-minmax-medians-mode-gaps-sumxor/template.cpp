@@ -109,11 +109,9 @@ using ll = long long;
 
 // Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
 // how many copies, their sum, how many distinct values, their xor, their OR are below it. Besides the usual ordered
-// queries it answers questions
-// about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking
-// one bit
-// per level, so O(bits) each. Each multiset owns its node arrays (node 0 = empty, node 1 = the root); nodes are never
-// removed. T: int, long long, ...; sums in S (long long for small T).
+// queries it answers questions about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits
+// on v, sum, mex) by walking one bit per level, so O(bits) each. Each multiset owns its node arrays (node 0 = empty,
+// node 1 = the root); nodes are never removed. T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct TrieMultiset {
     // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)

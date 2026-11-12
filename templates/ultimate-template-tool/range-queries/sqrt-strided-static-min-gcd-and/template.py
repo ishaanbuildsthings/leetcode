@@ -36,8 +36,7 @@ class StridedQueries:
         self.andTable = None
 
     # min of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMin(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -61,8 +60,7 @@ class StridedQueries:
         return a if a < b else b
 
     # gcd of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedGcd(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -86,8 +84,7 @@ class StridedQueries:
         return gcd(a, b)
 
     # a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedAndQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedAndQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

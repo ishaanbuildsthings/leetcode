@@ -50,8 +50,8 @@ using ll = long long;
 // a[l + 1], a[l + 2] <-> a[l + 3], ...), rotate, cut pieces out of (that is how to erase) and paste them back in
 // O(logN) expected each, with rangeFloorDiv, rangeMod, rangeFloorSqrt. The values at even positions a[0], a[2], ...
 // are one treap (lane E) and the odd ones another (lane O), in one node pool; a range [l, r] is a slice of each, and
-// each node keeps its max over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array; searches return -1 when nothing qualifies.
+// each node keeps its max over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the position
+// in the CURRENT array; searches return -1 when nothing qualifies.
 // T: int, long long, ...
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

@@ -29,7 +29,7 @@ UPDATE_OPS = {"add", "addCount", "remove", "removeCount", "removeAll", "removeIn
 CAP_NOTE = ("lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the "
             "largest {T} by default; pass your own, e.g. {example}. Removing values is safe: every node keeps the "
             "capped LCM of just its own values, so once the values that pushed it past cap are gone, lcmOf... is "
-            "exact again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.")
+            "exact again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives the identity: gcd 0, LCM 1.")
 
 
 def times_log_u(cost):
@@ -148,7 +148,7 @@ def py_imports(text, lcm):
         # after the attribution / header comments, before the first import or class
         lines = text.split("\n")
         k = next(i for i, l in enumerate(lines) if l.startswith(("from ", "import ", "class ")))
-        lines.insert(k, "from math import gcd")
+        lines[k:k] = ["from math import gcd"] + (["", ""] if lines[k].startswith("class ") else [])
         text = "\n".join(lines)
     return text
 
@@ -383,6 +383,34 @@ def method_costs(text, cm):
     return "\n".join(lines)
 
 
+def reject_negatives(text, py, cls):
+    """the LCM sets take values >= 0 (inside, -1 marks "too big"): add / addCount refuse a negative value"""
+    for name, var in (("add", "x"), ("addCount", "val")):
+        if py:
+            text, k = re.subn(rf"^(    # O\(.*?\) -- .*)\n(    def {name}\(self, {var}\b.*:)$",
+                              rf"\1; raises ValueError if {var} < 0\n\2\n        if {var} < 0:\n"
+                              rf'            raise ValueError(f"{cls}.{name}: {{{var}}} is negative (the LCM needs values >= 0)")',
+                              text, count=1, flags=re.M)
+        else:
+            text, k = re.subn(rf"^(    // O\(.*?\) -- .*)\n(    (?:LEETCODE_NO_SANITIZE )?void {name}\(T {var}\b.*\{{)$",
+                              rf"\1; throws invalid_argument if {var} < 0\n\2\n        if ({var} < 0) "
+                              rf'throw invalid_argument("{cls}::{name}: negative value (the LCM needs values >= 0)");',
+                              text, count=1, flags=re.M)
+        assert k == 1, f"{cls}.{name} not found"
+    return text
+
+
+def sort_complexities(text, cm):
+    """@complexities in name order (gcdOf... / lcmOf... sit where orOf... / andOf... sorted), build last"""
+    lines = text.split("\n")
+    k = lines.index(f"{cm} @complexities:") + 1
+    j = k
+    while j < len(lines) and re.match(rf"^{re.escape(cm)}   \w+: ", lines[j]):
+        j += 1
+    lines[k:j] = sorted(lines[k:j], key=lambda l: (l.split()[1] == "build:", l.split()[1]))
+    return "\n".join(lines)
+
+
 def main():
     made = 0
     variants = [(fam, mode, src, sums, mm) for fam in FAMILIES for mode, src in MODES.items() for sums in ("", "sums-")
@@ -403,6 +431,9 @@ def main():
                 cls = re.search(r"^class (\w+)" if py else r"^struct (\w+) \{", text, re.M).group(1)
                 text = py_transform(text, mode) if py else cpp_transform(text, mode)
                 text = header_and_docs(text, mode, "#" if py else "//", folder, sfolder, cls)
+                text = sort_complexities(text, "#" if py else "//")
+                if "lcm" in mode:
+                    text = reject_negatives(text, py, cls)
                 open(os.path.join(path, name), "w").write(text)
             made += 1
     print(made, "folders written")

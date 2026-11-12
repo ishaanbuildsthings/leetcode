@@ -3,8 +3,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// sum over every non-empty subarray of the XOR of all its values
-// values must be >= 0; B = number of bits in max(arr)
+// sum over every non-empty subarray of the XOR of all its values values must be >= 0; B = number of bits in max(arr)
 // Each bit is counted on its own: a subarray has bit b exactly when the prefix XORs at its two ends differ in bit b
 // Exact: throws overflow_error if the answer doesn't fit in long long (then use sumOfSubarrayXorsMod)
 // sumOfSubarrayXors(vector<int>{1, 2, 3}) -> 10   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 3 + 1 + 0

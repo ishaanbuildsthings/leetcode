@@ -25,11 +25,11 @@
 #   other: children[8*log(U)]
 #   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); node data per field, children L / R
 
-# Segment tree with composable aggregates (sparse): any index range [lo, hi] (huge or negative is fine), every
-# position starting at 0; point updates and range queries in O(logU), U = hi - lo + 1; each node keeps its sum, its
-# max, its best prefix sum over its range. Ranges inclusive [l, r]; searches return lo - 1 when nothing qualifies. The
-# root covers 2^D >= U positions from lo (the ones past hi are zeros nobody reads), so a node of level s covers 2^s
-# positions; children are created on demand as blocks of zeros, right before anything descends past a node.
+# Segment tree with composable aggregates (sparse): any index range [lo, hi] (huge or negative is fine), every position
+# starting at 0; point updates and range queries in O(logU), U = hi - lo + 1; each node keeps its sum, its max, its best
+# prefix sum over its range. Ranges inclusive [l, r]; searches return lo - 1 when nothing qualifies. The root covers
+# 2^D >= U positions from lo (the ones past hi are zeros nobody reads), so a node of level s covers 2^s positions;
+# children are created on demand as blocks of zeros, right before anything descends past a node.
 
 INF, NEG = float("inf"), float("-inf")
 

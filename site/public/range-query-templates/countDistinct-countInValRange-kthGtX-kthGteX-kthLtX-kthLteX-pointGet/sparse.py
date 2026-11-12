@@ -25,8 +25,8 @@ from operator import not_
 
 class MergeSortTree:
     # Build: O(n log n) time, ceil(log2 n) * n ints of space.
-    # Every query: O(log n) — one binary search at the root, then an iterative
-    # top-down walk, O(1) per level, no recursion and no per-node lists.
+    # Every query: O(log n) — one binary search at the root, then an iterative top-down walk, O(1) per level, no
+    # recursion and no per-node lists.
     #
     # Same two representational choices as the C++ template:
     #   * Nodes do not store their sorted values. Fractional cascading only ever
@@ -62,9 +62,8 @@ class MergeSortTree:
             levels += 1
         self.levels = levels
 
-        # Splitting a value-ordered index list on "index <= mid" preserves the
-        # ordering, so each level is one stable partition per node — all C-level,
-        # no merging.
+        # Splitting a value-ordered index list on "index <= mid" preserves the ordering, so each level is one stable
+        # partition per node — all C-level, no merging.
         cur = sorted(range(n), key=arr.__getitem__)  # indices by value, ties by index — same tie rule as L[li] <= R[ri]
         buf = cur[:]
         nodes = [(0, n - 1)]
@@ -77,9 +76,8 @@ class MergeSortTree:
                 if span == 0:
                     continue
                 if span == 1:
-                    # both children are leaves, so they need no cnt row of their
-                    # own and this node's two entries are fully determined by
-                    # which of the two indices sorted first
+                    # both children are leaves, so they need no cnt row of their own and this node's two entries are
+                    # fully determined by which of the two indices sorted first
                     if cur[tl] == tl:
                         row[tl] = 1
                     row[tr] = 1
@@ -100,8 +98,8 @@ class MergeSortTree:
 
     # O(log n) — count elements >= x in [ql, qr]
     # Seeded with bisect_left (elements < x) and complemented against the range size.
-    # The walk is inlined rather than shared with countLteX: a countPrefix call
-    # per query is measurable in CPython, and it is not in C++.
+    # The walk is inlined rather than shared with countLteX: a countPrefix call per query is measurable in CPython, and
+    # it is not in C++.
     def countGteX(self, ql, qr, x):
         if ql < 0:
             ql = 0

@@ -60,10 +60,10 @@
 # of (that is how to erase), paste them back and copy (copy(l, r): a[l..r] as a treap of its own in O(logN) however
 # long, since the copy shares the same nodes; this one is unchanged), with rangeAssign; each node keeps its min, its
 # max, its forward / backward hash (and B^size), its gcd, its best alternating (+ - + ...) subsequence sum for each
-# start / end sign over its subtree. No node changes once another tree can see it: an op copies the nodes on its
-# paths, so a copy and its original never affect each other. Lengths and indices are long long. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies. Lazy tags mean "already applied to this node, not yet to its children".
+# start / end sign over its subtree. No node changes once another tree can see it: an op copies the nodes on its paths,
+# so a copy and its original never affect each other. Lengths and indices are long long. All indices 0-based, ranges
+# inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies. Lazy
+# tags mean "already applied to this node, not yet to its children".
 import random
 from math import gcd
 
@@ -598,8 +598,7 @@ class PersistentTreap:
         return v
 
     # O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a
-    # binary search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # binary search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
         if not 0 <= i < n:

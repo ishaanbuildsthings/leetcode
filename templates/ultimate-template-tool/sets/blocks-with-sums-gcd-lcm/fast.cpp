@@ -12,16 +12,6 @@ using ll = long long;
 // @complexities:
 //   add: sqrt(N)*log(U) amortized
 //   addCount: sqrt(N)*log(U) amortized
-//   lcmOfAll: sqrt(N)*log(U)
-//   lcmOfGtX: sqrt(N)*log(U)
-//   lcmOfGteX: sqrt(N)*log(U)
-//   lcmOfInValRange: sqrt(N)*log(U)
-//   lcmOfKthLargestRange: sqrt(N)*log(U)
-//   lcmOfKthSmallestRange: sqrt(N)*log(U)
-//   lcmOfLargestK: sqrt(N)*log(U)
-//   lcmOfLtX: sqrt(N)*log(U)
-//   lcmOfLteX: sqrt(N)*log(U)
-//   lcmOfSmallestK: sqrt(N)*log(U)
 //   clear: 1 amortized
 //   count: log(N)
 //   countDistinct: 1
@@ -32,15 +22,6 @@ using ll = long long;
 //   countLtX: sqrt(N)
 //   countLteX: sqrt(N)
 //   firstIndex: sqrt(N)
-//   kth: sqrt(N)
-//   largestLtX: sqrt(N)
-//   largestLteX: sqrt(N)
-//   lastIndex: sqrt(N)
-//   max: sqrt(N)
-//   medianHigh: sqrt(N)
-//   medianLow: sqrt(N)
-//   mex: sqrt(N)
-//   min: sqrt(N)
 //   gcdOfAll: sqrt(N)*log(U)
 //   gcdOfGtX: sqrt(N)*log(U)
 //   gcdOfGteX: sqrt(N)*log(U)
@@ -51,6 +32,25 @@ using ll = long long;
 //   gcdOfLtX: sqrt(N)*log(U)
 //   gcdOfLteX: sqrt(N)*log(U)
 //   gcdOfSmallestK: sqrt(N)*log(U)
+//   kth: sqrt(N)
+//   largestLtX: sqrt(N)
+//   largestLteX: sqrt(N)
+//   lastIndex: sqrt(N)
+//   lcmOfAll: sqrt(N)*log(U)
+//   lcmOfGtX: sqrt(N)*log(U)
+//   lcmOfGteX: sqrt(N)*log(U)
+//   lcmOfInValRange: sqrt(N)*log(U)
+//   lcmOfKthLargestRange: sqrt(N)*log(U)
+//   lcmOfKthSmallestRange: sqrt(N)*log(U)
+//   lcmOfLargestK: sqrt(N)*log(U)
+//   lcmOfLtX: sqrt(N)*log(U)
+//   lcmOfLteX: sqrt(N)*log(U)
+//   lcmOfSmallestK: sqrt(N)*log(U)
+//   max: sqrt(N)
+//   medianHigh: sqrt(N)
+//   medianLow: sqrt(N)
+//   mex: sqrt(N)
+//   min: sqrt(N)
 //   pop: sqrt(N)*log(U) amortized
 //   popMax: sqrt(N)*log(U) amortized
 //   popMin: sqrt(N)*log(U) amortized
@@ -81,20 +81,20 @@ using ll = long long;
 //   other: maxes[20*sqrt(N)+2] bc[40*sqrt(N)+5] bs[40*sqrt(N)+5] bg[20*sqrt(N)+2] bm[20*sqrt(N)+2] cnt[1*N]
 //   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; each operation costs a few binary searches plus one block's worth of C-level list work
 // lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest T
-// (2^63 - 1 for long long) by default; pass your own, e.g. BlockMultiset<long long> s(1000000000LL). Removing values
-// is safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap are
-// gone, lcmOf... is exact again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+// (2^63 - 1 for long long) by default; pass your own, e.g. BlockMultiset<long long> s(1000000000LL). Removing values is
+// safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone,
+// lcmOf... is exact again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives
+// the identity: gcd 0, LCM 1.
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
 // max(LOAD, sqrt(N) / 8), each block keeping its values' copies and copies * value plus block totals and each block's
-// gcd / LCM, and a Fenwick tree over the
-// block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
-// once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
-// follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-// bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
-// many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
-// updates since the last one. A query
-// finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block.
+// gcd / LCM, and a Fenwick tree over the block totals (rebuilt only after a block splits or empties). A block splits in
+// half past twice the block size, and once N / 2 distinct values have come or gone since the last cut, every block is
+// cut again at that size: blocks follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any
+// constant times sqrt(N) keeps the bounds). The blocks are also cut again as soon as there are more than 2 * N / size +
+// 2 of them (removals can leave many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid
+// for by the N / 4 or more updates since the last one. A query finds its block by binary search (or by lifting over the
+// block Fenwick for k-th) and then works inside one block.
 // T: an integer type; sums in S.
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -505,13 +505,15 @@ struct BlockMultiset {
         return res;
     }
 
-    // O(sqrtN * logU amortized) -- add one copy of x
+    // O(sqrtN * logU amortized) -- add one copy of x; throws invalid_argument if x < 0
     LEETCODE_NO_SANITIZE void add(T x) {
+        if (x < 0) throw invalid_argument("BlockMultiset::add: negative value (the LCM needs values >= 0)");
         addRaw(x, 1);
     }
 
-    // O(sqrtN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(sqrtN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0); throws invalid_argument if val < 0
     LEETCODE_NO_SANITIZE void addCount(T val, long long cnt) {
+        if (val < 0) throw invalid_argument("BlockMultiset::addCount: negative value (the LCM needs values >= 0)");
         if (cnt > 0) addRaw(val, cnt);
     }
 
@@ -539,9 +541,8 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th largest values; RANKS, 1-indexed
-    // and inclusive: (1, 1) is
-    // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
-    // out_of_range unless 1 <= kFrom <= kTo <= size
+    // and inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value
+    // (copies count); throws out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T lcmOfKthLargestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo
             || kTo > n) throw out_of_range("lcmOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
@@ -550,9 +551,8 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed
-    // and inclusive: (1, 1) is
-    // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
-    // out_of_range unless 1 <= kFrom <= kTo <= size
+    // and inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies
+    // count); throws out_of_range unless 1 <= kFrom <= kTo <= size
     LEETCODE_NO_SANITIZE T lcmOfKthSmallestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo
             || kTo > n) throw out_of_range("lcmOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
@@ -796,8 +796,7 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    // there,
-    // e.g. on an empty set)
+    // there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
@@ -805,8 +804,7 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g.
-    // on an
-    // empty set)
+    // on an empty set)
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
@@ -814,8 +812,7 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    // isn't
-    // there, e.g. on an empty set)
+    // isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

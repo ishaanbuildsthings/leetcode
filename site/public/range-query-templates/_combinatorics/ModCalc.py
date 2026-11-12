@@ -4,8 +4,8 @@
 
 # n in the constructor is basically the biggest number we will operate on. So for instance finding n! % MOD.
 # But also things like interleaving two sequences of length 500 and length 700 would require n=1200.
-# To be safe, can always just put a big number like 1e5. n may be >= primeMod: x! % MOD is 0 from x = MOD on,
-# 1/x! doesn't exist there, and nChooseK / nPermuteK / interleave still give the right answer
+# To be safe, can always just put a big number like 1e5. n may be >= primeMod: x! % MOD is 0 from x = MOD on, 1/x!
+# doesn't exist there, and nChooseK / nPermuteK / interleave still give the right answer
 class ModCalc:
     def __init__(self, n, primeMod):
         self.n = n

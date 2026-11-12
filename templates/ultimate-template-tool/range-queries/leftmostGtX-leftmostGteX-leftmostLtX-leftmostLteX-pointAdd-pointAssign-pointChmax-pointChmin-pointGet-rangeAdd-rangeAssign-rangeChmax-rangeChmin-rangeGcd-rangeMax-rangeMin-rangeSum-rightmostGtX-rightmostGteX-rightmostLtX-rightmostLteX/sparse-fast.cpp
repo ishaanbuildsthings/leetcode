@@ -420,8 +420,8 @@ struct SparseBeatsGcd {
 
     static constexpr long long NONE = LLONG_MIN;  // ("no index": any long long can be an index here)
 
-    // the first index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the first index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     LEETCODE_NO_SANITIZE long long firstPass(int i, long long tl, long long tr, long long l, long long r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return NONE;
@@ -431,8 +431,8 @@ struct SparseBeatsGcd {
         return res != NONE ? res : firstPass(Rc[i], tm + 1, tr, l, r, ok);
     }
 
-    // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
-    // node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one node fully
+    // inside [l, r] that passes is ever walked down (it always holds an answer)
     template <class F>
     LEETCODE_NO_SANITIZE long long lastPass(int i, long long tl, long long tr, long long l, long long r, const F& ok) {
         if (r < tl || tr < l || !ok(i)) return NONE;

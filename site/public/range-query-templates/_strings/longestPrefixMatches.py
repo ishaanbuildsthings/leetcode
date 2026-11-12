@@ -1,8 +1,8 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/longestPrefixMatches.py
 
-# list of size len(text): arr[i] = length of match between pattern and text[i...]
-# text and pattern can be any mix of str / list / tuple, holding any items that can be compared with ==
+# list of size len(text): arr[i] = length of match between pattern and text[i...] text and pattern can be any mix of
+# str / list / tuple, holding any items that can be compared with ==
 # longestPrefixMatches("xaabaa", "aab") -> [0, 3, 1, 0, 2, 1]
 # longestPrefixMatches([-1, 2, -1, 5], [-1, 2]) -> [2, 0, 1, 0]
 # O(n + m) time, O(m) extra space besides the result (n = len(text), m = len(pattern))

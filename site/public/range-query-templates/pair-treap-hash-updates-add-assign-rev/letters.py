@@ -303,8 +303,7 @@ class PairSwapTreap:
         return v
 
     # O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    # search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
         if not 0 <= i < n:
@@ -336,8 +335,7 @@ class PairSwapTreap:
         return i - lo + 1, i + lo
 
     # O(log(N) expected) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every
-    # structure
-    # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
+    # structure this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
     def hashAll(self):
         if self.size() < 1:
             raise IndexError("hashAll: needs n >= 1")

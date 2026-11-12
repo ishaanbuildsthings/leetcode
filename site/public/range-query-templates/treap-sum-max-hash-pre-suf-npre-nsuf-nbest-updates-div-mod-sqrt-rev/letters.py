@@ -51,8 +51,8 @@
 # out of (that is how to erase) and paste them back in O(logN) expected each, with rangeFloorDiv, rangeMod,
 # rangeFloorSqrt; each node keeps its sum, its max, its forward / backward hash (and B^size), its best prefix sum, its
 # best suffix sum, its min prefix sum, its min suffix sum, its min subarray sum over its subtree. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies. Lazy tags mean "already applied to this node, not yet to its children".
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
+# Lazy tags mean "already applied to this node, not yet to its children".
 import random
 from math import isqrt
 
@@ -422,8 +422,7 @@ class ImplicitTreap:
         return v
 
     # O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    # search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
         if not 0 <= i < n:

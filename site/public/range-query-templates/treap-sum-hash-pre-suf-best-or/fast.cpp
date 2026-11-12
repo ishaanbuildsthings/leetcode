@@ -55,10 +55,10 @@ using ll = long long;
 //   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); every ImplicitTreap<T> shares one node pool (pieces move between any of them; nothing to reset)
 
 // Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
-// (that is how to erase) and paste them back in O(logN) expected each; each node keeps its sum, its forward /
-// backward hash (and B^size), its best prefix sum, its best suffix sum, its best subarray sum, its OR over its
-// subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches
-// return -1 when nothing qualifies.
+// (that is how to erase) and paste them back in O(logN) expected each; each node keeps its sum, its forward / backward
+// hash (and B^size), its best prefix sum, its best suffix sum, its best subarray sum, its OR over its subtree. All
+// indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when
+// nothing qualifies.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -559,8 +559,7 @@ struct ImplicitTreap {
     }
 
     // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    // search on
-    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    // search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
         if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");

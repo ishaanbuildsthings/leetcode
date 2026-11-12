@@ -69,9 +69,8 @@ from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-# each node keeping how many copies, their xor, their OR are below it. Sparse: dicts keyed by heap
-# index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend
-# by counts.
+# each node keeping how many copies, their xor, their OR are below it. Sparse: dicts keyed by heap index over a
+# power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend by counts.
 
 
 class ValueTreeMultiset:

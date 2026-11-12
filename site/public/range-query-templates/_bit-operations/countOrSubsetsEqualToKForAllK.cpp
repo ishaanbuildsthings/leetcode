@@ -3,10 +3,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// res of size 2^B: res[v] = number of non-empty subsets (by position) whose OR is exactly v, exact
-// values must be >= 0; B = number of bits in max(arr), so the vector is about 2 * max(arr) long; the counts reach 2^N -
-// 1, so
-// more than 62 values throws overflow_error (then use countOrSubsetsEqualToKForAllKMod)
+// res of size 2^B: res[v] = number of non-empty subsets (by position) whose OR is exactly v, exact values must be >= 0;
+// B = number of bits in max(arr), so the vector is about 2 * max(arr) long; the counts reach 2^N - 1, so more than 62
+// values throws overflow_error (then use countOrSubsetsEqualToKForAllKMod)
 // countOrSubsetsEqualToKForAllK(vector<int>{1, 2, 3}) -> {0, 1, 1, 5}   // 5 of the 7 subsets OR to 3
 // O(B * 2^B + N)
 template <class T>

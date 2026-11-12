@@ -45,10 +45,9 @@ LEETCODE_NO_SANITIZE Node reverse(Node node) {
     // return {node.second, node.first};  // (read backwards, the two ends trade places)
 }
 
-// return a new node: this node after tag is applied to it
-// this function is never called with a tag that never existed, but tags can have things like pending false values or
-// pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
-// return original node)
+// return a new node: this node after tag is applied to it this function is never called with a tag that never existed,
+// but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
+// still need to check for this and no-op (could just return original node)
 LEETCODE_NO_SANITIZE Node apply(Node node, const Tag& tag) {
     // return {node.first + tag, node.second + tag};
 }

@@ -65,8 +65,8 @@ using ll = long long;
 
 // a[l..r] as a multiset, asked about v ^ x over its values v, with point assigns. A Fenwick tree (BIT) over positions:
 // BIT node j is a binary trie (one level per bit, highest bit first) of the values a[j - lowbit(j) .. j - 1]. The
-// values
-// of a[l..r] are the BIT prefix of r + 1 minus the prefix of l, so a query walks those ~2 log N tries down together
+// values of a[l..r] are the BIT prefix of r + 1 minus the prefix of l, so a query walks those ~2 log N tries down
+// together
 // (adding the first prefix's counts, subtracting the second's). Values and every x must lie in [0, 2^bits); thresholds
 // (k, m, lo, hi) can be any integers. 0-indexed, inclusive.
 // sumXor: a Fenwick tree per bit counting the values with that bit set.
@@ -313,8 +313,7 @@ struct BitXorTries {
     }
 
     // O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l +
-    // 1,
-    // else throws out_of_range
+    // 1, else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
         rangeCheck("kthSmallest", l, r);
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");

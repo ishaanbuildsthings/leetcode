@@ -47,10 +47,8 @@ def combine(big: Node, small: Node) -> Node:
 
 # dsu = DSUNoCompress(vals, baseFn, combine)
 # vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val)
-# appends more
-# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i,
-# j)
-# reads it back (for parity / two-colouring, swap + and - for ^ throughout)
+# appends more potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] =
+# w and diff(i, j) reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
 class DSUNoCompress:
@@ -67,8 +65,7 @@ class DSUNoCompress:
         self.pot = [0] * n  # pot[i] = value[i] - value[par[i]] (0 at a root)
 
     # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    # merge
-    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
+    # merge only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par
         while par[i] != i:
@@ -85,9 +82,9 @@ class DSUNoCompress:
         return i, w
 
     # O(log n), merges the two components, returns (winner, loser): the new root and the old root now under it, or
-    # None if they were already together
-    # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
+    # None if they were already together w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w
+    # says if this agrees) only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then
+    # this is O(n)
     def uniteWeighted(self, i, j, w):
         i, wi = self._rootAndWeight(i)
         j, wj = self._rootAndWeight(j)
@@ -107,10 +104,9 @@ class DSUNoCompress:
         return i, j
 
     # O(log n), forces a's root under b's root, False if already together
-    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
-    # walks up is O(n); their O(log n) holds only if you never force unions
-    # w: value[b] - value[a] = w
-    # combine gets b's component's Node first here, even when it's the smaller one
+    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that walks up
+    # is O(n); their O(log n) holds only if you never force unions w: value[b] - value[a] = w combine gets b's
+    # component's Node first here, even when it's the smaller one
     def uniteAUnderBWeighted(self, a, b, w):
         a, wa = self._rootAndWeight(a)
         b, wb = self._rootAndWeight(b)

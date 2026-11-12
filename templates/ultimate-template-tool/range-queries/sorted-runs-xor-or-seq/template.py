@@ -60,8 +60,8 @@ class SortedRunsXorOrSeq:
     xr = [0]
     ov = [0]
     free = []  # value nodes freed by merges, reused first
-    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    # subtree length TS, pending reverse TF, subtree xor / or
+    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    # length TS, pending reverse TF, subtree xor / or
     TL = [0]
     TR = [0]
     TP = [0]

@@ -213,8 +213,8 @@ struct MergeSortTree {
     }
 };
 
-// Static range count distinct: countDistinct(l, r) = # of i in [l, r] whose next occurrence nxt[i] > r,
-// a count-gte query on the MergeSortTree above built over nxt[].
+// Static range count distinct: countDistinct(l, r) = # of i in [l, r] whose next occurrence nxt[i] > r, a count-gte
+// query on the MergeSortTree above built over nxt[].
 template <typename T>
 struct StaticDistinct {
     vector<T> arr;

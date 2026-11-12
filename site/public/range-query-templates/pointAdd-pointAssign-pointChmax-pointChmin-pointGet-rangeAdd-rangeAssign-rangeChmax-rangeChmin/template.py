@@ -24,8 +24,8 @@
 # Range add / assign / chmax / chmin + point ops, no range aggregates. All indices 0-based, ranges inclusive.
 # Every update is a clamp f(x) = min(A, max(B, x + C)) with B <= A:
 #   add v -> (INF, -INF, v)    chmax v -> (INF, v, 0)    chmin v -> (v, -INF, 0)    assign v -> (v, v, 0)
-# Clamps compose into a clamp, but not commutatively, so before tagging the covering nodes we push the tags on
-# the paths to l and r (the standard 2N trick for non-commutative updates with point reads).
+# Clamps compose into a clamp, but not commutatively, so before tagging the covering nodes we push the tags on the paths
+# to l and r (the standard 2N trick for non-commutative updates with point reads).
 INF = float("inf")
 
 

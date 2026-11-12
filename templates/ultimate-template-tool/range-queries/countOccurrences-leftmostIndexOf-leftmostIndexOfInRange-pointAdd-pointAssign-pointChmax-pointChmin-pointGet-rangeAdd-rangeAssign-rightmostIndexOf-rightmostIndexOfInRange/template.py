@@ -29,11 +29,11 @@ from random import getrandbits
 
 # "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?", with range add, range
 # assign and point updates. 0-based, inclusive.
-# Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag
-# "value = (asg if assigned else stored) + add". A whole block answers a count from its table in O(1): look up
-# x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few
-# slots it covers, and patches its table one slot at a time. A first / last search skips every block whose table
-# lacks x and scans only the first block that has it.
+# Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag "value =
+# (asg if assigned else stored) + add". A whole block answers a count from its table in O(1): look up x - add (or
+# compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few slots it covers,
+# and patches its table one slot at a time. A first / last search skips every block whose table lacks x and scans only
+# the first block that has it.
 
 
 class SqrtOccurrences:

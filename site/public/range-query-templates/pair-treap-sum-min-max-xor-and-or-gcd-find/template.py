@@ -60,8 +60,7 @@
 # O(logN) expected each, and find any value's index (values distinct). The values at even positions a[0], a[2], ...
 # are one treap (lane E) and the odd ones another (lane O), in one node pool; a range [l, r] is a slice of each, and
 # each node keeps its sum, its min, its max, its xor, its AND, its OR, its gcd over its subtree. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies.
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 from math import gcd
 

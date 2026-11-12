@@ -50,9 +50,8 @@
 
 # Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
 # (that is how to erase) and paste them back in O(logN) expected each; each node keeps its sum, its min, its max, its
-# OR, its best alternating (+ - + ...) subsequence sum for each start / end sign over its subtree. All indices
-# 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies.
+# OR, its best alternating (+ - + ...) subsequence sum for each start / end sign over its subtree. All indices 0-based,
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 
 

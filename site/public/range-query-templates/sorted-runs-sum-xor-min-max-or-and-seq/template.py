@@ -72,8 +72,8 @@ class SortedRunsSumXorMinMaxOrAndSeq:
     ov = [0]
     av = [-1]
     free = []  # value nodes freed by merges, reused first
-    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    # subtree length TS, pending reverse TF, subtree sum / xor / min / max / or / and (O: the run's own min / max)
+    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    # length TS, pending reverse TF, subtree sum / xor / min / max / or / and (O: the run's own min / max)
     TL = [0]
     TR = [0]
     TP = [0]

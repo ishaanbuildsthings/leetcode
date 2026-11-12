@@ -44,8 +44,8 @@ import random
 # (every x in a[l..r] becomes y) and rangeAssign, in O(U log N) expected, U = valHi - valLo + 1: good when the values
 # are few. A pending tag is a map old value -> new value, so any mix of changes composes into one map. Each node also
 # keeps how many times each value appears in its subtree and its sum (countOccurrences, where x first / last appears,
-# rangeSum; read without changing anything). All indices 0-based, ranges inclusive [l, r], an index always the
-# position in the CURRENT array; searches return -1 when nothing qualifies.
+# rangeSum; read without changing anything). All indices 0-based, ranges inclusive [l, r], an index always the position
+# in the CURRENT array; searches return -1 when nothing qualifies.
 class ValueMapTreap:
     # one node pool shared by every ValueMapTreap: pieces move between them (node 0 = the empty tree); nodes are never
     # freed. val[x]: x's value - valLo (every map that reached x already applied); mp[x]: the map x still owes its

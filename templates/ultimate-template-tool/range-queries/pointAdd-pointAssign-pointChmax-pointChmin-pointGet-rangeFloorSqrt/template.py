@@ -21,8 +21,8 @@
 from math import isqrt
 
 # Range floor-sqrt + point ops. All indices 0-based, ranges inclusive [l, r].
-# Pending sqrts on a node are just a count. Six isqrts take any value below 2^64 down to 0 or 1, which are
-# fixed points, so counts are capped at MAX_SQRTS. Requires 0 <= a[i] < 2^64 at all times.
+# Pending sqrts on a node are just a count. Six isqrts take any value below 2^64 down to 0 or 1, which are fixed points,
+# so counts are capped at MAX_SQRTS. Requires 0 <= a[i] < 2^64 at all times.
 MAX_SQRTS = 6
 
 

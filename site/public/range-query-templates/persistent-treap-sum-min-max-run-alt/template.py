@@ -54,8 +54,7 @@
 # first / last value and the equal runs at its ends and inside, its best alternating (+ - + ...) subsequence sum for
 # each start / end sign over its subtree. No node changes once another tree can see it: an op copies the nodes on its
 # paths, so a copy and its original never affect each other. Lengths and indices are long long. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies.
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 
 

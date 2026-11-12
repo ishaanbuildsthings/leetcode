@@ -4,8 +4,8 @@
 using namespace std;
 
 // XorBasis: every value you can make by XORing together some subset of the inserted values (a linear basis over bits).
-// The empty subset counts, so 0 can always be made. Values are long long and must be >= 0 (up to 2^63 - 1); a
-// negative value throws invalid_argument.
+// The empty subset counts, so 0 can always be made. Values are long long and must be >= 0 (up to 2^63 - 1); a negative
+// value throws invalid_argument.
 // B = number of bits in the largest value inserted, N = number of values inserted.
 //
 // XorBasis basis;          // nothing inserted yet

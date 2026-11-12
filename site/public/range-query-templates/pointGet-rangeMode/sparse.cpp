@@ -90,10 +90,8 @@ struct RangeMode {
 // ======================================================================================== sparse wrapper
 
 // Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The
-// sqrt mode
-// structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the
-// answer
-// whenever that is at least the given values' own mode frequency.
+// sqrt mode structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and
+// is the answer whenever that is at least the given values' own mode frequency.
 template <typename T>
 struct SparseStaticRangeMode {
     long long lo, hi;

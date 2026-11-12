@@ -22,15 +22,6 @@ using ll = long long;
 //   countLtX: sqrt(N)
 //   countLteX: sqrt(N)
 //   firstIndex: sqrt(N)
-//   kth: sqrt(N)
-//   largestLtX: sqrt(N)
-//   largestLteX: sqrt(N)
-//   lastIndex: sqrt(N)
-//   max: sqrt(N)
-//   medianHigh: sqrt(N)
-//   medianLow: sqrt(N)
-//   mex: sqrt(N)
-//   min: sqrt(N)
 //   gcdOfAll: sqrt(N)*log(U)
 //   gcdOfGtX: sqrt(N)*log(U)
 //   gcdOfGteX: sqrt(N)*log(U)
@@ -41,6 +32,15 @@ using ll = long long;
 //   gcdOfLtX: sqrt(N)*log(U)
 //   gcdOfLteX: sqrt(N)*log(U)
 //   gcdOfSmallestK: sqrt(N)*log(U)
+//   kth: sqrt(N)
+//   largestLtX: sqrt(N)
+//   largestLteX: sqrt(N)
+//   lastIndex: sqrt(N)
+//   max: sqrt(N)
+//   medianHigh: sqrt(N)
+//   medianLow: sqrt(N)
+//   mex: sqrt(N)
+//   min: sqrt(N)
 //   pop: sqrt(N)*log(U) amortized
 //   popMax: sqrt(N)*log(U) amortized
 //   popMin: sqrt(N)*log(U) amortized
@@ -73,14 +73,13 @@ using ll = long long;
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
 // max(LOAD, sqrt(N) / 8), each block keeping its values' copies and copies * value plus block totals and each block's
-// gcd, and a Fenwick tree over the
-// block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
-// once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
-// follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-// bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
-// many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
-// updates since the last one. A query
-// finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block.
+// gcd, and a Fenwick tree over the block totals (rebuilt only after a block splits or empties). A block splits in half
+// past twice the block size, and once N / 2 distinct values have come or gone since the last cut, every block is cut
+// again at that size: blocks follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant
+// times sqrt(N) keeps the bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of
+// them (removals can leave many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by
+// the N / 4 or more updates since the last one. A query finds its block by binary search (or by lifting over the block
+// Fenwick for k-th) and then works inside one block.
 // T: an integer type; sums in S.
 template <typename T>
 struct BlockMultiset {
@@ -611,8 +610,7 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    // there,
-    // e.g. on an empty set)
+    // there, e.g. on an empty set)
     long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
@@ -620,8 +618,7 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g.
-    // on an
-    // empty set)
+    // on an empty set)
     long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
@@ -629,8 +626,7 @@ struct BlockMultiset {
     }
 
     // O(sqrtN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    // isn't
-    // there, e.g. on an empty set)
+    // isn't there, e.g. on an empty set)
     long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

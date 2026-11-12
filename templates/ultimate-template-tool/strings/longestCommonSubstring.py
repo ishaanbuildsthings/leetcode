@@ -5,8 +5,8 @@ from random import getrandbits
 
 # longest contiguous run appearing in both a and b, as (length, startInA, startInB): a[startInA : startInA + length] ==
 # b[startInB : startInB + length]
-# ties go to the earliest start in b, then the earliest start in a; no common item -> (0, 0, 0)
-# a and b can be any mix of str / list / tuple holding hashable items (ints, chars, tuples, ...)
+# ties go to the earliest start in b, then the earliest start in a; no common item -> (0, 0, 0) a and b can be any mix
+# of str / list / tuple holding hashable items (ints, chars, tuples, ...)
 # longestCommonSubstring("xabcdy", "zzbcdq") -> (3, 2, 2)   # "bcd"
 # longestCommonSubstring([5, -1, 2, 7], [-1, 2, 9]) -> (2, 1, 0)   # [-1, 2]
 # O(n + m) expected time, O(n) space (n = len(a), m = len(b))

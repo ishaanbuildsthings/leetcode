@@ -3,8 +3,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// sum over every pair i < j of the AND of arr[i] and arr[j]
-// values must be >= 0; B = number of bits in max(arr)
+// sum over every pair i < j of the AND of arr[i] and arr[j] values must be >= 0; B = number of bits in max(arr)
 // Each bit is counted on its own: a pair has bit b exactly when both have it
 // Exact: throws overflow_error if the answer doesn't fit in long long (then use sumOfPairAndsMod)
 // sumOfPairAnds(vector<int>{1, 2, 3}) -> 3   // 1&2 + 1&3 + 2&3 = 0 + 1 + 2

@@ -6,9 +6,8 @@ using namespace std;
 #ifndef CHILD_TABLE_DEFINED
 #define CHILD_TABLE_DEFINED
 // node -> (item -> child) for tries / automata, in one hash table keyed by (node, item): O(1) expected per lookup
-// whatever
-// the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when there's no
-// child
+// whatever the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when
+// there's no child
 template <class E>
 struct ChildTable {
     // hash of a (node, item) key: every item hash mixes in a per-run random seed, so colliding inputs can't be
@@ -70,9 +69,8 @@ struct ChildTable {
 #endif
 
 // vector of size n + 1: res[L] = number of distinct contiguous substrings of length L (res[0] = 0, the empty one isn't
-// counted)
-// works on a string or vector of any element type that has == and a hash (char, int, long long, string, pair of those,
-// ...)
+// counted) works on a string or vector of any element type that has == and a hash (char, int, long long, string, pair
+// of those, ...)
 // distinctSubstringsByLength(string("abab")) -> {0, 2, 2, 2, 1}   // {a, b}, {ab, ba}, {aba, bab}, {abab}
 // distinctSubstringsByLength(vector<int>{-1, 2, -1}) -> {0, 2, 2, 1}
 // pass a container, not a string literal: distinctSubstringsByLength(string("abc")), not

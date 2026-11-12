@@ -61,8 +61,7 @@ using ll = long long;
 
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 // height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-// the copies, xor
-// and distinct values in its subtree. Each multiset owns its node pool (freed when it goes out of
+// totals over its subtree: copies, xor, distinct values. Each multiset owns its node pool (freed when it goes out of
 // scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums
 // in S.
 // FAST MODE drawbacks compared with template.cpp:
@@ -293,9 +292,9 @@ struct AVLMultiset {
         return res;
     }
 
-    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
-    // in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
-    // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0 in order v_0 <
+    // v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j with v_j > j (or
+    // how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     LEETCODE_NO_SANITIZE long long findMex() {
         long long c0 = distinctLt(0), before = -c0, res = d - c0;  // before: distinct values >= 0 left of t's subtree
         int t = root;

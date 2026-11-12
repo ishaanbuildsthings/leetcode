@@ -29,9 +29,8 @@ using ll = long long;
 
 // Range add / assign / chmin / chmax with range max queries, plus point ops. All indices 0-based, ranges inclusive [l,
 // r].
-// Iterative 2N lazy tree: values on the leaves, a tag on each internal node meaning "applied here, not yet pushed
-// to my children". The tag is the map x -> min(hi, max(lo, x + add)); these maps compose into the same form, and each
-// is
+// Iterative 2N lazy tree: values on the leaves, a tag on each internal node meaning "applied here, not yet pushed to my
+// children". The tag is the map x -> min(hi, max(lo, x + add)); these maps compose into the same form, and each is
 // monotone, so it sends a node's min / max straight to the new min / max.
 // Assign v is the clamp with hi = lo = v.
 // An update pushes the tags on its two boundary paths, tags the covering nodes, then rebuilds the two paths.

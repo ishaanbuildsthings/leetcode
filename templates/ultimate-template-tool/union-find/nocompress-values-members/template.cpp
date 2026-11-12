@@ -53,16 +53,15 @@ struct DSUNoCompress {
     }
 
     // O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    // merge
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    // merge only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     int find(int i) {
         while (par[i] != i) i = par[i];
         return i;
     }
 
     // O(log n), merges the two components, returns {winner, loser}: the new root and the old root now under it,
-    // or {-1, -1} if they were already together
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    // or {-1, -1} if they were already together only O(log n) if you never call uniteAUnderB: forced unions can build a
+    // chain, then this is O(n)
     pair<int, int> unite(int i, int j) {
         i = find(i), j = find(j);
         if (i == j) {

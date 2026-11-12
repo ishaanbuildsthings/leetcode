@@ -49,9 +49,9 @@ using ll = long long;
 
 // Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
 // (that is how to erase) and paste them back in O(logN) expected each, with rangeFloorDiv, rangeMod, rangeFloorSqrt;
-// each node keeps its max, its xor, its first / last value and the equal runs at its ends and inside over its
-// subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches
-// return -1 when nothing qualifies.
+// each node keeps its max, its xor, its first / last value and the equal runs at its ends and inside over its subtree.
+// All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1
+// when nothing qualifies.
 // T: int, long long, ...
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

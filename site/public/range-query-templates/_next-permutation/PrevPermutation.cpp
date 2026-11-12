@@ -5,8 +5,8 @@ using namespace std;
 using ll = long long;
 
 // Returns a new vector / string with the previous (next smaller) permutation, with looping behavior around to the
-// lexicographical largest permutation if we step past the lexicographical min
-// works with a vector of comparable values (ints, longs, negatives, chars) or a string of chars
+// lexicographical largest permutation if we step past the lexicographical min works with a vector of comparable values
+// (ints, longs, negatives, chars) or a string of chars
 template <typename Seq>
 Seq prevPermutation(Seq arrOrString) {
     int n = arrOrString.size();

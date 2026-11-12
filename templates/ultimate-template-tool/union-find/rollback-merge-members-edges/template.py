@@ -74,8 +74,8 @@ class RollbackDSU:
         return i
 
     # O(log n), merges the two components, False if i and j were already together
-    # either way it counts as an edge of the component (edgeCount)
-    # either way it records a frame, so it always takes exactly one rollbackLastUnion to undo
+    # either way it counts as an edge of the component (edgeCount) either way it records a frame, so it always takes
+    # exactly one rollbackLastUnion to undo
     def unite(self, i, j):
         i, j = self.find(i), self.find(j)
         if i == j:

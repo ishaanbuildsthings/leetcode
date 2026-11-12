@@ -31,12 +31,12 @@
 #   other: none
 #   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
-# Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN)
-# expected; the values are characters, openChar = +1 and closeChar = -1, and a range is a regular bracket sequence iff
-# its sum is 0 and no prefix sum is negative; each node keeps its subtree's sum and min prefix sum (over prefixes
-# including the empty one), and its max prefix sum (a flip negates every value: min and max swap and change sign). All
-# indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean "already
-# applied to this node, not yet to its children".
+# Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN) expected;
+# the values are characters, openChar = +1 and closeChar = -1, and a range is a regular bracket sequence iff its sum is
+# 0 and no prefix sum is negative; each node keeps its subtree's sum and min prefix sum (over prefixes including the
+# empty one), and its max prefix sum (a flip negates every value: min and max swap and change sign). All indices
+# 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean "already applied
+# to this node, not yet to its children".
 import random
 
 
@@ -56,8 +56,8 @@ class ImplicitTreap:
     __slots__ = ('root', 'oc', 'cc')
 
     # O(N) -- brackets: the sequence, a list of characters like ["(", ")", "("] (a str like "()(" works too);
-    # openChar: the character that opens ("(" unless you pass e.g. "[")
-    # closeChar: the character that closes (every character must be one of the two)
+    # openChar: the character that opens ("(" unless you pass e.g. "[") closeChar: the character that closes (every
+    # character must be one of the two)
     def __init__(self, brackets, openChar="(", closeChar=")"):
         self.oc = openChar
         self.cc = closeChar

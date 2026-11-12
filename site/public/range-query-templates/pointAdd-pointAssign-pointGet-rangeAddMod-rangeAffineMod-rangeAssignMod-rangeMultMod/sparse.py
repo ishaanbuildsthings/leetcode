@@ -18,9 +18,9 @@
 #   other: children[8*log(U)]
 #   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is sm (internal nodes keep no aggregate). Lists of nodes
 
-# Range affine maps % MOD (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v),
-# plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into
-# the same form. Only leaves' values matter, so nothing is pulled.
+# Range affine maps % MOD (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v), plus point ops. Values
+# are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same form. Only leaves' values
+# matter, so nothing is pulled.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
 # into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags
 # down and apply them to what they return, so they create no nodes. Sparse: lists of nodes; node 0 is the shared

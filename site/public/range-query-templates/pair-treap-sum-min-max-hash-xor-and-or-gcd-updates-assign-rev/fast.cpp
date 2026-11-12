@@ -72,9 +72,9 @@ using ll = long long;
 // a[l + 1], a[l + 2] <-> a[l + 3], ...), reverse, rotate, cut pieces out of (that is how to erase) and paste them
 // back in O(logN) expected each, with rangeAssign. The values at even positions a[0], a[2], ... are one treap (lane
 // E) and the odd ones another (lane O), in one node pool; a range [l, r] is a slice of each, and each node keeps its
-// sum, its min, its max, its forward / backward hash (and B^size), its xor, its AND, its OR, its gcd over its
-// subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches
-// return -1 when nothing qualifies. Lazy tags mean "already applied to this node, not yet to its children".
+// sum, its min, its max, its forward / backward hash (and B^size), its xor, its AND, its OR, its gcd over its subtree.
+// All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1
+// when nothing qualifies. Lazy tags mean "already applied to this node, not yet to its children".
 // T: int, long long, ...; sums are kept in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -591,8 +591,7 @@ struct PairSwapTreap {
     }
 
     // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)):
-    // a binary search on
-    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    // a binary search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
         if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
@@ -622,8 +621,7 @@ struct PairSwapTreap {
     }
 
     // O(log(N)*log(U) expected ?) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
-    // every structure
-    // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    // every structure this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE auto hashAll() {
         if (size() < 1) throw out_of_range("hashAll: needs n >= 1");
         return rangeHash(0, size() - 1);

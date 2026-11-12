@@ -71,8 +71,8 @@ using ll = long long;
 //   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
 
 // Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-// each node keeping how many copies, their sum,, their xor are below it. Each multiset owns
-// its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
+// each node keeping how many copies, their sum,, their xor are below it. Each multiset owns its node pool (freed when
+// it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
 // k-th / sums of the k smallest descend by counts.
 // T: int, long long, ...; sums in S (long long for small T).
 template <typename T>

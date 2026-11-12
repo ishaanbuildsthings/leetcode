@@ -23,10 +23,9 @@ Node combine(const Node& left, const Node& right) {
     // return max(left, right);
 }
 
-// return a new node: this node after tag is applied to it
-// this function is never called with a tag that never existed, but tags can have things like pending false values or
-// pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
-// return original node)
+// return a new node: this node after tag is applied to it this function is never called with a tag that never existed,
+// but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
+// still need to check for this and no-op (could just return original node)
 Node apply(Node node, const Tag& tag) {
     // return node + tag;  // (adding to every element raises the max by as much)
 }

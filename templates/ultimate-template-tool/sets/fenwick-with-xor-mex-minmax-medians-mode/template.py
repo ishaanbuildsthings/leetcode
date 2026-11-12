@@ -239,8 +239,8 @@ class FenwickMultiset:
                     self.mn = self._kth(1)
                 if x == self.mx:
                     self.mx = self._kth(n)
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

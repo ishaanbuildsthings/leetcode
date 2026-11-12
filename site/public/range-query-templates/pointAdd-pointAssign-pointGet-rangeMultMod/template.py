@@ -17,9 +17,9 @@
 #   note: tree[n:] holds the values, tree[1:n] holds each node's pending rangeMultMod tag (no aggregates); leaves count as node data, internal nodes as tags
 
 # rangeMultMod + point ops with no range aggregates. All indices 0-based, ranges inclusive [l, r].
-# rangeMultMod composes with itself in any order, so a range update only tags the O(logN) covering nodes and
-# pointGet folds the tags on the leaf-to-root path. Only pointAssign-style overwrites need to push those
-# tags off the path first, because they must not be re-applied to the new value.
+# rangeMultMod composes with itself in any order, so a range update only tags the O(logN) covering nodes and pointGet
+# folds the tags on the leaf-to-root path. Only pointAssign-style overwrites need to push those tags off the path first,
+# because they must not be re-applied to the new value.
 class RangeMultModTree:
     __slots__ = ("n", "tree", "mod")
 

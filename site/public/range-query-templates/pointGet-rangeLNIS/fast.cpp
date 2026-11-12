@@ -73,8 +73,8 @@ struct RangeLNIS {
     HotVector<int> sortedVals;  // sorted E
     HotVector<int> cnt;         // flat merge sort tree over E: cnt[d * n + tl + j] = # of the first j + 1 that go left
 
-    // All scratch memory comes from one arena: a call takes what it needs from the top and gives it back on
-    // return, so the O(N log N) recursive calls do no heap allocation at all.
+    // All scratch memory comes from one arena: a call takes what it needs from the top and gives it back on return, so
+    // the O(N log N) recursive calls do no heap allocation at all.
     HotVector<int> arena;
     size_t top = 0;
     LEETCODE_NO_SANITIZE int* take(size_t k) { int* p = arena.data() + top; top += k; return p; }

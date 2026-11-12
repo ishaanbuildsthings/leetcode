@@ -71,9 +71,8 @@ from random import getrandbits
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 # height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-# the copies, sum, AND
-# and distinct values in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
-# nodes are reused.
+# totals over its subtree: copies, sum, AND, distinct values. Nodes live in parallel lists (a node pool; node 0 is the
+# empty tree) and removed nodes are reused.
 
 
 class AVLMultiset:
@@ -274,9 +273,9 @@ class AVLMultiset:
                 t = L[t]
         return res
 
-    # smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
-    # in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
-    # with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    # smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0 in order v_0 <
+    # v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j with v_j > j (or
+    # how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     def _findMex(self):
         K, D, L, R = self.K, self.D, self.L, self.R
         c0 = self._distinctLt(0)

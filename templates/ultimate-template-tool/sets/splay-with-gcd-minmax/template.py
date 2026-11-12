@@ -17,14 +17,6 @@
 #   countLtX: log(N) amortized
 #   countLteX: log(N) amortized
 #   firstIndex: log(N) amortized
-#   kth: log(N) amortized
-#   largestLtX: log(N) amortized
-#   largestLteX: log(N) amortized
-#   lastIndex: log(N) amortized
-#   max: 1
-#   medianHigh: log(N) amortized
-#   medianLow: log(N) amortized
-#   min: 1
 #   gcdOfAll: 1
 #   gcdOfGtX: log(N)*log(U) amortized
 #   gcdOfGteX: log(N)*log(U) amortized
@@ -35,6 +27,14 @@
 #   gcdOfLtX: log(N)*log(U) amortized
 #   gcdOfLteX: log(N)*log(U) amortized
 #   gcdOfSmallestK: log(N)*log(U) amortized
+#   kth: log(N) amortized
+#   largestLtX: log(N) amortized
+#   largestLteX: log(N) amortized
+#   lastIndex: log(N) amortized
+#   max: 1
+#   medianHigh: log(N) amortized
+#   medianLow: log(N) amortized
+#   min: 1
 #   pop: log(N)*log(U) amortized
 #   popMax: log(N)*log(U) amortized
 #   popMin: log(N)*log(U) amortized
@@ -54,12 +54,14 @@
 #   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-# keeps its value, its copies, and the copies, gcd in its subtree; every operation splays the
+# keeps its value, its copies, and totals over its subtree: copies, gcd; every operation splays the
 # last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
 # node 0 is the empty tree) and removed nodes are reused.
 
 
 from math import gcd
+
+
 class SplayMultiset:
     __slots__ = ("K", "C", "Z", "G", "L", "R", "P", "free", "root", "n", "mn", "mx", "d")
 
@@ -514,8 +516,7 @@ class SplayMultiset:
         return v
 
     # O(logN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    # there,
-    # e.g. on an empty set)
+    # there, e.g. on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -523,8 +524,7 @@ class SplayMultiset:
         return 1
 
     # O(logN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on
-    # an
-    # empty set)
+    # an empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
@@ -532,8 +532,7 @@ class SplayMultiset:
         return k
 
     # O(logN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    # isn't
-    # there, e.g. on an empty set)
+    # isn't there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

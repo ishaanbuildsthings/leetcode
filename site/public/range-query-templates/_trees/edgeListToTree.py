@@ -2,8 +2,8 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/edgeListToTree.py
 # TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
 # edgeList = [[a, b], [c, d], ...]
-# roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label
-# 0-indexed input -> children goes up to children[n-1]; 1-indexed -> up to children[n], children[0] empty and unused
+# roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label 0-indexed input ->
+# children goes up to children[n-1]; 1-indexed -> up to children[n], children[0] empty and unused
 def edgeListToTree(edgeList, root):
     size = max([root] + [max(a, b) for a, b in edgeList]) + 1
     edgeMap = [[] for _ in range(size)]

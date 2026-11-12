@@ -72,14 +72,13 @@ using ll = long long;
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
 // max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus block totals and each block's xor / AND, and a
-// Fenwick tree over the
-// block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
-// once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
-// follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-// bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
-// many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
-// updates since the last one. A query
-// finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block.
+// Fenwick tree over the block totals (rebuilt only after a block splits or empties). A block splits in half past twice
+// the block size, and once N / 2 distinct values have come or gone since the last cut, every block is cut again at that
+// size: blocks follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N)
+// keeps the bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals
+// can leave many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or
+// more updates since the last one. A query finds its block by binary search (or by lifting over the block Fenwick for
+// k-th) and then works inside one block.
 // T: an integer type; sums in S.
 template <typename T>
 struct BlockMultiset {

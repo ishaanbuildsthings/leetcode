@@ -122,8 +122,8 @@ class _Block:
             self.add = 0
             self.vals, self.srt, self.pos, self.pf = [], [], [], [0]
 
-    # how many values are < x / <= x. The tag is monotone: below the floor nothing is < x, above the ceiling
-    # everything is, and in between "clamp(v + add) < x" is just "v + add < x"
+    # how many values are < x / <= x. The tag is monotone: below the floor nothing is < x, above the ceiling everything
+    # is, and in between "clamp(v + add) < x" is just "v + add < x"
     def cntLess(self, x):
         if x <= self.floor:
             return 0

@@ -41,10 +41,9 @@ Node reverse(Node node) {
     // return node;
 }
 
-// return a new node: this node after tag is applied to it
-// this function is never called with a tag that never existed, but tags can have things like pending false values or
-// pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
-// return original node)
+// return a new node: this node after tag is applied to it this function is never called with a tag that never existed,
+// but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
+// still need to check for this and no-op (could just return original node)
 Node apply(Node node, const Tag& tag) {
     // This is NOT mutating since node is taken by value in the arg, we can also just make a new node if needed
     // node.tot += tag.add * node.len, node.first += tag.add, node.last += tag.add;

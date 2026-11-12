@@ -638,8 +638,7 @@ struct ImplicitTreap {
     }
 
     // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    // search on
-    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    // search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
         if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");

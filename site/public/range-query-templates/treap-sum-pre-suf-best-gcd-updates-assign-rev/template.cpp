@@ -50,9 +50,9 @@ using ll = long long;
 
 // Implicit treap with composable aggregates: an array you can insert into anywhere, reverse, rotate, move, cut pieces
 // out of (that is how to erase) and paste them back in O(logN) expected each, with rangeAssign; each node keeps its
-// sum, its best prefix sum, its best suffix sum, its best subarray sum, its gcd over its subtree. All indices
-// 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when
-// nothing qualifies. Lazy tags mean "already applied to this node, not yet to its children".
+// sum, its best prefix sum, its best suffix sum, its best subarray sum, its gcd over its subtree. All indices 0-based,
+// ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
+// qualifies. Lazy tags mean "already applied to this node, not yet to its children".
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct ImplicitTreap {

@@ -3,8 +3,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// sum over every pair i < j of the OR of arr[i] and arr[j], mod mod (mod < 2^62)
-// values must be >= 0; B = number of bits in max(arr)
+// sum over every pair i < j of the OR of arr[i] and arr[j], mod mod (mod < 2^62) values must be >= 0; B = number of
+// bits in max(arr)
 // Each bit is counted on its own: a pair has bit b unless neither has it
 // sumOfPairOrsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 9   // 1|2 + 1|3 + 2|3 = 3 + 3 + 3
 // O(N * B)

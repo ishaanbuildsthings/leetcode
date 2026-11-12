@@ -83,7 +83,7 @@ from random import random
 
 
 # Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-# its value, its copies, and the copies, sum, xor, AND in its subtree. Nodes live in parallel lists (a node
+# its value, its copies, and totals over its subtree: copies, sum, xor, AND. Nodes live in parallel lists (a node
 # pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
 
 

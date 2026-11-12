@@ -93,8 +93,8 @@ using ll = long long;
 
 // Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
 // each node keeping how many copies, their sum,, their xor, their OR, their AND and how many distinct values (for mex)
-// are below it. Each multiset owns
-// its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
+// are below it. Each multiset owns its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0
+// is the empty block.
 // k-th / sums of the k smallest descend by counts; mex descends to the first value >= 0 whose block isn't full.
 // T: int, long long, ...; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:

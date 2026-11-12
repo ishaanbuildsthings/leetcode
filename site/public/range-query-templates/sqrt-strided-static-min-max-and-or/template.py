@@ -38,8 +38,7 @@ class StridedQueries:
         self.orTable = None
 
     # min of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMin(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -63,8 +62,7 @@ class StridedQueries:
         return a if a < b else b
 
     # max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMax(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -88,8 +86,7 @@ class StridedQueries:
         return a if a > b else b
 
     # a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedAndQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedAndQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -113,8 +110,7 @@ class StridedQueries:
         return a & b
 
     # a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedOrQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedOrQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

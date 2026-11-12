@@ -4,17 +4,14 @@
 from random import getrandbits
 
 # list of size len(patterns): res[k] = every index i where text[i...] matches patterns[k], ascending (overlaps included,
-# Aho-Corasick)
-# an empty pattern matches at every i in 0..len(text); duplicate patterns each get their own list
-# text and patterns can be any mix of str / list / tuple holding hashable items (ints, chars, tuples, ...)
+# Aho-Corasick) an empty pattern matches at every i in 0..len(text); duplicate patterns each get their own list text and
+# patterns can be any mix of str / list / tuple holding hashable items (ints, chars, tuples, ...)
 # multiPatternMatches("ababa", ["aba", "b", "ab", "zz"]) -> [[0, 2], [1, 3], [0, 2], []]
 # multiPatternMatches([-1, 2, -1, 2], [[-1, 2], [2]]) -> [[0, 2], [1, 3]]
 # O(n + m + n * sqrt(m)) expected time (m = total pattern length), worst case when the output is huge: patterns of the
-# same length are
-# different, so together they match at most n indices, and total length m allows at most about sqrt(2m) different
-# lengths,
-# so there are at most n * sqrt(2m) matches (duplicate patterns each get their own copy); use multiPatternCounts for
-# just counts
+# same length are different, so together they match at most n indices, and total length m allows at most about sqrt(2m)
+# different lengths, so there are at most n * sqrt(2m) matches (duplicate patterns each get their own copy); use
+# multiPatternCounts for just counts
 def multiPatternMatches(text, patterns):
     salt = getrandbits(62)
 

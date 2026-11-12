@@ -54,10 +54,9 @@ template <typename T>
 struct ValueMapTreap {
     using Z = int;  // lengths, indices and counts
     // one node pool shared by every ValueMapTreap<T>: pieces move between them (node 0 = the empty tree). Nodes are
-    // never
-    // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
-    // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
-    // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
+    // never freed, so there is nothing to reset between test cases; every one shares the value range too (the last
+    // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the map
+    // it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
     // handed down, it is reused
     struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
         unsigned long long pri = 0;

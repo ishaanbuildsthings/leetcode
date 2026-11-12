@@ -74,7 +74,8 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies, sum, AND and distinct values in its subtree. Each multiset owns its node pool
+// its value, its copies, and totals over its subtree: copies, sum, AND, distinct values. Each multiset owns its node
+// pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
@@ -360,9 +361,9 @@ struct TreapMultiset {
         return res;
     }
 
-    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
-    // in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
-    // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0 in order v_0 <
+    // v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j with v_j > j (or
+    // how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
     LEETCODE_NO_SANITIZE long long findMex() {
         long long c0 = distinctLt(0), before = -c0, res = d - c0;  // before: distinct values >= 0 left of t's subtree
         int t = root;

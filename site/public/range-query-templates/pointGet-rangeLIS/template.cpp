@@ -38,8 +38,8 @@ struct RangeLIS {
     vector<int> sortedVals;  // sorted E
     vector<int> cnt;         // flat merge sort tree over E: cnt[d * n + tl + j] = # of the first j + 1 that go left
 
-    // All scratch memory comes from one arena: a call takes what it needs from the top and gives it back on
-    // return, so the O(N log N) recursive calls do no heap allocation at all.
+    // All scratch memory comes from one arena: a call takes what it needs from the top and gives it back on return, so
+    // the O(N log N) recursive calls do no heap allocation at all.
     vector<int> arena;
     size_t top = 0;
     int* take(size_t k) { int* p = arena.data() + top; top += k; return p; }

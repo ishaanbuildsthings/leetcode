@@ -507,8 +507,7 @@ struct PersistentXorTrie {
     }
 
     // O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l
-    // <= r < size(), else
-    // throws out_of_range
+    // <= r < size(), else throws out_of_range
     long long orInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("orInValRange", l, r);
         return orIn(l, r, lowVal, highVal);

@@ -46,9 +46,9 @@ using ll = long long;
 
 // Lazy segment tree with composable aggregates (2N iterative): range updates (rangeAssign) and range queries in
 // O(logN); each node keeps its sum, its min, its max, its best prefix sum, its best suffix sum, its best subarray
-// sum, its best alternating (+ - + ...) subsequence sum for each start / end sign over its range. All indices
-// 0-based, ranges inclusive [l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a
-// query or update is a perfect subtree of 2^s leaves (s = its level), and every internal node holds its pending tags
+// sum, its best alternating (+ - + ...) subsequence sum for each start / end sign over its range. All indices 0-based,
+// ranges inclusive [l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a query or
+// update is a perfect subtree of 2^s leaves (s = its level), and every internal node holds its pending tags
 // ("applied here, not yet to my children"): an update pushes the tags on its two boundary leaf paths, tags the
 // covering nodes, then rebuilds both paths, each node redoing its own pending tag.
 // T: int, long long, ...; sums are kept in S (long long for small T).

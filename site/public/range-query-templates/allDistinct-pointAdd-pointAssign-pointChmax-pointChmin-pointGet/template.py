@@ -11,7 +11,7 @@
 #   pointChmax: log(N)
 #   pointChmin: log(N)
 #   pointGet: 1
-#   build: N*log(N)
+#   build: N
 # @memory:
 #   layout: 2n-iterative
 #   node: tree[2*N]

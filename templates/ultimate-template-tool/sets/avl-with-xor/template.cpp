@@ -59,10 +59,8 @@ using ll = long long;
 
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 // height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-// the copies, xor
-// in its subtree. Each multiset owns its node pool (freed when it goes out of
-// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums
-// in S.
+// totals over its subtree: copies, xor. Each multiset owns its node pool (freed when it goes out of scope; clear()
+// keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
 template <typename T>
 struct AVLMultiset {
     template <class K>

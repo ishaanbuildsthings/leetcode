@@ -17,14 +17,6 @@
 #   countLtX: log(N) expected
 #   countLteX: log(N) expected
 #   firstIndex: log(N) expected
-#   kth: log(N) expected
-#   largestLtX: log(N) expected
-#   largestLteX: log(N) expected
-#   lastIndex: log(N) expected
-#   max: 1
-#   medianHigh: log(N) expected
-#   medianLow: log(N) expected
-#   min: 1
 #   gcdOfAll: 1
 #   gcdOfGtX: log(N)*log(U) expected
 #   gcdOfGteX: log(N)*log(U) expected
@@ -35,6 +27,14 @@
 #   gcdOfLtX: log(N)*log(U) expected
 #   gcdOfLteX: log(N)*log(U) expected
 #   gcdOfSmallestK: log(N)*log(U) expected
+#   kth: log(N) expected
+#   largestLtX: log(N) expected
+#   largestLteX: log(N) expected
+#   lastIndex: log(N) expected
+#   max: 1
+#   medianHigh: log(N) expected
+#   medianLow: log(N) expected
+#   min: 1
 #   pop: log(N)*log(U) expected
 #   popMax: log(N)*log(U) expected
 #   popMin: log(N)*log(U) expected
@@ -57,8 +57,8 @@ from random import random
 
 
 # Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-# its value, its copies, and the copies, gcd in its subtree. Nodes live in parallel lists (a node
-# pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
+# its value, its copies, and totals over its subtree: copies, gcd. Nodes live in parallel lists (a node pool; node 0 is
+# the empty tree) and removed nodes are reused. Updates split around x and merge back.
 
 
 class TreapMultiset:
@@ -494,8 +494,7 @@ class TreapMultiset:
         return v
 
     # O(logN * logU expected) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    # there,
-    # e.g. on an empty set)
+    # there, e.g. on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -503,8 +502,7 @@ class TreapMultiset:
         return 1
 
     # O(logN * logU expected) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on
-    # an
-    # empty set)
+    # an empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
@@ -512,8 +510,7 @@ class TreapMultiset:
         return k
 
     # O(logN * logU expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    # isn't
-    # there, e.g. on an empty set)
+    # isn't there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

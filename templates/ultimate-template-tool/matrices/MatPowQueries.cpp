@@ -117,8 +117,8 @@ struct ModMatrix {
         return res;
     }
 
-    // I + M + M^2 + ... + M^(p-1) for M[k, k], p >= 0 (p = 0 gives zeros)
-    // e.g. vec * M.powSum(p) sums vec * M^i over 0 <= i < p (walks of length < p)
+    // I + M + M^2 + ... + M^(p-1) for M[k, k], p >= 0 (p = 0 gives zeros) e.g. vec * M.powSum(p) sums vec * M^i over
+    // 0 <= i < p (walks of length < p)
     // O(k^3 log p)
     ModMatrix powSum(long long p) const {
         requireSquare("matrix power sum", p);

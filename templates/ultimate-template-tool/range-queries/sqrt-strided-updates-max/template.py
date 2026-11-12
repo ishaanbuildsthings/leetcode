@@ -19,9 +19,9 @@
 #   note: one list per stride, in which a strided query is a contiguous range. Kept strides are lower than the costs suggest (an eighth for block sums, a quarter for seg trees), since slices walk the big steps fast
 
 # Strided queries with point updates: each query covers a[l], a[l + step], a[l + 2 * step], ... up to at most r
-# (the last position used may be below r). Fix a stride and split the array by position mod stride: a strided query
-# is a contiguous range of one list, so small strides are ordinary range queries, and a big stride visits few
-# positions, so it walks them. All indices 0-based, ranges inclusive.
+# (the last position used may be below r). Fix a stride and split the array by position mod stride: a strided query is a
+# contiguous range of one list, so small strides are ordinary range queries, and a big stride visits few positions, so
+# it walks them. All indices 0-based, ranges inclusive.
 # T: int, long long, ...; sums are kept in S (long long for small T).
 from math import log2, sqrt
 

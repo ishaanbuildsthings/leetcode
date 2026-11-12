@@ -97,8 +97,8 @@ struct SortedRunsOrAndHashSeq {
     static inline vector<Run> rn{Run{}};  // node 0 = the empty tree
     static inline vector<int> freeList;  // value nodes freed by merges, reused first
     static inline vector<unsigned long long> pw{1}, gs{0};  // B^k; 1 + B + ... + B^(k-1)
-    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    // subtree length TS, pending reverse TF, subtree or / and / hashes
+    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    // length TS, pending reverse TF, subtree or / and / hashes
     static inline vector<int> tfree;
     long long vlo, vhi;  // (each one's value range)
     int n = 0, rt = 0;
@@ -400,8 +400,7 @@ struct SortedRunsOrAndHashSeq {
     }
 
     // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i,
-    // i)): a binary search on
-    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    // i)): a binary search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
         if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
@@ -431,8 +430,7 @@ struct SortedRunsOrAndHashSeq {
     }
 
     // O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
-    // every structure
-    // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    // every structure this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
     auto hashAll() {
         if (size() < 1) throw out_of_range("hashAll: needs n >= 1");
         return rangeHash(0, size() - 1);

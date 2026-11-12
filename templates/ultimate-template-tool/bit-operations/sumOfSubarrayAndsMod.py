@@ -3,8 +3,8 @@
 
 from itertools import groupby
 
-# sum over every non-empty subarray of the AND of all its values, mod mod
-# values must be >= 0; B = number of bits in max(arr)
+# sum over every non-empty subarray of the AND of all its values, mod mod values must be >= 0; B = number of bits in
+# max(arr)
 # Each bit is counted on its own: a subarray has bit b exactly when it sits inside a run of values that all have bit b
 # sumOfSubarrayAndsMod([1, 2, 3], 10**9 + 7) -> 8   # [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 0 + 2 + 0
 # O(N * B)

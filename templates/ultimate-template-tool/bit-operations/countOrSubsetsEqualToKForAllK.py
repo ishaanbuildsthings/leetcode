@@ -4,8 +4,8 @@
 from operator import add, sub
 
 # res of size 2^B: res[v] = number of non-empty subsets (by position) whose OR is exactly v, exact (Python ints never
-# overflow, but they get as big as 2^N: tick With mod for a mod)
-# values must be >= 0; B = number of bits in max(arr), so the list is about 2 * max(arr) long
+# overflow, but they get as big as 2^N: tick With mod for a mod) values must be >= 0; B = number of bits in max(arr), so
+# the list is about 2 * max(arr) long
 # countOrSubsetsEqualToKForAllK([1, 2, 3]) -> [0, 1, 1, 5]   # 5 of the 7 subsets OR to 3
 # O(B * 2^B + N)
 def countOrSubsetsEqualToKForAllK(arr):

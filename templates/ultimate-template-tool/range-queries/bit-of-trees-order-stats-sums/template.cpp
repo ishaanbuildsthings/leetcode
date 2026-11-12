@@ -50,8 +50,7 @@ using ll = long long;
 
 // a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over positions: BIT node j is a dynamic
 // value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the
-// BIT
-// prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
+// BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
 // subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
@@ -150,8 +149,7 @@ struct DynamicOrderStats {
     }
 
     // O(logN * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1,
-    // else
-    // throws out_of_range
+    // else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("kthSmallest: needs 0 <= l <= r < n");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
@@ -241,8 +239,7 @@ struct DynamicOrderStats {
     }
 
     // O(logN * logU) -- sum of the k smallest values in a[l..r]; needs 0 <= l <= r < n and 0 <= k <= r - l + 1, else
-    // throws
-    // out_of_range
+    // throws out_of_range
     S sumSmallestK(long long l, long long r, long long k) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("sumSmallestK: needs 0 <= l <= r < n");
         if (k < 0 || k > r - l + 1) throw out_of_range("sumSmallestK: needs 0 <= k <= r - l + 1");
@@ -250,8 +247,7 @@ struct DynamicOrderStats {
     }
 
     // O(logN * logU) -- sum of the k largest values in a[l..r]; needs 0 <= l <= r < n and 0 <= k <= r - l + 1, else
-    // throws
-    // out_of_range
+    // throws out_of_range
     S sumLargestK(long long l, long long r, long long k) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("sumLargestK: needs 0 <= l <= r < n");
         long long n = r - l + 1;
@@ -260,8 +256,7 @@ struct DynamicOrderStats {
     }
 
     // O(logN * logU) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 0 <= l <=
-    // r < n
-    // and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
+    // r < n and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     S sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("sumKthSmallestRange: needs 0 <= l <= r < n");
         if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1)

@@ -47,8 +47,8 @@ def _compose(o, t):  # tag o, then tag t; the maps compose into the same form
 # and each is monotone, so it sends a node's min / max straight to the new min / max.
 # Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they
 # carry the ancestors' tags down and apply them to what they return, so they create no nodes.
-# Sparse: parallel lists of nodes; node 0 is the shared all-zeros block (its sum, min and max are 0 at any
-# length), node 1 is the root.
+# Sparse: parallel lists of nodes; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length), node
+# 1 is the root.
 
 
 class SparseChminMinMaxTree:

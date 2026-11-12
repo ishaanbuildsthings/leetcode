@@ -6,9 +6,8 @@ using namespace std;
 #ifndef CHILD_TABLE_DEFINED
 #define CHILD_TABLE_DEFINED
 // node -> (item -> child) for tries / automata, in one hash table keyed by (node, item): O(1) expected per lookup
-// whatever
-// the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when there's no
-// child
+// whatever the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when
+// there's no child
 template <class E>
 struct ChildTable {
     // hash of a (node, item) key: every item hash mixes in a per-run random seed, so colliding inputs can't be
@@ -70,10 +69,9 @@ struct ChildTable {
 #endif
 
 // vector of size patterns.size(): res[k] = number of indices i where text[i...] matches patterns[k] (overlaps counted,
-// Aho-Corasick)
-// an empty pattern matches at every i in 0..text.size(); duplicate patterns each get their own count
-// text and the patterns can be different containers (e.g. string and vector<char>) of any element type that has == and
-// a hash
+// Aho-Corasick) an empty pattern matches at every i in 0..text.size(); duplicate patterns each get their own count text
+// and the patterns can be different containers (e.g. string and vector<char>) of any element type that has == and a
+// hash
 // multiPatternCounts(string("ababa"), vector<string>{"aba", "b", "ab", "zz"}) -> {2, 2, 2, 0}
 // multiPatternCounts(vector<int>{-1, 2, -1, 2}, vector<vector<int>>{{-1, 2}, {2}}) -> {2, 2}
 // O(n + total pattern length) expected time, O(total pattern length) space

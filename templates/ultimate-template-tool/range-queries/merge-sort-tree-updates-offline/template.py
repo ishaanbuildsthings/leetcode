@@ -25,10 +25,10 @@
 #   other: A[1*N] start[1*N] nodeSize[2*N]
 #   note: the constructor takes every (i, v) a pointAssign will ever use, so N is the array length plus that list's length; worst-case bounds and flat arrays, the fastest of these
 
-# Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
-# inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold,
-# with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
-# point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
+# Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each inner
+# node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold, with
+# Fenwick trees over them). a[l..r] is O(log n) nodes, and a point update changes one value in each of the O(log n)
+# nodes above it. All indices 0-based, ranges inclusive.
 # Offline: the constructor takes every (i, v) that a pointAssign will ever use (read every query first). For adds
 # or chmax / chmin, work out the new value yourself and list that.
 # T: int, long long, ...; sums are kept in S (long long for small T).

@@ -17,14 +17,6 @@
 #   countLtX: log(N)
 #   countLteX: log(N)
 #   firstIndex: log(N)
-#   kth: log(N)
-#   largestLtX: log(N)
-#   largestLteX: log(N)
-#   lastIndex: log(N)
-#   max: log(N)
-#   medianHigh: log(N)
-#   medianLow: log(N)
-#   min: log(N)
 #   gcdOfAll: 1
 #   gcdOfGtX: log(N)*log(U)
 #   gcdOfGteX: log(N)*log(U)
@@ -35,6 +27,14 @@
 #   gcdOfLtX: log(N)*log(U)
 #   gcdOfLteX: log(N)*log(U)
 #   gcdOfSmallestK: log(N)*log(U)
+#   kth: log(N)
+#   largestLtX: log(N)
+#   largestLteX: log(N)
+#   lastIndex: log(N)
+#   max: log(N)
+#   medianHigh: log(N)
+#   medianLow: log(N)
+#   min: log(N)
 #   pop: log(N)*log(U)
 #   popMax: log(N)*log(U)
 #   popMin: log(N)*log(U)
@@ -55,12 +55,13 @@
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 # height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-# the copies, gcd
-# in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
+# totals over its subtree: copies, gcd. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
 # nodes are reused.
 
 
 from math import gcd
+
+
 class AVLMultiset:
     __slots__ = ("K", "C", "Z", "G", "H", "L", "R", "free", "root", "n", "d")
 
@@ -459,8 +460,7 @@ class AVLMultiset:
         return v
 
     # O(logN * logU) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there, e.g.
-    # on an
-    # empty set)
+    # on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -477,8 +477,7 @@ class AVLMultiset:
         return k
 
     # O(logN * logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't there,
-    # e.g. on
-    # an empty set)
+    # e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

@@ -51,8 +51,8 @@ from random import random
 
 
 # Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-# its value, its copies, and the copies in its subtree. Nodes live in parallel lists (a node
-# pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
+# its value, its copies, and totals over its subtree: copies. Nodes live in parallel lists (a node pool; node 0 is the
+# empty tree) and removed nodes are reused. Updates split around x and merge back.
 
 
 class TreapMultiset:
@@ -261,8 +261,8 @@ class TreapMultiset:
         else:
             if not n:
                 return
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

@@ -25,9 +25,9 @@ using ll = long long;
 //   note: tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x)
 
 // Range chmax with range max queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
-// Iterative 2N lazy tree: values on the leaves, a tag on each internal node meaning "applied here, not yet pushed
-// to my children". The tag is the map x -> max(lo, x); these maps compose into the same form, and each is
-// monotone, so it sends a node's min / max straight to the new min / max.
+// Iterative 2N lazy tree: values on the leaves, a tag on each internal node meaning "applied here, not yet pushed to my
+// children". The tag is the map x -> max(lo, x); these maps compose into the same form, and each is monotone, so it
+// sends a node's min / max straight to the new min / max.
 // An update pushes the tags on its two boundary paths, tags the covering nodes, then rebuilds the two paths.
 // T: int, long long, ...; the INF / NEG sentinels in the tags are never shifted.
 // FAST MODE drawbacks compared with template.cpp:

@@ -65,9 +65,8 @@
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 # height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-# the copies, xor, OR
-# in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
-# nodes are reused.
+# totals over its subtree: copies, xor, OR. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and
+# removed nodes are reused.
 
 
 class AVLMultiset:
@@ -255,8 +254,8 @@ class AVLMultiset:
                     self.mn = self._kth(1)
                 if x == self.mx:
                     self.mx = self._kth(n)
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

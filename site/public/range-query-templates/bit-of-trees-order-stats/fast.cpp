@@ -38,8 +38,7 @@ using ll = long long;
 
 // a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over positions: BIT node j is a dynamic
 // value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the
-// BIT
-// prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
+// BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg
 // subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.
 // T: int, long long, ....
 // FAST MODE drawbacks compared with template.cpp:

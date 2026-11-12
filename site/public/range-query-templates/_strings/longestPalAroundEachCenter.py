@@ -4,8 +4,8 @@
 # two lists of size n, from Manacher:
 #   atI[i] = (l, r) of the longest palindrome centered on index i
 #   atIPlusOne[i] = (l, r) of the longest palindrome centered between i and i+1, or (i+1, i) if there's none
-# works on a str, list or tuple holding any items that can be compared with == (ints, chars, tuples, ...)
-# atI, atIPlusOne = longestPalAroundEachCenter("abaab")
+# works on a str, list or tuple holding any items that can be compared with == (ints, chars, tuples, ...) atI,
+# atIPlusOne = longestPalAroundEachCenter("abaab")
 #   atI        -> [(0, 0), (0, 2), (2, 2), (3, 3), (4, 4)]
 #   atIPlusOne -> [(1, 0), (2, 1), (1, 4), (4, 3), (5, 4)]
 # atI, atIPlusOne = longestPalAroundEachCenter([-1, 2, -1])

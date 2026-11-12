@@ -4,9 +4,7 @@
 using namespace std;
 
 // DynamicBitset: n bits, n chosen at runtime and able to grow and shrink (appendBit / popBit / resize). Built on its
-// own
-// array of 64-bit words, so unlike std::bitset it also gives range ops that only touch
-// the words in the range.
+// own array of 64-bit words, so unlike std::bitset it also gives range ops that only touch the words in the range.
 // Bit i is index i of an array of 0s and 1s, and strings read left to right like an array:
 //   "1101" -> bits 0, 1, 3 set
 // Nothing wraps around and nothing overflows: a shift drops the bits pushed past either end and shifts in 0s.
@@ -407,8 +405,7 @@ struct DynamicBitset {
     }
 
     // O(n/64) -- the bits as one number, bit i -> bit i, so bits 0, 1, 3 -> 11; only works when every 1 is at index
-    // 0..63,
-    // else throws overflow_error (a number only has 64 bits)
+    // 0..63, else throws overflow_error (a number only has 64 bits)
     unsigned long long toNumber() const {
         for (size_t i = 1; i < words.size(); i++) {
             if (words[i]) {

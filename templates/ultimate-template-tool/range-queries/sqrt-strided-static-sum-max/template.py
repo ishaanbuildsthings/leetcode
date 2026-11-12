@@ -31,8 +31,7 @@ class StridedQueries:
         self.maxTable = None
 
     # a[l] + a[l + step] + ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedSum(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -51,8 +50,7 @@ class StridedQueries:
         return pre[last] - pre[l - step] if l >= step else pre[last]
 
     # max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries
-    # grouped by
-    # step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # grouped by step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMax(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

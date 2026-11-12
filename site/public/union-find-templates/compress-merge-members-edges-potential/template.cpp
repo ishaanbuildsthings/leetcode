@@ -53,8 +53,8 @@ Node combine(Node big, const Node& small) {
 
 
 // DSU dsu(vals);
-// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1
-// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
+// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1 potential:
+// every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and
 // diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 struct DSU {
@@ -97,8 +97,8 @@ struct DSU {
     }
 
     // O(α(n)) amortized, merges the two components, false if i and j were already together
-    // w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    // either way it counts as an edge of the component (edgeCount)
+    // w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees) either way it
+    // counts as an edge of the component (edgeCount)
     bool uniteWeighted(int i, int j, long long w) {
         auto [ri, wi] = rootAndWeight(i);
         auto [rj, wj] = rootAndWeight(j);

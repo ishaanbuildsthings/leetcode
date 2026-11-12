@@ -80,9 +80,9 @@ from random import getrandbits
 
 # Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
 # how many copies, the smallest and largest value, their xor are below it. Besides the usual ordered queries it answers
-# questions
-# about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum) by walking one bit
-# per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and are never removed.
+# questions about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum) by
+# walking one bit per level, so O(bits) each. Nodes live in parallel lists (node 0 = empty, node 1 = the root) and are
+# never removed.
 
 
 class TrieMultiset:
@@ -324,8 +324,8 @@ class TrieMultiset:
         else:
             if not n:
                 return
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

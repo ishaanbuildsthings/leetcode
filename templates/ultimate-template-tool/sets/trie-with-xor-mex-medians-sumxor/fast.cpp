@@ -85,11 +85,9 @@ using ll = long long;
 
 // Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
 // how many copies, how many distinct values, their xor are below it. Besides the usual ordered queries it answers
-// questions
-// about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by walking
-// one bit
-// per level, so O(bits) each. Each multiset owns its node arrays (node 0 = empty, node 1 = the root); nodes are never
-// removed. T: int, long long, ...; sums in S (long long for small T).
+// questions about v ^ x over every value v (max / min / k-th / counts / closest to a bound / limits on v, sum, mex) by
+// walking one bit per level, so O(bits) each. Each multiset owns its node arrays (node 0 = empty, node 1 = the root);
+// nodes are never removed. T: int, long long, ...; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.
@@ -324,8 +322,8 @@ struct TrieMultiset {
         } else {
             if (!n) return;
         }
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
+        // each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        // leaves the tracked value
         if (x < low.v) low.before += c;
         else if (x == low.v) low.c += c;
         long long r = (n + 1) / 2;

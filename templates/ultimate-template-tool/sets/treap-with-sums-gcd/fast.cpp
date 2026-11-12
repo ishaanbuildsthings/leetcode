@@ -21,14 +21,6 @@ using ll = long long;
 //   countLtX: log(N) expected
 //   countLteX: log(N) expected
 //   firstIndex: log(N) expected
-//   kth: log(N) expected
-//   largestLtX: log(N) expected
-//   largestLteX: log(N) expected
-//   lastIndex: log(N) expected
-//   max: log(N) expected
-//   medianHigh: log(N) expected
-//   medianLow: log(N) expected
-//   min: log(N) expected
 //   gcdOfAll: 1
 //   gcdOfGtX: log(N)*log(U) expected
 //   gcdOfGteX: log(N)*log(U) expected
@@ -39,6 +31,14 @@ using ll = long long;
 //   gcdOfLtX: log(N)*log(U) expected
 //   gcdOfLteX: log(N)*log(U) expected
 //   gcdOfSmallestK: log(N)*log(U) expected
+//   kth: log(N) expected
+//   largestLtX: log(N) expected
+//   largestLteX: log(N) expected
+//   lastIndex: log(N) expected
+//   max: log(N) expected
+//   medianHigh: log(N) expected
+//   medianLow: log(N) expected
+//   min: log(N) expected
 //   pop: log(N)*log(U) expected
 //   popMax: log(N)*log(U) expected
 //   popMin: log(N)*log(U) expected
@@ -70,7 +70,7 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies, sum, gcd in its subtree. Each multiset owns its node pool
+// its value, its copies, and totals over its subtree: copies, sum, gcd. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
@@ -607,8 +607,7 @@ struct TreapMultiset {
     }
 
     // O(logN * logU expected) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    // there,
-    // e.g. on an empty set)
+    // there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
@@ -616,8 +615,7 @@ struct TreapMultiset {
     }
 
     // O(logN * logU expected) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on
-    // an
-    // empty set)
+    // an empty set)
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
@@ -625,8 +623,7 @@ struct TreapMultiset {
     }
 
     // O(logN * logU expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    // isn't
-    // there, e.g. on an empty set)
+    // isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

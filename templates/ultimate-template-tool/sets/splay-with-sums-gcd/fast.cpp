@@ -21,14 +21,6 @@ using ll = long long;
 //   countLtX: log(N) amortized
 //   countLteX: log(N) amortized
 //   firstIndex: log(N) amortized
-//   kth: log(N) amortized
-//   largestLtX: log(N) amortized
-//   largestLteX: log(N) amortized
-//   lastIndex: log(N) amortized
-//   max: log(N) amortized
-//   medianHigh: log(N) amortized
-//   medianLow: log(N) amortized
-//   min: log(N) amortized
 //   gcdOfAll: 1
 //   gcdOfGtX: log(N)*log(U) amortized
 //   gcdOfGteX: log(N)*log(U) amortized
@@ -39,6 +31,14 @@ using ll = long long;
 //   gcdOfLtX: log(N)*log(U) amortized
 //   gcdOfLteX: log(N)*log(U) amortized
 //   gcdOfSmallestK: log(N)*log(U) amortized
+//   kth: log(N) amortized
+//   largestLtX: log(N) amortized
+//   largestLteX: log(N) amortized
+//   lastIndex: log(N) amortized
+//   max: log(N) amortized
+//   medianHigh: log(N) amortized
+//   medianLow: log(N) amortized
+//   min: log(N) amortized
 //   pop: log(N)*log(U) amortized
 //   popMax: log(N)*log(U) amortized
 //   popMin: log(N)*log(U) amortized
@@ -70,8 +70,8 @@ using ll = long long;
 //   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
-// keeps its value, its copies, and the copies, sum, gcd in its subtree; every operation splays the
-// last node it touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
+// keeps its value, its copies, and totals over its subtree: copies, sum, gcd; every operation splays the last node it
+// touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
 // (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // T: an integer type; sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
@@ -602,8 +602,7 @@ struct SplayMultiset {
     }
 
     // O(logN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
-    // there,
-    // e.g. on an empty set)
+    // there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
@@ -611,8 +610,7 @@ struct SplayMultiset {
     }
 
     // O(logN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g.
-    // on an
-    // empty set)
+    // on an empty set)
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
@@ -620,8 +618,7 @@ struct SplayMultiset {
     }
 
     // O(logN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
-    // isn't
-    // there, e.g. on an empty set)
+    // isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

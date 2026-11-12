@@ -45,9 +45,9 @@
 
 # Implicit treap with composable aggregates: an array you can insert into anywhere, reverse, rotate, move, cut pieces
 # out of (that is how to erase) and paste them back in O(logN) expected each, and find any value's index (values
-# distinct); each node keeps its max, its OR, its gcd over its subtree. All indices 0-based, ranges inclusive [l, r],
-# an index always the position in the CURRENT array; searches return -1 when nothing qualifies. Lazy tags mean
-# "already applied to this node, not yet to its children".
+# distinct); each node keeps its max, its OR, its gcd over its subtree. All indices 0-based, ranges inclusive [l, r], an
+# index always the position in the CURRENT array; searches return -1 when nothing qualifies. Lazy tags mean "already
+# applied to this node, not yet to its children".
 import random
 from math import gcd
 

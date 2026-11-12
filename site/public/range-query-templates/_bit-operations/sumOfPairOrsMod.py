@@ -1,8 +1,7 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairOrsMod.py
 
-# sum over every pair i < j of the OR of arr[i] and arr[j], mod mod
-# values must be >= 0; B = number of bits in max(arr)
+# sum over every pair i < j of the OR of arr[i] and arr[j], mod mod values must be >= 0; B = number of bits in max(arr)
 # Each bit is counted on its own: a pair has bit b unless neither has it
 # sumOfPairOrsMod([1, 2, 3], 10**9 + 7) -> 9   # 1|2 + 1|3 + 2|3 = 3 + 3 + 3
 # O(N * B)

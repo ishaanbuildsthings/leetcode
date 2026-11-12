@@ -36,9 +36,9 @@ using ll = long long;
 //   note: leaves [n, 2n) hold each value's own aggregates; hash powers are per level (a covering node of level s has 2^s leaves)
 
 // Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
-// its sum, its forward / backward hash (and B^size), its best prefix sum, its best alternating (+ - + ...)
-// subsequence sum for each start / end sign over its range. All indices 0-based, ranges inclusive [l, r]; searches
-// return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s
+// its sum, its forward / backward hash (and B^size), its best prefix sum, its best alternating (+ - + ...) subsequence
+// sum for each start / end sign over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when
+// nothing qualifies. Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s
 // leaves (s = its level); an update rewrites a leaf, then its ancestors.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>

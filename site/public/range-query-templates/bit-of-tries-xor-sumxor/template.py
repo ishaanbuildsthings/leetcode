@@ -266,8 +266,7 @@ class BitXorTries:
         return self._lt(l, r, x + 1) - self._lt(l, r, x)
 
     # O(logN logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l +
-    # 1,
-    # else IndexError
+    # 1, else IndexError
     def kthSmallest(self, l, r, k):
         self._rangeCheck("kthSmallest", l, r)
         if not 1 <= k <= r - l + 1:

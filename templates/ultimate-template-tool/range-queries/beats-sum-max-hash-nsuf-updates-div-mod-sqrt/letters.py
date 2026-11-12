@@ -32,9 +32,9 @@
 
 # Letters version: the values are characters (Python: a list of characters, e.g. list(s); C++: T = char), and only the
 # operations that make sense on characters are listed.
-# Shrink segment tree with composable aggregates (2N iterative): range updates (rangeFloorDiv, rangeMod,
-# rangeFloorSqrt; mod / floor div / floor sqrt walk down every node whose max still changes, and each value can only
-# shrink O(logU) times) and range queries in O(logN); each node keeps its sum, its max, its forward / backward hash
+# Shrink segment tree with composable aggregates (2N iterative): range updates (rangeFloorDiv, rangeMod, rangeFloorSqrt;
+# mod / floor div / floor sqrt walk down every node whose max still changes, and each value can only shrink O(logU)
+# times) and range queries in O(logN); each node keeps its sum, its max, its forward / backward hash
 # (and B^size), its min suffix sum over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1
 # when nothing qualifies. Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s leaves (s =
 # its level); an update rewrites a leaf, then its ancestors.

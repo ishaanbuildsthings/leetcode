@@ -54,10 +54,8 @@ struct SparseOr {
 // ======================================================================================== sparse wrapper
 
 // Range or over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A
-// maximal gap
-// of zeros adds nothing more than a single 0, so SparseOr runs on the compressed array of given values with one 0 per
-// gap,
-// and a query maps l and r to the compressed elements containing them.
+// maximal gap of zeros adds nothing more than a single 0, so SparseOr runs on the compressed array of given values with
+// one 0 per gap, and a query maps l and r to the compressed elements containing them.
 // FAST MODE drawbacks compared with sparse.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.

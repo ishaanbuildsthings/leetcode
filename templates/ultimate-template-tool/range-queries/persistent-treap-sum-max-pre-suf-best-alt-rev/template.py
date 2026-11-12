@@ -51,12 +51,12 @@
 
 # Persistent implicit treap with composable aggregates: an array you can insert into anywhere, reverse, rotate, cut
 # pieces out of (that is how to erase), paste them back and copy (copy(l, r): a[l..r] as a treap of its own in O(logN)
-# however long, since the copy shares the same nodes; this one is unchanged); each node keeps its sum, its max, its
-# best prefix sum, its best suffix sum, its best subarray sum, its best alternating (+ - + ...) subsequence sum for
-# each start / end sign over its subtree. No node changes once another tree can see it: an op copies the nodes on its
-# paths, so a copy and its original never affect each other. Lengths and indices are long long. All indices 0-based,
-# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies. Lazy tags mean "already applied to this node, not yet to its children".
+# however long, since the copy shares the same nodes; this one is unchanged); each node keeps its sum, its max, its best
+# prefix sum, its best suffix sum, its best subarray sum, its best alternating (+ - + ...) subsequence sum for each
+# start / end sign over its subtree. No node changes once another tree can see it: an op copies the nodes on its paths,
+# so a copy and its original never affect each other. Lengths and indices are long long. All indices 0-based, ranges
+# inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies. Lazy
+# tags mean "already applied to this node, not yet to its children".
 import random
 
 

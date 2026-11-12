@@ -6,9 +6,8 @@ using namespace std;
 #ifndef CHILD_TABLE_DEFINED
 #define CHILD_TABLE_DEFINED
 // node -> (item -> child) for tries / automata, in one hash table keyed by (node, item): O(1) expected per lookup
-// whatever
-// the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when there's no
-// child
+// whatever the alphabet, with a per-run random seed so crafted inputs can't make it collide; get returns -1 when
+// there's no child
 template <class E>
 struct ChildTable {
     // hash of a (node, item) key: every item hash mixes in a per-run random seed, so colliding inputs can't be
@@ -70,9 +69,8 @@ struct ChildTable {
 #endif
 
 // vector of size text.size(): res[idx] = longest L such that text[idx .. idx + L) is a prefix of some pattern (0 if
-// none)
-// text and the patterns can be different containers (e.g. string and vector<char>) of any element type that has == and
-// a hash
+// none) text and the patterns can be different containers (e.g. string and vector<char>) of any element type that
+// has == and a hash
 // multiPatternLongestPrefixMatches(string("abcab"), vector<string>{"abd", "bca", "x"}) -> {2, 3, 0, 2, 1}
 // multiPatternLongestPrefixMatches(vector<int>{-1, 2, -1, 5}, vector<vector<int>>{{-1, 2, -1, 2}, {5, 9}}) -> {3, 0, 1,
 // 1}

@@ -47,8 +47,7 @@ class DSUNoCompress:
         self.tm = [_NEVER] * n  # tm[i]: the unite (0, 1, 2, ...) that gave i its parent
 
     # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    # merge
-    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    # merge only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par
         while par[i] != i:
@@ -56,9 +55,8 @@ class DSUNoCompress:
         return i
 
     # O(log n), merges the two components, returns (winner, loser): the new root and the old root now under it, or
-    # None if they were already together
-    # each call is the next unite in time (0, 1, 2, ...), failed ones too
-    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    # None if they were already together each call is the next unite in time (0, 1, 2, ...), failed ones too only O(log
+    # n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def unite(self, i, j):
         t = self.time
         self.time += 1
@@ -77,8 +75,8 @@ class DSUNoCompress:
         return i, j
 
     # O(log n), forces a's root under b's root, False if already together
-    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
-    # walks up is O(n); their O(log n) holds only if you never force unions
+    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that walks up
+    # is O(n); their O(log n) holds only if you never force unions
     def uniteAUnderB(self, a, b):
         t = self.time
         self.time += 1
@@ -140,8 +138,8 @@ class DSUNoCompress:
         return res
 
     # O(log n), how many unites (failed ones too) it took for i and j to end up together: 0 if i == j, -1 if
-    # they still aren't. Climbs from both ends, always moving the one that got its parent first
-    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    # they still aren't. Climbs from both ends, always moving the one that got its parent first only O(log n) if you
+    # never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def firstConnectedTime(self, i, j):
         if self.find(i) != self.find(j):
             return -1

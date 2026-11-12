@@ -3,8 +3,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// list of indices i where text[i...] matches pattern (an empty pattern matches at every i in 0..text.size())
-// text and pattern can be different containers (e.g. string and vector<char>) of any element type that has ==
+// list of indices i where text[i...] matches pattern (an empty pattern matches at every i in 0..text.size()) text and
+// pattern can be different containers (e.g. string and vector<char>) of any element type that has ==
 // findMatches(string("ababa"), string("aba")) -> {0, 2}
 // findMatches(vector<int>{-1, 2, -1, 2, 5}, vector<int>{-1, 2}) -> {0, 2}
 // O(n + m) time, O(m) extra space besides the result (n = text size, m = pattern size)

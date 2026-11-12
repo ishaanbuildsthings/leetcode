@@ -23,8 +23,8 @@
 # Adding c0 + c1 * i to every i in [l, r] changes the prefix sum P(x) = a[0] + ... + a[x] by
 #   x in [l, r]:  c0 * (x - l + 1) + c1 * (T(x) - T(l - 1))        T(k) = k * (k + 1) / 2
 #   x > r:        the whole added total
-# so keep P(x) = A(x) + B(x) * x + C(x) * T(x). T(x) is an integer before reducing % MOD, so no division (or
-# modular inverse of 2) is ever needed and any modulus works.
+# so keep P(x) = A(x) + B(x) * x + C(x) * T(x). T(x) is an integer before reducing % MOD, so no division (or modular
+# inverse of 2) is ever needed and any modulus works.
 
 
 def _tri(k):

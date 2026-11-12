@@ -20,8 +20,8 @@
 
 from math import gcd
 
-# Range assign + range gcd, plus point ops. Gcds are of |values|. A leaf keeps its value, an internal node
-# the gcd of |values| below it, and a node assigned v has gcd |v|, so assign is an ordinary lazy tag.
+# Range assign + range gcd, plus point ops. Gcds are of |values|. A leaf keeps its value, an internal node the gcd of
+# |values| below it, and a node assigned v has gcd |v|, so assign is an ordinary lazy tag.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
 # into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags
 # down and apply them to what they return, so they create no nodes. Sparse: lists of nodes; node 0 is the shared

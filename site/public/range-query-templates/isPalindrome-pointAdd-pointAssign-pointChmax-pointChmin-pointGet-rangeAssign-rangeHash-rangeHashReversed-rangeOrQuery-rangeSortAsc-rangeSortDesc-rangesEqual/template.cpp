@@ -222,8 +222,7 @@ struct SortedRunsOrHash {
     }
 
     // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i,
-    // i)): a binary search on
-    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    // i)): a binary search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = n;
         if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
@@ -253,8 +252,7 @@ struct SortedRunsOrHash {
     }
 
     // O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
-    // every structure
-    // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    // every structure this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
     auto hashAll() {
         if (n < 1) throw out_of_range("hashAll: needs n >= 1");
         return rangeHash(0, n - 1);

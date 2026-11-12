@@ -46,8 +46,8 @@ long long nthTerm(const vector<long long>& coeffs, const vector<long long>& init
     if (n < 0) throw invalid_argument("nthTerm needs n >= 0");
     if (n < d) return norm(initial[n]);
     // a[n] = [x^n] P(x) / Q(x) with Q = 1 - coeffs[0] x - ... - coeffs[d-1] x^d and P = (initial * Q) mod x^d
-    // Bostan-Mori: P/Q = P(x)Q(-x) / Q(x)Q(-x), the denominator is even, so keep the half of the numerator
-    // matching n's parity and halve n
+    // Bostan-Mori: P/Q = P(x)Q(-x) / Q(x)Q(-x), the denominator is even, so keep the half of the numerator matching n's
+    // parity and halve n
     vector<uint32_t> Q(d + 1), P(d);
     Q[0] = 1 % MOD;
     for (int i = 0; i < d; i++) Q[i + 1] = norm(-coeffs[i]);

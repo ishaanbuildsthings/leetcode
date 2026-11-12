@@ -55,14 +55,14 @@ using ll = long long;
 //   note: blocks of about sqrt(N log N) values that move around as whole pieces; each keeps its values, a sorted copy, and where each sorted value sits, so cutting a block needs no re-sort; U = the largest absolute value (kth binary searches on values)
 
 // Sqrt decomposition with movable blocks: an array you can insert into anywhere, erase a range from, reverse, rotate,
-// range assign and range add, while asking value questions about any subarray (how many are < x, in [low, high],
-// equal to x; the k-th smallest, medians; the nearest value above / below x; sum, min, max), and cut pieces out and
-// paste them back in, into this array or any other. A treap can do the moving but
-// not these counts; a merge sort tree can do the counts but not the moving.
+// range assign and range add, while asking value questions about any subarray (how many are < x, in [low, high], equal
+// to x; the k-th smallest, medians; the nearest value above / below x; sum, min, max), and cut pieces out and paste
+// them back in, into this array or any other. A treap can do the moving but not these counts; a merge sort tree can do
+// the counts but not the moving.
 // How: every edit first cuts blocks so the range starts and ends on block edges, then acts on whole blocks with
 // tags (reverse just flips a flag and reverses the block order, assign / add are pending tags). Afterwards
-// neighbors whose sizes add up to at most the block size are merged back, so there are never more than about
-// 2N / blockSize blocks. Queries read partial blocks directly and binary search whole ones.
+// neighbors whose sizes add up to at most the block size are merged back, so there are never more than about 2N /
+// blockSize blocks. Queries read partial blocks directly and binary search whole ones.
 // All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array.
 // T: int, long long (integers: kthSmallest binary searches on values); sums accumulate in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:

@@ -23,9 +23,8 @@
 
 # Range add / assign with range sum queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
 # Iterative 2N lazy tree: values on the leaves, and on each internal node a pending assign or add, meaning "applied
-# here, not
-# yet pushed to my children". An update pushes the tags on its two boundary paths, tags the covering nodes, then
-# rebuilds the two paths. A covering node at level s is a perfect subtree of 2^s leaves, so its length is 1 << s.
+# here, not yet pushed to my children". An update pushes the tags on its two boundary paths, tags the covering nodes,
+# then rebuilds the two paths. A covering node at level s is a perfect subtree of 2^s leaves, so its length is 1 << s.
 
 
 class AddAssignSumTree:

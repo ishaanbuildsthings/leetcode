@@ -336,8 +336,8 @@ class ChminChmaxBeats:
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 
-    # the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    # the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    # inside [l, r] that passes is ever walked down (it always holds an answer)
     def _firstPass(self, i, tl, tr, l, r, ok):
         if r < tl or tr < l or not ok(i):
             return -1
@@ -348,8 +348,8 @@ class ChminChmaxBeats:
         res = self._firstPass(2 * i, tl, tm, l, r, ok)
         return res if res != -1 else self._firstPass(2 * i + 1, tm + 1, tr, l, r, ok)
 
-    # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    # inside [l, r] that passes is ever walked down (it always holds an answer)
     def _lastPass(self, i, tl, tr, l, r, ok):
         if r < tl or tr < l or not ok(i):
             return -1

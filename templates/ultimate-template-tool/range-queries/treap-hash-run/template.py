@@ -42,9 +42,8 @@
 
 # Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
 # (that is how to erase) and paste them back in O(logN) expected each; each node keeps its forward / backward hash
-# (and B^size), its first / last value and the equal runs at its ends and inside over its subtree. All indices
-# 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-# qualifies.
+# (and B^size), its first / last value and the equal runs at its ends and inside over its subtree. All indices 0-based,
+# ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 
 
@@ -296,8 +295,7 @@ class ImplicitTreap:
         return v
 
     # O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    # search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
         if not 0 <= i < n:

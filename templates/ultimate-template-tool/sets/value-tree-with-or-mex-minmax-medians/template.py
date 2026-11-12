@@ -57,9 +57,8 @@
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
 # each node keeping how many copies, their OR and how many distinct values (for mex) are below it. Sparse: dicts keyed
-# by heap
-# index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend
-# by counts; mex descends to the first value >= 0 whose block isn't full.
+# by heap index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest
+# descend by counts; mex descends to the first value >= 0 whose block isn't full.
 
 
 class ValueTreeMultiset:
@@ -221,8 +220,8 @@ class ValueTreeMultiset:
                     self.mn = self._kth(1)
                 if x == self.mx:
                     self.mx = self._kth(n)
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only when the rank
+        # leaves the tracked value
         if x < self.lowV:
             self.lowB += c
         elif x == self.lowV:

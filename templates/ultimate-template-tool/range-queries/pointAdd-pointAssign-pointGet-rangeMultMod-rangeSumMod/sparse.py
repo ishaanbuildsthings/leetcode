@@ -16,9 +16,9 @@
 #   other: children[8*log(U)]
 #   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes
 
-# Range mult with range sum, all % MOD, plus point ops. Values are residues in [0, mod). A tag is a pending
-# multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a
-# modular inverse at point writes, and a multiplier can be 0.)
+# Range mult with range sum, all % MOD, plus point ops. Values are residues in [0, mod). A tag is a pending multiplier;
+# a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a modular inverse at point
+# writes, and a multiplier can be 0.)
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
 # into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags
 # down and apply them to what they return, so they create no nodes. Sparse: lists of nodes; node 0 is the shared

@@ -23,8 +23,8 @@ using ll = long long;
 //   note: tree[n:] holds the values, tree[1:n] holds how many floor-sqrts are pending at each node (capped at 6); leaves count as node data, internal nodes as tags
 
 // Range floor-sqrt + point ops. All indices 0-based, ranges inclusive [l, r]. T: int, long long, ...
-// Pending sqrts on a node are just a count. Six floor-sqrts take any value below 2^64 down to 0 or 1, which
-// are fixed points, so counts are capped at MAX_SQRTS. Requires a[i] >= 0.
+// Pending sqrts on a node are just a count. Six floor-sqrts take any value below 2^64 down to 0 or 1, which are fixed
+// points, so counts are capped at MAX_SQRTS. Requires a[i] >= 0.
 template <typename T>
 struct RangeFloorSqrtTree {
     static constexpr T MAX_SQRTS = 6;

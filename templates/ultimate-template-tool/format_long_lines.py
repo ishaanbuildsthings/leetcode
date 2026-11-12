@@ -3,8 +3,9 @@
     python3 format_long_lines.py                  # rewrite
     python3 format_long_lines.py --check          # only list what is too long (exit 1 if any)
 
-Comments are wrapped; a trailing comment on a long line moves to its own line; long code is broken at commas, operators
-and brackets. Each rewrite is proven safe before it is saved: the Python AST, or the C++ text outside comments and
+Comments are wrapped, and a prose comment paragraph broken early (a short line, then one that carries on the sentence)
+is rewrapped; a trailing comment on a long line moves to its own line; long code is broken at commas, operators and
+brackets. Each rewrite is proven safe before it is saved: the Python AST, or the C++ text outside comments and
 whitespace, must be unchanged. Left alone: URLs and machine-read lines (@ tags, the @memory fields).
 """
 import ast
@@ -222,6 +223,74 @@ def format_text(text, py):
     return "\n".join(out), stuck
 
 
+COMPARISON = re.compile(r"^\S+ (?:<=?|>=?|==|!=) ")  # "0 <= l <= r < n" kept on one line on purpose
+OPERATOR = re.compile(r"^(?:<=?|>=?|==?|!=|[-+*/%^|&]|\*\*|//|<<|>>)[,;)]?$")
+CODE_LIKE = re.compile(r"^[A-Za-z_][\w.]*(?:\s*(?:=|\(|\[|<<|::|->)|;$)|[{};]$")
+
+
+def wrap_prose(prefix, words):
+    """greedy, but a line never starts with an operator ("a <= b" stays on one line)"""
+    out, cur = [], []
+    for w in words:
+        if cur and len(prefix) + len(" ".join(cur + [w])) > LIMIT:
+            carry = []
+            while OPERATOR.match(w if not carry else carry[0]) and len(cur) > 1:  # (move the left side down too)
+                carry.insert(0, cur.pop())
+                if not OPERATOR.match(carry[0]):
+                    break
+            out.append(prefix + " ".join(cur))
+            cur = carry
+        cur.append(w)
+    out.append(prefix + " ".join(cur))
+    return out
+
+
+def reflow_text(text, py):
+    """Rejoin comment paragraphs that were broken early (a long line split in two leaves a short line before the next
+    one). A break is rejoined only inside prose: same indent and marker, the line not ending a sentence (. : ; ! ?),
+    the next not starting a new one (a capital, a bullet, "(", extra indent) and neither looking like code. A run is
+    rewrapped greedily only when one of its lines leaves room for 10+ more columns that the next word would fill."""
+    lines = text.split("\n")
+    mark = "#" if py else "//"
+    pat = re.compile(rf"^(\s*{re.escape(mark)} )(\S.*)$")
+    prose = [None] * len(lines)  # (prefix, content) for a full-line prose comment, else None
+    in_triple = None
+    for k, line in enumerate(lines):
+        if py and (in_triple or '"""' in line or "'''" in line):
+            for q in ('"""', "'''"):
+                if line.count(q) % 2 == 1 and in_triple in (None, q):
+                    in_triple = None if in_triple else q
+            continue
+        m = pat.match(line)
+        if m and not exempt(line) and "  " not in m[2] and not CODE_LIKE.search(m[2]):
+            prose[k] = (m[1], m[2])
+
+    def joins(k):
+        a, b = prose[k], prose[k + 1] if k + 1 < len(lines) else None
+        return (a and b and a[0] == b[0] and not re.search(r"[.:;!?]$", a[1])
+                and not re.match(r"[A-Z(\-*|`>#]", b[1]) and not COMPARISON.match(b[1]))
+
+    out, k = [], 0
+    while k < len(lines):
+        if not (prose[k] and joins(k)):
+            out.append(lines[k])
+            k += 1
+            continue
+        j = k
+        while joins(j):
+            j += 1
+        run = lines[k:j + 1]
+        roomy = any(len(run[i]) <= LIMIT - 10 and len(run[i]) + 1 + len(prose[k + i + 1][1].split(" ")[0]) <= LIMIT
+                    for i in range(len(run) - 1))
+        if roomy:
+            prefix = prose[k][0]
+            out.extend(wrap_prose(prefix, " ".join(prose[i][1] for i in range(k, j + 1)).split(" ")))
+        else:
+            out.extend(run)
+        k = j + 1
+    return "\n".join(out)
+
+
 CURRENT = [""]
 
 
@@ -235,9 +304,10 @@ def process(path, check):
     text = open(path, encoding="utf-8").read()
     if check:
         return path, len(long_lines(text)), ""
-    if not long_lines(text):
-        return path, 0, ""
-    new, _ = format_text(text, py)
+    new = format_text(text, py)[0] if long_lines(text) else text
+    new = reflow_text(new, py)
+    if new == text:
+        return path, len(long_lines(text)), ""
     try:
         ok = ast.dump(ast.parse(text)) == ast.dump(ast.parse(new)) if py else same_cpp(text, new)
     except (SyntaxError, ValueError, IndexError) as e:

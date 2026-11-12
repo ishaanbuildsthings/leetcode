@@ -2,8 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/Fibonacci.py
 from math import isqrt
 
-# returns a list of all fibs <= n
-# example: n=10 -> [0, 1, 1, 2, 3, 5, 8]
+# returns a list of all fibs <= n example: n=10 -> [0, 1, 1, 2, 3, 5, 8]
 # O(log(n)) time and space
 def getFibList(n):
     if n < 0:

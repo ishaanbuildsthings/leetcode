@@ -45,10 +45,10 @@ def _compose(o, t):  # tag o, then tag t (an add on an assign shifts the assigne
 # Range add with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine);
 # every position starts at 0.
 # A tag is (assigned value or None, add): an assign, or an add (an add on an assigned node shifts the value).
-# Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and
-# point writes add up the adds of the ancestors on the way down.
-# Sparse: parallel lists of nodes; node 0 is the shared all-zeros block (its sum, min and max are 0 at any
-# length), node 1 is the root.
+# Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point
+# writes add up the adds of the ancestors on the way down.
+# Sparse: parallel lists of nodes; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length), node
+# 1 is the root.
 
 
 class SparseAddSumMinTree:

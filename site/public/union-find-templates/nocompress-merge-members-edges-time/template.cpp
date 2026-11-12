@@ -82,18 +82,16 @@ struct DSUNoCompress {
     }
 
     // O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    // merge
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    // merge only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     int find(int i) {
         while (par[i] != i) i = par[i];
         return i;
     }
 
     // O(log n), merges the two components, returns {winner, loser}: the new root and the old root now under it,
-    // or {-1, -1} if they were already together
-    // either way it counts as an edge of the component (edgeCount)
-    // each call is the next unite in time (0, 1, 2, ...), failed ones too
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    // or {-1, -1} if they were already together either way it counts as an edge of the component (edgeCount) each call
+    // is the next unite in time (0, 1, 2, ...), failed ones too only O(log n) if you never call uniteAUnderB: forced
+    // unions can build a chain, then this is O(n)
     pair<int, int> unite(int i, int j) {
         int t = time++;
         i = find(i), j = find(j);
@@ -114,9 +112,9 @@ struct DSUNoCompress {
     }
 
     // O(log n), forces a's root under b's root, false if already together
-    // skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
-    // walks up is O(n); their O(log n) holds only if you never force unions
-    // combine gets b's component's Node first here, even when it's the smaller one
+    // skips union by size, so these can build a chain n deep: then this, find, unite and every other call that walks up
+    // is O(n); their O(log n) holds only if you never force unions combine gets b's component's Node first here, even
+    // when it's the smaller one
     bool uniteAUnderB(int a, int b) {
         int t = time++;
         a = find(a), b = find(b);
@@ -198,8 +196,8 @@ struct DSUNoCompress {
     }
 
     // O(log n), how many unites (failed ones too) it took for i and j to end up together: 0 if i == j, -1 if
-    // they still aren't. Climbs from both ends, always moving the one that got its parent first
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    // they still aren't. Climbs from both ends, always moving the one that got its parent first only O(log n) if you
+    // never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     int firstConnectedTime(int i, int j) {
         if (find(i) != find(j)) return -1;
         int last = -1;

@@ -61,8 +61,8 @@ struct RollbackDSU {
     }
 
     // O(log n), merges the two components, false if i and j were already together
-    // either way it counts as an edge of the component (edgeCount)
-    // either way it records a frame, so it always takes exactly one rollbackLastUnion to undo
+    // either way it counts as an edge of the component (edgeCount) either way it records a frame, so it always takes
+    // exactly one rollbackLastUnion to undo
     bool unite(int i, int j) {
         i = find(i), j = find(j);
         if (i == j) {

@@ -42,9 +42,9 @@ using ll = long long;
 
 // Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
 // (that is how to erase) and paste them back in O(logN) expected each, with rangeAndApply, rangeAssign, rangeOrApply;
-// each node keeps its AND over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array; searches return -1 when nothing qualifies. Lazy tags mean "already applied to this
-// node, not yet to its children".
+// each node keeps its AND over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the position
+// in the CURRENT array; searches return -1 when nothing qualifies. Lazy tags mean "already applied to this node, not
+// yet to its children".
 // T: int, long long, ...
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

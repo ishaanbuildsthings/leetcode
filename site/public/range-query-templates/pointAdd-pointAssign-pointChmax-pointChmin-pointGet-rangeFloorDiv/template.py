@@ -20,8 +20,8 @@
 
 # Range floor-divide + point ops. All indices 0-based, ranges inclusive [l, r].
 # floor(floor(x / a) / b) == floor(x / (a * b)) for positive integers a, b and any integer x, so pending
-# divisions are just a product. Products are capped at CAP: once a divisor exceeds every |value|, any larger
-# divisor gives the same floor. Requires every divisor >= 1 and |a[i]| < CAP at all times.
+# divisions are just a product. Products are capped at CAP: once a divisor exceeds every |value|, any larger divisor
+# gives the same floor. Requires every divisor >= 1 and |a[i]| < CAP at all times.
 CAP = 1 << 62
 
 

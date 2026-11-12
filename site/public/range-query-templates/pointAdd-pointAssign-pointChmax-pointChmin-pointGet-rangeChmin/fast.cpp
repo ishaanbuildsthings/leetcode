@@ -23,9 +23,9 @@ using ll = long long;
 //   note: tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmin tag (no aggregates); leaves count as node data, internal nodes as tags
 
 // rangeChmin + point ops with no range aggregates. All indices 0-based, ranges inclusive [l, r].
-// rangeChmin composes with itself in any order, so a range update only tags the O(logN) covering nodes and
-// pointGet folds the tags on the leaf-to-root path. Only overwrites (pointAssign etc.) push those tags off
-// the path first, so they aren't re-applied to the new value. T: int, long long, ...
+// rangeChmin composes with itself in any order, so a range update only tags the O(logN) covering nodes and pointGet
+// folds the tags on the leaf-to-root path. Only overwrites (pointAssign etc.) push those tags off the path first, so
+// they aren't re-applied to the new value. T: int, long long, ...
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
 // Same public operations and answers, same limits; it needs GCC or Clang and C++17.

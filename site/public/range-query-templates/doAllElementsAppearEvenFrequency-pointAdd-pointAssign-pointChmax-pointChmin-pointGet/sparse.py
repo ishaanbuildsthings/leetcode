@@ -29,8 +29,8 @@ SALT = random.getrandbits(62)  # dict keys are salted positions, so no fixed inp
 # splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag,
 # distinct ints never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even range
 # hashes to 0 (false positives ~q / 2^64).
-# Sparse: position i stores tag(a[i]) ^ tag(0) in a dict Fenwick tree (0 for the untouched), so the xor of the
-# real tags over [l, r] is the stored xor, plus tag(0) when the length is odd.
+# Sparse: position i stores tag(a[i]) ^ tag(0) in a dict Fenwick tree (0 for the untouched), so the xor of the real tags
+# over [l, r] is the stored xor, plus tag(0) when the length is odd.
 
 
 class SparseXorEven:

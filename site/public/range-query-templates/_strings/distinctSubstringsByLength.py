@@ -4,8 +4,7 @@
 from random import getrandbits
 
 # list of size n + 1: res[L] = number of distinct contiguous substrings of length L (res[0] = 0, the empty one isn't
-# counted)
-# works on a str, list or tuple holding any hashable items (ints, chars, tuples, ...)
+# counted) works on a str, list or tuple holding any hashable items (ints, chars, tuples, ...)
 # distinctSubstringsByLength("abab") -> [0, 2, 2, 2, 1]   # {a, b}, {ab, ba}, {aba, bab}, {abab}
 # distinctSubstringsByLength([-1, 2, -1]) -> [0, 2, 2, 1]
 # O(n) expected time and space

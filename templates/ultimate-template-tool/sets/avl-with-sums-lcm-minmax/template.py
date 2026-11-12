@@ -8,16 +8,6 @@
 # @complexities:
 #   add: log(N)*log(U)
 #   addCount: log(N)*log(U)
-#   lcmOfAll: 1
-#   lcmOfGtX: log(N)*log(U)
-#   lcmOfGteX: log(N)*log(U)
-#   lcmOfInValRange: log(N)*log(U)
-#   lcmOfKthLargestRange: log(N)*log(U)
-#   lcmOfKthSmallestRange: log(N)*log(U)
-#   lcmOfLargestK: log(N)*log(U)
-#   lcmOfLtX: log(N)*log(U)
-#   lcmOfLteX: log(N)*log(U)
-#   lcmOfSmallestK: log(N)*log(U)
 #   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
@@ -31,6 +21,16 @@
 #   largestLtX: log(N)
 #   largestLteX: log(N)
 #   lastIndex: log(N)
+#   lcmOfAll: 1
+#   lcmOfGtX: log(N)*log(U)
+#   lcmOfGteX: log(N)*log(U)
+#   lcmOfInValRange: log(N)*log(U)
+#   lcmOfKthLargestRange: log(N)*log(U)
+#   lcmOfKthSmallestRange: log(N)*log(U)
+#   lcmOfLargestK: log(N)*log(U)
+#   lcmOfLtX: log(N)*log(U)
+#   lcmOfLteX: log(N)*log(U)
+#   lcmOfSmallestK: log(N)*log(U)
 #   max: 1
 #   medianHigh: log(N)
 #   medianLow: log(N)
@@ -67,16 +67,18 @@
 # lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest
 # value (2**63 - 1) by default; pass your own, e.g. AVLMultiset(cap=10**9). Removing values is safe: every node keeps
 # the capped LCM of just its own values, so once the values that pushed it past cap are gone, lcmOf... is exact
-# again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+# again. Values must be >= 0 (add / addCount of a negative one is an error). An empty selection gives the identity:
+# gcd 0, LCM 1.
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
 # height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and
-# the copies, sum, LCM
-# in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
-# nodes are reused.
+# totals over its subtree: copies, sum, LCM. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and
+# removed nodes are reused.
 
 
 from math import gcd
+
+
 class AVLMultiset:
     __slots__ = ("K", "C", "Z", "S", "M", "H", "L", "R", "free", "root", "newCount", "n", "mn", "mx", "total", "d",
         "cap")
@@ -349,12 +351,16 @@ class AVLMultiset:
                 u = L[u]
         return res
 
-    # O(logN * logU) -- add one copy of x
+    # O(logN * logU) -- add one copy of x; raises ValueError if x < 0
     def add(self, x):
+        if x < 0:
+            raise ValueError(f"AVLMultiset.add: {x} is negative (the LCM needs values >= 0)")
         self._add(x, 1)
 
-    # O(logN * logU) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(logN * logU) -- add cnt copies of val (nothing if cnt <= 0); raises ValueError if val < 0
     def addCount(self, val, cnt):
+        if val < 0:
+            raise ValueError(f"AVLMultiset.addCount: {val} is negative (the LCM needs values >= 0)")
         if cnt > 0:
             self._add(val, cnt)
 
@@ -375,8 +381,8 @@ class AVLMultiset:
         return self._lcmIn(lo, hi) if lo <= hi else 1
 
     # O(logN * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and
-    # inclusive: (1, 1) is
-    # just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies
+    # count); raises
     # IndexError unless 1 <= kFrom <= kTo <= size
     def lcmOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
@@ -386,9 +392,8 @@ class AVLMultiset:
         return self._lcmIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
     # O(logN * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and
-    # inclusive: (1, 1) is
-    # just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError
-    # unless 1 <= kFrom <= kTo <= size
+    # inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies
+    # count); raises IndexError unless 1 <= kFrom <= kTo <= size
     def lcmOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(
@@ -534,8 +539,7 @@ class AVLMultiset:
         return v
 
     # O(logN * logU) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there, e.g.
-    # on an
-    # empty set)
+    # on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
@@ -551,8 +555,7 @@ class AVLMultiset:
         return k
 
     # O(logN * logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't there,
-    # e.g. on
-    # an empty set)
+    # e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

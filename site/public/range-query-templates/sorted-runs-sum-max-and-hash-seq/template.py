@@ -50,14 +50,14 @@
 #   note: value nodes: N log U to start, plus O(log U) per cut (merges free nodes, which are reused); the runs are the nodes of an implicit treap (expected depth log N); U = valHi - valLo + 1
 
 # An array whose ranges you can sort in place (ascending or descending), amortized O(log N + log U) a sort, with point
-# reads / writes, rangeAssign, range sums, range maxes, range ands, range hashes both ways (isPalindrome,
-# rangesEqual), insert / erase / reverse / rotate / move anywhere and the whole array. It is kept as a sequence of
-# sorted runs: each run is a dynamic value seg tree over [valLo, valHi] (copies per node) and an up / down flag, and
-# the runs, in order, are the nodes of an implicit treap (random priorities, expected depth log N), each also keeping
-# its subtree's length and sum / max / and / hashes; a reverse flips the order of the runs and each run's up / down
-# flag. Sorting [l, r] cuts the runs at l and r + 1 and merges every run inside into one; a[i] is the k-th value of
-# the run holding it; a query cuts at l and r + 1 too, then reads whole runs. Merges cost about as many nodes as they
-# free and every run is merged away at most once, hence the amortized bounds (the treap's are expected as well).
+# reads / writes, rangeAssign, range sums, range maxes, range ands, range hashes both ways (isPalindrome, rangesEqual),
+# insert / erase / reverse / rotate / move anywhere and the whole array. It is kept as a sequence of sorted runs: each
+# run is a dynamic value seg tree over [valLo, valHi] (copies per node) and an up / down flag, and the runs, in order,
+# are the nodes of an implicit treap (random priorities, expected depth log N), each also keeping its subtree's length
+# and sum / max / and / hashes; a reverse flips the order of the runs and each run's up / down flag. Sorting [l, r] cuts
+# the runs at l and r + 1 and merges every run inside into one; a[i] is the k-th value of the run holding it; a query
+# cuts at l and r + 1 too, then reads whole runs. Merges cost about as many nodes as they free and every run is merged
+# away at most once, hence the amortized bounds (the treap's are expected as well).
 # Indices 0-based, ranges inclusive, every index is a position in the current array. Hashes are polynomial, mod the
 # prime 2^61 - 1, with a base and a value offset random per run: hash(x1..xk) = x1 B^(k-1) + ... + xk; a value tree
 # keeps the hash of its values in sorted order both ways.
@@ -80,8 +80,8 @@ class SortedRunsSumMaxAndHashSeq:
     bh = [0]
     free = []  # value nodes freed by merges, reused first
     pw, gs = [1], [0]
-    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    # subtree length TS, pending reverse TF, subtree sum / max / and / hashes (O: the run's own min / max)
+    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD, subtree
+    # length TS, pending reverse TF, subtree sum / max / and / hashes (O: the run's own min / max)
     TL = [0]
     TR = [0]
     TP = [0]
@@ -386,8 +386,7 @@ class SortedRunsSumMaxAndHashSeq:
         return v
 
     # O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i,
-    # i)): a binary search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # i)): a binary search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
         if not 0 <= i < n:
@@ -419,8 +418,7 @@ class SortedRunsSumMaxAndHashSeq:
         return i - lo + 1, i + lo
 
     # O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
-    # every structure
-    # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
+    # every structure this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
     def hashAll(self):
         if self.size() < 1:
             raise IndexError("hashAll: needs n >= 1")

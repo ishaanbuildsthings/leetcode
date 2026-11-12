@@ -83,10 +83,9 @@ template <typename T>
 struct PersistentValueMapTreap {
     using Z = long long;  // lengths, indices and counts (long long: copies can make the array huge)
     // one node pool shared by every PersistentValueMapTreap<T>: pieces move between them (node 0 = the empty tree).
-    // Nodes are never
-    // freed, so there is nothing to reset between test cases; every one shares the value range too (the last
-    // constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied); the
-    // map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
+    // Nodes are never freed, so there is nothing to reset between test cases; every one shares the value range too (the
+    // last constructor's [valLo, valHi]). val: the node's value - valLo (every map that reached it already applied);
+    // the map it still owes its children is rows[row * U ..] (row = -1: none). A map row exists only while pending:
     // handed down, it is reused
     struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
         int val = 0, L = 0, R = 0;
@@ -149,8 +148,7 @@ struct PersistentValueMapTreap {
     PersistentValueMapTreap copy() const { return *this; }
 
     // O(U*logN) expected -- a[l..r] as a PersistentValueMapTreap of its own; this one is unchanged. The copy shares
-    // this one's nodes, so it costs O(U*logN) however long it is; needs 0 <= l <= r < size(), else throws
-    // out_of_range
+    // this one's nodes, so it costs O(U*logN) however long it is; needs 0 <= l <= r < size(), else throws out_of_range
     PersistentValueMapTreap copy(Z l, Z r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("copy: needs 0 <= l <= r < size()");
         int a, b, c;

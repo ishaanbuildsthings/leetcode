@@ -57,33 +57,32 @@
 # O(logN * logC):   rangeGcd(l, r)      -- the extra logC is the Euclid calls
 # O(n) space
 #
-# IF YOU NEVER CALL rangeAdd the whole structure is O((n + q) logN); with it, O((n + q) log^2 N),
-# and that log^2 is proven tight (Tony2_CF, Dec 2025, codeforces.com/blog/entry/149516).
+# IF YOU NEVER CALL rangeAdd the whole structure is O((n + q) logN); with it, O((n + q) log^2 N), and that log^2 is
+# proven tight (Tony2_CF, Dec 2025, codeforces.com/blog/entry/149516).
 #
 # HOW THE GCD WORKS -- the point is that DIFFERENCES ARE INVARIANT UNDER A UNIFORM ADD.
-# gcd of a set equals gcd(any one element, all the pairwise differences). So split the node's values
-# into three groups: the copies of the max, the copies of the min, and everything strictly between,
-# which we call the INTERIOR. chmin only ever moves the max group and chmax only ever moves the min
-# group, so the interior values are only ever SHIFTED, all by the same amount -- which means their
-# pairwise differences never change at all. diffGcd holds a spanning tree of those differences and
-# _applyAdd does not touch it.
+# gcd of a set equals gcd(any one element, all the pairwise differences). So split the node's values into three groups:
+# the copies of the max, the copies of the min, and everything strictly between, which we call the INTERIOR. chmin only
+# ever moves the max group and chmax only ever moves the min group, so the interior values are only ever SHIFTED, all by
+# the same amount -- which means their pairwise differences never change at all. diffGcd holds a spanning tree of those
+# differences and _applyAdd does not touch it.
 #
 # At query time we rebuild the full gcd from three bridges:
 #     diffGcd                 the interior, already joined up
 #     gcd with (mx2 - mx)     bridges the max group in, since mx2 is the largest interior value
 #     gcd with (mn2 - mn)     bridges the min group in
 #     gcd with mx             anchors the whole thing on an actual element rather than a difference
-# _pull is where the bookkeeping lives: a value that was a child's max or min may be INTERIOR in the
-# parent, so it has to be folded into the parent's spanning tree, and the two children's trees have
-# to be joined to each other. That is what the hasL / hasR / any dance is doing.
+# _pull is where the bookkeeping lives: a value that was a child's max or min may be INTERIOR in the parent, so it has
+# to be folded into the parent's spanning tree, and the two children's trees have to be joined to each other. That is
+# what the hasL / hasR / any dance is doing.
 #
 # WHY THE TAGS ARE JUST ONE ADD PLUS mx AND mn:
-# any sequence of add / chmin / chmax on a whole node composes to min(a, max(b, x + c)), so one add
-# tag and two clamp bounds is the complete closed form -- there is no need for per-group add tags.
-# And the two clamp bounds are already stored: a is the node's mx and b is its mn, because for every
-# value actually in the node, clamping to [mn, mx] gives the same answer as clamping to [b, a].
-# There is no assign tag either -- an assign leaves mn == mx, and mn == mx already means "every value
-# here is this number", so _push just forwards that to both children as an assign.
+# any sequence of add / chmin / chmax on a whole node composes to min(a, max(b, x + c)), so one add tag and two clamp
+# bounds is the complete closed form -- there is no need for per-group add tags.
+# And the two clamp bounds are already stored: a is the node's mx and b is its mn, because for every value actually in
+# the node, clamping to [mn, mx] gives the same answer as clamping to [b, a].
+# There is no assign tag either -- an assign leaves mn == mx, and mn == mx already means "every value here is this
+# number", so _push just forwards that to both children as an assign.
 #
 # STILL NEEDS THE CROSS-INTERACTION GLUE (only fires when the two sides meet, so stress test it):
 #   - a chmin whose value lands at or below mn collapses the node, so it becomes an assign
@@ -91,12 +90,12 @@
 #     thing being clamped and mn2 must follow the max down
 #   - and the mirror of both for chmax
 #
-# Verified against the official sample of "Minimize, Add, GCD and Their Friends" and against brute
-# force. At n = q = 200000 the C++ version runs in about 0.24s; this Python one will NOT
-# hold a 4s limit at that size, it is here for smaller inputs and for reading.
+# Verified against the official sample of "Minimize, Add, GCD and Their Friends" and against brute force. At n = q =
+# 200000 the C++ version runs in about 0.24s; this Python one will NOT hold a 4s limit at that size, it is here for
+# smaller inputs and for reading.
 #
-# Values are assumed POSITIVE (the source problem gives 1 <= a[i] <= 1e9 and x >= 1). gcd is taken
-# on absolute values so negatives will not crash, but they are untested.
+# Values are assumed POSITIVE (the source problem gives 1 <= a[i] <= 1e9 and x >= 1). gcd is taken on absolute values so
+# negatives will not crash, but they are untested.
 #
 # ========================
 #
@@ -464,8 +463,8 @@ class BeatsGcd_PERFORMANT:
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 
-    # the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    # the first index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    # inside [l, r] that passes is ever walked down (it always holds an answer)
     def _firstPass(self, i, tl, tr, l, r, ok):
         if r < tl or tr < l or not ok(i):
             return -1
@@ -476,8 +475,8 @@ class BeatsGcd_PERFORMANT:
         res = self._firstPass(2 * i, tl, tm, l, r, ok)
         return res if res != -1 else self._firstPass(2 * i + 1, tm + 1, tr, l, r, ok)
 
-    # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
-    # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
+    # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one node fully
+    # inside [l, r] that passes is ever walked down (it always holds an answer)
     def _lastPass(self, i, tl, tr, l, r, ok):
         if r < tl or tr < l or not ok(i):
             return -1

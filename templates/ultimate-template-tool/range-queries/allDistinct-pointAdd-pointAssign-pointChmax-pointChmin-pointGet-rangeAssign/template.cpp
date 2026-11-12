@@ -16,13 +16,13 @@ using ll = long long;
 //   pointChmin: log(N) amortized
 //   pointGet: log(N)
 //   rangeAssign: log(N) amortized
-//   build: N*log(N)
+//   build: N
 // @memory:
 //   layout: 2n-iterative
 //   node: tree[2*N]
 //   tags: none
 //   other: end[1*N] val[1*N] starts[1*N] chains[1*N]
-//   note: the array is kept as runs of equal values; tree is a min tree with one leaf per run start; starts and chains are std::sets; the build is O(N log N), one std::map lookup per element
+//   note: the array is kept as runs of equal values; tree is a min tree with one leaf per run start; starts and chains are std::sets; the build is O(N): integer values group in a salted hash map (other types use std::map, O(N log N))
 
 // "Are all values in a[l..r] distinct?" with range assign. All indices 0-based, ranges inclusive [l, r].
 // The array is kept as runs: run s covers s..end[s], all holding val[s] (at first every element is its own run; an
@@ -35,12 +35,23 @@ using ll = long long;
 // T: any type usable as a std::map key.
 template <typename T>
 struct DistinctTree {
+    struct SaltedHash {  // splitmix64 with a per-run salt, so no fixed input makes the hash map slow
+        size_t operator()(unsigned long long x) const {
+            static const unsigned long long salt = chrono::steady_clock::now().time_since_epoch().count();
+            x += salt + 0x9e3779b97f4a7c15ULL;
+            x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+            x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+            return x ^ (x >> 31);
+        }
+    };
+    // integer values: a hash map (O(1) expected per lookup, so the build is O(N)); others (pairs, strings): std::map
+    using Chains = conditional_t<is_integral_v<T>, unordered_map<T, set<int>, SaltedHash>, map<T, set<int>>>;
     int n;
     vector<int> tree;          // min tree; leaves are tree[n + i]
     vector<int> end;           // end[s] = last index of the run starting at s
     vector<T> val;             // val[s] = the value of the run starting at s
     set<int> starts;           // every run start
-    map<T, set<int>> chains;   // value -> starts of the runs holding it
+    Chains chains;   // value -> starts of the runs holding it
 
     // O(N log N) -- one std::map lookup per element (starts arrive in increasing order, so each set insert is an
     // amortized O(1) hint insert at the end)

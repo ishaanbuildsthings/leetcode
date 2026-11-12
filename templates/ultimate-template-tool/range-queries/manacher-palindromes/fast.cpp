@@ -109,8 +109,7 @@ struct Manacher {
     }
 
     // O(1) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
-    // range,
-    // when there is none (so also for i = n - 1); needs 0 <= i < n, else throws out_of_range
+    // range, when there is none (so also for i = n - 1); needs 0 <= i < n, else throws out_of_range
     LEETCODE_NO_SANITIZE pair<int, int> longestPalCenteredAtIPlusOne(int i) const {
         if (i < 0 || i >= n) throw out_of_range("longestPalCenteredAtIPlusOne: needs 0 <= i < n");
         int k = i + 1 < n ? even[i + 1] : 0;

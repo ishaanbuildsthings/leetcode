@@ -41,16 +41,16 @@
 #   note: value nodes: N log U to start, plus O(log U) per cut (merges free nodes, which are reused); a seg tree over positions holds each run's sum / xor / min / max / or / and / hashes at its start; U = valHi - valLo + 1
 
 # An array whose ranges you can sort in place (ascending or descending), amortized O(log N + log U) a sort, with point
-# reads / writes, rangeAssign, range sums, range xors, range mins, range maxes, range ors, range ands, range hashes
-# both ways (isPalindrome, rangesEqual) and the whole array. It is kept as a sequence of sorted runs: each run is a
-# dynamic value seg tree over [valLo, valHi] (copies per node) and an up / down flag, and a Fenwick tree over
-# positions marks where runs start, and a seg tree over positions holds each run's sum / xor / min / max / or / and /
-# hashes at its start. Sorting [l, r] cuts the runs at l and r + 1 and merges every run inside into one; a[i] is the
-# k-th value of the run holding it; a query cuts at l and r + 1 too, then reads whole runs. Merges cost about as many
-# nodes as they free and every run is merged away at most once, hence the amortized bounds. Indices 0-based, ranges
-# inclusive, every index is a position in the current array. Hashes are polynomial, mod the prime 2^61 - 1, with a
-# base and a value offset random per run: hash(x1..xk) = x1 B^(k-1) + ... + xk; a value tree keeps the hash of its
-# values in sorted order both ways.
+# reads / writes, rangeAssign, range sums, range xors, range mins, range maxes, range ors, range ands, range hashes both
+# ways (isPalindrome, rangesEqual) and the whole array. It is kept as a sequence of sorted runs: each run is a dynamic
+# value seg tree over [valLo, valHi] (copies per node) and an up / down flag, and a Fenwick tree over positions marks
+# where runs start, and a seg tree over positions holds each run's sum / xor / min / max / or / and / hashes at its
+# start. Sorting [l, r] cuts the runs at l and r + 1 and merges every run inside into one; a[i] is the k-th value of the
+# run holding it; a query cuts at l and r + 1 too, then reads whole runs. Merges cost about as many nodes as they free
+# and every run is merged away at most once, hence the amortized bounds. Indices 0-based, ranges inclusive, every index
+# is a position in the current array. Hashes are polynomial, mod the prime 2^61 - 1, with a base and a value offset
+# random per run: hash(x1..xk) = x1 B^(k-1) + ... + xk; a value tree keeps the hash of its values in sorted order both
+# ways.
 
 import random
 INF = float("inf")
@@ -249,8 +249,7 @@ class SortedRunsSumXorMinMaxOrAndHash:
         return out
 
     # O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i,
-    # i)): a binary search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # i)): a binary search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.n
         if not 0 <= i < n:
@@ -282,8 +281,7 @@ class SortedRunsSumXorMinMaxOrAndHash:
         return i - lo + 1, i + lo
 
     # O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by
-    # every structure
-    # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
+    # every structure this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
     def hashAll(self):
         if self.n < 1:
             raise IndexError("hashAll: needs n >= 1")

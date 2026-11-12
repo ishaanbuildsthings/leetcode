@@ -40,8 +40,8 @@ using ll = long long;
 // O(logN) expected; the values are characters, openChar = +1 and any other character = -1, and a range is a regular
 // bracket sequence iff its sum is 0 and no prefix sum is negative; each node keeps its subtree's sum and min prefix
 // sum (over prefixes including the empty one), and its min suffix sum (a reverse swaps prefixes and suffixes). All
-// indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean
-// "already applied to this node, not yet to its children".
+// indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean "already
+// applied to this node, not yet to its children".
 // T: char (or any type: openChar is the one that opens).
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

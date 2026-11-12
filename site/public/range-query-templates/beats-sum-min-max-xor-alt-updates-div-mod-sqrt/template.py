@@ -37,9 +37,9 @@
 #   other: none
 #   note: leaves [n, 2n) hold each value's own aggregates
 
-# Shrink segment tree with composable aggregates (2N iterative): range updates (rangeFloorDiv, rangeMod,
-# rangeFloorSqrt; mod / floor div / floor sqrt walk down every node whose max still changes, and each value can only
-# shrink O(logU) times) and range queries in O(logN); each node keeps its sum, its min, its max, its xor, its best
+# Shrink segment tree with composable aggregates (2N iterative): range updates (rangeFloorDiv, rangeMod, rangeFloorSqrt;
+# mod / floor div / floor sqrt walk down every node whose max still changes, and each value can only shrink O(logU)
+# times) and range queries in O(logN); each node keeps its sum, its min, its max, its xor, its best
 # alternating (+ - + ...) subsequence sum for each start / end sign over its range. All indices 0-based, ranges
 # inclusive [l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a query or update is
 # a perfect subtree of 2^s leaves (s = its level); an update rewrites a leaf, then its ancestors.

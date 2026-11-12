@@ -475,8 +475,7 @@ class PersistentTreap:
         return v
 
     # O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    # search on
-    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    # search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
     def longestPalCenteredAtI(self, i):
         n = self.size()
         if not 0 <= i < n:

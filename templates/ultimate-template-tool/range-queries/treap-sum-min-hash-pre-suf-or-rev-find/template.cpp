@@ -63,10 +63,10 @@ using ll = long long;
 
 // Implicit treap with composable aggregates: an array you can insert into anywhere, reverse, rotate, move, cut pieces
 // out of (that is how to erase) and paste them back in O(logN) expected each, and find any value's index (values
-// distinct); each node keeps its sum, its min, its forward / backward hash (and B^size), its best prefix sum, its
-// best suffix sum, its OR over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array; searches return -1 when nothing qualifies. Lazy tags mean "already applied to this
-// node, not yet to its children".
+// distinct); each node keeps its sum, its min, its forward / backward hash (and B^size), its best prefix sum, its best
+// suffix sum, its OR over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in
+// the CURRENT array; searches return -1 when nothing qualifies. Lazy tags mean "already applied to this node, not yet
+// to its children".
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct ImplicitTreap {
@@ -691,8 +691,7 @@ struct ImplicitTreap {
     }
 
     // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary
-    // search on
-    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    // search on its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
     pair<long long, long long> longestPalCenteredAtI(long long i) {
         long long len = size();
         if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
