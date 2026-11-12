@@ -323,20 +323,20 @@ struct AVLMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    // instead of building a new one
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
     void clear() {
         clearData();
         resetCached();
     }
 
-    // O(logN) -- how many copies of x
+    // O(logN) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     long long count(T x) {
         x -= off;
         return countOf(x);
     }
 
-    // O(1) -- how many distinct values
+    // O(1) -- how many distinct values (0 if empty)
     long long countDistinct() {
         return d;
     }
@@ -348,13 +348,13 @@ struct AVLMultiset {
         return distinctLt(hi) - distinctLt(lo) + (countOf(hi) ? 1 : 0);
     }
 
-    // O(logN) -- how many values > x
+    // O(logN) -- how many values > x (0 if there are none, e.g. on an empty set)
     long long countGtX(T x) {
         x -= off;
         return n - le(x);
     }
 
-    // O(logN) -- how many values >= x
+    // O(logN) -- how many values >= x (0 if there are none, e.g. on an empty set)
     long long countGteX(T x) {
         x -= off;
         return n - lt(x);
@@ -366,13 +366,13 @@ struct AVLMultiset {
         return lo <= hi ? le(hi) - lt(lo) : 0;
     }
 
-    // O(logN) -- how many values < x
+    // O(logN) -- how many values < x (0 if there are none, e.g. on an empty set)
     long long countLtX(T x) {
         x -= off;
         return lt(x);
     }
 
-    // O(logN) -- how many values <= x
+    // O(logN) -- how many values <= x (0 if there are none, e.g. on an empty set)
     long long countLteX(T x) {
         x -= off;
         return le(x);
@@ -439,7 +439,7 @@ struct AVLMultiset {
         return T(kthAt((n + 1) / 2) + off);
     }
 
-    // O(1) -- smallest non-negative integer not in the set
+    // O(1) -- smallest non-negative integer not in the set (0 if empty)
     long long mex() {
         return mexV + off;
     }
@@ -491,7 +491,8 @@ struct AVLMultiset {
         return T(v + off);
     }
 
-    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    // e.g. on an empty set)
     long long remove(T x) {
         x -= off;
         if (!countOf(x)) return 0;
@@ -499,7 +500,8 @@ struct AVLMultiset {
         return 1;
     }
 
-    // O(logN amortized) -- remove every copy of val; returns how many were removed
+    // O(logN amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an
+    // empty set)
     long long removeAll(T val) {
         val -= off;
         long long k = countOf(val);
@@ -507,7 +509,8 @@ struct AVLMultiset {
         return k;
     }
 
-    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't
+    // there, e.g. on an empty set)
     long long removeCount(T val, long long cnt) {
         val -= off;
         long long k = std::min(cnt, countOf(val));
@@ -532,13 +535,13 @@ struct AVLMultiset {
         return removed;
     }
 
-    // O(logN) -- add d to every value (d may be negative)
+    // O(logN) -- add d to every value (d may be negative; nothing happens on an empty set)
     void shiftAll(T d) {
         off += d;
         mexV = findMex();  // (the mex of the shifted values)
     }
 
-    // O(1) -- how many values (copies count)
+    // O(1) -- how many values (copies count; 0 if empty)
     long long size() {
         return n;
     }

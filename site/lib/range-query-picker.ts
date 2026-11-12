@@ -163,6 +163,8 @@ export type OpId =
   | "minAll"
   | "maxAll"
   | "gcdAll"
+  | "lcmAll"
+  | "productAllMod"
   | "xorAll"
   | "andAll"
   | "orAll"
@@ -319,6 +321,7 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "maxAll", signature: "maxAll()", description: "max of the whole array" },
           { id: "rangeGcd", signature: "rangeGcd(l, r)", description: "gcd of l..r" },
           { id: "gcdAll", signature: "gcdAll()", description: "gcd of the whole array" },
+          { id: "lcmAll", signature: "lcmAll()", description: "lcm of the whole array" },
           { id: "maxSubarraySum", signature: "maxSubarraySum(l, r)", description: "Max sum of non-empty subarray within l..r" },
           { id: "minSubarraySum", signature: "minSubarraySum(l, r)", description: "Min sum of non-empty subarray within l..r" },
         ],
@@ -338,6 +341,7 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "longestEqualRun", signature: "longestEqualRun(l, r)", description: "Longest run of equal adjacent values in l..r" },
           { id: "doAllElementsAppearEvenFrequency", signature: "doAllElementsAppearEvenFrequency(l, r)", description: "All vals in l..r even frq?" },
           { id: "rangeSumMod", signature: "rangeSumMod(l, r)", description: "(a[l] + … + a[r]) % MOD" },
+          { id: "productAllMod", signature: "productAllMod()", description: "(a[0] · … · a[n-1]) % MOD" },
         ],
       },
     ],
@@ -700,7 +704,10 @@ export const DATA_STRUCTURE_TYPES = [
   "merge-sort-tree",
   "wavelet",
   // a few flat arrays each: lighter than any node pool or treap, but a modular multiply per point update, so a plain
-  // array tree still wins a tie on point ops; Manacher first (no hashing, less memory) on an isPalindrome tie
+  // array tree still wins a tie on point ops; Manacher first (no hashing, less memory) on an isPalindrome tie; the
+  // aggregate deque (two stacks of running min / max / ...) before the rolling hash deque: the same pushes and pops,
+  // but a cheap combine instead of a modular multiply
+  "agg-deque",
   "manacher",
   "rolling-hash",
   "persistent",
@@ -723,6 +730,7 @@ export type DataStructureType = (typeof DATA_STRUCTURE_TYPES)[number];
 export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
   "prefix-sum": "Prefix sums",
   "difference-array": "Difference array (sweep line)",
+  "agg-deque": "Aggregate deque (two stacks)",
   positions: "Position lists",
   "interval-map": "Interval map (runs of equal values)",
   "sparse-table": "Sparse table",

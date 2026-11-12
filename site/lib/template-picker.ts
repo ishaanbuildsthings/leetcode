@@ -128,6 +128,8 @@ const FACTOR_VALUES: Record<string, number> = {
   "log(U)": Math.log2(SIZES.U),
   "log64(U)": Math.log2(SIZES.U) / 6,
   "log(log(U))": Math.log2(Math.log2(SIZES.U)),
+  // Pollard rho on a value too big for the sieve: about U^(1/4) steps expected
+  "U^(1/4)": SIZES.U ** 0.25,
   // the bit operation templates: B = number of bits in the largest value
   B: 30,
   "B^2": 900,
@@ -230,6 +232,7 @@ const PRETTY_FACTORS: Record<string, string> = {
   "log(U)": "logU",
   "log64(U)": "log₆₄U",
   "log(log(U))": "loglogU",
+  "U^(1/4)": "U¹ᐟ⁴",
   // the matrix templates: shapes A[x, y] @ B[y, z], square M[k, k], power p, recurrence order d, sequence length L
   x: "x",
   y: "y",

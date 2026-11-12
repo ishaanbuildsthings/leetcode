@@ -11,6 +11,7 @@ export const BITSETS: FillIn[] = [
     folder: "_bitset",
     file: "DynamicBitset",
     langs: ["cpp"],
+    note: "N = number of bits; L = r - l + 1, the length of a range [l, r]; K = how many bits are 1. A string \"01101\" sets bit i to its i-th character (here bits 1, 2 and 4).",
     ops: [
       ["Construct", ""],
       ["DynamicBitset b(n);  // n bits, all 0 (n can come from the input)", "N/64"],
@@ -51,8 +52,7 @@ export const BITSETS: FillIn[] = [
       ["nextZeroAfter(i) -> smallest bit index above i holding a 0, or -1", "N/64"],
       ["prevZeroBefore(i) -> largest bit index below i holding a 0, or -1", "N/64"],
       ["Iterate", ""],
-      ["forEachOne(f): calls f(i) for each bit index holding a 1, smallest first", "N/64+K"],
-      ["  e.g. b = \"01101\": b.forEachOne([&](int i) { cout << i; });  // prints 1 2 4", "N/64+K"],
+      ["forEachOne(f): calls f(i) for each index i whose bit is 1, smallest first (K = how many bits are 1); e.g. DynamicBitset b(\"01101\"); b.forEachOne([&](int i) { cout << i << ' '; }); prints 1 2 4", "N/64+K"],
       ["Combining two bitsets", ""],
       ["a & b -> new bitset, same size: 1 where both are 1", "N/64"],
       ["a | b -> new bitset, same size: 1 where either is 1", "N/64"],

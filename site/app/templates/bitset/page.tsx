@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
-import { RowTemplates } from "@/components/RowTemplates";
-import { BIT_OPS_SECTIONS } from "@/lib/bit-operations";
+import { BitOpsCards } from "@/components/BitOpsCards";
+import { BIT_OPS_CARDS } from "@/lib/bit-operations";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -30,7 +30,7 @@ export default async function BitsetTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <RowTemplates title="Bit operation & bitset templates" sections={BIT_OPS_SECTIONS} publicBase="/range-query-templates" />
+        <BitOpsCards title="Bit operation & bitset templates" cards={BIT_OPS_CARDS} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

@@ -372,20 +372,20 @@ struct SplayMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    // instead of building a new one
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
     void clear() {
         clearData();
         resetCached();
     }
 
-    // O(logN amortized) -- how many copies of x
+    // O(logN amortized) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     long long count(T x) {
         x -= off;
         return countOf(x);
     }
 
-    // O(1) -- how many distinct values
+    // O(1) -- how many distinct values (0 if empty)
     long long countDistinct() {
         return d;
     }
@@ -397,13 +397,13 @@ struct SplayMultiset {
         return distinctLt(hi) - distinctLt(lo) + (countOf(hi) ? 1 : 0);
     }
 
-    // O(logN amortized) -- how many values > x
+    // O(logN amortized) -- how many values > x (0 if there are none, e.g. on an empty set)
     long long countGtX(T x) {
         x -= off;
         return n - le(x);
     }
 
-    // O(logN amortized) -- how many values >= x
+    // O(logN amortized) -- how many values >= x (0 if there are none, e.g. on an empty set)
     long long countGteX(T x) {
         x -= off;
         return n - lt(x);
@@ -415,13 +415,13 @@ struct SplayMultiset {
         return lo <= hi ? le(hi) - lt(lo) : 0;
     }
 
-    // O(logN amortized) -- how many values < x
+    // O(logN amortized) -- how many values < x (0 if there are none, e.g. on an empty set)
     long long countLtX(T x) {
         x -= off;
         return lt(x);
     }
 
-    // O(logN amortized) -- how many values <= x
+    // O(logN amortized) -- how many values <= x (0 if there are none, e.g. on an empty set)
     long long countLteX(T x) {
         x -= off;
         return le(x);
@@ -488,7 +488,7 @@ struct SplayMultiset {
         return T(low.v + off);
     }
 
-    // O(1) -- smallest non-negative integer not in the set
+    // O(1) -- smallest non-negative integer not in the set (0 if empty)
     long long mex() {
         return mexV + off;
     }
@@ -532,7 +532,8 @@ struct SplayMultiset {
         return T(v + off);
     }
 
-    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    // e.g. on an empty set)
     long long remove(T x) {
         x -= off;
         if (!countOf(x)) return 0;
@@ -540,7 +541,8 @@ struct SplayMultiset {
         return 1;
     }
 
-    // O(logN amortized) -- remove every copy of val; returns how many were removed
+    // O(logN amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an
+    // empty set)
     long long removeAll(T val) {
         val -= off;
         long long k = countOf(val);
@@ -548,7 +550,8 @@ struct SplayMultiset {
         return k;
     }
 
-    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't
+    // there, e.g. on an empty set)
     long long removeCount(T val, long long cnt) {
         val -= off;
         long long k = std::min(cnt, countOf(val));
@@ -573,13 +576,13 @@ struct SplayMultiset {
         return removed;
     }
 
-    // O(logN amortized) -- add d to every value (d may be negative)
+    // O(logN amortized) -- add d to every value (d may be negative; nothing happens on an empty set)
     void shiftAll(T d) {
         off += d;
         mexV = findMex();  // (the mex of the shifted values)
     }
 
-    // O(1) -- how many values (copies count)
+    // O(1) -- how many values (copies count; 0 if empty)
     long long size() {
         return n;
     }
@@ -607,7 +610,7 @@ struct SplayMultiset {
         return S(m.v) * m.before - m.sb + (total - m.sb - S(m.v) * m.c) - S(m.v) * (n - m.before - m.c);
     }
 
-    // O(logN amortized) -- sum of |v - x| over all values
+    // O(logN amortized) -- sum of |v - x| over all values (0 if empty)
     S sumAbsDiffToX(T x) {
         x -= off;
         long long c = lt(x);
@@ -615,18 +618,18 @@ struct SplayMultiset {
         return S(x) * c - s + (total - s) - S(x) * (n - c);
     }
 
-    // O(1) -- sum of all values
+    // O(1) -- sum of all values (0 if empty)
     S sumAll() {
         return total + S(off) * n;
     }
 
-    // O(logN amortized) -- sum of the values > x
+    // O(logN amortized) -- sum of the values > x (0 if there are none, e.g. on an empty set)
     S sumGtX(T x) {
         x -= off;
         return total - sle(x) + S(off) * (n - le(x));
     }
 
-    // O(logN amortized) -- sum of the values >= x
+    // O(logN amortized) -- sum of the values >= x (0 if there are none, e.g. on an empty set)
     S sumGteX(T x) {
         x -= off;
         return total - slt(x) + S(off) * (n - lt(x));
@@ -665,13 +668,13 @@ struct SplayMultiset {
         return total - sumFirst(n - k) + S(off) * k;
     }
 
-    // O(logN amortized) -- sum of the values < x
+    // O(logN amortized) -- sum of the values < x (0 if there are none, e.g. on an empty set)
     S sumLtX(T x) {
         x -= off;
         return slt(x) + S(off) * lt(x);
     }
 
-    // O(logN amortized) -- sum of the values <= x
+    // O(logN amortized) -- sum of the values <= x (0 if there are none, e.g. on an empty set)
     S sumLteX(T x) {
         x -= off;
         return sle(x) + S(off) * le(x);

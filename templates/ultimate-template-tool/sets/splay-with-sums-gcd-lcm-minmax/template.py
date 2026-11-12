@@ -1,0 +1,852 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/sets/splay-with-sums-gcd-lcm-minmax/template.py
+# @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex gcdOfAll gcdOfGtX gcdOfGteX gcdOfInValRange gcdOfKthLargestRange gcdOfKthSmallestRange gcdOfLargestK gcdOfLtX gcdOfLteX gcdOfSmallestK kth largestLtX largestLteX lastIndex lcmOfAll lcmOfGtX lcmOfGteX lcmOfInValRange lcmOfKthLargestRange lcmOfKthSmallestRange lcmOfLargestK lcmOfLtX lcmOfLteX lcmOfSmallestK max medianHigh medianLow min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @data-structure-type: splay
+# @values: online
+# @keys: numbers
+# @tracks: minmax
+# @complexities:
+#   add: log(N)*log(U) amortized
+#   addCount: log(N)*log(U) amortized
+#   lcmOfAll: 1
+#   lcmOfGtX: log(N)*log(U) amortized
+#   lcmOfGteX: log(N)*log(U) amortized
+#   lcmOfInValRange: log(N)*log(U) amortized
+#   lcmOfKthLargestRange: log(N)*log(U) amortized
+#   lcmOfKthSmallestRange: log(N)*log(U) amortized
+#   lcmOfLargestK: log(N)*log(U) amortized
+#   lcmOfLtX: log(N)*log(U) amortized
+#   lcmOfLteX: log(N)*log(U) amortized
+#   lcmOfSmallestK: log(N)*log(U) amortized
+#   clear: 1 amortized
+#   count: log(N) amortized
+#   countDistinct: 1
+#   countGtX: log(N) amortized
+#   countGteX: log(N) amortized
+#   countInValRange: log(N) amortized
+#   countLtX: log(N) amortized
+#   countLteX: log(N) amortized
+#   firstIndex: log(N) amortized
+#   kth: log(N) amortized
+#   largestLtX: log(N) amortized
+#   largestLteX: log(N) amortized
+#   lastIndex: log(N) amortized
+#   max: 1
+#   medianHigh: log(N) amortized
+#   medianLow: log(N) amortized
+#   min: 1
+#   gcdOfAll: 1
+#   gcdOfGtX: log(N)*log(U) amortized
+#   gcdOfGteX: log(N)*log(U) amortized
+#   gcdOfInValRange: log(N)*log(U) amortized
+#   gcdOfKthLargestRange: log(N)*log(U) amortized
+#   gcdOfKthSmallestRange: log(N)*log(U) amortized
+#   gcdOfLargestK: log(N)*log(U) amortized
+#   gcdOfLtX: log(N)*log(U) amortized
+#   gcdOfLteX: log(N)*log(U) amortized
+#   gcdOfSmallestK: log(N)*log(U) amortized
+#   pop: log(N)*log(U) amortized
+#   popMax: log(N)*log(U) amortized
+#   popMin: log(N)*log(U) amortized
+#   remove: log(N)*log(U) amortized
+#   removeAll: log(N)*log(U) amortized
+#   removeCount: log(N)*log(U) amortized
+#   removeInValRange: log(N)*log(U) amortized
+#   size: 1
+#   smallestGtX: log(N) amortized
+#   smallestGteX: log(N) amortized
+#   sumAbsDiffToMedian: log(N) amortized
+#   sumAbsDiffToX: log(N) amortized
+#   sumAll: 1
+#   sumGtX: log(N) amortized
+#   sumGteX: log(N) amortized
+#   sumInValRange: log(N) amortized
+#   sumKthLargestRange: log(N) amortized
+#   sumKthSmallestRange: log(N) amortized
+#   sumLargestK: log(N) amortized
+#   sumLtX: log(N) amortized
+#   sumLteX: log(N) amortized
+#   sumSmallestK: log(N) amortized
+#   build: 1
+# @memory:
+#   layout: none
+#   node: key[1*N] cnt[1*N] size[1*N] sum[1*N] gcd[1*N] lcm[1*N]
+#   tags: none
+#   other: children[2*N] parent[1*N]
+#   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
+# lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest
+# value (2**63 - 1) by default; pass your own, e.g. SplayMultiset(cap=10**9). Removing values is safe: every node
+# keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone, lcmOf... is exact
+# again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+
+# Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
+# keeps its value, its copies, and the copies, sum, gcd, LCM in its subtree; every operation splays the
+# last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
+# node 0 is the empty tree) and removed nodes are reused.
+
+
+from math import gcd
+class SplayMultiset:
+    __slots__ = ("K", "C", "Z", "S", "G", "M", "L", "R", "P", "free", "root", "n", "mn", "mx", "total", "d", "cap")
+
+    # O(1) -- an empty multiset
+    def __init__(self, cap=2**63 - 1):
+        self.cap = cap
+        self.K, self.C, self.Z, self.S = [0], [0], [0], [0]  # key, copies, copies below, sum below
+        self.G = [0]  # gcd of the values below
+        self.M = [1]  # capped LCM of the values below (the empty tree's: 1)
+        self.L, self.R, self.P = [0], [0], [0]  # children, parent
+        self.free = []  # removed nodes, reused first
+        self.root = self.n = self.total = self.d = 0
+
+    def _new(self, x, parent):
+        if self.free:
+            t = self.free.pop()
+            self.K[t], self.C[t], self.L[t], self.R[t], self.P[t] = x, 0, 0, 0, parent
+            return t
+        self.K.append(x)
+        self.C.append(0)
+        self.Z.append(0)
+        self.S.append(0)
+        self.G.append(0)
+        self.M.append(1)
+        self.L.append(0)
+        self.R.append(0)
+        self.P.append(parent)
+        return len(self.K) - 1
+
+    def _pull(self, t):
+        l, r = self.L[t], self.R[t]
+        self.Z[t] = self.Z[l] + self.Z[r] + self.C[t]
+        self.S[t] = self.S[l] + self.S[r] + self.C[t] * self.K[t]
+        self.G[t] = gcd(gcd(self.G[l], self.G[r]), self.K[t])
+        self.M[t] = self._lc(self._lc(self.M[l], self.M[r]), self.K[t])
+
+    def _rotate(self, x):  # x moves above its parent
+        L, R, P = self.L, self.R, self.P
+        p = P[x]
+        g = P[p]
+        if L[p] == x:
+            b = R[x]
+            L[p], R[x] = b, p
+        else:
+            b = L[x]
+            R[p], L[x] = b, p
+        if b:
+            P[b] = p
+        P[p], P[x] = x, g
+        if g:
+            if L[g] == p:
+                L[g] = x
+            else:
+                R[g] = x
+        l, r = self.L[p], self.R[p]
+        self.Z[p] = self.Z[l] + self.Z[r] + self.C[p]
+        self.S[p] = self.S[l] + self.S[r] + self.C[p] * self.K[p]
+        self.G[p] = gcd(gcd(self.G[l], self.G[r]), self.K[p])
+        self.M[p] = self._lc(self._lc(self.M[l], self.M[r]), self.K[p])
+
+    def _splay(self, x):  # x becomes the root of its tree
+        P, L = self.P, self.L
+        while P[x]:
+            p = P[x]
+            g = P[p]
+            if g:
+                self._rotate(p if (L[g] == p) == (L[p] == x) else x)
+            self._rotate(x)
+        self._pull(x)
+        return x
+
+    def _touch(self, t):
+        if t:
+            self.root = self._splay(t)
+
+    def _insert(self, x, c):
+        K, L, R = self.K, self.L, self.R
+        t = self.root
+        while t and K[t] != x:
+            nxt = L[t] if x < K[t] else R[t]
+            if not nxt:
+                break
+            t = nxt
+        if t and K[t] == x:  # x is already here
+            f = self.C[t] = self.C[t] + c
+            self._pull(t)
+            self.root = self._splay(t)
+            if not f:
+                self._erase(t)
+            return f  # (x's new count)
+        u = self._new(x, t)
+        self.C[u] = c
+        self._pull(u)
+        if t:
+            if x < K[t]:
+                L[t] = u
+            else:
+                R[t] = u
+        self.root = self._splay(u)
+        self.d += 1
+        return c
+
+    def _erase(self, t):  # t is the root
+        L, R, P = self.L, self.R, self.P
+        l, r = L[t], R[t]
+        if l:
+            P[l] = 0
+        if r:
+            P[r] = 0
+        if not l:
+            self.root = r
+        else:
+            m = l
+            while R[m]:
+                m = R[m]
+            m = self._splay(m)  # the largest key on the left becomes the left tree's root, with no right child
+            R[m] = r
+            if r:
+                P[r] = m
+            self._pull(m)
+            self.root = m
+        self.free.append(t)
+        self.d -= 1
+
+    def _lt(self, x):  # copies of values < x
+        K, C, Z, L, R = self.K, self.C, self.Z, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if K[t] < x:
+                res += Z[L[t]] + C[t]
+                t = R[t]
+            else:
+                t = L[t]
+        self._touch(last)
+        return res
+
+    def _le(self, x):  # copies of values <= x
+        K, C, Z, L, R = self.K, self.C, self.Z, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if x < K[t]:
+                t = L[t]
+            else:
+                res += Z[L[t]] + C[t]
+                t = R[t]
+        self._touch(last)
+        return res
+
+    def _countOf(self, x):
+        K, L, R = self.K, self.L, self.R
+        t, last = self.root, 0
+        while t and K[t] != x:
+            last = t
+            t = L[t] if x < K[t] else R[t]
+        self._touch(t or last)
+        return self.C[t]
+
+    def _slt(self, x):  # sum of the values < x
+        K, C, S, L, R = self.K, self.C, self.S, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if K[t] < x:
+                res += S[L[t]] + C[t] * K[t]
+                t = R[t]
+            else:
+                t = L[t]
+        self._touch(last)
+        return res
+
+    def _sle(self, x):  # sum of the values <= x
+        K, C, S, L, R = self.K, self.C, self.S, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if x < K[t]:
+                t = L[t]
+            else:
+                res += S[L[t]] + C[t] * K[t]
+                t = R[t]
+        self._touch(last)
+        return res
+
+    def _kth(self, k):
+        K, C, Z, L, R = self.K, self.C, self.Z, self.L, self.R
+        t = self.root
+        while True:
+            zl = Z[L[t]]
+            if k <= zl:
+                t = L[t]
+            elif k <= zl + C[t]:
+                self._touch(t)
+                return K[t]
+            else:
+                k -= zl + C[t]
+                t = R[t]
+    def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies, sum before it)
+        K, C, Z, S, L, R = self.K, self.C, self.Z, self.S, self.L, self.R
+        t, before, acc = self.root, 0, 0
+        while True:
+            l = L[t]
+            zl = before + Z[l]
+            if k <= zl:
+                t = l
+            elif k <= zl + C[t]:
+                res = K[t], zl, C[t], acc + S[l]
+                self._touch(t)
+                return res
+            else:
+                before = zl + C[t]
+                acc += S[l] + C[t] * K[t]
+                t = R[t]
+
+    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps min / max current
+        self.n += c
+        self.total += c * x
+        f = self._insert(x, c)  # x's new count
+        n = self.n
+        if c > 0:
+            if n == c:  # the set was empty
+                self.mn = self.mx = x
+                return
+            if x < self.mn:
+                self.mn = x
+            if x > self.mx:
+                self.mx = x
+        else:
+            if not n:
+                return
+            if not f:  # x is gone: it may have been the min / max
+                if x == self.mn:
+                    self.mn = self._kth(1)
+                if x == self.mx:
+                    self.mx = self._kth(n)
+
+    def _sumFirst(self, k):  # sum of the k smallest values
+        if k <= 0:
+            return 0
+        v, b, _, s = self._kthInfo(k)
+        return s + (k - b) * v
+
+    def _resetCached(self):  # nothing counted: as newly built
+        self.n = self.d = 0
+        self.total = 0
+
+    def _clearData(self):  # fresh node lists (the old ones are freed in bulk)
+        self.K = [0]
+        self.C = [0]
+        self.Z = [0]
+        self.S = [0]
+        self.G = [0]
+        self.L = [0]
+        self.R = [0]
+        self.P = [0]
+        self.M = [1]
+        self.free = []
+        self.root = 0
+
+    def _gcdLe(self, x):  # gcd of the values <= x
+        K, F, L, R = self.K, self.G, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if x < K[t]:
+                t = L[t]
+            else:
+                res = gcd(res, gcd(F[L[t]], K[t]))
+                t = R[t]
+        self._touch(last)
+        return res
+
+    def _gcdGe(self, x):  # gcd of the values >= x
+        K, F, L, R = self.K, self.G, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if K[t] < x:
+                t = R[t]
+            else:
+                res = gcd(res, gcd(F[R[t]], K[t]))
+                t = L[t]
+        self._touch(last)
+        return res
+
+    def _gcdIn(self, lo, hi):  # gcd of the values in [lo, hi] (lo <= hi)
+        K, F, L, R = self.K, self.G, self.L, self.R
+        t = self.root
+        last = 0
+        while t and not lo <= K[t] <= hi:  # down to the highest node inside [lo, hi]
+            last = t
+            t = L[t] if hi < K[t] else R[t]
+        if not t:
+            self._touch(last)
+            return 0
+        res = gcd(0, K[t])
+        a, na = t, 0
+        u = L[t]  # its left side is <= hi: keep what is >= lo
+        while u:
+            a, na = u, na + 1
+            if lo <= K[u]:
+                res = gcd(res, gcd(K[u], F[R[u]]))
+                u = L[u]
+            else:
+                u = R[u]
+        b, nb = t, 0
+        u = R[t]  # its right side is >= lo: keep what is <= hi
+        while u:
+            b, nb = u, nb + 1
+            if K[u] <= hi:
+                res = gcd(res, gcd(K[u], F[L[u]]))
+                u = R[u]
+            else:
+                u = L[u]
+        self._touch(a if na >= nb else b)  # the end of the longer path pays for both
+        return res
+
+    def _lcmLe(self, x):  # capped LCM of the values <= x
+        K, F, L, R = self.K, self.M, self.L, self.R
+        t, res, last = self.root, 1, 0
+        while t:
+            last = t
+            if x < K[t]:
+                t = L[t]
+            else:
+                res = self._lc(res, self._lc(F[L[t]], K[t]))
+                t = R[t]
+        self._touch(last)
+        return res
+
+    def _lcmGe(self, x):  # capped LCM of the values >= x
+        K, F, L, R = self.K, self.M, self.L, self.R
+        t, res, last = self.root, 1, 0
+        while t:
+            last = t
+            if K[t] < x:
+                t = R[t]
+            else:
+                res = self._lc(res, self._lc(F[R[t]], K[t]))
+                t = L[t]
+        self._touch(last)
+        return res
+
+    def _lcmIn(self, lo, hi):  # capped LCM of the values in [lo, hi] (lo <= hi)
+        K, F, L, R = self.K, self.M, self.L, self.R
+        t = self.root
+        last = 0
+        while t and not lo <= K[t] <= hi:  # down to the highest node inside [lo, hi]
+            last = t
+            t = L[t] if hi < K[t] else R[t]
+        if not t:
+            self._touch(last)
+            return 1
+        res = self._lc(1, K[t])
+        a, na = t, 0
+        u = L[t]  # its left side is <= hi: keep what is >= lo
+        while u:
+            a, na = u, na + 1
+            if lo <= K[u]:
+                res = self._lc(res, self._lc(K[u], F[R[u]]))
+                u = L[u]
+            else:
+                u = R[u]
+        b, nb = t, 0
+        u = R[t]  # its right side is >= lo: keep what is <= hi
+        while u:
+            b, nb = u, nb + 1
+            if K[u] <= hi:
+                res = self._lc(res, self._lc(K[u], F[L[u]]))
+                u = R[u]
+            else:
+                u = L[u]
+        self._touch(a if na >= nb else b)  # the end of the longer path pays for both
+        return res
+
+    # O(logN * logU amortized) -- add one copy of x
+    def add(self, x):
+        self._add(x, 1)
+
+    # O(logN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
+    def addCount(self, val, cnt):
+        if cnt > 0:
+            self._add(val, cnt)
+
+    # O(1) -- LCM (-1 once it passes cap) of all values; 1 if empty
+    def lcmOfAll(self):
+        return self.M[self.root]
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values > x; 1 if there are none
+    def lcmOfGtX(self, x):
+        return self._lcmGe(x + 1)
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values >= x; 1 if there are none
+    def lcmOfGteX(self, x):
+        return self._lcmGe(x)
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values v with lo <= v <= hi; 1 if there are none
+    def lcmOfInValRange(self, lo, hi):
+        return self._lcmIn(lo, hi) if lo <= hi else 1
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th largest values; RANKS,
+    # 1-indexed and inclusive:
+    # (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
+    def lcmOfKthLargestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(
+                f"lcmOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
+        return self._lcmIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th smallest values; RANKS,
+    # 1-indexed and inclusive:
+    # (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
+    def lcmOfKthSmallestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(
+                f"lcmOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
+        return self._lcmIn(self._kth(kFrom), self._kth(kTo))
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k largest values; k is a COUNT, not an index: k = 0
+    # takes no values
+    # (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes
+    # 5 and 5); raises IndexError unless 0 <= k <= size
+    def lcmOfLargestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"lcmOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self._lcmGe(self._kth(self.n - k + 1)) if k else 1
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values < x; 1 if there are none
+    def lcmOfLtX(self, x):
+        return self._lcmLe(x - 1)
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values <= x; 1 if there are none
+    def lcmOfLteX(self, x):
+        return self._lcmLe(x)
+
+    # O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k smallest values; k is a COUNT, not an index: k =
+    # 0 takes no values
+    # (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2
+    # takes 2 and 2); raises IndexError unless 0 <= k <= size
+    def lcmOfSmallestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"lcmOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self._lcmLe(self._kth(k)) if k else 1
+
+    # O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    # arguments), so reuse it instead of building a new one
+    def clear(self):
+        self._clearData()
+        self._resetCached()
+
+    # O(logN amortized) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
+    def count(self, x):
+        return self._countOf(x)
+
+    # O(1) -- how many distinct values (0 if empty)
+    def countDistinct(self):
+        return self.d
+
+    # O(logN amortized) -- how many values > x (0 if there are none, e.g. on an empty set)
+    def countGtX(self, x):
+        return self.n - self._le(x)
+
+    # O(logN amortized) -- how many values >= x (0 if there are none, e.g. on an empty set)
+    def countGteX(self, x):
+        return self.n - self._lt(x)
+
+    # O(logN amortized) -- how many values v with lo <= v <= hi (0 if lo > hi)
+    def countInValRange(self, lo, hi):
+        return self._le(hi) - self._lt(lo) if lo <= hi else 0
+
+    # O(logN amortized) -- how many values < x (0 if there are none, e.g. on an empty set)
+    def countLtX(self, x):
+        return self._lt(x)
+
+    # O(logN amortized) -- how many values <= x (0 if there are none, e.g. on an empty set)
+    def countLteX(self, x):
+        return self._le(x)
+
+    # O(logN amortized) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is
+    # not in the set
+    def firstIndex(self, x):
+        return self._lt(x) if self._countOf(x) else -1
+
+    # O(logN amortized) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    # kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); raises IndexError unless 0 <= i < size
+    def kth(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
+        return self._kth(i + 1)
+
+    # O(logN amortized) -- largest value < x; None if there is none
+    def largestLtX(self, x):
+        c = self._lt(x)
+        return self._kth(c) if c else None
+
+    # O(logN amortized) -- largest value <= x; None if there is none
+    def largestLteX(self, x):
+        c = self._le(x)
+        return self._kth(c) if c else None
+
+    # O(logN amortized) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1);
+    # -1 if x is not in the set
+    def lastIndex(self, x):
+        return self._le(x) - 1 if self._countOf(x) else -1
+
+    # O(1) -- largest value; raises IndexError if empty
+    def max(self):
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx
+
+    # O(logN amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
+    def medianHigh(self):
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1)
+
+    # O(logN amortized) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
+    def medianLow(self):
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1)
+
+    # O(1) -- smallest value; raises IndexError if empty
+    def min(self):
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn
+
+    # O(1) -- gcd of all values; 0 if empty
+    def gcdOfAll(self):
+        return self.G[self.root]
+
+    # O(logN * logU amortized) -- gcd of the values > x; 0 if there are none
+    def gcdOfGtX(self, x):
+        return self._gcdGe(x + 1)
+
+    # O(logN * logU amortized) -- gcd of the values >= x; 0 if there are none
+    def gcdOfGteX(self, x):
+        return self._gcdGe(x)
+
+    # O(logN * logU amortized) -- gcd of the values v with lo <= v <= hi; 0 if there are none
+    def gcdOfInValRange(self, lo, hi):
+        return self._gcdIn(lo, hi) if lo <= hi else 0
+
+    # O(logN * logU amortized) -- gcd of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive:
+    # (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
+    def gcdOfKthLargestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(
+                f"gcdOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
+        return self._gcdIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
+
+    # O(logN * logU amortized) -- gcd of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive:
+    # (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
+    def gcdOfKthSmallestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(
+                f"gcdOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
+        return self._gcdIn(self._kth(kFrom), self._kth(kTo))
+
+    # O(logN * logU amortized) -- gcd of the k largest values; k is a COUNT, not an index: k = 0 takes no values
+    # (returns 0), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    # raises IndexError unless 0 <= k <= size
+    def gcdOfLargestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"gcdOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self._gcdGe(self._kth(self.n - k + 1)) if k else 0
+
+    # O(logN * logU amortized) -- gcd of the values < x; 0 if there are none
+    def gcdOfLtX(self, x):
+        return self._gcdLe(x - 1)
+
+    # O(logN * logU amortized) -- gcd of the values <= x; 0 if there are none
+    def gcdOfLteX(self, x):
+        return self._gcdLe(x)
+
+    # O(logN * logU amortized) -- gcd of the k smallest values; k is a COUNT, not an index: k = 0 takes no values
+    # (returns 0), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    # raises IndexError unless 0 <= k <= size
+    def gcdOfSmallestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"gcdOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self._gcdLe(self._kth(k)) if k else 0
+
+    # O(logN * logU amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the
+    # smallest (=
+    # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
+    def pop(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")
+        v = self._kth(i + 1)
+        self._add(v, -1)
+        return v
+
+    # O(logN * logU amortized) -- remove and return the largest value; raises IndexError if empty
+    def popMax(self):
+        if not self.n:
+            raise IndexError("popMax: the set is empty")
+        v = self.mx
+        self._add(v, -1)
+        return v
+
+    # O(logN * logU amortized) -- remove and return the smallest value; raises IndexError if empty
+    def popMin(self):
+        if not self.n:
+            raise IndexError("popMin: the set is empty")
+        v = self.mn
+        self._add(v, -1)
+        return v
+
+    # O(logN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
+    # there,
+    # e.g. on an empty set)
+    def remove(self, x):
+        if not self._countOf(x):
+            return 0
+        self._add(x, -1)
+        return 1
+
+    # O(logN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on
+    # an
+    # empty set)
+    def removeAll(self, val):
+        k = self.count(val)
+        if k:
+            self._add(val, -k)
+        return k
+
+    # O(logN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
+    # isn't
+    # there, e.g. on an empty set)
+    def removeCount(self, val, cnt):
+        k = min(cnt, self.count(val))
+        if k <= 0:
+            return 0
+        self._add(val, -k)
+        return k
+
+    # O(logN * logU amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo
+    # > hi)
+    def removeInValRange(self, lo, hi):
+        if lo > hi:
+            return 0
+        removed = 0
+        while self.n:  # the smallest value >= lo, while it is <= hi: drop all its copies
+            c = self._lt(lo)
+            if c == self.n:
+                break
+            v = self._kth(c + 1)
+            if v > hi:
+                break
+            k = self._countOf(v)
+            self._add(v, -k)
+            removed += k
+        return removed
+
+    # O(1) -- how many values (copies count; 0 if empty)
+    def size(self):
+        return self.n
+
+    # O(1) -- same as size()
+    def __len__(self):
+        return self.n
+
+    # O(logN amortized) -- smallest value > x; None if there is none
+    def smallestGtX(self, x):
+        c = self._le(x)
+        return self._kth(c + 1) if c < self.n else None
+
+    # O(logN amortized) -- smallest value >= x; None if there is none
+    def smallestGteX(self, x):
+        c = self._lt(x)
+        return self._kth(c + 1) if c < self.n else None
+
+    # O(logN amortized) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
+    def sumAbsDiffToMedian(self):
+        if not self.n:
+            return 0
+        v, b, c, s = self._kthInfo((self.n + 1) >> 1)
+        return v * b - s + (self.total - s - c * v) - v * (self.n - b - c)
+
+    # O(logN amortized) -- sum of |v - x| over all values (0 if empty)
+    def sumAbsDiffToX(self, x):
+        c, s = self._lt(x), self._slt(x)
+        return x * c - s + (self.total - s) - x * (self.n - c)
+
+    # O(1) -- sum of all values (0 if empty)
+    def sumAll(self):
+        return self.total
+
+    # O(logN amortized) -- sum of the values > x (0 if there are none, e.g. on an empty set)
+    def sumGtX(self, x):
+        return self.total - self._sle(x)
+
+    # O(logN amortized) -- sum of the values >= x (0 if there are none, e.g. on an empty set)
+    def sumGteX(self, x):
+        return self.total - self._slt(x)
+
+    # O(logN amortized) -- sum of the values v with lo <= v <= hi (0 if lo > hi)
+    def sumInValRange(self, lo, hi):
+        return self._sle(hi) - self._slt(lo) if lo <= hi else 0
+
+    # O(logN amortized) -- sum of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
+    def sumKthLargestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(
+                f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
+        return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
+
+    # O(logN amortized) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError
+    # unless 1 <= kFrom <= kTo <= size
+    def sumKthSmallestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(
+                f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = "
+                f"{self.n}")
+        return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
+
+    # O(logN amortized) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k
+    # = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); raises IndexError
+    # unless 0 <= k <= size
+    def sumLargestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"sumLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self.total - self._sumFirst(self.n - k)
+
+    # O(logN amortized) -- sum of the values < x (0 if there are none, e.g. on an empty set)
+    def sumLtX(self, x):
+        return self._slt(x)
+
+    # O(logN amortized) -- sum of the values <= x (0 if there are none, e.g. on an empty set)
+    def sumLteX(self, x):
+        return self._sle(x)
+
+    # O(logN amortized) -- sum of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0),
+    # k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); raises IndexError
+    # unless 0 <= k <= size
+    def sumSmallestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"sumSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self._sumFirst(k)
+
+    def _lc(self, a, b):  # capped LCM: 0 if either is 0, else -1 if either is -1 (too big), else the LCM or -1 past cap
+        if a == 0 or b == 0:
+            return 0
+        if a < 0 or b < 0:
+            return -1
+        r = a // gcd(a, b) * b
+        return r if r <= self.cap else -1
+

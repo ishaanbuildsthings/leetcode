@@ -419,31 +419,31 @@ struct TreapMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    // instead of building a new one
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
     LEETCODE_NO_SANITIZE void clear() {
         clearData();
         resetCached();
     }
 
-    // O(logN expected) -- how many copies of x
+    // O(logN expected) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long count(T x) {
         x -= off;
         return countOf(x);
     }
 
-    // O(1) -- how many distinct values
+    // O(1) -- how many distinct values (0 if empty)
     LEETCODE_NO_SANITIZE long long countDistinct() {
         return d;
     }
 
-    // O(logN expected) -- how many values > x
+    // O(logN expected) -- how many values > x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countGtX(T x) {
         x -= off;
         return n - le(x);
     }
 
-    // O(logN expected) -- how many values >= x
+    // O(logN expected) -- how many values >= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countGteX(T x) {
         x -= off;
         return n - lt(x);
@@ -455,13 +455,13 @@ struct TreapMultiset {
         return lo <= hi ? le(hi) - lt(lo) : 0;
     }
 
-    // O(logN expected) -- how many values < x
+    // O(logN expected) -- how many values < x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countLtX(T x) {
         x -= off;
         return lt(x);
     }
 
-    // O(logN expected) -- how many values <= x
+    // O(logN expected) -- how many values <= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countLteX(T x) {
         x -= off;
         return le(x);
@@ -575,7 +575,8 @@ struct TreapMultiset {
         return T(v + off);
     }
 
-    // O(logN amortized expected) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN amortized expected) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x
+    // isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         x -= off;
         if (!countOf(x)) return 0;
@@ -583,7 +584,8 @@ struct TreapMultiset {
         return 1;
     }
 
-    // O(logN amortized expected) -- remove every copy of val; returns how many were removed
+    // O(logN amortized expected) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g.
+    // on an empty set)
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         val -= off;
         long long k = countOf(val);
@@ -591,7 +593,8 @@ struct TreapMultiset {
         return k;
     }
 
-    // O(logN amortized expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logN amortized expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
+    // isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         val -= off;
         long long k = std::min(cnt, countOf(val));
@@ -617,12 +620,12 @@ struct TreapMultiset {
         return removed;
     }
 
-    // O(1) -- add d to every value (d may be negative)
+    // O(1) -- add d to every value (d may be negative; nothing happens on an empty set)
     LEETCODE_NO_SANITIZE void shiftAll(T d) {
         off += d;
     }
 
-    // O(1) -- how many values (copies count)
+    // O(1) -- how many values (copies count; 0 if empty)
     LEETCODE_NO_SANITIZE long long size() {
         return n;
     }
@@ -650,7 +653,7 @@ struct TreapMultiset {
         return S(m.v) * m.before - m.sb + (total - m.sb - S(m.v) * m.c) - S(m.v) * (n - m.before - m.c);
     }
 
-    // O(logN expected) -- sum of |v - x| over all values
+    // O(logN expected) -- sum of |v - x| over all values (0 if empty)
     LEETCODE_NO_SANITIZE S sumAbsDiffToX(T x) {
         x -= off;
         long long c = lt(x);
@@ -658,18 +661,18 @@ struct TreapMultiset {
         return S(x) * c - s + (total - s) - S(x) * (n - c);
     }
 
-    // O(1) -- sum of all values
+    // O(1) -- sum of all values (0 if empty)
     LEETCODE_NO_SANITIZE S sumAll() {
         return total + S(off) * n;
     }
 
-    // O(logN expected) -- sum of the values > x
+    // O(logN expected) -- sum of the values > x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumGtX(T x) {
         x -= off;
         return total - sle(x) + S(off) * (n - le(x));
     }
 
-    // O(logN expected) -- sum of the values >= x
+    // O(logN expected) -- sum of the values >= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumGteX(T x) {
         x -= off;
         return total - slt(x) + S(off) * (n - lt(x));
@@ -708,13 +711,13 @@ struct TreapMultiset {
         return total - sumFirst(n - k) + S(off) * k;
     }
 
-    // O(logN expected) -- sum of the values < x
+    // O(logN expected) -- sum of the values < x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumLtX(T x) {
         x -= off;
         return slt(x) + S(off) * lt(x);
     }
 
-    // O(logN expected) -- sum of the values <= x
+    // O(logN expected) -- sum of the values <= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumLteX(T x) {
         x -= off;
         return sle(x) + S(off) * le(x);

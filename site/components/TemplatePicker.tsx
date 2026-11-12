@@ -982,6 +982,25 @@ function UsagePanel<V extends PickerTemplate>({
               : `T = ${elem}${elem === "long long" ? " (int works too)" : ""}.`,
           ]
         : []),
+      // an LCM capped by a "cap" argument: what -1 means, that removing values recovers, and the one line with a cap
+      ...(() => {
+        const capAt = cls.ctor.findIndex((p) => p.name === "cap");
+        if (capAt < 0) return [];
+        const before = cls.ctor.slice(0, capAt).map((p) => (requiredParams.includes(p) ? p.name : p.default ?? p.name));
+        const example = cpp
+          ? `${cls.className}<${elem}> ${varOf(k)}(${[...before, "1000000000LL"].join(", ")});`
+          : `${varOf(k)} = ${cls.className}(${[...required, "cap=10**9"].join(", ")})`;
+        return [
+          `The LCM answers -1 once it passes cap, so it never overflows (cap defaults to the largest ${cpp ? elem : "long long"}).`,
+          "Removing values brings it back: once the values that pushed it past cap are gone, the LCM is exact again.",
+          `With your own cap: ${example}`,
+        ];
+      })(),
+      // the only vectors T comes from are optional: left out, nothing is left to deduce it from, so say how to write it
+      ...(cpp && !cls.plain && deducible &&
+      requiredParams.filter((p) => /vector<.*\bT\b/.test(p.type ?? "")).every(shownOptional)
+        ? [`Starting empty, there is nothing to deduce T from, so write it: ${cls.className}<${elem}> ${varOf(k)};`]
+        : []),
     ];
     const type = `${cls.className}${deducible || cls.plain ? "" : `<${elem}>`}`;
     blocks.push({

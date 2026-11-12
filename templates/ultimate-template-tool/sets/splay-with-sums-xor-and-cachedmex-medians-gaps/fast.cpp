@@ -617,19 +617,19 @@ struct SplayMultiset {
         return k ? andLe(kthAt(k)) : ~T(0);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    // instead of building a new one
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
     LEETCODE_NO_SANITIZE void clear() {
         clearData();
         resetCached();
     }
 
-    // O(logN amortized) -- how many copies of x
+    // O(logN amortized) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long count(T x) {
         return countOf(x);
     }
 
-    // O(1) -- how many distinct values
+    // O(1) -- how many distinct values (0 if empty)
     LEETCODE_NO_SANITIZE long long countDistinct() {
         return d;
     }
@@ -640,12 +640,12 @@ struct SplayMultiset {
         return distinctLt(hi) - distinctLt(lo) + (countOf(hi) ? 1 : 0);
     }
 
-    // O(logN amortized) -- how many values > x
+    // O(logN amortized) -- how many values > x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countGtX(T x) {
         return n - le(x);
     }
 
-    // O(logN amortized) -- how many values >= x
+    // O(logN amortized) -- how many values >= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countGteX(T x) {
         return n - lt(x);
     }
@@ -655,12 +655,12 @@ struct SplayMultiset {
         return lo <= hi ? le(hi) - lt(lo) : 0;
     }
 
-    // O(logN amortized) -- how many values < x
+    // O(logN amortized) -- how many values < x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countLtX(T x) {
         return lt(x);
     }
 
-    // O(logN amortized) -- how many values <= x
+    // O(logN amortized) -- how many values <= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countLteX(T x) {
         return le(x);
     }
@@ -722,7 +722,7 @@ struct SplayMultiset {
         return low.v;
     }
 
-    // O(1) -- smallest non-negative integer not in the set
+    // O(1) -- smallest non-negative integer not in the set (0 if empty)
     LEETCODE_NO_SANITIZE long long mex() {
         return mexV;
     }
@@ -766,21 +766,24 @@ struct SplayMultiset {
         return v;
     }
 
-    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    // e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
     }
 
-    // O(logN amortized) -- remove every copy of val; returns how many were removed
+    // O(logN amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an
+    // empty set)
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't
+    // there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;
@@ -803,7 +806,7 @@ struct SplayMultiset {
         return removed;
     }
 
-    // O(1) -- how many values (copies count)
+    // O(1) -- how many values (copies count; 0 if empty)
     LEETCODE_NO_SANITIZE long long size() {
         return n;
     }
@@ -829,24 +832,24 @@ struct SplayMultiset {
         return S(m.v) * m.before - m.sb + (total - m.sb - S(m.v) * m.c) - S(m.v) * (n - m.before - m.c);
     }
 
-    // O(logN amortized) -- sum of |v - x| over all values
+    // O(logN amortized) -- sum of |v - x| over all values (0 if empty)
     LEETCODE_NO_SANITIZE S sumAbsDiffToX(T x) {
         long long c = lt(x);
         S s = slt(x);
         return S(x) * c - s + (total - s) - S(x) * (n - c);
     }
 
-    // O(1) -- sum of all values
+    // O(1) -- sum of all values (0 if empty)
     LEETCODE_NO_SANITIZE S sumAll() {
         return total;
     }
 
-    // O(logN amortized) -- sum of the values > x
+    // O(logN amortized) -- sum of the values > x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumGtX(T x) {
         return total - sle(x);
     }
 
-    // O(logN amortized) -- sum of the values >= x
+    // O(logN amortized) -- sum of the values >= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumGteX(T x) {
         return total - slt(x);
     }
@@ -882,12 +885,12 @@ struct SplayMultiset {
         return total - sumFirst(n - k);
     }
 
-    // O(logN amortized) -- sum of the values < x
+    // O(logN amortized) -- sum of the values < x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumLtX(T x) {
         return slt(x);
     }
 
-    // O(logN amortized) -- sum of the values <= x
+    // O(logN amortized) -- sum of the values <= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE S sumLteX(T x) {
         return sle(x);
     }
@@ -905,12 +908,12 @@ struct SplayMultiset {
         return xtotal;
     }
 
-    // O(logN amortized) -- xor of the values > x (copies count)
+    // O(logN amortized) -- xor of the values > x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfGtX(T x) {
         return xtotal ^ xle(x);
     }
 
-    // O(logN amortized) -- xor of the values >= x (copies count)
+    // O(logN amortized) -- xor of the values >= x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfGteX(T x) {
         return xtotal ^ xlt(x);
     }
@@ -946,12 +949,12 @@ struct SplayMultiset {
         return xtotal ^ xorFirst(n - k);
     }
 
-    // O(logN amortized) -- xor of the values < x (copies count)
+    // O(logN amortized) -- xor of the values < x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfLtX(T x) {
         return xlt(x);
     }
 
-    // O(logN amortized) -- xor of the values <= x (copies count)
+    // O(logN amortized) -- xor of the values <= x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfLteX(T x) {
         return xle(x);
     }

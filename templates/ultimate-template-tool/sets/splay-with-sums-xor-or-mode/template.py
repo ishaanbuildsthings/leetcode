@@ -511,25 +511,25 @@ class SplayMultiset:
         if cnt > 0:
             self._add(val, cnt)
 
-    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    # instead of building a new one
+    # O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    # arguments), so reuse it instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
 
-    # O(logN amortized) -- how many copies of x
+    # O(logN amortized) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     def count(self, x):
         return self._countOf(x)
 
-    # O(1) -- how many distinct values
+    # O(1) -- how many distinct values (0 if empty)
     def countDistinct(self):
         return self.d
 
-    # O(logN amortized) -- how many values > x
+    # O(logN amortized) -- how many values > x (0 if there are none, e.g. on an empty set)
     def countGtX(self, x):
         return self.n - self._le(x)
 
-    # O(logN amortized) -- how many values >= x
+    # O(logN amortized) -- how many values >= x (0 if there are none, e.g. on an empty set)
     def countGteX(self, x):
         return self.n - self._lt(x)
 
@@ -537,11 +537,11 @@ class SplayMultiset:
     def countInValRange(self, lo, hi):
         return self._le(hi) - self._lt(lo) if lo <= hi else 0
 
-    # O(logN amortized) -- how many values < x
+    # O(logN amortized) -- how many values < x (0 if there are none, e.g. on an empty set)
     def countLtX(self, x):
         return self._lt(x)
 
-    # O(logN amortized) -- how many values <= x
+    # O(logN amortized) -- how many values <= x (0 if there are none, e.g. on an empty set)
     def countLteX(self, x):
         return self._le(x)
 
@@ -690,21 +690,24 @@ class SplayMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    # O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    # e.g. on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1
 
-    # O(logN amortized) -- remove every copy of val; returns how many were removed
+    # O(logN amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an
+    # empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
             self._add(val, -k)
         return k
 
-    # O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    # O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't
+    # there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:
@@ -729,7 +732,7 @@ class SplayMultiset:
             removed += k
         return removed
 
-    # O(1) -- how many values (copies count)
+    # O(1) -- how many values (copies count; 0 if empty)
     def size(self):
         return self.n
 
@@ -754,20 +757,20 @@ class SplayMultiset:
         v, b, c, s = self._kthInfo((self.n + 1) >> 1)
         return v * b - s + (self.total - s - c * v) - v * (self.n - b - c)
 
-    # O(logN amortized) -- sum of |v - x| over all values
+    # O(logN amortized) -- sum of |v - x| over all values (0 if empty)
     def sumAbsDiffToX(self, x):
         c, s = self._lt(x), self._slt(x)
         return x * c - s + (self.total - s) - x * (self.n - c)
 
-    # O(1) -- sum of all values
+    # O(1) -- sum of all values (0 if empty)
     def sumAll(self):
         return self.total
 
-    # O(logN amortized) -- sum of the values > x
+    # O(logN amortized) -- sum of the values > x (0 if there are none, e.g. on an empty set)
     def sumGtX(self, x):
         return self.total - self._sle(x)
 
-    # O(logN amortized) -- sum of the values >= x
+    # O(logN amortized) -- sum of the values >= x (0 if there are none, e.g. on an empty set)
     def sumGteX(self, x):
         return self.total - self._slt(x)
 
@@ -803,11 +806,11 @@ class SplayMultiset:
             raise IndexError(f"sumLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self.total - self._sumFirst(self.n - k)
 
-    # O(logN amortized) -- sum of the values < x
+    # O(logN amortized) -- sum of the values < x (0 if there are none, e.g. on an empty set)
     def sumLtX(self, x):
         return self._slt(x)
 
-    # O(logN amortized) -- sum of the values <= x
+    # O(logN amortized) -- sum of the values <= x (0 if there are none, e.g. on an empty set)
     def sumLteX(self, x):
         return self._sle(x)
 
@@ -823,11 +826,11 @@ class SplayMultiset:
     def xorOfAll(self):
         return self.xtotal
 
-    # O(logN amortized) -- xor of the values > x (copies count)
+    # O(logN amortized) -- xor of the values > x (copies count; 0 if there are none)
     def xorOfGtX(self, x):
         return self.xtotal ^ self._xle(x)
 
-    # O(logN amortized) -- xor of the values >= x (copies count)
+    # O(logN amortized) -- xor of the values >= x (copies count; 0 if there are none)
     def xorOfGteX(self, x):
         return self.xtotal ^ self._xlt(x)
 
@@ -863,11 +866,11 @@ class SplayMultiset:
             raise IndexError(f"xorOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self.xtotal ^ self._xorFirst(self.n - k)
 
-    # O(logN amortized) -- xor of the values < x (copies count)
+    # O(logN amortized) -- xor of the values < x (copies count; 0 if there are none)
     def xorOfLtX(self, x):
         return self._xlt(x)
 
-    # O(logN amortized) -- xor of the values <= x (copies count)
+    # O(logN amortized) -- xor of the values <= x (copies count; 0 if there are none)
     def xorOfLteX(self, x):
         return self._xle(x)
 

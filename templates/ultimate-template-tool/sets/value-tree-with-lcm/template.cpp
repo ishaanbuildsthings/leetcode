@@ -1,0 +1,496 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/sets/value-tree-with-lcm/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex lcmOfAll lcmOfGtX lcmOfGteX lcmOfInValRange lcmOfKthLargestRange lcmOfKthSmallestRange lcmOfLargestK lcmOfLtX lcmOfLteX lcmOfSmallestK max medianHigh medianLow min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX
+// @data-structure-type: value-tree
+// @values: online-range
+// @keys: numbers
+// @tracks: none
+// @complexities:
+//   add: log(U)*log(U)
+//   addCount: log(U)*log(U)
+//   lcmOfAll: 1
+//   lcmOfGtX: log(U)*log(U)
+//   lcmOfGteX: log(U)*log(U)
+//   lcmOfInValRange: log(U)*log(U)
+//   lcmOfKthLargestRange: log(U)*log(U)
+//   lcmOfKthSmallestRange: log(U)*log(U)
+//   lcmOfLargestK: log(U)*log(U)
+//   lcmOfLtX: log(U)*log(U)
+//   lcmOfLteX: log(U)*log(U)
+//   lcmOfSmallestK: log(U)*log(U)
+//   clear: 1 amortized
+//   count: log(U)
+//   countDistinct: 1
+//   countGtX: log(U)
+//   countGteX: log(U)
+//   countInValRange: log(U)
+//   countLtX: log(U)
+//   countLteX: log(U)
+//   firstIndex: log(U)
+//   kth: log(U)
+//   largestLtX: log(U)
+//   largestLteX: log(U)
+//   lastIndex: log(U)
+//   max: log(U)
+//   medianHigh: log(U)
+//   medianLow: log(U)
+//   min: log(U)
+//   pop: log(U)*log(U)
+//   popMax: log(U)*log(U)
+//   popMin: log(U)*log(U)
+//   remove: log(U)*log(U)
+//   removeAll: log(U)*log(U)
+//   removeCount: log(U)*log(U)
+//   removeInValRange: log(U)*log(U) amortized
+//   size: 1
+//   smallestGtX: log(U)
+//   smallestGteX: log(U)
+//   build: 1
+// @memory:
+//   layout: sparse
+//   node: c[1*log(U)] m[1*log(U)]
+//   tags: none
+//   other: children[2*log(U)]
+//   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
+// lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest T
+// (2^63 - 1 for long long) by default; pass your own, e.g. ValueTreeMultiset<long long> s(lo, hi, 1000000000LL).
+// Removing values is safe: every node keeps the capped LCM of just its own values, so once the values that pushed it
+// past cap are gone, lcmOf... is exact again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM
+// 1.
+
+// Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
+// each node keeping how many copies, their LCM are below it. Each multiset owns
+// its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
+// k-th / sums of the k smallest descend by counts.
+// T: int, long long, ...; sums in S (long long for small T).
+template <typename T>
+struct ValueTreeMultiset {
+    T cap;  // lcmOf... is -1 past it
+    T lc(T a, T b) const {
+        // capped LCM: 0 if either is 0, else -1 if either is -1 (too big), else the LCM or -1 past cap
+        if (a == 0 || b == 0) return 0;
+        if (a < 0 || b < 0) return -1;
+        T r;
+        if (__builtin_mul_overflow(a / gcd(a, b), b, &r) || r > cap) return -1;
+        return r;
+    }
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
+
+    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    struct Node { long long c; T lcmv = 1; int l, r; };  // copies, LCM below
+    vector<Node> pool{Node{}};  // node 0: empty, its children are itself
+    long long lo, hi, n = 0, d = 0;
+    struct Info { T v; long long before, c; };  // a value, copies before it, its copies
+    int root = 0;
+
+    // O(1) -- an empty multiset for values in [lo, hi] (any long long range, negative is fine)
+    ValueTreeMultiset(long long lo, long long hi, T cap = numeric_limits<T>::max()) : lo(lo), hi(hi), cap(cap) {}
+
+
+    // optional -- reserve room for this many nodes up front
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
+
+    int make() {
+        pool.push_back(Node{});
+        return (int)pool.size() - 1;
+    }
+
+    long long insert(T x, long long c) {  // returns x's new count
+        if (!root) root = make();
+        int path[130], dep = 0, y = root;
+        long long a = lo, b = hi;
+        while (true) {
+            path[dep++] = y;
+            if (a == b) break;
+            long long m = a + (b - a) / 2;
+            bool right = x > m;
+            int ch = right ? pool[y].r : pool[y].l;
+            if (!ch) {
+                ch = make();
+                (right ? pool[y].r : pool[y].l) = ch;
+            }
+            y = ch;
+            if (right) a = m + 1;
+            else b = m;
+        }
+        long long old = pool[y].c;
+        long long pres = (old + c > 0) - (old > 0);
+        d += pres;
+        for (int k = 0; k < dep; k++) {
+            Node& v = pool[path[k]];
+            v.c += c;
+        }
+        if (pres) {  // x appeared or disappeared: the gcd / LCM up its path
+            pool[y].lcmv = pres > 0 ? lc(T(1), x) : T(1);
+            for (int k = dep - 2; k >= 0; k--) {
+                Node& v = pool[path[k]];
+                v.lcmv = lc(pool[v.l].lcmv, pool[v.r].lcmv);
+            }
+        }
+        return old + c;
+    }
+
+    // (copies, sum) of the values < x
+    pair<long long, S> prefix(T x) const {
+        if (x <= lo) return {0, 0};
+        if (x > hi) return {pool[root].c, 0};
+        long long cnt = 0;
+        S sum = 0;
+        int y = root;
+        long long a = lo, b = hi;
+        while (y && a < b) {
+            long long m = a + (b - a) / 2;
+            if (x <= m) y = pool[y].l, b = m;
+            else {
+                const Node& L = pool[pool[y].l];
+                cnt += L.c;
+                y = pool[y].r, a = m + 1;
+            }
+        }
+        return {cnt, sum};  // y is now the leaf of x (or empty): values < x only
+    }
+
+    long long lt(T x) { return prefix(x).first; }
+    long long le(T x) { return prefix(x + 1).first; }
+
+    long long countOf(T x) const {  // walk to the leaf of x
+        if (x < lo || x > hi) return 0;
+        int y = root;
+        long long a = lo, b = hi;
+        while (y && a < b) {
+            long long m = a + (b - a) / 2;
+            if (x <= m) y = pool[y].l, b = m;
+            else y = pool[y].r, a = m + 1;
+        }
+        return pool[y].c;
+    }
+
+    T kthAt(long long k) {
+        int y = root;
+        long long a = lo, b = hi;
+        while (a < b) {
+            long long m = a + (b - a) / 2;
+            long long cl = pool[pool[y].l].c;
+            if (k <= cl) y = pool[y].l, b = m;
+            else k -= cl, y = pool[y].r, a = m + 1;
+        }
+        return T(a);
+    }
+
+    Info kthInfo(long long k) {  // the k-th smallest, copies before it, its copies
+        int y = root;
+        long long a = lo, b = hi, before = 0;
+        while (a < b) {
+            long long m = a + (b - a) / 2;
+            const Node& L = pool[pool[y].l];
+            if (k <= before + L.c) y = pool[y].l, b = m;
+            else before += L.c, y = pool[y].r, a = m + 1;
+        }
+        return {T(a), before, pool[y].c};
+    }
+
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
+        n += c;
+        insert(x, c);
+    }
+
+    void resetCached() {  // nothing counted: as newly built
+        n = d = 0;
+    }
+
+    void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), root = 0;
+    }
+
+    T lcmWalk(int y, long long a, long long b, long long ql, long long qr) const {
+        // LCM of node y's values in [ql, qr]
+        if (!y || qr < a || b < ql) return T(1);
+        if (ql <= a && b <= qr) return pool[y].lcmv;
+        long long m = a + (b - a) / 2;
+        return lc(lcmWalk(pool[y].l, a, m, ql, qr), lcmWalk(pool[y].r, m + 1, b, ql, qr));
+    }
+
+    T lcmIn(T ql, T qr) const { return lcmWalk(root, lo, hi, ql, qr); }  // capped LCM of the values in [ql, qr]
+    T lcmLe(T x) const { return lcmWalk(root, lo, hi, lo, x); }  // capped LCM of the values <= x
+    T lcmGe(T x) const { return lcmWalk(root, lo, hi, x, hi); }  // capped LCM of the values >= x
+
+    // O(logU * logU) -- add one copy of x
+    void add(T x) {
+        addRaw(x, 1);
+    }
+
+    // O(logU * logU) -- add cnt copies of val (nothing if cnt <= 0)
+    void addCount(T val, long long cnt) {
+        if (cnt > 0) addRaw(val, cnt);
+    }
+
+    // O(1) -- LCM (-1 once it passes cap) of all values; 1 if empty
+    T lcmOfAll() {
+        return pool[root].lcmv;
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the values > x; 1 if there are none
+    T lcmOfGtX(T x) {
+        if (x == numeric_limits<T>::max()) return T(1);
+        return lcmGe(x + 1);
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the values >= x; 1 if there are none
+    T lcmOfGteX(T x) {
+        return lcmGe(x);
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the values v with lo <= v <= hi; 1 if there are none
+    T lcmOfInValRange(T lo, T hi) {
+        return lo <= hi ? lcmIn(lo, hi) : T(1);
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and
+    // inclusive: (1, 1) is
+    // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
+    T lcmOfKthLargestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("lcmOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        T a = kthAt(n - kTo + 1);
+        return lcmIn(a, kthAt(n - kFrom + 1));
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed
+    // and inclusive: (1, 1) is
+    // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
+    T lcmOfKthSmallestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("lcmOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        T a = kthAt(kFrom);
+        return lcmIn(a, kthAt(kTo));
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the k largest values; k is a COUNT, not an index: k = 0 takes no
+    // values (returns 1),
+    // k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    // throws out_of_range unless 0 <= k <= size
+    T lcmOfLargestK(long long k) {
+        if (k < 0 || k > n) throw out_of_range("lcmOfLargestK: needs 0 <= k <= size");
+        return k ? lcmGe(kthAt(n - k + 1)) : T(1);
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the values < x; 1 if there are none
+    T lcmOfLtX(T x) {
+        if (x == numeric_limits<T>::min()) return T(1);
+        return lcmLe(x - 1);
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the values <= x; 1 if there are none
+    T lcmOfLteX(T x) {
+        return lcmLe(x);
+    }
+
+    // O(logU * logU) -- LCM (-1 once it passes cap) of the k smallest values; k is a COUNT, not an index: k = 0 takes
+    // no values (returns 1),
+    // k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    // throws out_of_range unless 0 <= k <= size
+    T lcmOfSmallestK(long long k) {
+        if (k < 0 || k > n) throw out_of_range("lcmOfSmallestK: needs 0 <= k <= size");
+        return k ? lcmLe(kthAt(k)) : T(1);
+    }
+
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
+    void clear() {
+        clearData();
+        resetCached();
+    }
+
+    // O(logU) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
+    long long count(T x) {
+        return countOf(x);
+    }
+
+    // O(1) -- how many distinct values (0 if empty)
+    long long countDistinct() {
+        return d;
+    }
+
+    // O(logU) -- how many values > x (0 if there are none, e.g. on an empty set)
+    long long countGtX(T x) {
+        return n - le(x);
+    }
+
+    // O(logU) -- how many values >= x (0 if there are none, e.g. on an empty set)
+    long long countGteX(T x) {
+        return n - lt(x);
+    }
+
+    // O(logU) -- how many values v with lo <= v <= hi (0 if lo > hi)
+    long long countInValRange(T lo, T hi) {
+        return lo <= hi ? le(hi) - lt(lo) : 0;
+    }
+
+    // O(logU) -- how many values < x (0 if there are none, e.g. on an empty set)
+    long long countLtX(T x) {
+        return lt(x);
+    }
+
+    // O(logU) -- how many values <= x (0 if there are none, e.g. on an empty set)
+    long long countLteX(T x) {
+        return le(x);
+    }
+
+    // O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    // the set
+    long long firstIndex(T x) {
+        return countOf(x) ? lt(x) : -1;
+    }
+
+    // O(logU) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    // kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); throws out_of_range unless 0 <= i < size
+    T kth(long long i) {
+        if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
+        return kthAt(i + 1);
+    }
+
+    // O(logU) -- largest value < x; ms.NONE if there is none
+    T largestLtX(T x) {
+        long long c = lt(x);
+        if (!c) return NONE;
+        return kthAt(c);
+    }
+
+    // O(logU) -- largest value <= x; ms.NONE if there is none
+    T largestLteX(T x) {
+        long long c = le(x);
+        if (!c) return NONE;
+        return kthAt(c);
+    }
+
+    // O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    // not in the set
+    long long lastIndex(T x) {
+        return countOf(x) ? le(x) - 1 : -1;
+    }
+
+    // O(logU) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
+        return kthAt(n);
+    }
+
+    // O(logU) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
+        return kthAt(n / 2 + 1);
+    }
+
+    // O(logU) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
+        return kthAt((n + 1) / 2);
+    }
+
+    // O(logU) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
+        return kthAt(1);
+    }
+
+    // O(logU * logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    // popMin()),
+    // pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
+    T pop(long long i) {
+        if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
+        T v = kthAt(i + 1);
+        addRaw(v, -1);
+        return v;
+    }
+
+    // O(logU * logU) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
+        T v = kthAt(n);
+        addRaw(v, -1);
+        return v;
+    }
+
+    // O(logU * logU) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
+        T v = kthAt(1);
+        addRaw(v, -1);
+        return v;
+    }
+
+    // O(logU * logU) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    // e.g. on an
+    // empty set)
+    long long remove(T x) {
+        if (!count(x)) return 0;
+        addRaw(x, -1);
+        return 1;
+    }
+
+    // O(logU * logU) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an empty
+    // set)
+    long long removeAll(T val) {
+        long long k = count(val);
+        if (k) addRaw(val, -k);
+        return k;
+    }
+
+    // O(logU * logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't there,
+    // e.g.
+    // on an empty set)
+    long long removeCount(T val, long long cnt) {
+        long long k = std::min(cnt, count(val));
+        if (k <= 0) return 0;
+        addRaw(val, -k);
+        return k;
+    }
+
+    // O(logU * logU amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if
+    // lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        while (n) {  // the smallest value >= lo, while it is <= hi: drop all its copies
+            long long c = lt(lo);
+            if (c == n) break;
+            T v = kthAt(c + 1);
+            if (hi < v) break;
+            long long k = countOf(v);
+            addRaw(v, -k), removed += k;
+        }
+        return removed;
+    }
+
+    // O(1) -- how many values (copies count; 0 if empty)
+    long long size() {
+        return n;
+    }
+
+    // O(logU) -- smallest value > x; ms.NONE if there is none
+    T smallestGtX(T x) {
+        long long c = le(x);
+        if (c == n) return NONE;
+        return kthAt(c + 1);
+    }
+
+    // O(logU) -- smallest value >= x; ms.NONE if there is none
+    T smallestGteX(T x) {
+        long long c = lt(x);
+        if (c == n) return NONE;
+        return kthAt(c + 1);
+    }
+};

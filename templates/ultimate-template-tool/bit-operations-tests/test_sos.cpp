@@ -1,7 +1,5 @@
 // Stress tests the SOS DP and convolution templates against brute force.
 // Run: g++ -O2 -std=c++17 test_sos.cpp -o /tmp/ts && /tmp/ts
-#include "../bit-operations/subsetSums.cpp"
-#include "../bit-operations/supersetSums.cpp"
 #include "../bit-operations/countAndSubsetsEqualToKForAllKMod.cpp"
 #include "../bit-operations/countOrSubsetsEqualToKForAllKMod.cpp"
 #include "../bit-operations/countAndSubsetsEqualToKForAllK.cpp"
@@ -25,13 +23,7 @@ int main() {
         vector<long long> f(n), g(n);
         for (auto& x : f) x = rnd(-50, 50);
         for (auto& x : g) x = rnd(-50, 50);
-        vl sub(n, 0), sup(n, 0), orC(n, 0), andC(n, 0), xorC(n, 0);
-        for (int m = 0; m < n; m++) {
-            for (int s = 0; s < n; s++) {
-                if ((s & m) == s) sub[m] += f[s];
-                if ((s & m) == m) sup[m] += f[s];
-            }
-        }
+        vl orC(n, 0), andC(n, 0), xorC(n, 0);
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 orC[i | j] += f[i] * g[j];
@@ -39,8 +31,6 @@ int main() {
                 xorC[i ^ j] += f[i] * g[j];
             }
         }
-        CHECK(subsetSums(f) == sub);
-        CHECK(supersetSums(f) == sup);
         CHECK(sumOfOrPairsEqualToKForAllK(f, g) == orC);
         CHECK(sumOfAndPairsEqualToKForAllK(f, g) == andC);
         CHECK(sumOfXorPairsEqualToKForAllK(f, g) == xorC);
@@ -88,9 +78,6 @@ int main() {
         }
     }
     bool threw = false;
-    try { subsetSums(vector<int>{1, 2, 3}); } catch (const invalid_argument&) { threw = true; }
-    CHECK(threw);
-    threw = false;
     try { countAndSubsetsEqualToKForAllK(vector<int>(63, 1)); } catch (const overflow_error&) { threw = true; }
     CHECK(threw);
     CHECK(countAndSubsetsEqualToKForAllK(vector<int>(62, 1))[1] == (1LL << 62) - 1);

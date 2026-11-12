@@ -41,6 +41,8 @@ def value(expr):
                 prod *= SIZES["U"] / 64
             elif f == "log64(U)":
                 prod *= math.log2(SIZES["U"]) / 6
+            elif f == "U^(1/4)":  # (Pollard rho on a value too big for the sieve)
+                prod *= SIZES["U"] ** 0.25
             else:
                 m = re.fullmatch(r"log\^2\((\w)\)|log\((\w)\)|sqrt\((\w)\)", f)
                 if not m:

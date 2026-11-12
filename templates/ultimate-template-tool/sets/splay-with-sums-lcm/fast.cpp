@@ -1,0 +1,761 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/sets/splay-with-sums-lcm/fast.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex lcmOfAll lcmOfGtX lcmOfGteX lcmOfInValRange lcmOfKthLargestRange lcmOfKthSmallestRange lcmOfLargestK lcmOfLtX lcmOfLteX lcmOfSmallestK max medianHigh medianLow min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @data-structure-type: splay
+// @values: online
+// @keys: numbers
+// @tracks: none
+// @complexities:
+//   add: log(N)*log(U) amortized
+//   addCount: log(N)*log(U) amortized
+//   lcmOfAll: 1
+//   lcmOfGtX: log(N)*log(U) amortized
+//   lcmOfGteX: log(N)*log(U) amortized
+//   lcmOfInValRange: log(N)*log(U) amortized
+//   lcmOfKthLargestRange: log(N)*log(U) amortized
+//   lcmOfKthSmallestRange: log(N)*log(U) amortized
+//   lcmOfLargestK: log(N)*log(U) amortized
+//   lcmOfLtX: log(N)*log(U) amortized
+//   lcmOfLteX: log(N)*log(U) amortized
+//   lcmOfSmallestK: log(N)*log(U) amortized
+//   clear: 1 amortized
+//   count: log(N) amortized
+//   countDistinct: 1
+//   countGtX: log(N) amortized
+//   countGteX: log(N) amortized
+//   countInValRange: log(N) amortized
+//   countLtX: log(N) amortized
+//   countLteX: log(N) amortized
+//   firstIndex: log(N) amortized
+//   kth: log(N) amortized
+//   largestLtX: log(N) amortized
+//   largestLteX: log(N) amortized
+//   lastIndex: log(N) amortized
+//   max: log(N) amortized
+//   medianHigh: log(N) amortized
+//   medianLow: log(N) amortized
+//   min: log(N) amortized
+//   pop: log(N)*log(U) amortized
+//   popMax: log(N)*log(U) amortized
+//   popMin: log(N)*log(U) amortized
+//   remove: log(N)*log(U) amortized
+//   removeAll: log(N)*log(U) amortized
+//   removeCount: log(N)*log(U) amortized
+//   removeInValRange: log(N)*log(U) amortized
+//   size: 1
+//   smallestGtX: log(N) amortized
+//   smallestGteX: log(N) amortized
+//   sumAbsDiffToMedian: log(N) amortized
+//   sumAbsDiffToX: log(N) amortized
+//   sumAll: 1
+//   sumGtX: log(N) amortized
+//   sumGteX: log(N) amortized
+//   sumInValRange: log(N) amortized
+//   sumKthLargestRange: log(N) amortized
+//   sumKthSmallestRange: log(N) amortized
+//   sumLargestK: log(N) amortized
+//   sumLtX: log(N) amortized
+//   sumLteX: log(N) amortized
+//   sumSmallestK: log(N) amortized
+//   build: 1
+// @memory:
+//   layout: none
+//   node: key[1*N] cnt[1*N] size[1*N] sum[1*N] lcm[1*N]
+//   tags: none
+//   other: children[2*N] parent[1*N]
+//   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
+// lcmOf... answers -1 once the LCM passes cap, so it never overflows: cap is a constructor argument, the largest T
+// (2^63 - 1 for long long) by default; pass your own, e.g. FlatPool<long long> s(1000000000LL). Removing values is
+// safe: every node keeps the capped LCM of just its own values, so once the values that pushed it past cap are gone,
+// lcmOf... is exact again. Values must be >= 0. An empty selection gives the identity: gcd 0, LCM 1.
+
+// Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
+// keeps its value, its copies, and the copies, sum, LCM in its subtree; every operation splays the
+// last node it touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
+// (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
+// T: an integer type; sums in S (long long for small T).
+// FAST MODE drawbacks compared with template.cpp:
+//   - sanitizers are skipped inside this template, so a bad access in it goes unreported
+// Same public operations and answers, same limits; it needs GCC or Clang and C++17.
+#ifdef __SSE2__
+#include <immintrin.h>
+#endif
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A minimal growable array: unlike vector, its accessors always inline, even with sanitizers skipped
+template <typename U>
+struct FlatPool {
+    U* items = nullptr;
+    int count = 0, room = 0;
+    explicit FlatPool(int size = 0) { resize(size); }
+    FlatPool(const FlatPool& other) { *this = other; }
+    FlatPool& operator=(const FlatPool& other) {
+        if (this == &other) return *this;
+        delete[] items;
+        count = room = other.count;
+        items = count ? new U[count] : nullptr;
+        std::copy(other.items, other.items + count, items);
+        return *this;
+    }
+    ~FlatPool() { delete[] items; }
+    void reserve(size_t want) {
+        if ((long long)want <= room) return;
+        U* grown = new U[want];
+        std::copy(items, items + count, grown);
+        delete[] items;
+        items = grown, room = (int)want;
+    }
+    void resize(int size) {
+        reserve(size);
+        for (int i = count; i < size; i++) items[i] = U{};
+        count = size;
+    }
+    LEETCODE_NO_SANITIZE_INLINE void push_back(const U& value) {
+        if (count == room) reserve(room ? 2LL * room : 16);
+        items[count++] = value;
+    }
+    LEETCODE_NO_SANITIZE_INLINE void pop_back() { count--; }
+    LEETCODE_NO_SANITIZE_INLINE U& back() { return items[count - 1]; }
+    LEETCODE_NO_SANITIZE_INLINE bool empty() const { return !count; }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return count; }
+    void clear() { count = 0; }
+    LEETCODE_NO_SANITIZE_INLINE U& operator[](int i) { return items[i]; }
+    LEETCODE_NO_SANITIZE_INLINE const U& operator[](int i) const { return items[i]; }
+};
+
+template <typename T>
+struct SplayMultiset {
+    T cap;  // lcmOf... is -1 past it
+    T lc(T a, T b) const {
+        // capped LCM: 0 if either is 0, else -1 if either is -1 (too big), else the LCM or -1 past cap
+        if (a == 0 || b == 0) return 0;
+        if (a < 0 || b < 0) return -1;
+        T r;
+        if (__builtin_mul_overflow(a / gcd(a, b), b, &r) || r > cap) return -1;
+        return r;
+    }
+    template <class K>
+    LEETCODE_NO_SANITIZE static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE. It is the lowest T, so a
+    // real value equal to it reads as "nothing"
+    static inline const T NONE = noneOf<T>();
+
+    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    struct Node { T key; long long c, z; S s; T lcmv = 1; int l, r, p; };  // copies; copies, sum below; parent
+    FlatPool<Node> pool{1};
+    FlatPool<int> freeList;
+    int root = 0;
+    long long n = 0, d = 0;
+    struct Info { T v; long long before, c; S sb; };  // a value, copies before it, its copies, sum before it
+    S total = 0;
+
+    // O(1) -- an empty multiset
+    explicit SplayMultiset(T cap = numeric_limits<T>::max()) : cap(cap) {}
+
+
+    // optional -- reserve room for this many nodes up front
+    LEETCODE_NO_SANITIZE void reservePool(size_t nodes) { pool.reserve(nodes); }
+
+    LEETCODE_NO_SANITIZE int make(T x, int parent) {
+        int t;
+        if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
+        else pool.push_back(Node{}), t = (int)pool.size() - 1;
+        pool[t] = Node{};
+        pool[t].key = x, pool[t].p = parent;
+        return t;
+    }
+
+    LEETCODE_NO_SANITIZE void pull(int t) {
+        Node& v = pool[t];
+        const Node &a = pool[v.l], &b = pool[v.r];
+        v.z = a.z + b.z + v.c;
+        v.lcmv = lc(lc(a.lcmv, b.lcmv), v.key);
+        v.s = a.s + b.s + S(v.c) * v.key;
+    }
+
+    LEETCODE_NO_SANITIZE void rotate(int x) {  // x moves above its parent
+        int p = pool[x].p, g = pool[p].p, b;
+        if (pool[p].l == x) b = pool[x].r, pool[p].l = b, pool[x].r = p;
+        else b = pool[x].l, pool[p].r = b, pool[x].l = p;
+        if (b) pool[b].p = p;
+        pool[p].p = x, pool[x].p = g;
+        if (g) (pool[g].l == p ? pool[g].l : pool[g].r) = x;
+        pull(p);  // (x is pulled once, when it reaches the root)
+    }
+
+    LEETCODE_NO_SANITIZE int splay(int x) {  // x becomes the root of its tree
+        while (int p = pool[x].p) {
+            if (int g = pool[p].p) rotate((pool[g].l == p) == (pool[p].l == x) ? p : x);
+            rotate(x);
+        }
+        pull(x);
+        return x;
+    }
+
+    LEETCODE_NO_SANITIZE void touch(int t) {
+        if (t) root = splay(t);
+    }
+
+    LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count
+        int t = root;
+        while (t && pool[t].key != x) {
+            int nxt = x < pool[t].key ? pool[t].l : pool[t].r;
+            if (!nxt) break;
+            t = nxt;
+        }
+        if (t && pool[t].key == x) {  // x is already here
+            long long f = pool[t].c += c;
+            pull(t);
+            root = splay(t);
+            if (!f) erase(t);
+            return f;
+        }
+        int u = make(x, t);
+        pool[u].c = c;
+        pull(u);
+        if (t) (x < pool[t].key ? pool[t].l : pool[t].r) = u;
+        root = splay(u);
+        d++;
+        return c;
+    }
+
+    LEETCODE_NO_SANITIZE void erase(int t) {  // t is the root
+        int l = pool[t].l, r = pool[t].r;
+        if (l) pool[l].p = 0;
+        if (r) pool[r].p = 0;
+        if (!l) root = r;
+        else {
+            int m = l;
+            while (pool[m].r) m = pool[m].r;
+            m = splay(m);  // the largest key on the left becomes the left tree's root, with no right child
+            pool[m].r = r;
+            if (r) pool[r].p = m;
+            pull(m);
+            root = m;
+        }
+        freeList.push_back(t);
+        d--;
+    }
+
+    LEETCODE_NO_SANITIZE long long lt(T x) {  // copies of values < x
+        int t = root, last = 0;
+        long long res = 0;
+        while (t) {
+            last = t;
+            if (pool[t].key < x) res += pool[pool[t].l].z + pool[t].c, t = pool[t].r;
+            else t = pool[t].l;
+        }
+        touch(last);
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE long long le(T x) {  // copies of values <= x
+        int t = root, last = 0;
+        long long res = 0;
+        while (t) {
+            last = t;
+            if (x < pool[t].key) t = pool[t].l;
+            else res += pool[pool[t].l].z + pool[t].c, t = pool[t].r;
+        }
+        touch(last);
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE long long countOf(T x) {
+        int t = root, last = 0;
+        while (t && pool[t].key != x) last = t, t = x < pool[t].key ? pool[t].l : pool[t].r;
+        touch(t ? t : last);
+        return pool[t].c;
+    }
+
+    LEETCODE_NO_SANITIZE S slt(T x) {  // sum of the values < x
+        int t = root, last = 0;
+        S res = 0;
+        while (t) {
+            last = t;
+            if (pool[t].key < x) res += pool[pool[t].l].s + S(pool[t].c) * pool[t].key, t = pool[t].r;
+            else t = pool[t].l;
+        }
+        touch(last);
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE S sle(T x) {  // sum of the values <= x
+        int t = root, last = 0;
+        S res = 0;
+        while (t) {
+            last = t;
+            if (x < pool[t].key) t = pool[t].l;
+            else res += pool[pool[t].l].s + S(pool[t].c) * pool[t].key, t = pool[t].r;
+        }
+        touch(last);
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE T kthAt(long long k) {
+        int t = root;
+        while (true) {
+            long long zl = pool[pool[t].l].z;
+            if (k <= zl) t = pool[t].l;
+            else if (k <= zl + pool[t].c) {
+                touch(t);
+                return pool[t].key;
+            } else k -= zl + pool[t].c, t = pool[t].r;
+        }
+    }
+    LEETCODE_NO_SANITIZE Info kthInfo(long long k) {  // the k-th smallest, copies before it, its copies, sum before it
+        int t = root;
+        long long before = 0;
+        S acc = 0;
+        while (true) {
+            const Node& v = pool[t];
+            long long zl = before + pool[v.l].z;
+            if (k <= zl) t = v.l;
+            else if (k <= zl + v.c) {
+                Info res{v.key, zl, v.c, acc + pool[v.l].s};
+                touch(t);
+                return res;
+            } else before = zl + v.c, acc += pool[v.l].s + S(v.c) * v.key, t = v.r;
+        }
+    }
+
+    LEETCODE_NO_SANITIZE void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
+        n += c;
+        total += S(c) * x;
+        insert(x, c);
+    }
+
+    LEETCODE_NO_SANITIZE S sumFirst(long long k) {  // sum of the k smallest values
+        if (k <= 0) return 0;
+        Info f = kthInfo(k);
+        return f.sb + S(k - f.before) * f.v;
+    }
+
+    LEETCODE_NO_SANITIZE void resetCached() {  // nothing counted: as newly built
+        n = d = 0;
+        total = 0;
+    }
+
+    LEETCODE_NO_SANITIZE void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), freeList.clear(), root = 0;
+    }
+
+    LEETCODE_NO_SANITIZE T lcmLe(T x) {  // capped LCM of the values <= x
+        int t = root;
+        int last = 0;
+        T res = T(1);
+        while (t) {
+            last = t;
+            if (x < pool[t].key) t = pool[t].l;
+            else res = lc(res, lc(pool[pool[t].l].lcmv, pool[t].key)), t = pool[t].r;
+        }
+        touch(last);
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE T lcmGe(T x) {  // capped LCM of the values >= x
+        int t = root;
+        int last = 0;
+        T res = T(1);
+        while (t) {
+            last = t;
+            if (pool[t].key < x) t = pool[t].r;
+            else res = lc(res, lc(pool[pool[t].r].lcmv, pool[t].key)), t = pool[t].l;
+        }
+        touch(last);
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE T lcmIn(T lo, T hi) {  // capped LCM of the values in [lo, hi] (lo <= hi)
+        int t = root;
+        int last = 0;
+        while (t && (pool[t].key < lo || hi < pool[t].key)) {  // down to the highest node inside [lo, hi]
+            last = t;
+            t = hi < pool[t].key ? pool[t].l : pool[t].r;
+        }
+        if (!t) {
+            touch(last);
+            return T(1);
+        }
+        T res = lc(T(1), pool[t].key);
+        int a = t, na = 0, b = t, nb = 0;
+        for (int u = pool[t].l; u;) {  // its left side is <= hi: keep what is >= lo
+            a = u, na++;
+            if (lo <= pool[u].key) res = lc(res, lc(pool[u].key, pool[pool[u].r].lcmv)), u = pool[u].l;
+            else u = pool[u].r;
+        }
+        for (int u = pool[t].r; u;) {  // its right side is >= lo: keep what is <= hi
+            b = u, nb++;
+            if (pool[u].key <= hi) res = lc(res, lc(pool[u].key, pool[pool[u].l].lcmv)), u = pool[u].r;
+            else u = pool[u].l;
+        }
+        touch(na >= nb ? a : b);  // the end of the longer path pays for both
+        return res;
+    }
+
+    // O(logN * logU amortized) -- add one copy of x
+    LEETCODE_NO_SANITIZE void add(T x) {
+        addRaw(x, 1);
+    }
+
+    // O(logN * logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
+    LEETCODE_NO_SANITIZE void addCount(T val, long long cnt) {
+        if (cnt > 0) addRaw(val, cnt);
+    }
+
+    // O(1) -- LCM (-1 once it passes cap) of all values; 1 if empty
+    LEETCODE_NO_SANITIZE T lcmOfAll() {
+        return pool[root].lcmv;
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values > x; 1 if there are none
+    LEETCODE_NO_SANITIZE T lcmOfGtX(T x) {
+        if (x == numeric_limits<T>::max()) return T(1);
+        return lcmGe(x + 1);
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values >= x; 1 if there are none
+    LEETCODE_NO_SANITIZE T lcmOfGteX(T x) {
+        return lcmGe(x);
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values v with lo <= v <= hi; 1 if there are none
+    LEETCODE_NO_SANITIZE T lcmOfInValRange(T lo, T hi) {
+        return lo <= hi ? lcmIn(lo, hi) : T(1);
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th largest values; RANKS,
+    // 1-indexed and inclusive:
+    // (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count);
+    // throws out_of_range unless 1 <= kFrom <= kTo <= size
+    LEETCODE_NO_SANITIZE T lcmOfKthLargestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("lcmOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        T a = kthAt(n - kTo + 1);
+        return lcmIn(a, kthAt(n - kFrom + 1));
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the kFrom-th through kTo-th smallest values; RANKS,
+    // 1-indexed and inclusive:
+    // (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
+    LEETCODE_NO_SANITIZE T lcmOfKthSmallestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("lcmOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        T a = kthAt(kFrom);
+        return lcmIn(a, kthAt(kTo));
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k largest values; k is a COUNT, not an index: k =
+    // 0 takes no values
+    // (returns 1), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2
+    // takes 5 and 5); throws out_of_range unless 0 <= k <= size
+    LEETCODE_NO_SANITIZE T lcmOfLargestK(long long k) {
+        if (k < 0 || k > n) throw out_of_range("lcmOfLargestK: needs 0 <= k <= size");
+        return k ? lcmGe(kthAt(n - k + 1)) : T(1);
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values < x; 1 if there are none
+    LEETCODE_NO_SANITIZE T lcmOfLtX(T x) {
+        if (x == numeric_limits<T>::min()) return T(1);
+        return lcmLe(x - 1);
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the values <= x; 1 if there are none
+    LEETCODE_NO_SANITIZE T lcmOfLteX(T x) {
+        return lcmLe(x);
+    }
+
+    // O(logN * logU amortized) -- LCM (-1 once it passes cap) of the k smallest values; k is a COUNT, not an index: k =
+    // 0 takes no values
+    // (returns 1), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2
+    // takes 2 and 2); throws out_of_range unless 0 <= k <= size
+    LEETCODE_NO_SANITIZE T lcmOfSmallestK(long long k) {
+        if (k < 0 || k > n) throw out_of_range("lcmOfSmallestK: needs 0 <= k <= size");
+        return k ? lcmLe(kthAt(k)) : T(1);
+    }
+
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
+    LEETCODE_NO_SANITIZE void clear() {
+        clearData();
+        resetCached();
+    }
+
+    // O(logN amortized) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE long long count(T x) {
+        return countOf(x);
+    }
+
+    // O(1) -- how many distinct values (0 if empty)
+    LEETCODE_NO_SANITIZE long long countDistinct() {
+        return d;
+    }
+
+    // O(logN amortized) -- how many values > x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE long long countGtX(T x) {
+        return n - le(x);
+    }
+
+    // O(logN amortized) -- how many values >= x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE long long countGteX(T x) {
+        return n - lt(x);
+    }
+
+    // O(logN amortized) -- how many values v with lo <= v <= hi (0 if lo > hi)
+    LEETCODE_NO_SANITIZE long long countInValRange(T lo, T hi) {
+        return lo <= hi ? le(hi) - lt(lo) : 0;
+    }
+
+    // O(logN amortized) -- how many values < x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE long long countLtX(T x) {
+        return lt(x);
+    }
+
+    // O(logN amortized) -- how many values <= x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE long long countLteX(T x) {
+        return le(x);
+    }
+
+    // O(logN amortized) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x
+    // is not in the set
+    LEETCODE_NO_SANITIZE long long firstIndex(T x) {
+        return countOf(x) ? lt(x) : -1;
+    }
+
+    // O(logN amortized) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    // kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); throws out_of_range unless 0 <= i < size
+    LEETCODE_NO_SANITIZE T kth(long long i) {
+        if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
+        return kthAt(i + 1);
+    }
+
+    // O(logN amortized) -- largest value < x; ms.NONE if there is none
+    LEETCODE_NO_SANITIZE T largestLtX(T x) {
+        long long c = lt(x);
+        if (!c) return NONE;
+        return kthAt(c);
+    }
+
+    // O(logN amortized) -- largest value <= x; ms.NONE if there is none
+    LEETCODE_NO_SANITIZE T largestLteX(T x) {
+        long long c = le(x);
+        if (!c) return NONE;
+        return kthAt(c);
+    }
+
+    // O(logN amortized) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1);
+    // -1 if x is not in the set
+    LEETCODE_NO_SANITIZE long long lastIndex(T x) {
+        return countOf(x) ? le(x) - 1 : -1;
+    }
+
+    // O(logN amortized) -- largest value; throws out_of_range if empty
+    LEETCODE_NO_SANITIZE T max() {
+        if (!n) throw out_of_range("max: the set is empty");
+        return kthAt(n);
+    }
+
+    // O(logN amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    LEETCODE_NO_SANITIZE T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
+        return kthAt(n / 2 + 1);
+    }
+
+    // O(logN amortized) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    LEETCODE_NO_SANITIZE T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
+        return kthAt((n + 1) / 2);
+    }
+
+    // O(logN amortized) -- smallest value; throws out_of_range if empty
+    LEETCODE_NO_SANITIZE T min() {
+        if (!n) throw out_of_range("min: the set is empty");
+        return kthAt(1);
+    }
+
+    // O(logN * logU amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the
+    // smallest (=
+    // popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
+    LEETCODE_NO_SANITIZE T pop(long long i) {
+        if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
+        T v = kthAt(i + 1);
+        addRaw(v, -1);
+        return v;
+    }
+
+    // O(logN * logU amortized) -- remove and return the largest value; throws out_of_range if empty
+    LEETCODE_NO_SANITIZE T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
+        T v = kthAt(n);
+        addRaw(v, -1);
+        return v;
+    }
+
+    // O(logN * logU amortized) -- remove and return the smallest value; throws out_of_range if empty
+    LEETCODE_NO_SANITIZE T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
+        T v = kthAt(1);
+        addRaw(v, -1);
+        return v;
+    }
+
+    // O(logN * logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't
+    // there,
+    // e.g. on an empty set)
+    LEETCODE_NO_SANITIZE long long remove(T x) {
+        if (!count(x)) return 0;
+        addRaw(x, -1);
+        return 1;
+    }
+
+    // O(logN * logU amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g.
+    // on an
+    // empty set)
+    LEETCODE_NO_SANITIZE long long removeAll(T val) {
+        long long k = count(val);
+        if (k) addRaw(val, -k);
+        return k;
+    }
+
+    // O(logN * logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val
+    // isn't
+    // there, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
+        long long k = std::min(cnt, count(val));
+        if (k <= 0) return 0;
+        addRaw(val, -k);
+        return k;
+    }
+
+    // O(logN * logU amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if
+    // lo > hi)
+    LEETCODE_NO_SANITIZE long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        while (n) {  // the smallest value >= lo, while it is <= hi: drop all its copies
+            long long c = lt(lo);
+            if (c == n) break;
+            T v = kthAt(c + 1);
+            if (hi < v) break;
+            long long k = countOf(v);
+            addRaw(v, -k), removed += k;
+        }
+        return removed;
+    }
+
+    // O(1) -- how many values (copies count; 0 if empty)
+    LEETCODE_NO_SANITIZE long long size() {
+        return n;
+    }
+
+    // O(logN amortized) -- smallest value > x; ms.NONE if there is none
+    LEETCODE_NO_SANITIZE T smallestGtX(T x) {
+        long long c = le(x);
+        if (c == n) return NONE;
+        return kthAt(c + 1);
+    }
+
+    // O(logN amortized) -- smallest value >= x; ms.NONE if there is none
+    LEETCODE_NO_SANITIZE T smallestGteX(T x) {
+        long long c = lt(x);
+        if (c == n) return NONE;
+        return kthAt(c + 1);
+    }
+
+    // O(logN amortized) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
+    LEETCODE_NO_SANITIZE S sumAbsDiffToMedian() {
+        if (!n) return 0;
+        Info m = kthInfo((n + 1) / 2);
+        return S(m.v) * m.before - m.sb + (total - m.sb - S(m.v) * m.c) - S(m.v) * (n - m.before - m.c);
+    }
+
+    // O(logN amortized) -- sum of |v - x| over all values (0 if empty)
+    LEETCODE_NO_SANITIZE S sumAbsDiffToX(T x) {
+        long long c = lt(x);
+        S s = slt(x);
+        return S(x) * c - s + (total - s) - S(x) * (n - c);
+    }
+
+    // O(1) -- sum of all values (0 if empty)
+    LEETCODE_NO_SANITIZE S sumAll() {
+        return total;
+    }
+
+    // O(logN amortized) -- sum of the values > x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE S sumGtX(T x) {
+        return total - sle(x);
+    }
+
+    // O(logN amortized) -- sum of the values >= x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE S sumGteX(T x) {
+        return total - slt(x);
+    }
+
+    // O(logN amortized) -- sum of the values v with lo <= v <= hi (0 if lo > hi)
+    LEETCODE_NO_SANITIZE S sumInValRange(T lo, T hi) {
+        return lo <= hi ? sle(hi) - slt(lo) : S(0);
+    }
+
+    // O(logN amortized) -- sum of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
+    LEETCODE_NO_SANITIZE S sumKthLargestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        return sumFirst(n - kFrom + 1) - sumFirst(n - kTo);
+    }
+
+    // O(logN amortized) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1)
+    // is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
+    LEETCODE_NO_SANITIZE S sumKthSmallestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo
+            || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        return sumFirst(kTo) - sumFirst(kFrom - 1);
+    }
+
+    // O(logN amortized) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0),
+    // k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); throws
+    // out_of_range unless 0 <= k <= size
+    LEETCODE_NO_SANITIZE S sumLargestK(long long k) {
+        if (k < 0 || k > n) throw out_of_range("sumLargestK: needs 0 <= k <= size");
+        return total - sumFirst(n - k);
+    }
+
+    // O(logN amortized) -- sum of the values < x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE S sumLtX(T x) {
+        return slt(x);
+    }
+
+    // O(logN amortized) -- sum of the values <= x (0 if there are none, e.g. on an empty set)
+    LEETCODE_NO_SANITIZE S sumLteX(T x) {
+        return sle(x);
+    }
+
+    // O(logN amortized) -- sum of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0),
+    // k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); throws
+    // out_of_range unless 0 <= k <= size
+    LEETCODE_NO_SANITIZE S sumSmallestK(long long k) {
+        if (k < 0 || k > n) throw out_of_range("sumSmallestK: needs 0 <= k <= size");
+        return sumFirst(k);
+    }
+};

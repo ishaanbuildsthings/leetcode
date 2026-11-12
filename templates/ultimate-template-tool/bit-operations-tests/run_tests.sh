@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 out=$(mktemp -d)  # (its own folder: a /tmp file another user left can't block the build)
 trap 'rm -rf "$out"' EXIT
 cxx=$(python3 ../find_compiler.py)
-for t in test_basis test_sos test_sums; do
+for t in test_basis test_sos test_sums test_new_bits; do
     python3 $t.py
     "$cxx" -O2 -std=c++17 -Wall -Wextra -Werror $t.cpp -o "$out/$t"
     "$out/$t"

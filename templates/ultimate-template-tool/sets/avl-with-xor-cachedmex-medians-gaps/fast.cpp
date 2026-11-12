@@ -423,19 +423,19 @@ struct AVLMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    // instead of building a new one
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
     LEETCODE_NO_SANITIZE void clear() {
         clearData();
         resetCached();
     }
 
-    // O(logN) -- how many copies of x
+    // O(logN) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long count(T x) {
         return countOf(x);
     }
 
-    // O(1) -- how many distinct values
+    // O(1) -- how many distinct values (0 if empty)
     LEETCODE_NO_SANITIZE long long countDistinct() {
         return d;
     }
@@ -446,12 +446,12 @@ struct AVLMultiset {
         return distinctLt(hi) - distinctLt(lo) + (countOf(hi) ? 1 : 0);
     }
 
-    // O(logN) -- how many values > x
+    // O(logN) -- how many values > x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countGtX(T x) {
         return n - le(x);
     }
 
-    // O(logN) -- how many values >= x
+    // O(logN) -- how many values >= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countGteX(T x) {
         return n - lt(x);
     }
@@ -461,12 +461,12 @@ struct AVLMultiset {
         return lo <= hi ? le(hi) - lt(lo) : 0;
     }
 
-    // O(logN) -- how many values < x
+    // O(logN) -- how many values < x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countLtX(T x) {
         return lt(x);
     }
 
-    // O(logN) -- how many values <= x
+    // O(logN) -- how many values <= x (0 if there are none, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long countLteX(T x) {
         return le(x);
     }
@@ -528,7 +528,7 @@ struct AVLMultiset {
         return low.v;
     }
 
-    // O(1) -- smallest non-negative integer not in the set
+    // O(1) -- smallest non-negative integer not in the set (0 if empty)
     LEETCODE_NO_SANITIZE long long mex() {
         return mexV;
     }
@@ -572,21 +572,24 @@ struct AVLMultiset {
         return v;
     }
 
-    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    // e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
     }
 
-    // O(logN amortized) -- remove every copy of val; returns how many were removed
+    // O(logN amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an
+    // empty set)
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't
+    // there, e.g. on an empty set)
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;
@@ -609,7 +612,7 @@ struct AVLMultiset {
         return removed;
     }
 
-    // O(1) -- how many values (copies count)
+    // O(1) -- how many values (copies count; 0 if empty)
     LEETCODE_NO_SANITIZE long long size() {
         return n;
     }
@@ -633,12 +636,12 @@ struct AVLMultiset {
         return xtotal;
     }
 
-    // O(logN) -- xor of the values > x (copies count)
+    // O(logN) -- xor of the values > x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfGtX(T x) {
         return xtotal ^ xle(x);
     }
 
-    // O(logN) -- xor of the values >= x (copies count)
+    // O(logN) -- xor of the values >= x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfGteX(T x) {
         return xtotal ^ xlt(x);
     }
@@ -674,12 +677,12 @@ struct AVLMultiset {
         return xtotal ^ xorFirst(n - k);
     }
 
-    // O(logN) -- xor of the values < x (copies count)
+    // O(logN) -- xor of the values < x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfLtX(T x) {
         return xlt(x);
     }
 
-    // O(logN) -- xor of the values <= x (copies count)
+    // O(logN) -- xor of the values <= x (copies count; 0 if there are none)
     LEETCODE_NO_SANITIZE T xorOfLteX(T x) {
         return xle(x);
     }

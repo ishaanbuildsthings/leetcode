@@ -3,7 +3,7 @@
 #
 #   ./run_all_tests.sh              # everything (expect a few hours: ~14.6k range-query folders, ~6.7k set folders)
 #   ./run_all_tests.sh --py         # Python only (no compiler needed, much faster)
-#   ./run_all_tests.sh --cpp        # C++ only (template.cpp, sparse / letters versions, and fast.cpp)
+#   ./run_all_tests.sh --cpp        # C++ only (template.cpp, sparse / letters versions, fast.cpp, T = char)
 #   JOBS=8 ./run_all_tests.sh       # parallel shards (default: number of CPU cores)
 #
 # Logs go to run_all_tests.logs/; the summary lists every FAIL line found in them. Exit code 0 means everything
@@ -48,6 +48,10 @@ for lang in "${LANGS[@]}"; do
     if [ "$lang" = "--cpp" ]; then
         for ((k = 0; k < JOBS; k++)); do
             run "range-fast-$k" python3 range-query-tests/test_templates.py --cpp --fast --shard "$k/$JOBS" &
+        done
+        wait
+        for ((k = 0; k < JOBS; k++)); do  # the @letters: same and letters.cpp templates with T = char
+            run "range-letters-cpp-$k" python3 range-query-tests/test_templates.py --letters --cpp --shard "$k/$JOBS" &
         done
         wait
     fi

@@ -64,7 +64,7 @@ SEQ_OPS = {"append": "v", "appendLeft": "v", "insertAt": "iv", "pop": "none", "p
 # own), and put it back in at index i / at the end
 PIECE_OPS = ("cut", "paste", "split", "trisect", "merge", "copy")
 SEQ_OUT = {"pop", "popLeft"}  # sequence edits that also return something (the removed value)
-MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod"}  # any: values live mod p
+MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod", "productAllMod"}  # any: values live mod p
 
 
 # ops that only compare, copy, move or hash values: they make sense on letters (a list of characters), not just numbers.
@@ -89,6 +89,30 @@ def letter(v):
     if LETTER_BASE < 128:  # ASCII: printable only (33 .. 126), so C++ chars print exactly what Python expects
         return chr(max(33, min(126, LETTER_BASE + v)))
     return chr(LETTER_BASE + max(1 - LETTER_BASE, min(9000, v)))
+
+
+def char_letter_base(folder, ops):
+    """The ASCII LETTER_BASE for a C++ letters run (T = char holds one byte, not '丁'): the template's sampled value
+    range shifted into the printable 33 .. 126, or centred there when wider (letter() clamps the rest)."""
+    if LETTER_BASE < 128:  # (already ASCII: C++ and Python test the very same letters)
+        return LETTER_BASE
+    gen, rng = domain(folder, ops)[0], random.Random(0)
+    vals = [gen(rng) for _ in range(2000)]
+    lo, hi = min(vals), max(vals)
+    return 33 - lo if hi - lo <= 93 else 79 - (lo + hi) // 2
+
+
+def run_cpp_letters(folder, ops, trials_n, ctor_extra, cxx, stem):
+    """--letters in C++: fresh trials on ASCII letters (same seeds, same ops), checked against their own brute force"""
+    global LETTER_BASE
+    saved, LETTER_BASE = LETTER_BASE, char_letter_base(folder, ops)
+    try:  # (the brute force reads LETTER_BASE too: the brackets are letter(40) and letter(41))
+        trials, ctx = make_trials(folder, ops, trials_n, letters=True)
+        exp = expected_outputs(trials, ctx)
+        got, warn = run_cpp(folder, ops, trials, letters_extra(folder, ops, ctor_extra), cxx, stem, chars=True)
+        return first_mismatch(got, exp, trials, False), warn
+    finally:
+        LETTER_BASE = saved
 
 
 def is_update(op):
@@ -305,6 +329,9 @@ BRUTE_QUERIES = {
     "xorAll": ("all", lambda a, c: reduce(lambda x, y: x ^ y, a)),
     "andAll": ("all", lambda a, c: reduce(lambda x, y: x & y, a)),
     "orAll": ("all", lambda a, c: reduce(lambda x, y: x | y, a)),
+    # (the LCM templates take a cap and answer -1 past it: the tests pass a small one, so both cases come up)
+    "lcmAll": ("all", lambda a, c: (lambda l: l if l <= c["lcmCap"] else -1)(reduce(math.lcm, (abs(v) for v in a), 1))),
+    "productAllMod": ("all", lambda a, c: reduce(lambda x, y: x * y % c["mod"], a, 1) % c["mod"]),
     "longestPalCenteredAtI": ("i", lambda a, i, c: _pal_around(a, i, i)),
     "longestPalCenteredAtIPlusOne": ("i", lambda a, i, c: _pal_around(a, i, i + 1)),
     "stridedSum": ("lrs", lambda a, l, r, s, c: sum(a[l:r + 1:s])),
@@ -497,9 +524,16 @@ def letters_extra(folder, ops, extra):
 def domain(folder, ops):
     """Random-input rules for one template: values, point-add deltas, ctor extra args, and the brute context.
     Keeps inputs inside each template's documented preconditions (e.g. shrink ops need values >= 0)."""
-    ctx = {"mod": None, "full": None}
+    ctx = {"mod": None, "full": None, "lcmCap": None}
     small = lambda r: r.randint(-10, 10)  # noqa: E731
     nonneg_small = lambda r: r.randint(0, 10)  # noqa: E731
+    if "lcmAll" in ops:  # small values and a cap of 500 (passed to the ctor): LCMs land on both sides of it
+        ctx["lcmCap"] = 500
+        if MOD_OPS & set(ops):
+            ctx["mod"] = 97
+        if ctx["mod"]:  # (mod templates report values mod p: keep them in [0, p))
+            return (lambda r: r.randint(0, 12)), nonneg_small, [97, 500], ctx
+        return (lambda r: r.randint(-12, 12)), small, [500], ctx
     if folder.startswith("merge-sort-tree-updates-offline"):  # every pointAssign listed up front (per trial: see trial_extra)
         return (lambda r: r.randint(-50, 50)), small, ["UPDATES"], ctx
     if folder.startswith("merge-sort-tree-updates-hashfenwick"):  # a value range
@@ -1526,7 +1560,7 @@ def main():
             failed.append(folder)
             print(f"FAIL  {folder}\n      no brute force for {unknown}: add it to BRUTE_QUERIES / RANGE_UPDATES")
             continue
-        ctor_extra = domain(folder, ops)[2]
+        ctor_extra = num_extra = domain(folder, ops)[2]
         if letters:  # each template as it is offered for characters: its letters version, or itself if it takes them
             if os.path.exists(os.path.join(DIR, folder, "letters.py")):
                 stem0, ops = "letters", parse_ops(os.path.join(DIR, folder, "letters.py"), "#")
@@ -1560,9 +1594,8 @@ def main():
                 try:
                     if not letters and parse_ops(path, "#" if lang == "py" else "//") != vops:
                         raise RuntimeError(f"{stem}.{lang} @operations differ from template.py's" + (" (less getAll)" if stem == "sparse" else ""))
-                    if letters and lang == "cpp":  # the real thing: T = char
-                        got, warn = run_cpp(folder, vops, trials, ctor_extra, cxx, stem, chars=True)
-                        results.append((lang, first_mismatch(got, exp, trials, False), warn))
+                    if letters and lang == "cpp":  # the real thing: T = char, so ASCII letters (see char_letter_base)
+                        results.append((lang, *run_cpp_letters(folder, vops, trials_n, num_extra, cxx, stem)))
                         continue
                     if stem == "letters" and lang == "cpp":
                         ntrials, nctx = make_trials(folder, vops, trials_n)

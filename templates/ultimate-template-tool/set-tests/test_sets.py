@@ -18,6 +18,7 @@ from collections import Counter
 from functools import reduce
 import importlib.util
 import inspect
+import math
 import operator
 import os
 import random
@@ -52,15 +53,27 @@ ARG_KINDS = {
 }
 AGG_KINDS = {"All": "", "LtX": "x", "LteX": "x", "GtX": "x", "GteX": "x", "InValRange": "lohi", "SmallestK": "k", "LargestK": "k",
              "KthSmallestRange": "ij", "KthLargestRange": "ij"}
-ARG_KINDS.update({agg + "Of" + suf: kind for agg in ("xor", "or", "and") for suf, kind in AGG_KINDS.items()})
-ARG_KINDS.update({"maxFreq": "", "minFreq": "", "valuesWithMaxFreq": "", "valuesWithMinFreq": ""})
+ARG_KINDS.update({agg + "Of" + suf: kind for agg in ("xor", "or", "and", "gcd", "lcm") for suf, kind in AGG_KINDS.items()})
+ARG_KINDS.update({"maxFreq": "", "minFreq": "", "valuesWithMaxFreq": "", "valuesWithMinFreq": "", "lcmAllMod": ""})
 NO_RESULT = {"add", "addCount", "clear", "xorAll", "shiftAll"}
 # ops that need the values to be numbers; a template tagged "@keys: any" is also run with tuple / pair keys on the rest
 NUMERIC_OPS = {"sumAll", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange", "sumLtX", "sumLteX",
                "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX", "sumAbsDiffToMedian", "mex",
                "minAdjacentDiff", "maxGap"} | {op for op, k in ARG_KINDS.items() if k in ("xv", "xi", "xk", "xm", "xlohi", "y")} | {
-    op for op in ARG_KINDS if op.startswith(("xorOf", "orOf", "andOf"))}
+    op for op in ARG_KINDS if op.startswith(("xorOf", "orOf", "andOf", "gcdOf", "lcmOf"))} | {"lcmAllMod"}
 VALUE_ARGS = {"x": (0,), "xc": (0,), "lohi": (0, 1)}  # which arguments are values (the rest are counts / ranks)
+
+
+LCM_CAP = 2**63 - 1  # the LCM sets' default cap: past it they answer -1
+
+
+def lcm_capped(acc, v):  # the exact LCM (values >= 0), -1 once it passes LCM_CAP (and -1 stays -1 unless a 0 comes)
+    if acc == 0 or v == 0:
+        return 0
+    if acc < 0:
+        return -1
+    r = math.lcm(acc, v)
+    return r if r <= LCM_CAP else -1
 
 
 def key(v):  # an order-preserving int -> tuple map, so the int brute force still gives the answers
@@ -128,9 +141,10 @@ def brute(a, op, args):
             keep = [v ^ x for v in a if {"Lt": v < m, "Lte": v <= m, "Gt": v > m, "Gte": v >= m}[rel]]
         if not keep: return None
         return max(keep) if op.startswith("max") else min(keep)
-    if op.startswith(("xorOf", "orOf", "andOf")):  # bitwise aggregates (xor: copies count)
+    if op.startswith(("xorOf", "orOf", "andOf", "gcdOf", "lcmOf")):  # aggregates (xor: copies count)
         agg, suf = op.split("Of", 1)
-        f, ident = {"xor": (operator.xor, 0), "or": (operator.or_, 0), "and": (operator.and_, -1)}[agg]
+        f, ident = {"xor": (operator.xor, 0), "or": (operator.or_, 0), "and": (operator.and_, -1), "gcd": (math.gcd, 0),
+                    "lcm": (lcm_capped, 1)}[agg]
         if suf in ("SmallestK", "LargestK"):
             k = args[0]
             if not 0 <= k <= n:
@@ -149,6 +163,8 @@ def brute(a, op, args):
             x = args[0]
             vals = [v for v in a if {"LtX": v < x, "LteX": v <= x, "GtX": v > x, "GteX": v >= x}[suf]]
         return reduce(f, vals, ident)
+    if op == "lcmAllMod":  # (the template's default mod)
+        return 1 if not a else 0 if 0 in a else reduce(math.lcm, a, 1) % (10**9 + 7)
     if op == "minAdjacentDiff":
         return min(a[i + 1] - a[i] for i in range(n - 1)) if n >= 2 else None
     if op == "maxGap":
@@ -255,6 +271,8 @@ def make_trials(ops, values_kind, trials, max_range=None):
         if long_trial:
             lo, hi = (-10**12, 10**12) if big else (-50, 5000)
         bits = None
+        if any(o.startswith("lcm") for o in ops):  # the LCM sets take values >= 0
+            lo = max(lo, 0)
         if values_kind == "online-bits":  # the trie: values in [0, 2^bits)
             bits = 30 if big else 13 if long_trial else rng.randint(2, 5)
             lo, hi = 0, (1 << bits) - 1

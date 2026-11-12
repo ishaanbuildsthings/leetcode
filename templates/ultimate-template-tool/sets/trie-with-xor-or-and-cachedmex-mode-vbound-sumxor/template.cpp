@@ -502,19 +502,19 @@ struct TrieMultiset {
         return k ? andLe(kthAt(k)) : ~T(0);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    // instead of building a new one
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
     void clear() {
         clearData();
         resetCached();
     }
 
-    // O(logU) -- how many copies of x
+    // O(logU) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     long long count(T x) {
         return countOf(x);
     }
 
-    // O(1) -- how many distinct values
+    // O(1) -- how many distinct values (0 if empty)
     long long countDistinct() {
         return d;
     }
@@ -525,12 +525,12 @@ struct TrieMultiset {
         return distinctLt(hi) - distinctLt(lo) + (countOf(hi) ? 1 : 0);
     }
 
-    // O(logU) -- how many values > x
+    // O(logU) -- how many values > x (0 if there are none, e.g. on an empty set)
     long long countGtX(T x) {
         return n - le(x);
     }
 
-    // O(logU) -- how many values >= x
+    // O(logU) -- how many values >= x (0 if there are none, e.g. on an empty set)
     long long countGteX(T x) {
         return n - lt(x);
     }
@@ -540,32 +540,36 @@ struct TrieMultiset {
         return lo <= hi ? le(hi) - lt(lo) : 0;
     }
 
-    // O(logU) -- how many values < x
+    // O(logU) -- how many values < x (0 if there are none, e.g. on an empty set)
     long long countLtX(T x) {
         return lt(x);
     }
 
-    // O(logU) -- how many values <= x
+    // O(logU) -- how many values <= x (0 if there are none, e.g. on an empty set)
     long long countLteX(T x) {
         return le(x);
     }
 
-    // O(logU) -- how many values v have v ^ x > k (k is a VALUE to compare against, not a rank or count; copies count)
+    // O(logU) -- how many values v have v ^ x > k (k is a VALUE to compare against, not a rank or count; copies count;
+    // 0 if empty)
     long long countXorGtK(T x, long long k) {
         return n - cntLt(k + 1, (long long)x);
     }
 
-    // O(logU) -- how many values v have v ^ x >= k (k is a VALUE to compare against, not a rank or count; copies count)
+    // O(logU) -- how many values v have v ^ x >= k (k is a VALUE to compare against, not a rank or count; copies count;
+    // 0 if empty)
     long long countXorGteK(T x, long long k) {
         return n - cntLt(k, (long long)x);
     }
 
-    // O(logU) -- how many values v have v ^ x < k (k is a VALUE to compare against, not a rank or count; copies count)
+    // O(logU) -- how many values v have v ^ x < k (k is a VALUE to compare against, not a rank or count; copies count;
+    // 0 if empty)
     long long countXorLtK(T x, long long k) {
         return cntLt(k, (long long)x);
     }
 
-    // O(logU) -- how many values v have v ^ x <= k (k is a VALUE to compare against, not a rank or count; copies count)
+    // O(logU) -- how many values v have v ^ x <= k (k is a VALUE to compare against, not a rank or count; copies count;
+    // 0 if empty)
     long long countXorLteK(T x, long long k) {
         return cntLt(k + 1, (long long)x);
     }
@@ -674,12 +678,12 @@ struct TrieMultiset {
         return kthAt((n + 1) / 2);
     }
 
-    // O(1) -- smallest non-negative integer not in the set
+    // O(1) -- smallest non-negative integer not in the set (0 if empty)
     long long mex() {
         return mexV;
     }
 
-    // O(logU) -- smallest non-negative integer that is not v ^ x for any value v
+    // O(logU) -- smallest non-negative integer that is not v ^ x for any value v (0 if empty)
     long long mexXor(T x) {
         return mexX((long long)x);
     }
@@ -823,21 +827,23 @@ struct TrieMultiset {
         return v;
     }
 
-    // O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there, e.g. on an
+    // empty set)
     long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
     }
 
-    // O(logU) -- remove every copy of val; returns how many were removed
+    // O(logU) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an empty set)
     long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't there, e.g.
+    // on an empty set)
     long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;
@@ -860,7 +866,7 @@ struct TrieMultiset {
         return removed;
     }
 
-    // O(1) -- how many values (copies count)
+    // O(1) -- how many values (copies count; 0 if empty)
     long long size() {
         return n;
     }
@@ -893,12 +899,12 @@ struct TrieMultiset {
         return T(kthX(c0 + 1, key));
     }
 
-    // O(logU) -- sum of all values
+    // O(logU) -- sum of all values (0 if empty)
     S sumAll() {
         return sumX(0);
     }
 
-    // O(logU) -- sum of v ^ x over every value v (copies count)
+    // O(logU) -- sum of v ^ x over every value v (copies count; 0 if empty)
     S sumXor(T x) {
         return sumX((long long)x);
     }
@@ -908,12 +914,12 @@ struct TrieMultiset {
         return xtotal;
     }
 
-    // O(logU) -- xor of the values > x (copies count)
+    // O(logU) -- xor of the values > x (copies count; 0 if there are none)
     T xorOfGtX(T x) {
         return xtotal ^ xle(x);
     }
 
-    // O(logU) -- xor of the values >= x (copies count)
+    // O(logU) -- xor of the values >= x (copies count; 0 if there are none)
     T xorOfGteX(T x) {
         return xtotal ^ xlt(x);
     }
@@ -949,12 +955,12 @@ struct TrieMultiset {
         return xtotal ^ xorFirst(n - k);
     }
 
-    // O(logU) -- xor of the values < x (copies count)
+    // O(logU) -- xor of the values < x (copies count; 0 if there are none)
     T xorOfLtX(T x) {
         return xlt(x);
     }
 
-    // O(logU) -- xor of the values <= x (copies count)
+    // O(logU) -- xor of the values <= x (copies count; 0 if there are none)
     T xorOfLteX(T x) {
         return xle(x);
     }

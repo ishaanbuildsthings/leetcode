@@ -267,7 +267,8 @@ export const RANGE_OP_NAMES: readonly OpId[] = ${JSON.stringify(opNames)};
 export const RANGE_COSTS: readonly string[] = ${JSON.stringify(costs.items)};
 export const RANGE_OP_LISTS: readonly (readonly number[])[] = ${JSON.stringify(opLists.items)};
 export const RANGE_COST_LISTS: readonly (readonly number[])[] = ${JSON.stringify(costLists.items)};
-export const RANGE_MEMORIES: readonly MemoryBreakdown[] = ${JSON.stringify(memories.items)};
+// (parsed from a string: as a literal, its thousands of distinct object shapes make a union too complex for tsc)
+export const RANGE_MEMORIES: readonly MemoryBreakdown[] = JSON.parse(${JSON.stringify(JSON.stringify(memories.items))});
 // [folder, langs, type, flags (f / F fractional cascading yes / no, o values offline, s letters same), original url,
 //  op list, cost list, build, memory, sparse (0 or [langs, op list, cost list, build, memory, own ops]), letters (same)]
 export const RANGE_TEMPLATE_ROWS: readonly RangeTemplateRow[] = [

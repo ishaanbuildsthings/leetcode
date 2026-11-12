@@ -50,7 +50,7 @@ const OPTIONAL_MEX = new Set([
   "trie",
 ]);
 
-const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
+const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string; shown?: boolean }> = {
   allValuesThatWillEverBeInsertedForOfflineCompression: {
     py: "allValuesThatWillEverBeInsertedForOfflineCompression: every value you will ever add (a list; any order, duplicates fine). Only used to compress values: this does NOT add them, the multiset starts empty. N = how many distinct",
     cpp: "allValuesThatWillEverBeInsertedForOfflineCompression: every value you will ever add (a vector of your value type; any order, duplicates fine). Only used to compress values: this does NOT add them, the multiset starts empty. N = how many distinct",
@@ -63,6 +63,7 @@ const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
     py: "hi: every value added is <= hi",
     cpp: "hi: every value added is <= hi",
   },
+  cap: { py: "", cpp: "", shown: false },  // (the LCM cap: TemplatePicker explains it, with a one-line example)
 };
 
 const FAST_FOLDERS = new Set<string>(SET_FAST_FOLDERS);

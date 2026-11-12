@@ -63,7 +63,7 @@ struct PbdsMultiset {
     static inline const T NONE = noneOf<T>();
 
     using Tree = __gnu_pbds::tree<pair<T, int>, __gnu_pbds::null_type, less<pair<T, int>>, __gnu_pbds::rb_tree_tag,
-        __gnu_pbds::tree_order_statistics_node_update>;
+                                  __gnu_pbds::tree_order_statistics_node_update>;
     Tree t;
     int ids = 0;
     long long n = 0, d = 0;
@@ -156,31 +156,31 @@ struct PbdsMultiset {
         addRaw(x, 1);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    // instead of building a new one
+    // O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    // arguments), so reuse it instead of building a new one
     void clear() {
         clearData();
         resetCached();
     }
 
-    // O(logN) -- how many copies of x
+    // O(logN) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     long long count(T x) {
         x -= off;
         return countOf(x);
     }
 
-    // O(1) -- how many distinct values
+    // O(1) -- how many distinct values (0 if empty)
     long long countDistinct() {
         return d;
     }
 
-    // O(logN) -- how many values > x
+    // O(logN) -- how many values > x (0 if there are none, e.g. on an empty set)
     long long countGtX(T x) {
         x -= off;
         return n - le(x);
     }
 
-    // O(logN) -- how many values >= x
+    // O(logN) -- how many values >= x (0 if there are none, e.g. on an empty set)
     long long countGteX(T x) {
         x -= off;
         return n - lt(x);
@@ -192,13 +192,13 @@ struct PbdsMultiset {
         return lo <= hi ? le(hi) - lt(lo) : 0;
     }
 
-    // O(logN) -- how many values < x
+    // O(logN) -- how many values < x (0 if there are none, e.g. on an empty set)
     long long countLtX(T x) {
         x -= off;
         return lt(x);
     }
 
-    // O(logN) -- how many values <= x
+    // O(logN) -- how many values <= x (0 if there are none, e.g. on an empty set)
     long long countLteX(T x) {
         x -= off;
         return le(x);
@@ -298,7 +298,8 @@ struct PbdsMultiset {
         return T(v + off);
     }
 
-    // O(logN) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there, e.g. on an
+    // empty set)
     long long remove(T x) {
         x -= off;
         if (!countOf(x)) return 0;
@@ -319,12 +320,12 @@ struct PbdsMultiset {
         return removed;
     }
 
-    // O(1) -- add d to every value (d may be negative)
+    // O(1) -- add d to every value (d may be negative; nothing happens on an empty set)
     void shiftAll(T d) {
         off += d;
     }
 
-    // O(1) -- how many values (copies count)
+    // O(1) -- how many values (copies count; 0 if empty)
     long long size() {
         return n;
     }

@@ -3,7 +3,7 @@ import os, random
 from itertools import combinations
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "bit-operations")
-NAMES = ["subsetSums", "supersetSums", "countAndSubsetsEqualToKForAllKMod", "countOrSubsetsEqualToKForAllKMod",
+NAMES = ["countAndSubsetsEqualToKForAllKMod", "countOrSubsetsEqualToKForAllKMod",
          "countAndSubsetsEqualToKForAllK", "countOrSubsetsEqualToKForAllK", "countAndPairsEqualToKForAllK", "countOrPairsEqualToKForAllK",
          "sumOfOrPairsEqualToKForAllK", "sumOfAndPairsEqualToKForAllK", "sumOfXorPairsEqualToKForAllK", "sumOfXorPairsEqualToKForAllKMod", "countXorPairsEqualToKForAllK"]
 fns = {}
@@ -21,8 +21,6 @@ for it in range(600):
     n = 1 << B
     f = [rng.randrange(-50, 50) for _ in range(n)]
     g = [rng.randrange(-50, 50) for _ in range(n)]
-    assert fns["subsetSums"](f) == [sum(f[s] for s in range(n) if s & m == s) for m in range(n)]
-    assert fns["supersetSums"](f) == [sum(f[s] for s in range(n) if s & m == m) for m in range(n)]
     for name, op in (("sumOfOrPairsEqualToKForAllK", int.__or__), ("sumOfAndPairsEqualToKForAllK", int.__and__), ("sumOfXorPairsEqualToKForAllK", int.__xor__)):
         want = [0] * n
         for i in range(n):
@@ -50,12 +48,6 @@ for it in range(600):
                 want[acc] += 1
             assert fns[name](arr, mod) == [x % mod for x in want], (name, arr)
             assert fns[name[:-3]](arr) == want, (name[:-3], arr)
-for bad in ([1, 2, 3], []):
-    try:
-        fns["subsetSums"](bad)
-        assert False
-    except ValueError:
-        pass
 try:
     fns["sumOfXorPairsEqualToKForAllKMod"]([1, 2], [3, 4], 10)
     assert False

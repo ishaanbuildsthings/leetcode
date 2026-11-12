@@ -69,6 +69,8 @@ def load_manifest():
     for name in ("RANGE_OP_NAMES", "RANGE_COSTS", "RANGE_OP_LISTS", "RANGE_COST_LISTS", "RANGE_MEMORIES", "RANGE_TEMPLATE_ROWS"):
         start = src.index("= ", src.index(f"export const {name}")) + 2
         body = src[start: src.index(";\n", start)].strip()
+        if body.startswith("JSON.parse("):  # (a table emitted as a string, see build-range-query-templates.mjs)
+            body = json.loads(body[len("JSON.parse("):-1])
         t[name] = json.loads(re.sub(r",\s*\]$", "]", body))
     lists = [[t["RANGE_OP_NAMES"][i] for i in l] for l in t["RANGE_OP_LISTS"]]
 

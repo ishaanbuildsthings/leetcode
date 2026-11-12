@@ -107,6 +107,27 @@ export type SetOpId =
   | "andOfLargestK"
   | "andOfKthSmallestRange"
   | "andOfKthLargestRange"
+  | "lcmAllMod"
+  | "gcdOfAll"
+  | "gcdOfLtX"
+  | "gcdOfLteX"
+  | "gcdOfGtX"
+  | "gcdOfGteX"
+  | "gcdOfInValRange"
+  | "gcdOfSmallestK"
+  | "gcdOfLargestK"
+  | "gcdOfKthSmallestRange"
+  | "gcdOfKthLargestRange"
+  | "lcmOfAll"
+  | "lcmOfLtX"
+  | "lcmOfLteX"
+  | "lcmOfGtX"
+  | "lcmOfGteX"
+  | "lcmOfInValRange"
+  | "lcmOfSmallestK"
+  | "lcmOfLargestK"
+  | "lcmOfKthSmallestRange"
+  | "lcmOfKthLargestRange"
   | "shiftAll"
   | "maxFreq"
   | "minFreq"
@@ -655,6 +676,135 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
     ],
   },
   {
+    id: "gcdOf",
+    title: "gcd of values",
+    collapsible: true,
+    tiers: [
+      {
+        kind: "topic",
+        ops: [
+          {
+            id: "gcdOfAll",
+            signature: "gcdOfAll()",
+            description: "gcd of all values (0 if empty)",
+          },
+          {
+            id: "gcdOfLtX",
+            signature: "gcdOfLtX(x)",
+            description: "gcd of the values < x (0 if none)",
+          },
+          {
+            id: "gcdOfLteX",
+            signature: "gcdOfLteX(x)",
+            description: "gcd of the values ≤ x (0 if none)",
+          },
+          {
+            id: "gcdOfGtX",
+            signature: "gcdOfGtX(x)",
+            description: "gcd of the values > x (0 if none)",
+          },
+          {
+            id: "gcdOfGteX",
+            signature: "gcdOfGteX(x)",
+            description: "gcd of the values ≥ x (0 if none)",
+          },
+          {
+            id: "gcdOfInValRange",
+            signature: "gcdOfInValRange(lo, hi)",
+            description: "gcd of the values in [lo, hi] (0 if none)",
+          },
+          {
+            id: "gcdOfSmallestK",
+            signature: "gcdOfSmallestK(k)",
+            description: "gcd of the k smallest values; k is a count: k = 0 → none (0), k = 1 → just the smallest",
+          },
+          {
+            id: "gcdOfLargestK",
+            signature: "gcdOfLargestK(k)",
+            description: "gcd of the k largest values; k is a count: k = 0 → none (0), k = 1 → just the largest",
+          },
+          {
+            id: "gcdOfKthSmallestRange",
+            signature: "gcdOfKthSmallestRange(kFrom, kTo)",
+            description: "gcd of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest",
+          },
+          {
+            id: "gcdOfKthLargestRange",
+            signature: "gcdOfKthLargestRange(kFrom, kTo)",
+            description: "gcd of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "lcmOf",
+    title: "LCM of values (capped)",
+    collapsible: true,
+    tiers: [
+      {
+        kind: "topic",
+        ops: [
+          {
+            id: "lcmAllMod",
+            signature: "lcmAllMod()",
+            description: "the exact LCM of all values, however huge, % MOD (needs a prime mod; 1 if empty, 0 if a 0 is present)",
+          },
+          {
+            id: "lcmOfAll",
+            signature: "lcmOfAll()",
+            description: "LCM of all values (1 if empty, −1 once it passes cap)",
+          },
+          {
+            id: "lcmOfLtX",
+            signature: "lcmOfLtX(x)",
+            description: "LCM of the values < x (1 if none, −1 once it passes cap)",
+          },
+          {
+            id: "lcmOfLteX",
+            signature: "lcmOfLteX(x)",
+            description: "LCM of the values ≤ x (1 if none, −1 once it passes cap)",
+          },
+          {
+            id: "lcmOfGtX",
+            signature: "lcmOfGtX(x)",
+            description: "LCM of the values > x (1 if none, −1 once it passes cap)",
+          },
+          {
+            id: "lcmOfGteX",
+            signature: "lcmOfGteX(x)",
+            description: "LCM of the values ≥ x (1 if none, −1 once it passes cap)",
+          },
+          {
+            id: "lcmOfInValRange",
+            signature: "lcmOfInValRange(lo, hi)",
+            description: "LCM of the values in [lo, hi] (1 if none, −1 once it passes cap)",
+          },
+          {
+            id: "lcmOfSmallestK",
+            signature: "lcmOfSmallestK(k)",
+            description: "LCM of the k smallest values; k is a count: k = 0 → none (1), k = 1 → just the smallest",
+          },
+          {
+            id: "lcmOfLargestK",
+            signature: "lcmOfLargestK(k)",
+            description: "LCM of the k largest values; k is a count: k = 0 → none (1), k = 1 → just the largest",
+          },
+          {
+            id: "lcmOfKthSmallestRange",
+            signature: "lcmOfKthSmallestRange(kFrom, kTo)",
+            description: "LCM of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest",
+          },
+          {
+            id: "lcmOfKthLargestRange",
+            signature: "lcmOfKthLargestRange(kFrom, kTo)",
+            description: "LCM of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest",
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: "xor",
     title: "XOR with x",
     collapsible: true,
@@ -877,11 +1027,33 @@ export const NUMERIC_SET_OPS: ReadonlySet<SetOpId> = new Set<SetOpId>([
   "andOfLargestK",
   "andOfKthSmallestRange",
   "andOfKthLargestRange",
+  "lcmAllMod",
+  "gcdOfAll",
+  "gcdOfLtX",
+  "gcdOfLteX",
+  "gcdOfGtX",
+  "gcdOfGteX",
+  "gcdOfInValRange",
+  "gcdOfSmallestK",
+  "gcdOfLargestK",
+  "gcdOfKthSmallestRange",
+  "gcdOfKthLargestRange",
+  "lcmOfAll",
+  "lcmOfLtX",
+  "lcmOfLteX",
+  "lcmOfGtX",
+  "lcmOfGteX",
+  "lcmOfInValRange",
+  "lcmOfSmallestK",
+  "lcmOfLargestK",
+  "lcmOfKthSmallestRange",
+  "lcmOfKthLargestRange",
 ]);
 
 // Ordered lightest to heaviest constant factor; used to break ties between templates.
 export const SET_TYPES = [
   "freq-buckets",
+  "prime-exponents",
   "fastset",
   "fenwick",
   "value-tree",
@@ -897,6 +1069,7 @@ export type SetType = (typeof SET_TYPES)[number];
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {
   "freq-buckets": "Frequency buckets",
+  "prime-exponents": "Prime exponent counts (factorized)",
   fastset: "FastSet on [lo, hi]",
   fenwick: "Fenwick tree on values",
   "value-tree": "Value seg tree on [lo, hi]",

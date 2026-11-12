@@ -55,6 +55,7 @@ const UPDATE_OPS = new Set<string>(
 const CTOR_ARG_NOTES: Record<string, CtorNote> = {
   hashBase: { py: "", cpp: "", shown: false },  // (the rolling-hash templates: explained by the example lines, see ctorComments)
   hashMod: { py: "", cpp: "", shown: false },
+  cap: { py: "", cpp: "", shown: false },  // (the LCM cap: TemplatePicker explains it, with a one-line example)
   arr: { py: "arr: the initial array (a list), 0-indexed", cpp: "arr: the initial array (vector<long long>), 0-indexed", inCall: true },
   a: { py: "a: the initial array (a list), 0-indexed", cpp: "a: the initial array (vector<long long>), 0-indexed" },
   values: {
@@ -143,7 +144,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   memoryGroups: (template) => {
     const { memory, dataStructureType: type } = template;
     const groups: { id: "node" | "tags" | "other"; label: string }[] = [
-      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : type === "wavelet" || type === "prefix-sum" || type === "difference-array" ? "Arrays" : "Node data" },
+      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : type === "wavelet" || type === "prefix-sum" || type === "difference-array" || type === "agg-deque" ? "Arrays" : "Node data" },
     ];
     const tree = memory.layout !== "none" && (memory.layout !== "sparse" || ["seg-tree", "lazy-seg-tree", "beats"].includes(type));
     if (tree || memory.tags.arrays.length > 0) groups.push({ id: "tags", label: "Lazy tags" });
@@ -221,7 +222,6 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "LIS things",
     "SOS DP and other bit things",
     "geometry",
-    "agg stack things like bitwise OR and others",
   ],
 };
 

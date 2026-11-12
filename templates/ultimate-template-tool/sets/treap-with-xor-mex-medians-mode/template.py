@@ -434,17 +434,17 @@ class TreapMultiset:
         if cnt > 0:
             self._add(val, cnt)
 
-    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    # instead of building a new one
+    # O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    # arguments), so reuse it instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
 
-    # O(logN expected) -- how many copies of x
+    # O(logN expected) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     def count(self, x):
         return self._countOf(x)
 
-    # O(1) -- how many distinct values
+    # O(1) -- how many distinct values (0 if empty)
     def countDistinct(self):
         return self.d
 
@@ -454,11 +454,11 @@ class TreapMultiset:
             return 0
         return self._distinctLt(hi) - self._distinctLt(lo) + (1 if self._countOf(hi) else 0)
 
-    # O(logN expected) -- how many values > x
+    # O(logN expected) -- how many values > x (0 if there are none, e.g. on an empty set)
     def countGtX(self, x):
         return self.n - self._le(x)
 
-    # O(logN expected) -- how many values >= x
+    # O(logN expected) -- how many values >= x (0 if there are none, e.g. on an empty set)
     def countGteX(self, x):
         return self.n - self._lt(x)
 
@@ -466,11 +466,11 @@ class TreapMultiset:
     def countInValRange(self, lo, hi):
         return self._le(hi) - self._lt(lo) if lo <= hi else 0
 
-    # O(logN expected) -- how many values < x
+    # O(logN expected) -- how many values < x (0 if there are none, e.g. on an empty set)
     def countLtX(self, x):
         return self._lt(x)
 
-    # O(logN expected) -- how many values <= x
+    # O(logN expected) -- how many values <= x (0 if there are none, e.g. on an empty set)
     def countLteX(self, x):
         return self._le(x)
 
@@ -519,7 +519,7 @@ class TreapMultiset:
             raise IndexError("medianLow: the set is empty")
         return self.lowV
 
-    # O(logN expected) -- smallest non-negative integer not in the set
+    # O(logN expected) -- smallest non-negative integer not in the set (0 if empty)
     def mex(self):
         return self._findMex()
 
@@ -563,21 +563,24 @@ class TreapMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN expected) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    # O(logN expected) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    # e.g. on an empty set)
     def remove(self, x):
         if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1
 
-    # O(logN expected) -- remove every copy of val; returns how many were removed
+    # O(logN expected) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an
+    # empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
             self._add(val, -k)
         return k
 
-    # O(logN expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    # O(logN expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't
+    # there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:
@@ -602,7 +605,7 @@ class TreapMultiset:
             removed += k
         return removed
 
-    # O(1) -- how many values (copies count)
+    # O(1) -- how many values (copies count; 0 if empty)
     def size(self):
         return self.n
 
@@ -624,11 +627,11 @@ class TreapMultiset:
     def xorOfAll(self):
         return self.xtotal
 
-    # O(logN expected) -- xor of the values > x (copies count)
+    # O(logN expected) -- xor of the values > x (copies count; 0 if there are none)
     def xorOfGtX(self, x):
         return self.xtotal ^ self._xle(x)
 
-    # O(logN expected) -- xor of the values >= x (copies count)
+    # O(logN expected) -- xor of the values >= x (copies count; 0 if there are none)
     def xorOfGteX(self, x):
         return self.xtotal ^ self._xlt(x)
 
@@ -664,11 +667,11 @@ class TreapMultiset:
             raise IndexError(f"xorOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self.xtotal ^ self._xorFirst(self.n - k)
 
-    # O(logN expected) -- xor of the values < x (copies count)
+    # O(logN expected) -- xor of the values < x (copies count; 0 if there are none)
     def xorOfLtX(self, x):
         return self._xlt(x)
 
-    # O(logN expected) -- xor of the values <= x (copies count)
+    # O(logN expected) -- xor of the values <= x (copies count; 0 if there are none)
     def xorOfLteX(self, x):
         return self._xle(x)
 

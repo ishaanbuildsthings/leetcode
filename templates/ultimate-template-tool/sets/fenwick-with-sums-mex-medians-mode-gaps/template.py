@@ -389,17 +389,17 @@ class FenwickMultiset:
         if cnt > 0:
             self._add(val, cnt)
 
-    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
-    # instead of building a new one
+    # O(1 amortized) -- remove everything (fine on an empty set): afterwards it is as if newly built (same constructor
+    # arguments), so reuse it instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
 
-    # O(logN) -- how many copies of x
+    # O(logN) -- how many copies of x (0 if x isn't there, e.g. on an empty set)
     def count(self, x):
         return self._countOf(x)
 
-    # O(1) -- how many distinct values
+    # O(1) -- how many distinct values (0 if empty)
     def countDistinct(self):
         return self.d
 
@@ -409,11 +409,11 @@ class FenwickMultiset:
             return 0
         return self._distinctLt(hi) - self._distinctLt(lo) + (1 if self._countOf(hi) else 0)
 
-    # O(logN) -- how many values > x
+    # O(logN) -- how many values > x (0 if there are none, e.g. on an empty set)
     def countGtX(self, x):
         return self.n - self._le(x)
 
-    # O(logN) -- how many values >= x
+    # O(logN) -- how many values >= x (0 if there are none, e.g. on an empty set)
     def countGteX(self, x):
         return self.n - self._lt(x)
 
@@ -421,11 +421,11 @@ class FenwickMultiset:
     def countInValRange(self, lo, hi):
         return self._le(hi) - self._lt(lo) if lo <= hi else 0
 
-    # O(logN) -- how many values < x
+    # O(logN) -- how many values < x (0 if there are none, e.g. on an empty set)
     def countLtX(self, x):
         return self._lt(x)
 
-    # O(logN) -- how many values <= x
+    # O(logN) -- how many values <= x (0 if there are none, e.g. on an empty set)
     def countLteX(self, x):
         return self._le(x)
 
@@ -479,7 +479,7 @@ class FenwickMultiset:
             raise IndexError("medianLow: the set is empty")
         return self.lowV
 
-    # O(logN) -- smallest non-negative integer not in the set
+    # O(logN) -- smallest non-negative integer not in the set (0 if empty)
     def mex(self):
         return self._findMex()
 
@@ -530,7 +530,8 @@ class FenwickMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    # O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1: 0 if x isn't there,
+    # e.g. on an empty set)
     def remove(self, x):
         i = bisect_left(self.vals, x)  # one lookup for both the check and the removal
         if i == self.m or self.vals[i] != x or not self.cnt[i]:
@@ -538,14 +539,16 @@ class FenwickMultiset:
         self._add(x, -1, i)
         return 1
 
-    # O(logN amortized) -- remove every copy of val; returns how many were removed
+    # O(logN amortized) -- remove every copy of val; returns how many were removed (0 if val isn't there, e.g. on an
+    # empty set)
     def removeAll(self, val):
         k = self.count(val)
         if k:
             self._add(val, -k)
         return k
 
-    # O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    # O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed (0 if val isn't
+    # there, e.g. on an empty set)
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:
@@ -570,7 +573,7 @@ class FenwickMultiset:
             removed += k
         return removed
 
-    # O(1) -- how many values (copies count)
+    # O(1) -- how many values (copies count; 0 if empty)
     def size(self):
         return self.n
 
@@ -595,20 +598,20 @@ class FenwickMultiset:
         v, b, c, s = self.lowV, self.lowB, self.lowC, self.lowS
         return v * b - s + (self.total - s - c * v) - v * (self.n - b - c)
 
-    # O(logN) -- sum of |v - x| over all values
+    # O(logN) -- sum of |v - x| over all values (0 if empty)
     def sumAbsDiffToX(self, x):
         c, s = self._lt(x), self._slt(x)
         return x * c - s + (self.total - s) - x * (self.n - c)
 
-    # O(1) -- sum of all values
+    # O(1) -- sum of all values (0 if empty)
     def sumAll(self):
         return self.total
 
-    # O(logN) -- sum of the values > x
+    # O(logN) -- sum of the values > x (0 if there are none, e.g. on an empty set)
     def sumGtX(self, x):
         return self.total - self._sle(x)
 
-    # O(logN) -- sum of the values >= x
+    # O(logN) -- sum of the values >= x (0 if there are none, e.g. on an empty set)
     def sumGteX(self, x):
         return self.total - self._slt(x)
 
@@ -644,11 +647,11 @@ class FenwickMultiset:
             raise IndexError(f"sumLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self.total - self._sumFirst(self.n - k)
 
-    # O(logN) -- sum of the values < x
+    # O(logN) -- sum of the values < x (0 if there are none, e.g. on an empty set)
     def sumLtX(self, x):
         return self._slt(x)
 
-    # O(logN) -- sum of the values <= x
+    # O(logN) -- sum of the values <= x (0 if there are none, e.g. on an empty set)
     def sumLteX(self, x):
         return self._sle(x)
 
