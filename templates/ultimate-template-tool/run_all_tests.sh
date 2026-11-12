@@ -56,7 +56,9 @@ for lang in "${LANGS[@]}"; do
         wait
     fi
 done
-run range-letters python3 range-query-tests/test_templates.py --letters --py
+if [[ " ${LANGS[*]} " == *" --py "* ]]; then  # the Python letters check, only when Python is chosen
+    run range-letters python3 range-query-tests/test_templates.py --letters --py
+fi
 run range-generic python3 range-query-tests/test_generic_fast.py
 run range-catalog python3 range-query-tests/check_catalog.py
 
