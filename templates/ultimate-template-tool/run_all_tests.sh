@@ -96,6 +96,7 @@ else run tree-ordered python3 tree-query-tests/test_tree.py --ordered "${LANGS[0
 # every tree file matches what its generator writes from the range templates as they are now
 run tree-fresh-shape python3 tree-query-tests/gen_tree_shape.py --check
 run tree-fresh-values python3 tree-query-tests/gen_tree.py --check
+run tree-fresh-rank python3 tree-query-tests/gen_tree_rank.py --check
 
 echo "== small folders: bit operations, matrices, bubble sort, generics, combinatorics, permutations, trees, bitset"
 run generic-brute-py python3 range-query-tests/test_generic_brute.py

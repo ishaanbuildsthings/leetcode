@@ -128,7 +128,8 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
      value, nearest to x, max / min xor against x, max / min prefix and suffix sums, the prefix-sum searches, First /
      Last / NearestAncestor searches, and max / min subarray sum (each piece gives its sum, best prefix, best suffix
      and best inner stretch: four range ops a piece).
-   - Not yet (they need more than the range template's public answers): on a path: hashing, longest equal run, the by-rank ops, SumAbsDiffToMedian, AllEvenFrequency, CountDistinct / AllDistinct; and
+   - Not yet (they need more than the range template's public answers): on a path: hashing, longest equal run, AllEvenFrequency, CountDistinct / AllDistinct (the by-rank ops have their own templates: step
+     5); and
      SubtreeAddByDepth. Range folders left out: those whose constructor takes something a Tree cannot pass through
      (brackets, an update list, a stride cutoff), that split their ops over two classes, or that only have updates
      (nothing would read a value back: the range versions rely on getAll, which the tree menu does not have).
@@ -148,7 +149,12 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    would be the square of the count and would need their classes and helpers renamed apart. The picker offers a both-
    template only when both a node op and an edge op are picked.
 4. Single-log and static dedicated templates.
-5. Persistent path-rank family, direction-aware merges, SubtreeAddByDepth.
+5. By-rank on a path. DONE for fixed values: `tree-queries/path-rank-node` and `path-rank-edge`, written by
+   `tree-query-tests/gen_tree_rank.py` (a persistent seg tree with a version per node: its path from the root; a path is
+   `ver[a] + ver[b] - ver[lca] - ver[parent(lca)]`, for edges `ver[a] + ver[b] - 2 * ver[lca]`). Kth smallest / largest,
+   sum of the k smallest / largest, sum of a rank range, sum of |value - median|, and in one log the counts and sums by
+   value, nearest to x, sum, min, max. Not yet: the same with updates (a Fenwick tree of value trees over the Euler
+   tour), longest equal run on a path, SubtreeAddByDepth.
 6. Bitset path CountDistinct / AllDistinct.
 
 ## 10. Decided

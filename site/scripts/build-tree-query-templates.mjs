@@ -24,6 +24,8 @@ const TYPES = [
   "prefix-sum", "difference-array", "positions", "interval-map", "sparse-table", "BIT", "seg-tree", "lazy-seg-tree", "beats",
   "merge-sort-tree", "wavelet", "persistent", "bit-of-trees", "bit-of-tries", "seg-of-trees", "position-trees", "sqrt",
   "sqrt-tries",
+  // structures of the tree templates' own (no range template inside)
+  "persistent-paths",
 ];
 
 const errors = [];

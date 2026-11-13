@@ -1,4 +1,4 @@
-"""Tests the tree templates that hold values (tree-queries/node-*, edge-* and both-*) against a brute force.
+"""Tests the tree templates that hold values (tree-queries/node-*, edge-*, both-* and path-*) against a brute force.
 
 The brute force is a plain tree: a value per node, every path walked node by node through parent pointers, every
 subtree listed. What an op means on a list of values comes from the range-query tests (range-query-tests/
@@ -50,6 +50,10 @@ OPS_PER_TRIAL = 45
 SHAPE_OPS = [op for op in TS.OPS if op != "pathNodes"]  # (a few per script: they must still work beside the values)
 
 
+BY_RANK = {"KthSmallest", "KthLargest", "SumSmallestK", "SumLargestK", "SumKthSmallestRange", "SumKthLargestRange",
+           "SumAbsDiffToMedian"}
+
+
 def op_table(target="node"):
     """tree op -> (where, how the brute force answers it, the range op that says what it means, extra arg count)."""
     t = {}
@@ -62,7 +66,8 @@ def op_table(target="node"):
         t[f"{target}Path{suffix}"] = ("path", "update", rop, 2)
     for suffix, rop, args, fold, _ in G.QUERIES:
         t[f"{target}Subtree{suffix}"] = ("subtree", "query", rop, len(args))
-        if fold and suffix not in G.SUBTREE_ONLY:
+        # (a path: what the wrapped templates combine piece by piece, and what path-rank-* answers by rank)
+        if (fold or suffix in BY_RANK) and suffix not in G.SUBTREE_ONLY:
             t[f"{target}Path{suffix}"] = ("path", "query", rop, len(args))
     for table in (G.SEARCHES, G.PREFIX_SEARCHES):
         prefix = table is G.PREFIX_SEARCHES
@@ -84,6 +89,16 @@ TABLE = {**op_table("node"), **op_table("edge")}
 
 def is_edge(op):
     return op.lstrip("!").startswith("edge")
+
+
+def has_weights(ops):
+    """Does a template keep edge weights (it takes them in its edge list)?"""
+    return any(op.startswith("edge") for op in ops)
+
+
+def has_node_values(ops):
+    """Does a template keep node values (it takes vals)?"""
+    return any(op.startswith("node") for op in ops)
 
 
 def node_count(op):
@@ -123,8 +138,8 @@ KEEPS_NONNEG = {"rangeAndApply", "rangeOrApply", "rangeXorApply", "rangeAndQuery
 def read_ops(folder):
     text = open(os.path.join(DIR, folder, "template.py"), encoding="utf-8").read()
     ops = re.search(r"^# @operations: (.*)$", text, re.M).group(1).split()
-    rng_folder = re.search(r"^# The range structure inside is \S*/range-queries/([^/]+)/", text, re.M).group(1)
-    return ops, rng_folder, text
+    inside = re.search(r"^# The range structure inside is \S*/range-queries/([^/]+)/", text, re.M)
+    return ops, inside.group(1) if inside else None, text  # (None: a template with its own structure, e.g. path-rank-*)
 
 
 def extra_args(rop, how, size, rng, gen, delta, mod):
@@ -213,10 +228,15 @@ def stress_folders(folders):
 def make_trials(folder, ops, range_folder, trials, stress=False):
     """[(edges, root, vals, [(op, args)])] and the range tests' context for this folder's range template.
     stress: the --ordered mode (every tree nested, nearly every op an ordered one)."""
-    range_ops = RT.parse_ops(os.path.join(RT.DIR, range_folder, "template.py"), "#")
-    gen, delta, extra, ctx = RT.domain(range_folder, range_ops)
+    if range_folder:
+        range_ops = RT.parse_ops(os.path.join(RT.DIR, range_folder, "template.py"), "#")
+        gen, delta, extra, ctx = RT.domain(range_folder, range_ops)
+    else:  # its own structure: any values (few distinct ones, so ranks tie), no constructor extras
+        range_ops = []
+        gen, delta, extra = (lambda r: r.randint(-12, 12)), (lambda r: r.randint(-10, 10)), []
+        ctx = {"mod": None, "full": None, "lcmCap": None}
     value_ops = [op for op in ops if op in TABLE]
-    weights, node_vals = not folder.startswith("node-"), not folder.startswith("edge-")  # (both- has the two)
+    weights, node_vals = has_weights(ops), has_node_values(ops)  # (a both- template has the two)
     updates = [op for op in value_ops if TABLE[op][1] == "update"]
     queries = [op for op in value_ops if TABLE[op][1] != "update"]
     wide = [op for op in updates if TABLE[op][0] != "one"]  # (path / subtree updates: their tags interact the most)
@@ -449,8 +469,8 @@ def run_py(text, trials, extra):
 # ------------------------------------------------------------------------------------------------ C++
 def cpp_driver(folder, ops, extra):
     extra_text = "".join(f", {e}" for e in extra)
-    weights = not folder.startswith("node-")  # (an edge- or both- template: the weights ride in the edge list)
-    small_vals = ", vector<long long>{1, 2, 1}" if folder.startswith("both-") else ""
+    weights, node_vals = has_weights(ops), has_node_values(ops)  # (weights ride in the edge list, values in vals)
+    small_vals = ", vector<long long>{1, 2, 1}" if node_vals else ""
     lines = [f'#include "{os.path.join(DIR, folder, "template.cpp")}"',
              "template struct Tree<int>;  // (type-check the generic code for int too)",
              "template <class X> void out(const X& x) { cout << x << '\\n'; }",
@@ -470,8 +490,8 @@ def cpp_driver(folder, ops, extra):
              f"    vector<vector<{'long long' if weights else 'int'}>> edges(m);",
              "    for (auto& e : edges) { int len; cin >> len; e.resize(len); for (auto& x : e) cin >> x; }",
              "    int nv; cin >> nv; vector<long long> vals(nv); for (auto& x : vals) cin >> x;",
-             f"    Tree<long long> t(edges, root{extra_text});" if folder.startswith("edge-") else
-             f"    Tree<long long> t(edges, root, vals{extra_text});",
+             f"    Tree<long long> t(edges, root, vals{extra_text});" if node_vals else
+             f"    Tree<long long> t(edges, root{extra_text});",
              "    int q; cin >> q;",
              "    while (q--) {",
              "      string op; cin >> op;",
@@ -594,7 +614,8 @@ def main():
         elif not args[k].startswith("--"):
             names.append(args[k])
         k += 1
-    folders = sorted(f for f in os.listdir(DIR) if f.startswith(("node-", "edge-", "both-")) and os.path.isdir(os.path.join(DIR, f)))
+    folders = sorted(f for f in os.listdir(DIR)
+                     if f.startswith(("node-", "edge-", "both-", "path-")) and os.path.isdir(os.path.join(DIR, f)))
     if names:
         folders = [f for f in folders if any(n in f for n in names)]
     if listed is not None:
