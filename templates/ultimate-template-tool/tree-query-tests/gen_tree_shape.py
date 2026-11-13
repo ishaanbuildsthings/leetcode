@@ -816,30 +816,30 @@ def _between(text, start, end):
     return text[a:text.index(end, a)]
 
 
-def py_layout_body():
+def py_layout_body(table=False):
     """The constructor's body: from the edge list to self.par ... self.depthPos (uses edges, root; leaves n, lo, hi,
-    order, pos, ... as locals too)."""
-    return _between(fill(PY, False, "#"), "    def __init__(self, edges, root):\n", "\n    def _bad(")
+    order, pos, ... as locals too). table: the variant with the O(1) lca table."""
+    return _between(fill(PY, table, "#"), "    def __init__(self, edges, root):\n", "\n    def _bad(")
 
 
-def py_shape_methods():
+def py_shape_methods(table=False):
     """_bad, the private helpers and every public shape method."""
-    text = fill(PY, False, "#")
+    text = fill(PY, table, "#")
     return text[text.index("    def _bad("):]
 
 
-def cpp_members():
-    return _between(fill(CPP, False, "//"), "struct Tree {\n", "\n    // O(n) -- builds the layout")
+def cpp_members(table=False):
+    return _between(fill(CPP, table, "//"), "struct Tree {\n", f"\n    // {'O(n log n)' if table else 'O(n)'} -- builds the layout")
 
 
-def cpp_layout_body():
+def cpp_layout_body(table=False):
     """The constructor's body (uses edges, root; fills n, lo, hi and the layout arrays)."""
-    return _between(fill(CPP, False, "//"), "int root) : root(root) {\n", "\n    }\n\n    [[noreturn]]")
+    return _between(fill(CPP, table, "//"), "int root) : root(root) {\n", "\n    }\n\n    [[noreturn]]")
 
 
-def cpp_shape_methods():
+def cpp_shape_methods(table=False):
     """bad, the private helpers and every public shape method (without the struct's closing brace)."""
-    text = fill(CPP, False, "//")
+    text = fill(CPP, table, "//")
     return text[text.index("    [[noreturn]] void bad("):text.rindex("};")]
 
 

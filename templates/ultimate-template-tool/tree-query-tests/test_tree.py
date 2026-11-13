@@ -288,6 +288,8 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         if signed_ok and t % 2:
             gen = lambda r: r.randint(-6, 6)  # noqa: E731
             queries = [op for op in base_queries if TABLE[op][2] not in NONNEG_SEARCHES]
+        if folder.startswith("path-static"):  # fixed values: few of them (so two paths can read the same), or any
+            gen = (lambda r: r.randint(0, 2)) if t % 2 else (lambda r: r.randint(-10**9, 10**9))
         big = 0
         if bitset:  # few values (so equal ones meet on a path), or many: then mostly on a tree big enough to hold
             # more than 64 distinct ones, which is what puts a C++ bitset's second and third words to use

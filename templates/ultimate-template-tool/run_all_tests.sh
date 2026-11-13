@@ -102,6 +102,7 @@ run tree-fresh-fenwick python3 tree-query-tests/gen_tree_fenwick.py --check
 run tree-fresh-bitset python3 tree-query-tests/gen_tree_bitset.py --check
 run tree-fresh-run python3 tree-query-tests/gen_tree_run.py --check
 run tree-fresh-depth python3 tree-query-tests/gen_tree_depth.py --check
+run tree-fresh-static python3 tree-query-tests/gen_tree_static.py --check
 
 echo "== small folders: bit operations, matrices, bubble sort, generics, combinatorics, permutations, trees, bitset"
 run generic-brute-py python3 range-query-tests/test_generic_brute.py
