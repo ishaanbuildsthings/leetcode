@@ -131,9 +131,9 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
      piece gives its hash, or its reversed hash when read backwards, and the pieces are joined the way the range
      structure joins two halves, hash(A then B) = hash(A) * base^len(B) + hash(B), with its own base and modulus, so a
      path's hash equals the range structure's hash of the same values).
-   - Not yet (they need more than the range template's public answers): longest equal run on a path, and
-     SubtreeAddByDepth. (The by-rank ops, AllEvenFrequency and CountDistinct / AllDistinct on a path have their own
-     templates: steps 4, 5 and 6.) Range folders left out: those whose constructor takes something a Tree cannot pass through
+   - Not yet: SubtreeAddByDepth. (The by-rank ops, AllEvenFrequency, CountDistinct / AllDistinct and the longest
+     equal run on a path need more than the range template's public answers and have their own templates: steps 4
+     to 7.) Range folders left out: those whose constructor takes something a Tree cannot pass through
      (brackets, an update list, a stride cutoff), that split their ops over two classes, or that only have updates
      (nothing would read a value back: the range versions rely on getAll, which the tree menu does not have).
 2b. Edge-value templates. DONE: the same generator with the edge target writes `tree-queries/edge-<range folder>/` (1,192
@@ -176,8 +176,17 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    themselves. A bit is never handed back, so D counts every value that ever appeared. The site ranks the new cost
    factor `D/64` as 16 words. Measured in C++: 200,000 nodes, 1,000 distinct values, 100,000 mixed path assigns and
    path counts in about 0.2 to 0.4 s.
-7. Still to do: longest equal run on a path; SubtreeAddByDepth; by-rank on a path with updates; the static path
-   templates (prefix from the root, sparse table).
+7. Longest equal run on a path. DONE: `tree-queries/path-run-node` and `path-run-edge`, written by
+   `tree-query-tests/gen_tree_run.py`. Wrapping cannot give it: a chain piece must also say how it starts and ends
+   (its first and last value and how many equal values it starts and ends with), which `longestEqualRun` does not, and
+   reading that out of each range structure's internals would tie the tree files to them. So: its own segment tree
+   over the positions, a node holding (first, last, run at the start, run at the end, longest run, size); two
+   summaries join in O(1) and a piece read backwards is the same numbers swapped. PathLongestEqualRun in O(log^2 n),
+   with lazy PathAssign / PathAdd / SubtreeAssign / SubtreeAdd (an assign makes a node one run, an add moves its two
+   end values) and get / assign / add / chmax / chmin on one node or edge. To mix it with other queries, keep a
+   second Tree beside it. Measured in C++: 200,000 nodes, 200,000 mixed path updates and queries in 0.3 to 1 s.
+8. Still to do: SubtreeAddByDepth; by-rank on a path with updates; the static path templates (prefix from the root,
+   sparse table).
 
 ## 10. Decided
 

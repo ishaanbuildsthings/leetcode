@@ -353,7 +353,7 @@ const VALUE_STRUCTURE_TYPES = [
 ] as const satisfies readonly DataStructureType[];
 // structures of the tree templates' own (no range template inside): a Fenwick tree whose prefixes are root paths; a
 // persistent seg tree with a version per node
-const OWN_STRUCTURE_TYPES = ["euler-fenwick", "persistent-paths", "bitset-seg-tree"] as const;
+const OWN_STRUCTURE_TYPES = ["euler-fenwick", "persistent-paths", "bitset-seg-tree", "run-seg-tree"] as const;
 export const TREE_STRUCTURE_TYPES = ["heavy-light", "heavy-light-lca-table", ...VALUE_STRUCTURE_TYPES, ...OWN_STRUCTURE_TYPES] as const;
 export type TreeStructureType = (typeof TREE_STRUCTURE_TYPES)[number];
 
@@ -363,6 +363,7 @@ const SHAPE_LABELS = {
   "euler-fenwick": "Fenwick tree on the Euler tour (single-log path queries)",
   "persistent-paths": "Persistent seg tree, a version per node (its path from the root)",
   "bitset-seg-tree": "Seg tree of bitsets, a bit per distinct value (for few distinct values)",
+  "run-seg-tree": "Seg tree of runs that knows which way a path piece is read",
 } as const;
 
 // "Lazy seg tree over heavy-light order": the range structure, laid over the tree's positions

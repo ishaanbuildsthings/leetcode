@@ -86,6 +86,7 @@ def op_table(target="node"):
     t[f"{target}PathHashReversed"] = ("path", "hash", "rangeHashReversed", 0)
     t[f"{target}PathsEqual"] = ("path", "hash", "rangesEqual", 0)
     t[f"{target}PathIsPalindrome"] = ("path", "query", "isPalindrome", 0)
+    t[f"{target}PathLongestEqualRun"] = ("path", "query", "longestEqualRun", 0)  # (the path-run-* templates)
     for big in ("Max", "Min"):
         t[f"{target}Path{big}PrefixSum"] = ("path", "query", f"{big.lower()}PrefixSum", 0)
         t[f"{target}Path{big}SuffixSum"] = ("path", "query", f"{big.lower()}SuffixSum", 0)
@@ -120,7 +121,8 @@ def node_count(op):
 # after "edgePath" / "edgeSubtree". "raise": it must raise; +inf / -inf are the largest / smallest value in C++.
 NO_EDGES = {}
 for _name in ("Sum", "SumMod", "Gcd", "XOR", "OR", "CountLtX", "CountLteX", "CountGtX", "CountGteX", "CountInValRange", "SumLtX",
-              "SumLteX", "SumGtX", "SumGteX", "SumInValRange", "SumAbsDiffToX", "CountOccurrences", "CountDistinct", "Mex"):
+              "SumLteX", "SumGtX", "SumGteX", "SumInValRange", "SumAbsDiffToX", "CountOccurrences", "CountDistinct", "Mex",
+              "LongestEqualRun"):
     NO_EDGES[_name] = 0
 for _name in ("Min", "MinXorAgainstX", "MinPrefixSum", "MinSuffixSum", "MinSubarraySum"):
     NO_EDGES[_name] = ("+inf",)
@@ -200,7 +202,7 @@ def nested_tree(n, rng):
 def is_ordered(op):
     """A path op whose answer depends on the order the path is read in (a wrong piece direction shows only there)."""
     return TABLE[op][0] in ("path", "up") and (
-        TABLE[op][1] in ("find", "hash") or any(k in op for k in ("SubarraySum", "ArithSeq", "PrefixSum", "SuffixSum", "IsPalindrome")))
+        TABLE[op][1] in ("find", "hash") or any(k in op for k in ("SubarraySum", "ArithSeq", "PrefixSum", "SuffixSum", "IsPalindrome", "EqualRun")))
 
 
 def ordered_kind(op):
@@ -245,7 +247,8 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
     else:  # its own structure: any values (few distinct ones, so ranks tie), no constructor extras
         range_ops = []
         gen, delta, extra = (lambda r: r.randint(-12, 12)), (lambda r: r.randint(-10, 10)), []
-        if any("EvenFrequency" in op or "Distinct" in op for op in ops):  # (few values, so both answers come up)
+        # (few values, so both answers come up, and equal neighbours make runs)
+        if any("EvenFrequency" in op or "Distinct" in op or "EqualRun" in op for op in ops):
             gen, delta = (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1))
         ctx = {"mod": None, "full": None, "lcmCap": None}
     # the bitset templates: C++ sizes its bitsets from distinctCap, the one constructor extra (more values than a trial
