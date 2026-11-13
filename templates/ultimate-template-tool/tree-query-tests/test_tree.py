@@ -259,6 +259,10 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         if "-mod-" in folder:  # (values kept in [0, 97), as the range tests do; a step may be anything)
             gen, delta, extra = (lambda r: r.randint(0, 96)), (lambda r: r.randint(-150, 150)), [97]
             ctx["mod"] = 97
+    # the by-rank templates that take updates: the value range is a constructor argument (wide: a deep tree of values)
+    ranked = folder.startswith("path-rank-updates")
+    if ranked:
+        extra = [-10**9, 10**9]
     # the bitset templates: C++ sizes its bitsets from distinctCap, the one constructor extra (more values than a trial
     # can ever hold: at most 201 to start with, plus the ones its updates make)
     bitset = folder.startswith("path-distinct-bitset")
@@ -396,6 +400,18 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
             made = call(op)
             if made:
                 add(made)
+        # The ends of the value range, last (a later add could push such a value out of the range): one value on a path
+        # becomes valLo or valHi, then a by-value query asks about an x at that end or past it.
+        if ranked and not force:
+            beyond = [op for op in queries if op.endswith("X")]
+            for op in rng.sample(beyond, min(4, len(beyond))):
+                end = rng.randrange(2)
+                ends = path_ends()
+                keys = sim.reach(op, ends)[0]
+                if keys:
+                    k = rng.choice(keys)
+                    add([(op[:4] + "Assign", ([k, ref.par[k]] if is_edge(op) else [k]) + [extra[end]])])
+                add([(op, ends + [extra[end] + rng.choice((0, 5 if end else -5))])])
         for op in force:  # (up to 60 tries each: an edge op needs a path or subtree that has an edge)
             for _ in range(60):
                 made = call(op)

@@ -162,8 +162,7 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    `tree-query-tests/gen_tree_rank.py` (a persistent seg tree with a version per node: its path from the root; a path is
    `ver[a] + ver[b] - ver[lca] - ver[parent(lca)]`, for edges `ver[a] + ver[b] - 2 * ver[lca]`). Kth smallest / largest,
    sum of the k smallest / largest, sum of a rank range, sum of |value - median|, and in one log the counts and sums by
-   value, nearest to x, sum, min, max. Not yet: the same with updates (a Fenwick tree of value trees over the Euler
-   tour).
+   value, nearest to x, sum, min, max. The same with updates: step 9.
 6. Count distinct on a path. DONE: `tree-queries/path-distinct-bitset-node` and `path-distinct-bitset-edge`, written
    by `tree-query-tests/gen_tree_bitset.py`: a segment tree over the positions whose nodes each hold a bitset, one bit
    per distinct value under the node (a parent is the OR of its children). A path ORs the O(log n) nodes of each of
@@ -210,18 +209,21 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    - Ops: get / assign / add on one node or edge (plus chmax / chmin without MOD), SubtreeAdd, SubtreeAddByDepth,
      SubtreeSum, PathSum (the MOD folders: SubtreeAddMod, SubtreeAddByDepthMod, SubtreeSumMod, PathSumMod; values kept
      in [0, MOD)). No path updates: a path add would break the sums from the root that make the path sum one log.
-9. By-rank on a path with one-value updates. NEXT, not yet written. Plan: extend `gen_tree_rank.py` with an
-   updates flag (folders `path-rank-updates-{node,edge}`). The starting values stay in the persistent tree (a version
-   per node); changes go into a Fenwick tree over the positions whose nodes are value trees from the same node pool:
-   changing v from old to new adds (old, -1), (new, +1) at `pos[v]` and the opposite just past v's subtree, so the
-   prefix through `pos[u]` corrects the path root..u. A query walks the value range once over the 4 versions plus the
-   4 * O(log n) Fenwick trees (each with its sign): O(log n * log U). Values are not known up front, so the value range
-   comes from `valLo` / `valHi` constructor arguments, as in the range templates.
-   Memory is the catch, and the template must say so plainly: each update can make about 4 * log n * log U new tree
-   nodes (around 20 bytes each in C++), so it suits up to a few 10^4 updates on a large tree, not 10^5 or more. An
-   alternative with small memory (a value tree whose nodes hold ordered sets of positions) costs another log per
-   query and much more code; not planned.
-10. Still to do after that: the static path templates (prefix from the root, sparse table).
+9. By-rank on a path with one-value updates. DONE: `tree-queries/path-rank-updates-node` and `path-rank-updates-edge`,
+   written by `tree-query-tests/gen_tree_rank_updates.py` (the public path ops are `gen_tree_rank.py`'s, over a list
+   of trees instead of three or four versions). The starting values stay in the persistent tree (a version per node);
+   changes go into a Fenwick tree over the positions whose nodes are value trees from the same node pool: changing v
+   from old to new counts old one time less and new one time more from `pos[v]` on, and the opposite just past v's
+   subtree, so the Fenwick trees through `pos[u]` correct the path root..u. A query walks the value range once over
+   the 4 versions plus the 4 * O(log n) Fenwick trees: O(log n * log U). Values are not known up front, so the value
+   range comes from `valLo` / `valHi` constructor arguments, as in the range templates (U is its size).
+   Every by-rank and by-value path query of the fixed-value templates, plus get / assign / add / chmax / chmin on one
+   node or edge.
+   Memory is the catch, and the template says so with numbers. Measured in C++ at n = 2 * 10^5, U = 10^9: 124 MB to
+   start, then about 500 new tree nodes (10 KB) an update, never freed, so 10^4 updates add 100 MB. Time is no issue
+   (10^4 updates in 0.07 s, 2 * 10^4 queries in 0.02 s). An alternative with small memory (a value tree whose nodes
+   hold ordered sets of positions) costs another log per query and much more code; not planned.
+10. Still to do: the static path templates (prefix from the root, sparse table).
 
 ## 10. Decided
 
