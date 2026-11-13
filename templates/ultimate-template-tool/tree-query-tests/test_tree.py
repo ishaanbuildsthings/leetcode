@@ -346,7 +346,10 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
                 c, d = (b, a) if backwards == plant else (a, b)
             else:  # another path with as many values (so the two can read the same)
                 c, d = path_ends()
-                for _ in range(40):
+                # fixed values, 1 time in 4: a path of any length, since a shorter path must not hash like a longer
+                # one that only has zeros in front of it (what a value's random offset is for)
+                any_length = folder.startswith("path-static") and rng.random() < 0.25
+                for _ in range(0 if any_length else 40):
                     if len(sim.reach(op, [c, d])[0]) == len(keys):
                         break
                     c, d = path_ends()
