@@ -1,4 +1,5 @@
-"""Writes the tree templates that hold values: tree-queries/node-<range folder>/template.{py,cpp}.
+"""Writes the tree templates that hold values: tree-queries/node-<range folder>/ and edge-<range folder>/, each
+template.{py,cpp} (node-: a value per node; edge-: a weight per edge, kept at the edge's lower end).
 
 Each one is a range-query template (templates/ultimate-template-tool/range-queries/<folder>), copied unchanged, with a
 Tree class after it. The Tree lays the nodes out with one heavy-light pass (the same code as the shape templates, see
@@ -7,6 +8,10 @@ gen_tree_shape.py) and keeps the node values in the range structure in position 
     one node      -> one point op
     a subtree     -> one range op
     a path a..b   -> O(log n) range ops, one per chain piece
+
+An edge template is the same with each edge's weight at its lower end's position: a path's edges are its nodes
+without the lca, a subtree's edges are its nodes without its top. A query with no edges to look at (a path a..a, a
+leaf's subtree) answers the neutral value in EMPTY, or raises where there is none.
 
 Which tree ops a folder gets depends only on which range ops its template has: the tables below say how each tree op
 is built (PATH_FOLDS: how the pieces' answers combine). Nothing is per-template.
@@ -45,11 +50,11 @@ PASS_THROUGH = {"mod", "bits", "valLo", "valHi"}
 # ------------------------------------------------------------------------------------------------ the op tables
 # One node: (tree op suffix, range op, extra args, what it does)
 POINT = [
-    ("Get", "pointGet", [], "{val}(node)"),
-    ("Assign", "pointAssign", ["{x}"], "{val}(node) = {x}"),
-    ("Add", "pointAdd", ["{x}"], "{val}(node) += {x}"),
-    ("Chmax", "pointChmax", ["{x}"], "{val}(node) = max({val}, {x})"),
-    ("Chmin", "pointChmin", ["{x}"], "{val}(node) = min({val}, {x})"),
+    ("Get", "pointGet", [], "{val}({at})"),
+    ("Assign", "pointAssign", ["{x}"], "{val}({at}) = {x}"),
+    ("Add", "pointAdd", ["{x}"], "{val}({at}) += {x}"),
+    ("Chmax", "pointChmax", ["{x}"], "{val}({at}) = max({val}, {x})"),
+    ("Chmin", "pointChmin", ["{x}"], "{val}({at}) = min({val}, {x})"),
 ]
 # The same update on every node of a path / a subtree: (suffix, range op, extra args, what it does to each value)
 UPDATES = [
@@ -135,6 +140,24 @@ PATH_FOLDS = {
     "nearest>": ("None", "v = V\nif v is not None and (res is None or v > res):\n    res = v", "R()",
                  "if (v && (!res || *v > *res)) res = v;"),
 }
+
+# What an edge query answers when it has no edges to look at (a path a..a, a leaf's subtree), by how its pieces combine:
+# (Python value, C++ value of the result type R, how the comment says it in Python, in C++). The values are the ones
+# PATH_FOLDS starts from, so a path needs no extra code; a subtree returns them itself.
+EMPTY = {
+    "sum": ("0", "R(0)", "0", "0"),
+    "min": ('float("inf")', "numeric_limits<R>::max()", "inf", "the largest value of its type"),
+    "max": ('float("-inf")', "numeric_limits<R>::lowest()", "-inf", "the smallest value of its type"),
+    "and": ("-1", "~R(0)", "-1 (every bit set)", "-1 (every bit set)"),
+    "nearest<": ("None", "R()", "None", "nullopt"),
+    "true": ("True", "true", "True", "true"),
+}
+EMPTY.update({fold: EMPTY["sum"] for fold in ("summod", "gcd", "xor", "or")})
+EMPTY["nearest>"] = EMPTY["nearest<"]
+WORD = {key: re.sub(r"\W", "", key) + ("lo" if "<" in key else "hi" if ">" in key else "") for key in EMPTY}  # a name for each
+# queries a path cannot answer piece by piece but that still mean something on no edges; every other such query
+# (kth smallest, mode, ...) raises when there are no edges
+EMPTY_OTHER = {"CountDistinct": "sum", "Mex": "sum", "AllDistinct": "true", "AllEvenFrequency": "true"}
 
 SHAPE_OPS = sorted(shape.COSTS)  # every value template has every shape op too (the layout is already there)
 LAYOUT_ARRAYS = f"{shape.LAYOUT_ARRAYS} {shape.OTHER_ARRAYS[0]}"
@@ -420,9 +443,29 @@ CPP_WALK = '''\
 '''
 
 
-def walk(template, up, down):
+# for edges, the piece holding the lca starts one position after the lca (the lca's own position is the edge above it)
+EDGE_LCA_PIECE = {
+    PY_WALK: (("        if pos[a] >= pos[b]:  # the piece holding the lca: b is the top\n            l, r = pos[b], pos[a]\n",
+               "        if pos[a] > pos[b]:  # the piece holding the lca (b): its edges sit after the lca's position\n"
+               "            l, r = pos[b] + 1, pos[a]\n"),
+              ("        else:\n            l, r = pos[a], pos[b]\n",
+               "        elif pos[a] < pos[b]:\n            l, r = pos[a] + 1, pos[b]\n")),
+    CPP_WALK: (("        if (pos[a] >= pos[b]) {  // the piece holding the lca: b is the top\n            int l = pos[b], r = pos[a];\n",
+                "        if (pos[a] > pos[b]) {  // the piece holding the lca (b): its edges sit after the lca's position\n"
+                "            int l = pos[b] + 1, r = pos[a];\n"),
+               ("        } else {\n            int l = pos[a], r = pos[b];\n",
+                "        } else if (pos[a] < pos[b]) {\n            int l = pos[a] + 1, r = pos[b];\n")),
+}
+
+
+def walk(template, up, down, edge=False):
     """The ordered walk with the two snippets put in at their indentation (16 in the loops, 12 after them)."""
-    return (template.replace("@UP@", indent(up, 16)).replace("@UP2@", indent(up, 12))
+    text = template
+    if edge:
+        for old, new in EDGE_LCA_PIECE[template]:
+            assert text.count(old) == 1, old
+            text = text.replace(old, new)
+    return (text.replace("@UP@", indent(up, 16)).replace("@UP2@", indent(up, 12))
             .replace("@DOWN2@", indent(down, 12)).replace("@DOWN@", indent(down, 12)))
 
 
@@ -432,19 +475,38 @@ MEMBERS = {"n", "lo", "hi", "root", "par", "dep", "sz", "head", "pos", "order", 
 
 
 class Maker:
-    """Builds every tree op one range folder supports, for one target ("node")."""
+    """Builds every tree op one range folder supports, for one target ("node" or "edge")."""
 
     def __init__(self, rng, target="node"):
-        self.r, self.t = rng, target
-        self.words = {"val": "val", "vals": "node values", "one": "node", "value": "value", "x": "x", "none": "None"}
+        self.r, self.t, self.edge = rng, target, target == "edge"
+        self.words = ({"val": "weight", "vals": "edge weights", "one": "edge", "value": "weight", "x": "w", "at": "a - b"}
+                      if self.edge else
+                      {"val": "val", "vals": "node values", "one": "node", "value": "value", "x": "x", "at": "node"})
         self.ops, self.odd = [], []  # odd: ops left out because the range method's arguments are not as expected
 
+    def walk(self, template, up, down):
+        return walk(template, up, down, self.edge)
+
+    def empty(self, suffix, fold, where):
+        """(the EMPTY entry or None, the words a query's comment ends with) for an edge query on no edges."""
+        if not self.edge:
+            return None, ""
+        when = "a == b" if where == "path" else "node is a leaf"
+        key = fold or EMPTY_OTHER.get(suffix)
+        if key is None:
+            return None, f"; needs at least one edge (not {when}), else {{raises}}"
+        return EMPTY[key], f"; {{empty_{WORD[key]}}} when {when} (no edges)"
+
     def text(self, s, where="", lang="py"):
-        w = dict(self.words, where=where, none="None" if lang == "py" else "nullopt")
+        py = lang == "py"
+        w = dict(self.words, where=where, none="None" if py else "nullopt",
+                 raises="IndexError" if py else "throws out_of_range")
+        w.update({f"empty_{WORD[key]}": e[2 if py else 3] for key, e in EMPTY.items()})
         return s.format(**w)
 
-    def add(self, name, args, cost, doc, py_body, cpp_body, cpp_types, cpp_ret="auto", nodes=("node",), where=""):
-        """A public method: the node checks, then the body (already indented by 8)."""
+    def add(self, name, args, cost, doc, py_body, cpp_body, cpp_types, cpp_ret="auto", nodes=("node",), where="",
+            check=True):
+        """A public method: the node checks (unless the body does its own), then the body (already indented by 8)."""
         full = self.t + name
         taken = set(args) & MEMBERS
         assert not taken, f"{full}: an argument named {taken} would hide the Tree's own field"
@@ -453,41 +515,86 @@ class Maker:
             return
         params = list(nodes) + args
         py = (comment("#", cost, self.text(doc, where, "py")) + f"    def {full}(self, {', '.join(params)}):\n"
-              + py_check(full, nodes) + py_body)
+              + (py_check(full, nodes) if check else "") + py_body)
         decl = ", ".join([f"int {v}" for v in nodes] + [f"{ty} {a}" for ty, a in zip(cpp_types, args)])
         cpp = (comment("//", cost, self.text(doc, where, "cpp")) + f"    LEETCODE_NO_SANITIZE {cpp_ret} {full}({decl}) {{\n"
-               + cpp_check(full, nodes) + cpp_body + "    }\n")
+               + (cpp_check(full, nodes) if check else "") + cpp_body + "    }\n")
         self.ops.append(Op(full, params, cost, doc, py, cpp, returns=cpp_ret != "void"))
 
     def cost(self, op):
         return self.r.costs[op]
 
-    # ---- one node
+    # ---- one node, or one edge (kept at its lower end: the helper finds which end that is)
     def point(self):
         r = self.r
+        if self.edge and any(r.has(op) for _, op, _, _ in POINT):
+            self.ops.append(Op(None, None, None, None,
+                               "    # the position that holds the edge a - b: its lower end's (a and b in either order)\n"
+                               "    def _edge(self, name, a, b):\n"
+                               "        if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):\n"
+                               "            self._bad(name, a, b)\n"
+                               "        if self.par[a] == b:\n"
+                               "            return self.pos[a]\n"
+                               "        if self.par[b] == a:\n"
+                               "            return self.pos[b]\n"
+                               '        raise IndexError(f"{name}: needs an edge between a and b, got {a} and {b}")\n',
+                               "    // the position that holds the edge a - b: its lower end's (a and b in either order)\n"
+                               "    LEETCODE_NO_SANITIZE int edgeAt(const char* name, int a, int b) const {\n"
+                               "        if (a < lo || a > hi || b < lo || b > hi) bad(name);\n"
+                               "        if (par[a] == b) return pos[a];\n"
+                               "        if (par[b] == a) return pos[b];\n"
+                               '        throw out_of_range(string(name) + ": needs an edge between a and b");\n'
+                               "    }\n"))
         for suffix, op, args, doc in POINT:
             if not r.has(op):
                 continue
             args = [self.text(a) for a in args]
-            call = f"self.seg.{op}({', '.join(['self.pos[node]'] + args)})"
-            ccall = f"seg.{op}({', '.join(['pos[node]'] + args)})"
+            full = self.t + suffix
+            at, cat = (f'self._edge("{full}", a, b)', f'edgeAt("{full}", a, b)') if self.edge else ("self.pos[node]", "pos[node]")
+            call = f"self.seg.{op}({', '.join([at] + args)})"
+            ccall = f"seg.{op}({', '.join([cat] + args)})"
             ret = "return " if suffix == "Get" else ""
+            if self.edge:
+                doc += "; a and b are the edge's two ends, in either order"
             self.add(suffix, args, self.cost(op), doc, f"        {ret}{call}\n", f"        {ret}{ccall};\n",
-                     r.extra_types(op, 1), "auto" if suffix == "Get" else "void")
+                     r.extra_types(op, 1), "auto" if suffix == "Get" else "void",
+                     nodes=("a", "b") if self.edge else ("node",), check=not self.edge)
 
-    # ---- a subtree: one range op
+    # ---- a subtree: one range op (for edges: without the subtree's own top, whose position is the edge above it)
     def subtree(self):
         r = self.r
-        entries = [(s, op, a, f"{d} for every {{one}} in node's subtree", False) for s, op, a, d in UPDATES]
-        entries += [(s, op, a, d, True) for s, op, a, _, d in QUERIES]
-        for suffix, op, args, doc, query in entries:
+        entries = [(s, op, a, f"{d} for every {{one}} in node's subtree", None, False) for s, op, a, d in UPDATES]
+        entries += [(s, op, a, d, fold, True) for s, op, a, fold, d in QUERIES]
+        for suffix, op, args, doc, fold, query in entries:
             if not r.has(op):
                 continue
             args = [self.text(a) for a in args]
             tail = "".join(f", {a}" for a in args)
             ret = "return " if query else ""
-            py = f"        l = self.pos[node]\n        {ret}self.seg.{op}(l, l + self.sz[node] - 1{tail})\n"
-            cpp = f"        int l = pos[node];\n        {ret}seg.{op}(l, l + sz[node] - 1{tail});\n"
+            if not self.edge:
+                py = f"        l = self.pos[node]\n        {ret}self.seg.{op}(l, l + self.sz[node] - 1{tail})\n"
+                cpp = f"        int l = pos[node];\n        {ret}seg.{op}(l, l + sz[node] - 1{tail});\n"
+            else:
+                full = f"{self.t}Subtree{suffix}"
+                empty, words = self.empty(suffix, fold, "subtree") if query else (None, "")
+                doc += words
+                if not query:
+                    py_none, cpp_none = "return", "if (l > r) return;"
+                elif empty:
+                    py_none = f"return {empty[0]}"
+                    cpp_none = f"using R = decltype(seg.{op}(0, 0{tail}));\n        if (l > r) return R({empty[1]});"
+                    if empty[1].startswith(("R(", "numeric_limits", "~R")):
+                        cpp_none = f"using R = decltype(seg.{op}(0, 0{tail}));\n        if (l > r) return {empty[1]};"
+                else:
+                    msg = f"{full}: needs at least one edge in node's subtree"
+                    py_none, cpp_none = f'raise IndexError("{msg}")', f'if (l > r) throw out_of_range("{msg}");'
+                py = ("        l, r = self.pos[node] + 1, self.pos[node] + self.sz[node] - 1\n"
+                      "        if l > r:  # a leaf: no edges below it\n"
+                      f"            {py_none}\n"
+                      f"        {ret}self.seg.{op}(l, r{tail})\n")
+                cpp = ("        int l = pos[node] + 1, r = pos[node] + sz[node] - 1;  // (l > r for a leaf: no edges below it)\n"
+                       f"        {cpp_none}\n"
+                       f"        {ret}seg.{op}(l, r{tail});\n")
             self.add("Subtree" + suffix, args, self.cost(op), doc, py, cpp, r.extra_types(op, 2),
                      "auto" if query else "void", where="in node's subtree")
 
@@ -499,7 +606,7 @@ class Maker:
                 self.unordered(suffix, op, [self.text(a) for a in args], f"{doc} for every {{one}} on the path a..b", None)
         for suffix, op, args, fold, doc in QUERIES:
             if fold and suffix not in SUBTREE_ONLY and r.has(op) and (fold != "summod" or "mod" in r.extra_names):
-                self.unordered(suffix, op, args, doc, fold)
+                self.unordered(suffix, op, args, doc + self.empty(suffix, fold, "path")[1], fold)
 
     def unordered(self, suffix, op, args, doc, fold):
         tail = "".join(f", {a}" for a in args)
@@ -516,8 +623,9 @@ class Maker:
                   "        l, r = pos[a], pos[b]\n"
                   "        if l > r:\n"
                   "            l, r = r, l\n"
-                  + indent(py_step(f"query(l, r{tail})"), 8) + "\n"
-                  "        return res\n")
+                  + (("        if l < r:  # (the lca's own position is the edge above it)\n"
+                      + indent(py_step(f"query(l + 1, r{tail})"), 12)) if self.edge else indent(py_step(f"query(l, r{tail})"), 8))
+                  + "\n        return res\n")
             cpp = (f"        using R = decltype(seg.{op}(0, 0{tail}));\n"
                    f"        R res = {cstart};\n"
                    "        while (head[a] != head[b]) {\n"
@@ -534,9 +642,13 @@ class Maker:
                    "            int t = l;\n"
                    "            l = r, r = t;\n"
                    "        }\n"
-                   f"        R v = seg.{op}(l, r{tail});\n"
-                   f"        {cstep}\n"
-                   "        return res;\n")
+                   + (("        if (l < r) {  // (the lca's own position is the edge above it)\n"
+                       f"            R v = seg.{op}(l + 1, r{tail});\n"
+                       f"            {cstep}\n"
+                       "        }\n") if self.edge else
+                      (f"        R v = seg.{op}(l, r{tail});\n"
+                       f"        {cstep}\n"))
+                   + "        return res;\n")
         else:
             py = (f"        head, par, dep, pos, apply = self.head, self.par, self.dep, self.pos, self.seg.{op}\n"
                   "        while head[a] != head[b]:\n"
@@ -545,7 +657,9 @@ class Maker:
                   f"            apply(pos[head[a]], pos[a]{tail})\n"
                   "            a = par[head[a]]\n"
                   "        l, r = pos[a], pos[b]\n"
-                  f"        apply(l, r{tail}) if l <= r else apply(r, l{tail})\n")
+                  + (("        if l != r:  # (the lca's own position is the edge above it)\n"
+                      f"            apply(l + 1, r{tail}) if l < r else apply(r + 1, l{tail})\n") if self.edge else
+                     f"        apply(l, r{tail}) if l <= r else apply(r, l{tail})\n"))
             cpp = ("        while (head[a] != head[b]) {\n"
                    "            if (dep[head[a]] < dep[head[b]]) {\n"
                    "                int t = a;\n"
@@ -555,8 +669,10 @@ class Maker:
                    "            a = par[head[a]];\n"
                    "        }\n"
                    "        int l = pos[a], r = pos[b];\n"
-                   f"        if (l <= r) seg.{op}(l, r{tail});\n"
-                   f"        else seg.{op}(r, l{tail});\n")
+                   + ((f"        if (l < r) seg.{op}(l + 1, r{tail});  // (the lca's own position is the edge above it)\n"
+                       f"        else if (l > r) seg.{op}(r + 1, l{tail});\n") if self.edge else
+                      (f"        if (l <= r) seg.{op}(l, r{tail});\n"
+                       f"        else seg.{op}(r, l{tail});\n")))
         self.add("Path" + suffix, args, times_log(self.cost(op)), doc, py, cpp, self.r.extra_types(op, 2),
                  "auto" if fold else "void", nodes=("a", "b"), where="on the path a..b")
 
@@ -583,8 +699,8 @@ class Maker:
                 cdown = f"seg.{op}(l, r, start + (T)done * step, step);\ndone += r - l + 1;"
                 pre = cpre = ""
             py = (f"        head, par, dep, pos, apply = self.head, self.par, self.dep, self.pos, self.seg.{op}\n" + pre
-                  + "        done = 0  # how many nodes of the walk already have their term\n" + walk(PY_WALK, up, down))
-            cpp = cpre + "        long long done = 0;  // how many nodes of the walk already have their term\n" + walk(CPP_WALK, cup, cdown)
+                  + f"        done = 0  # how many {self.words['one']}s of the walk already have their term\n" + self.walk(PY_WALK, up, down))
+            cpp = cpre + f"        long long done = 0;  // how many {self.words['one']}s of the walk already have their term\n" + self.walk(CPP_WALK, cup, cdown)
             doc = ("walking a -> b, the {one}s get start, start + step, start + 2 * step, ... added"
                    + (" (mod MOD; needs start, step >= 0)" if mod else ""))
             types = r.extra_types(op, 2)
@@ -598,21 +714,42 @@ class Maker:
                 need = (left, right, "rangeSum") if acc else (left, right)
                 # up the chains only: the nearest ancestor (a value search needs just the right-to-left op)
                 if not acc and r.has(right):
-                    py = ("        head, par, pos, find = self.head, self.par, self.pos, self.seg." + right + "\n"
-                          "        while node != -1:\n"
-                          "            i = find(pos[head[node]], pos[node], x)\n"
-                          "            if i != -1:\n"
-                          "                return self.order[i]\n"
-                          "            node = par[head[node]]\n"
-                          "        return -1\n")
-                    cpp = ("        while (node != -1) {\n"
-                           f"            int i = seg.{right}(pos[head[node]], pos[node], x);\n"
-                           "            if (i != -1) return order[i];\n"
-                           "            node = par[head[node]];\n"
-                           "        }\n"
-                           "        return -1;\n")
-                    self.add("NearestAncestor" + suffix, ["x"], times_log(self.cost(right)),
-                             f"nearest ancestor of node (node included) with {{val}} {sign} x (-1 if none)", py, cpp,
+                    if self.edge:  # (position 0 is the root's: it holds no edge)
+                        py = ("        head, par, pos, find = self.head, self.par, self.pos, self.seg." + right + "\n"
+                              "        while node != -1:\n"
+                              "            l = pos[head[node]] or 1  # (position 0 is the root's: it holds no edge)\n"
+                              "            if l <= pos[node]:\n"
+                              "                i = find(l, pos[node], x)\n"
+                              "                if i != -1:\n"
+                              "                    return self.order[i]\n"
+                              "            node = par[head[node]]\n"
+                              "        return -1\n")
+                        cpp = ("        while (node != -1) {\n"
+                               "            int l = pos[head[node]] ? pos[head[node]] : 1;  // (position 0 is the root's: it holds no edge)\n"
+                               "            if (l <= pos[node]) {\n"
+                               f"                int i = seg.{right}(l, pos[node], x);\n"
+                               "                if (i != -1) return order[i];\n"
+                               "            }\n"
+                               "            node = par[head[node]];\n"
+                               "        }\n"
+                               "        return -1;\n")
+                        near = f"nearest edge above node (toward the root) with {{val}} {sign} x, as its lower end (-1 if none)"
+                    else:
+                        py = ("        head, par, pos, find = self.head, self.par, self.pos, self.seg." + right + "\n"
+                              "        while node != -1:\n"
+                              "            i = find(pos[head[node]], pos[node], x)\n"
+                              "            if i != -1:\n"
+                              "                return self.order[i]\n"
+                              "            node = par[head[node]]\n"
+                              "        return -1\n")
+                        cpp = ("        while (node != -1) {\n"
+                               f"            int i = seg.{right}(pos[head[node]], pos[node], x);\n"
+                               "            if (i != -1) return order[i];\n"
+                               "            node = par[head[node]];\n"
+                               "        }\n"
+                               "        return -1;\n")
+                        near = f"nearest ancestor of node (node included) with {{val}} {sign} x (-1 if none)"
+                    self.add("NearestAncestor" + suffix, ["x"], times_log(self.cost(right)), near, py, cpp,
                              r.extra_types(right, 2), "int")
                 if not r.has(*need):
                     continue
@@ -640,9 +777,9 @@ class Maker:
                 # the private walk a -> b, then the public ops: first on a -> b, and last = first on b -> a
                 chelper = helper[1:]
                 self.ops.append(Op(None, None, None, None,
-                                   f"    def {helper}(self, a, b, x):\n" + head + walk(PY_WALK, up, down) + "        return -1\n",
+                                   f"    def {helper}(self, a, b, x):\n" + head + self.walk(PY_WALK, up, down) + "        return -1\n",
                                    f"    LEETCODE_NO_SANITIZE int {chelper}(int a, int b, {types[0]} x) {{\n" + chead
-                                   + walk(CPP_WALK, cup, cdown) + "        return -1;\n    }\n"))
+                                   + self.walk(CPP_WALK, cup, cdown) + "        return -1;\n    }\n"))
                 needs = " (needs every {val} >= 0)" if acc and sign in (">=", ">") else ""
                 if acc:
                     names = ((f"FirstPrefixSum{suffix}", "a, b", f"first {{one}} walking a -> b where the sum from a to it is {sign} x"),
@@ -650,8 +787,9 @@ class Maker:
                 else:
                     names = ((f"First{suffix}", "a, b", f"first {{one}} walking a -> b with {what}"),
                              (f"Last{suffix}", "b, a", f"last {{one}} walking a -> b with {what}"))
+                found = ", as its lower end (-1 if none)" if self.edge else " (-1 if none)"
                 for name, order_, doc in names:
-                    self.add("Path" + name, ["x"], cost, doc + f" (-1 if none){needs}",
+                    self.add("Path" + name, ["x"], cost, doc + found + needs,
                              f"        return self.{helper}({order_}, x)\n", f"        return {chelper}({order_}, x);\n",
                              types, "int", nodes=("a", "b"))
 
@@ -675,14 +813,15 @@ class Maker:
                                "        head, par, dep, pos = self.head, self.par, self.dep, self.pos\n"
                                f"        starting, ending, total = self.seg.{pre}, self.seg.{suf}, self.seg.rangeSum\n"
                                f"        run, best = 0, {start}  # the sum of the pieces already walked; the best prefix so far\n"
-                               + walk(PY_WALK, up, down) + "        return best\n",
+                               + self.walk(PY_WALK, up, down) + "        return best\n",
                                f"    LEETCODE_NO_SANITIZE auto {helper[1:]}(int a, int b) {{\n"
                                "        using R = decltype(seg.rangeSum(0, 0));\n"
                                f"        R run = 0, best = {cstart};  // the sum of the pieces already walked; the best prefix so far\n"
-                               + walk(CPP_WALK, cup, cdown) + "        return best;\n    }\n"))
+                               + self.walk(CPP_WALK, cup, cdown) + "        return best;\n    }\n"))
             for name, order_, doc in ((f"{big}PrefixSum", "a, b", f"{big.lower()} sum of a prefix of the path a -> b (a stretch starting at a)"),
                                       (f"{big}SuffixSum", "b, a", f"{big.lower()} sum of a suffix of the path a -> b (a stretch ending at b)")):
-                self.add("Path" + name, [], cost, doc, f"        return self.{helper}({order_})\n",
+                self.add("Path" + name, [], cost, doc + self.empty(name, big.lower(), "path")[1],
+                         f"        return self.{helper}({order_})\n",
                          f"        return {helper[1:]}({order_});\n", [], "auto", nodes=("a", "b"))
 
     def build(self):
@@ -744,6 +883,45 @@ CPP_DOC = '''\
 @HOW@'''
 
 
+PY_DOC_EDGE = '''\
+# tree = Tree(@SIG@)
+#
+# edges: the tree's n - 1 edges with their weights. Whether nodes are 0..n-1 or 1..n is detected automatically from
+#        the edge list (smallest label is 0 -> 0..n-1, otherwise 1..n; with no edges, from root)
+#   [(a, b, w), ...]     e.g. [(0, 1, 5), (1, 2, 7)]
+# root: the root node (required), e.g. 0 or 1.
+@EXTRA@#
+#   Tree([(0, 1, 5), (1, 2, 7)], 0@EX@)    # nodes 0..2, rooted at 0
+#   Tree([(1, 2, 5), (2, 3, 7)], 1@EX@)    # nodes 1..3, rooted at 1
+#
+@NOTES@#
+@HOW@'''
+CPP_DOC_EDGE = '''\
+// Tree<long long> tree(@SIG@);
+//
+// edges: the tree's n - 1 edges with their weights, vector<vector<int>> (vector<vector<long long>> works too). Whether
+//        nodes are 0..n-1 or 1..n is detected automatically from the edge list (smallest label is 0 -> 0..n-1,
+//        otherwise 1..n; with no edges, from root)
+//   {{a, b, w}, ...}     e.g. {{0, 1, 5}, {1, 2, 7}}
+// root: the root node (required), e.g. 0 or 1.
+@EXTRA@//
+//   Tree<long long> tree({{0, 1, 5}, {1, 2, 7}}, 0@EX@);    // nodes 0..2, rooted at 0
+//   Tree<long long> tree({{1, 2, 5}, {2, 3, 7}}, 1@EX@);    // nodes 1..3, rooted at 1
+//
+// T is the type the weights are kept in (long long, or int).
+@NOTES@//
+@HOW@'''
+EDGE_NOTES = ("An edge is named by its two ends in either order: (a, b) and (b, a) are the same edge. A path a..b covers the "
+              "edges between a and b, and a subtree covers the edges below node. A search that finds an edge returns its "
+              "lower end (the end farther from the root). A query with no edges to look at (a path a..a, a leaf's subtree) "
+              "says what it returns. Nodes go in and come out with your labels, -1 means \"none\", and a label that is not "
+              "in the tree {raises}. Nothing recurses, so a 10^6-node chain is fine.")
+HOW_EDGE = ("How it works: one heavy-light pass gives every node a position, so that each heavy chain and each subtree is "
+            "one stretch of positions (pos[node] .. pos[node] + sz[node] - 1). Each edge's weight sits at its lower end's "
+            "position in the range structure above ({cls}); the root's position holds no edge. The edges below node are "
+            "one range of it, and the edges of a path a..b are O(log n) ranges, one per chain it crosses.")
+
+
 def header(cm, folder, rng, ops, ext):
     costs = {op.name: op.cost for op in ops if op.name}
     costs.update({op: shape.COSTS[op][0] for op in SHAPE_OPS})
@@ -785,60 +963,98 @@ def wrap(cm, text, width=120):
     return "\n".join(lines + [cur]) + "\n"
 
 
-def fill_doc(doc, cm, rng, sig, example):
+def fill_doc(doc, cm, rng, sig, example, edge=False):
     extra = "".join(f"{cm} {EXTRA_NOTES[n]}\n" for n in rng.extra_names)
+    raises = "raises IndexError" if cm == "#" else "throws out_of_range"
     return (doc.replace("@SIG@", sig).replace("@EXTRA@", extra).replace("@EX@", example)
-            .replace("@HOW@", wrap(cm, HOW.format(cls=rng.cls))))
+            .replace("@NOTES@", wrap(cm, EDGE_NOTES.format(raises=raises)))
+            .replace("@HOW@", wrap(cm, (HOW_EDGE if edge else HOW).format(cls=rng.cls))))
 
 
-def make_py(folder, rng, ops):
+def make_py(folder, rng, ops, target="node"):
+    edge = target == "edge"
     head, build = header("#", folder, rng, ops, "py")
     extra = "".join(f", {p}" for p in rng.py_extra)
     names = "".join(f", {n}" for n in rng.extra_names)
-    doc = fill_doc(PY_DOC, "#", rng, "edges, root, vals" + names, names)
     imports = "from bisect import bisect_left\n" + ("from math import gcd\n" if any("gcd(res" in o.py for o in ops) else "")
-    ctor = (comment("#", build, "builds the layout and the range structure; raises ValueError when the edges are not one "
-                    "tree on nodes 0..n-1 or 1..n, or vals has the wrong length")
-            + f"    def __init__(self, edges, root, vals{extra}):\n" + shape.py_layout_body()
-            + "        if len(vals) != hi + 1:\n"
-            '            raise ValueError(f"Tree: vals[node] is node\'s value, so nodes {lo}..{hi} need len(vals) = {hi + 1}"\n'
-            '                             f"{\' (vals[0] is ignored)\' if lo else \'\'}, got {len(vals)}")\n'
-            f"        self.seg = {rng.cls}([vals[v] for v in order]{names})  # the values, in position order\n"
-            + ("        self.mod = mod\n" if "mod" in rng.extra_names else ""))
+    if edge:
+        doc = fill_doc(PY_DOC_EDGE, "#", rng, "edges, root" + names, names, edge=True)
+        ctor = (comment("#", build, "builds the layout and the range structure; raises ValueError when the edges are not "
+                        "one tree on nodes 0..n-1 or 1..n, or an edge has no weight")
+                + f"    def __init__(self, edges, root{extra}):\n" + shape.py_layout_body()
+                + "        for e in edges:\n"
+                "            if len(e) != 3:\n"
+                '                raise ValueError(f"Tree: every edge needs its weight here, (a, b, w), got {e}")\n'
+                "        arr = [edges[0][2] if edges else 0] * n  # (position 0 is the root's: it holds no edge, never read)\n"
+                "        for e in edges:\n"
+                "            a, b = e[0], e[1]\n"
+                "            arr[pos[a] if par[a] == b else pos[b]] = e[2]\n"
+                f"        self.seg = {rng.cls}(arr{names})  # each edge's weight, at its lower end's position\n")
+    else:
+        doc = fill_doc(PY_DOC, "#", rng, "edges, root, vals" + names, names)
+        ctor = (comment("#", build, "builds the layout and the range structure; raises ValueError when the edges are not "
+                        "one tree on nodes 0..n-1 or 1..n, or vals has the wrong length")
+                + f"    def __init__(self, edges, root, vals{extra}):\n" + shape.py_layout_body()
+                + "        if len(vals) != hi + 1:\n"
+                '            raise ValueError(f"Tree: vals[node] is node\'s value, so nodes {lo}..{hi} need len(vals) = {hi + 1}"\n'
+                '                             f"{\' (vals[0] is ignored)\' if lo else \'\'}, got {len(vals)}")\n'
+                f"        self.seg = {rng.cls}([vals[v] for v in order]{names})  # the values, in position order\n")
+    ctor += "        self.mod = mod\n" if "mod" in rng.extra_names else ""
     methods = "\n".join(op.py for op in ops)
     return (head + "\n" + rng.py_inner().rstrip("\n") + "\n\n\n" + imports + "\n\n" + doc + "class Tree:\n" + ctor + "\n"
             + methods + "\n" + shape.py_shape_methods())
 
 
-def make_cpp(folder, rng, ops):
+def make_cpp(folder, rng, ops, target="node"):
+    edge = target == "edge"
     head, build = header("//", folder, rng, ops, "cpp")
     inner = rng.cpp_inner().rstrip("\n")
     if "struct HotVector" not in inner:
         inner = shape.PRELUDE.rstrip("\n") + "\n\n" + inner
     extra = "".join(f", {p}" for p in rng.cpp_extra)
     names = "".join(f", {n}" for n in rng.extra_names)
-    doc = fill_doc(CPP_DOC, "//", rng, "edges, root, vals" + names, names)
     has_mod = "mod" in rng.extra_names
-    members = (shape.cpp_members().rstrip("\n") + f"\n    {rng.cls}<T> seg;  // the values, in position order\n"
-               + ("    T modulus;\n" if has_mod else ""))
-    init = f"seg(layout(edges, root, vals){names})" + (", modulus(mod)" if has_mod else "")
-    sig = f"    template <typename E = int> Tree(const vector<vector<E>>& edges, int root, const vector<T>& vals{extra})"
+    what = "each edge's weight, at its lower end's position" if edge else "the values, in position order"
+    members = (shape.cpp_members().rstrip("\n") + f"\n    {rng.cls}<T> seg;  // {what}\n" + ("    T modulus;\n" if has_mod else ""))
+    given = "edges, root" if edge else "edges, root, vals"
+    init = f"seg(layout({given}){names})" + (", modulus(mod)" if has_mod else "")
+    params = "const vector<vector<E>>& edges, int root" + ("" if edge else ", const vector<T>& vals")
+    sig = f"    template <typename E = int> Tree({params}{extra})"
     if len(sig) > 118:
-        sig = ("    template <typename E = int> Tree(const vector<vector<E>>& edges, int root, const vector<T>& vals,\n"
-               f"                                    {', '.join(rng.cpp_extra)})")
-    ctor = (comment("//", build, "builds the layout and the range structure; throws invalid_argument when the edges are "
-                    "not one tree on nodes 0..n-1 or 1..n, or vals has the wrong size")
-            + sig + "\n        : " + init + " {}\n\n"
-            "    // lays the tree out (fills the arrays above) and returns the values in position order\n"
-            "    template <typename E> vector<T> layout(const vector<vector<E>>& edges, int root, const vector<T>& vals) {\n"
-            "        this->root = root;\n" + shape.cpp_layout_body() + "\n"
-            "        if ((int)vals.size() != hi + 1)\n"
-            '            throw invalid_argument("Tree: vals[node] is node\'s value, so nodes " + nodes + " need vals.size() = " +\n'
-            "                                   to_string(hi + 1) + \", got \" + to_string(vals.size()));\n"
-            "        vector<T> inOrder(n);\n"
-            "        for (int i = 0; i < n; i++) inOrder[i] = vals[order[i]];\n"
-            "        return inOrder;\n"
-            "    }\n")
+        sig = f"    template <typename E = int> Tree({params},\n                                    {', '.join(rng.cpp_extra)})"
+    if edge:
+        doc = fill_doc(CPP_DOC_EDGE, "//", rng, "edges, root" + names, names, edge=True)
+        ctor = (comment("//", build, "builds the layout and the range structure; throws invalid_argument when the edges "
+                        "are not one tree on nodes 0..n-1 or 1..n, or an edge has no weight")
+                + sig + "\n        : " + init + " {}\n\n"
+                "    // lays the tree out (fills the arrays above) and returns each edge's weight at its lower end's position\n"
+                "    template <typename E> vector<T> layout(const vector<vector<E>>& edges, int root) {\n"
+                "        this->root = root;\n" + shape.cpp_layout_body() + "\n"
+                "        for (const auto& e : edges)\n"
+                '            if (e.size() != 3) throw invalid_argument("Tree: every edge needs its weight here, {a, b, w}");\n'
+                "        // (position 0 is the root's: it holds no edge and is never read)\n"
+                "        vector<T> inOrder(n, edges.empty() ? T(0) : (T)edges[0][2]);\n"
+                "        for (const auto& e : edges) {\n"
+                "            int a = (int)e[0], b = (int)e[1];\n"
+                "            inOrder[par[a] == b ? pos[a] : pos[b]] = (T)e[2];\n"
+                "        }\n"
+                "        return inOrder;\n"
+                "    }\n")
+    else:
+        doc = fill_doc(CPP_DOC, "//", rng, "edges, root, vals" + names, names)
+        ctor = (comment("//", build, "builds the layout and the range structure; throws invalid_argument when the edges "
+                        "are not one tree on nodes 0..n-1 or 1..n, or vals has the wrong size")
+                + sig + "\n        : " + init + " {}\n\n"
+                "    // lays the tree out (fills the arrays above) and returns the values in position order\n"
+                "    template <typename E> vector<T> layout(const vector<vector<E>>& edges, int root, const vector<T>& vals) {\n"
+                "        this->root = root;\n" + shape.cpp_layout_body() + "\n"
+                "        if ((int)vals.size() != hi + 1)\n"
+                '            throw invalid_argument("Tree: vals[node] is node\'s value, so nodes " + nodes + " need vals.size() = " +\n'
+                "                                   to_string(hi + 1) + \", got \" + to_string(vals.size()));\n"
+                "        vector<T> inOrder(n);\n"
+                "        for (int i = 0; i < n; i++) inOrder[i] = vals[order[i]];\n"
+                "        return inOrder;\n"
+                "    }\n")
     methods = "\n".join(op.cpp for op in ops)
     return (head + "#include <bits/stdc++.h>\nusing namespace std;\nusing ll = long long;\n\n" + shape.FAST_NOTE + "\n"
             + inner + "\n\n" + doc + "template <typename T>\nstruct Tree {\n" + members + "\n" + ctor + "\n" + methods + "\n"
@@ -849,9 +1065,12 @@ def make_cpp(folder, rng, ops):
 ODD = []  # ops left out because a range method's arguments are not what the tables expect
 
 
+TARGETS = ("node", "edge")
+
+
 def plan():
-    """{tree folder: (Range, [Op])}: one tree folder per (structure type, set of tree ops), from the lightest range
-    folder that gives it; plus why each range folder that was looked at is left out."""
+    """{tree folder: (Range, [Op], target)}: per target, one tree folder per (structure type, set of tree ops), from
+    the lightest range folder that gives it; plus why each range folder that was looked at is left out."""
     best, skipped = {}, {}
     for folder in sorted(os.listdir(RANGE_DIR)):
         base = os.path.join(RANGE_DIR, folder)
@@ -861,21 +1080,22 @@ def plan():
         if rng.cls is None:
             skipped[folder] = rng.why
             continue
-        maker = Maker(rng)
-        ops = maker.build()
-        ODD.extend(f"{folder}: {o}" for o in maker.odd)
-        names = frozenset(op.name for op in ops if op.name)
-        if not any("Path" in n or "Subtree" in n for n in names):
-            skipped[folder] = "no path or subtree op"
-            continue
-        if not any(op.returns for op in ops):
-            skipped[folder] = "only updates: nothing reads a value back"
-            continue
-        key = (rng.kind, names, tuple(rng.extra_names))
-        rank = (len(rng.ops), len(folder), folder)
-        if key not in best or rank < best[key][0]:
-            best[key] = (rank, rng, ops)
-    return {f"node-{rng.folder}": (rng, ops) for _, rng, ops in best.values()}, skipped
+        for target in TARGETS:
+            maker = Maker(rng, target)
+            ops = maker.build()
+            ODD.extend(f"{folder}: {o}" for o in maker.odd)
+            names = frozenset(op.name for op in ops if op.name)
+            if not any("Path" in n or "Subtree" in n for n in names):
+                skipped[folder] = "no path or subtree op"
+                continue
+            if not any(op.returns for op in ops):
+                skipped[folder] = "only updates: nothing reads a value back"
+                continue
+            key = (target, rng.kind, names, tuple(rng.extra_names))
+            rank = (len(rng.ops), len(folder), folder)
+            if key not in best or rank < best[key][0]:
+                best[key] = (rank, rng, ops, target)
+    return {f"{target}-{rng.folder}": (rng, ops, target) for _, rng, ops, target in best.values()}, skipped
 
 
 def main():
@@ -885,9 +1105,9 @@ def main():
     if want:
         folders = {f: v for f, v in folders.items() if any(w in f for w in want)}
     stale = []
-    for folder, (rng, ops) in sorted(folders.items()):
-        texts = {"template.py": check_finished(make_py(folder, rng, ops), f"{folder}/template.py"),
-                 "template.cpp": check_finished(make_cpp(folder, rng, ops), f"{folder}/template.cpp")}
+    for folder, (rng, ops, target) in sorted(folders.items()):
+        texts = {"template.py": check_finished(make_py(folder, rng, ops, target), f"{folder}/template.py"),
+                 "template.cpp": check_finished(make_cpp(folder, rng, ops, target), f"{folder}/template.cpp")}
         for name, text in texts.items():
             path = os.path.join(DIR, folder, name)
             if os.path.exists(path) and open(path, encoding="utf-8").read() == text:
@@ -896,8 +1116,9 @@ def main():
             if not check and not only_list:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 open(path, "w", encoding="utf-8").write(text)
-    # a node-* folder no range folder gives any more is stale too
-    gone = [] if want else [f for f in sorted(os.listdir(DIR)) if f.startswith("node-") and f not in folders]
+    # a node-* / edge-* folder no range folder gives any more is stale too
+    made = tuple(f"{t}-" for t in TARGETS)
+    gone = [] if want else [f for f in sorted(os.listdir(DIR)) if f.startswith(made) and f not in folders]
     for folder in gone:
         stale.append(folder + "/ (no longer generated)")
         if not check and not only_list:
@@ -905,9 +1126,9 @@ def main():
     if check:
         for rel in stale[:40]:
             print(f"FAIL  tree-queries/{rel}: differs from what gen_tree.py writes (rerun it)")
-        print(f"{len(stale)} stale tree files" if stale else f"{len(folders)} node-value tree folders are fresh")
+        print(f"{len(stale)} stale tree files" if stale else f"{len(folders)} node- and edge-value tree folders are fresh")
         sys.exit(1 if stale else 0)
-    print(f"{len(folders)} node-value tree folders, {len(stale)} files {'would be ' if only_list else ''}written or removed; "
+    print(f"{len(folders)} node- and edge-value tree folders, {len(stale)} files {'would be ' if only_list else ''}written or removed; "
           f"{len(skipped)} range folders left out")
     if only_list:
         why = {}

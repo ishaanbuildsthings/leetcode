@@ -1,7 +1,7 @@
 # Tree query templates: spec
 
 The menu is `site/lib/tree-query-picker.ts`. This file says how every op on it gets a template. Built so far: the
-shape templates and the node-value templates (steps 1 and 2 in section 9).
+shape templates and the node-value and edge-value templates (steps 1, 2 and 2b in section 9).
 
 ## 1. Input (every template)
 
@@ -75,7 +75,7 @@ translates calls. Complexity: subtree and one-node ops cost what the range op co
 | Part | Folders |
 |---|---|
 | Node-value templates (one per structure type and set of tree ops) | 530 today (grows as more path ops are covered) |
-| Edge-value templates | about the same |
+| Edge-value templates | 530 today |
 | Combined node + edge (common ops) | about 4,200 |
 | Dedicated (section 4) | 40 to 60 |
 
@@ -129,8 +129,14 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
      SubtreeAddByDepth. Range folders left out: those whose constructor takes something a Tree cannot pass through
      (brackets, an update list, a stride cutoff), that split their ops over two classes, or that only have updates
      (nothing would read a value back: the range versions rely on getAll, which the tree menu does not have).
-2b. Edge-value templates: the same generator with the edge target (each edge at its child end; a path's lca piece skips
-   the lca, a subtree skips its own position).
+2b. Edge-value templates. DONE: the same generator with the edge target writes `tree-queries/edge-<range folder>/` (530
+   folders, the same coverage as the node ones). `Tree(edges, root)` with `[(a, b, w)]`; each edge's weight sits at its
+   lower end's position, so a path's lca piece starts one past the lca and a subtree skips its own top. One edge is
+   named `(a, b)` in either order; a search returns an edge as its lower end. With no edges to look at (a path a..a,
+   a leaf's subtree) a query answers its neutral value, written in its own comment (`EMPTY` in `gen_tree.py`): 0 for
+   sums, counts, xor, OR and gcd; +inf / -inf (C++: the type's largest / smallest value) for min / max; None / nullopt
+   for nearest-to-x; -1 for AND; True for the all-distinct / all-even checks; -1 for searches. Queries with no neutral
+   value (kth smallest, sum of the k smallest, mode, sum of |weight - median|) raise.
 3. Combined node + edge for the common ops.
 4. Single-log and static dedicated templates.
 5. Persistent path-rank family, direction-aware merges, SubtreeAddByDepth.
