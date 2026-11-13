@@ -23,8 +23,9 @@ const TREE_QUERY_CATALOG: PickerCatalog<TreeQueryTemplate> = {
   pane: {
     fixed: ["shape"],
     tabs: [
-      { id: "nodes", label: "Node values", groups: ["node-updates", "node-queries"] },
-      { id: "edges", label: "Edge values", groups: ["edge-updates", "edge-queries"] },
+      // (queries first: they fill the left column, updates the right one)
+      { id: "nodes", label: "Node values", groups: ["node-queries", "node-updates"] },
+      { id: "edges", label: "Edge values", groups: ["edge-queries", "edge-updates"] },
     ],
   },
   planned: TREE_QUERY_PLANNED,
