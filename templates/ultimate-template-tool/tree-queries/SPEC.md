@@ -169,10 +169,13 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    per distinct value under the node (a parent is the OR of its children). A path ORs the O(log n) nodes of each of
    its O(log n) chain pieces and counts the bits: O(log^2 n * D / 64) for D distinct values, 2 * n * D / 8 bytes, so
    for up to a few thousand distinct values. PathCountDistinct / PathAllDistinct, the same two on a subtree
-   (O(log n * D / 64)), and get / assign / add / chmax / chmin on one node or edge. A value gets its bit the first
-   time it appears; C++ takes `distinctCap` (how many distinct values can ever appear: it sizes the bitsets, default
-   the ones in the input) and throws `length_error` past it, Python ints grow by themselves. A bit is never handed
-   back, so D counts every value that ever appeared. The site ranks the new cost factor `D/64` as 16 words.
+   (O(log n * D / 64)), get / assign / add / chmax / chmin on one node or edge, and PathAssign / SubtreeAssign (lazy:
+   a tree node's tag is the bit everything under it became; no path add, which would move every value to a new bit).
+   A value gets its bit the first time it appears; C++ takes `distinctCap` (how many distinct values can ever appear:
+   it sizes the bitsets, default the ones in the input) and throws `length_error` past it, Python ints grow by
+   themselves. A bit is never handed back, so D counts every value that ever appeared. The site ranks the new cost
+   factor `D/64` as 16 words. Measured in C++: 200,000 nodes, 1,000 distinct values, 100,000 mixed path assigns and
+   path counts in about 0.2 to 0.4 s.
 7. Still to do: longest equal run on a path; SubtreeAddByDepth; by-rank on a path with updates; the static path
    templates (prefix from the root, sparse table).
 

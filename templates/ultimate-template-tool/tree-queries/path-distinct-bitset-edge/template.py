@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/path-distinct-bitset-edge/template.py
-# @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgePathAllDistinct edgePathCountDistinct edgeSubtreeAllDistinct edgeSubtreeCountDistinct isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
+# @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgePathAllDistinct edgePathAssign edgePathCountDistinct edgeSubtreeAllDistinct edgeSubtreeAssign edgeSubtreeCountDistinct isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
 # @data-structure-type: bitset-seg-tree
 # @complexities:
 #   countAtDepthInSubtree: log(N)
@@ -9,10 +9,12 @@
 #   edgeAssign: log(N)*D/64
 #   edgeChmax: log(N)*D/64
 #   edgeChmin: log(N)*D/64
-#   edgeGet: 1
+#   edgeGet: log(N)
 #   edgePathAllDistinct: log^2(N)*D/64
+#   edgePathAssign: log^2(N)*D/64
 #   edgePathCountDistinct: log^2(N)*D/64
 #   edgeSubtreeAllDistinct: log(N)*D/64
+#   edgeSubtreeAssign: log(N)*D/64
 #   edgeSubtreeCountDistinct: log(N)*D/64
 #   isAncestor: 1
 #   isOnPath: log(N)
@@ -35,9 +37,9 @@
 # @memory:
 #   layout: none
 #   node: bits[2*N*D/64]
-#   tags: none
-#   other: val[1*N] par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
-#   note: D = how many distinct values the bitsets have room for (C++: distinctCap); a bitset is D / 64 words
+#   tags: tag[2*N]
+#   other: par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
+#   note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that ever appeared; a bitset is D / 64 words
 
 from bisect import bisect_left
 
@@ -65,7 +67,8 @@ from bisect import bisect_left
 # node, one bit per distinct weight under it. A path a..b is O(log n) chain pieces, each O(log n) tree nodes: their
 # bitsets ORed together have one bit per distinct value on the path. With D distinct values a bitset is D / 64 words, so
 # this is for up to a few thousand distinct values (memory is 2 * n * D / 8 bytes). A value gets its bit the first time
-# it appears, also later through an assign.
+# it appears, also later through an assign, and keeps it. An assign over a path or a subtree is kept at the O(log n)
+# tree nodes that cover each stretch and handed down only when something below one of them is needed.
 class Tree:
     # O(n * D / 64) -- builds the layout and the bitset tree; raises ValueError when the edges are not one tree on nodes
     # 0..n-1 or 1..n, or an edge has no weight
@@ -163,44 +166,92 @@ class Tree:
         for e in edges:
             if len(e) != 3:
                 raise ValueError(f"Tree: every edge needs its weight here, (a, b, w), got {e}")
-        val = [0] * (hi + 1)  # val[v]: the weight of the edge above v (the root has none)
+        above = [0] * (hi + 1)  # above[v]: the weight of the edge above v (the root has none)
         for e in edges:
-            val[e[0] if par[e[0]] == e[1] else e[1]] = e[2]
+            above[e[0] if par[e[0]] == e[1] else e[1]] = e[2]
 
         # bits: a segment tree over the positions (its leaves n .. 2n - 1), each node an int used as a bitset with one
         # bit per distinct value under it; a parent is the OR of its two children. ids: each value's bit, handed out as
-        # values first appear.
-        ids = {}
-        bits = [0] * (2 * n)
+        # values first appear; values[b]: the value whose bit is b. tag[i]: for a leaf, the bit of its value; for a node
+        # above, the bit every value under it was assigned and its children have not been told yet (-1: none).
+        ids, values = {}, []
+        bits, tag = [0] * (2 * n), [-1] * (2 * n)
         for i in range(1, n):
-            x = val[order[i]]
+            x = above[order[i]]
             b = ids.get(x)
             if b is None:
-                b = ids[x] = len(ids)
-            bits[n + i] = 1 << b
+                b = ids[x] = len(values)
+                values.append(x)
+            bits[n + i], tag[n + i] = 1 << b, b
         for i in range(n - 1, 0, -1):
             bits[i] = bits[2 * i] | bits[2 * i + 1]
-        self.val, self.ids, self.bits = val, ids, bits
+        self.ids, self.values, self.bits, self.tag = ids, values, bits, tag
 
-    # the value kept at node v becomes x
-    def _set(self, v, x):
-        ids, bits = self.ids, self.bits
-        b = ids.get(x)
+    # hands every assign waiting above leaf p down to the two children, top first
+    def _push(self, p):
+        bits, tag = self.bits, self.tag
+        for s in range(p.bit_length() - 1, 0, -1):
+            i = p >> s
+            b = tag[i]
+            if b >= 0:
+                bits[2 * i] = bits[2 * i + 1] = 1 << b
+                tag[2 * i] = tag[2 * i + 1] = b
+                tag[i] = -1
+
+    # recomputes the seg nodes above leaf p (one with an assign waiting is right as it is)
+    def _pull(self, p):
+        bits, tag = self.bits, self.tag
+        p >>= 1
+        while p:
+            if tag[p] < 0:
+                bits[p] = bits[2 * p] | bits[2 * p + 1]
+            p >>= 1
+
+    # the values at positions l..r all become x (nothing for an empty stretch, l > r)
+    def _assign(self, l, r, x):
+        if l > r:
+            return
+        b = self.ids.get(x)
         if b is None:
-            b = ids[x] = len(ids)
-        i = self.n + self.pos[v]
-        bits[i] = 1 << b
-        i >>= 1
-        while i:
-            bits[i] = bits[2 * i] | bits[2 * i + 1]
+            b = self.ids[x] = len(self.values)
+            self.values.append(x)
+        bits, tag = self.bits, self.tag
+        l += self.n
+        r += self.n
+        self._push(l)
+        self._push(r)
+        i, j = l, r + 1
+        while i < j:
+            if i & 1:
+                bits[i], tag[i] = 1 << b, b
+                i += 1
+            if j & 1:
+                j -= 1
+                bits[j], tag[j] = 1 << b, b
             i >>= 1
-        self.val[v] = x
+            j >>= 1
+        self._pull(l)
+        self._pull(r)
 
-    # the bitset of the values at positions l..r
+    # the bit of the value at position p: the topmost assign still waiting above its leaf, else the leaf's own
+    def _bitAt(self, p):
+        tag = self.tag
+        p += self.n
+        for s in range(p.bit_length() - 1, 0, -1):
+            if tag[p >> s] >= 0:
+                return tag[p >> s]
+        return tag[p]
+
+    # the bitset of the values at positions l..r (0 for an empty stretch, l > r)
     def _or(self, l, r):
+        if l > r:
+            return 0
         bits = self.bits
         l += self.n
-        r += self.n + 1
+        r += self.n
+        self._push(l)
+        self._push(r)
+        r += 1
         res = 0
         while l < r:
             if l & 1:
@@ -213,20 +264,27 @@ class Tree:
             r >>= 1
         return res
 
-    # the bitset of the edge weights on the path a..b: the OR over its chain pieces
-    def _pathBits(self, a, b):
+    # the path a..b as stretches of positions (l, r), one for each chain piece
+    def _pieces(self, a, b):
         head, par, dep, pos = self.head, self.par, self.dep, self.pos
-        res = 0
+        out = []
         while head[a] != head[b]:
             if dep[head[a]] < dep[head[b]]:
                 a, b = b, a
-            res |= self._or(pos[head[a]], pos[a])
+            out.append((pos[head[a]], pos[a]))
             a = par[head[a]]
         l, r = pos[a], pos[b]
         if l > r:
             l, r = r, l
         if l < r:  # (the lca's own position is the edge above it)
-            res |= self._or(l + 1, r)
+            out.append((l + 1, r))
+        return out
+
+    # the bitset of the edge weights on the path a..b
+    def _pathBits(self, a, b):
+        res = 0
+        for l, r in self._pieces(a, b):
+            res |= self._or(l, r)
         return res
 
     # the lower end of the edge a - b, the node its weight is kept under (a and b in either order)
@@ -239,32 +297,39 @@ class Tree:
             return b
         raise IndexError(f"{name}: needs an edge between a and b, got {a} and {b}")
 
-    # O(1) -- weight(a - b); a and b are the edge's two ends, in either order
+    # O(log n) -- weight(a - b); a and b are the edge's two ends, in either order
     def edgeGet(self, a, b):
-        v = self._edge("edgeGet", a, b)
-        return self.val[v]
+        p = self.pos[self._edge("edgeGet", a, b)]
+        return self.values[self._bitAt(p)]
 
     # O(log n * D/64) -- weight(a - b) = w; a and b are the edge's two ends, in either order
     def edgeAssign(self, a, b, w):
-        v = self._edge("edgeAssign", a, b)
-        self._set(v, w)
+        p = self.pos[self._edge("edgeAssign", a, b)]
+        self._assign(p, p, w)
 
     # O(log n * D/64) -- weight(a - b) += w; a and b are the edge's two ends, in either order
     def edgeAdd(self, a, b, w):
-        v = self._edge("edgeAdd", a, b)
-        self._set(v, self.val[v] + w)
+        p = self.pos[self._edge("edgeAdd", a, b)]
+        self._assign(p, p, self.values[self._bitAt(p)] + w)
 
     # O(log n * D/64) -- weight(a - b) = max(weight, w); a and b are the edge's two ends, in either order
     def edgeChmax(self, a, b, w):
-        v = self._edge("edgeChmax", a, b)
-        if w > self.val[v]:
-            self._set(v, w)
+        p = self.pos[self._edge("edgeChmax", a, b)]
+        if w > self.values[self._bitAt(p)]:
+            self._assign(p, p, w)
 
     # O(log n * D/64) -- weight(a - b) = min(weight, w); a and b are the edge's two ends, in either order
     def edgeChmin(self, a, b, w):
-        v = self._edge("edgeChmin", a, b)
-        if w < self.val[v]:
-            self._set(v, w)
+        p = self.pos[self._edge("edgeChmin", a, b)]
+        if w < self.values[self._bitAt(p)]:
+            self._assign(p, p, w)
+
+    # O(log^2 n * D/64) -- weight = w for every edge on the path a..b
+    def edgePathAssign(self, a, b, w):
+        if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
+            self._bad("edgePathAssign", a, b)
+        for l, r in self._pieces(a, b):
+            self._assign(l, r, w)
 
     # O(log^2 n * D/64) -- number of distinct edge weights on the path a..b; 0 when a == b (no edges)
     def edgePathCountDistinct(self, a, b):
@@ -277,6 +342,14 @@ class Tree:
         if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
             self._bad("edgePathAllDistinct", a, b)
         return bin(self._pathBits(a, b)).count("1") == self._dist(a, b)
+
+    # O(log n * D/64) -- weight = w for every edge in node's subtree
+    def edgeSubtreeAssign(self, node, w):
+        if not self.lo <= node <= self.hi:
+            self._bad("edgeSubtreeAssign", node)
+        l = self.pos[node]
+        # the edges below node: the positions after its own (none for a leaf: an empty stretch)
+        self._assign(l + 1, l + self.sz[node] - 1, w)
 
     # O(log n * D/64) -- number of distinct edge weights in node's subtree; 0 when node is a leaf (no edges)
     def edgeSubtreeCountDistinct(self, node):

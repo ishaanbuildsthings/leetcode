@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/path-distinct-bitset-node/template.py
-# @operations: countAtDepthInSubtree depth isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath nodeAdd nodeAssign nodeChmax nodeChmin nodeGet nodePathAllDistinct nodePathCountDistinct nodeSubtreeAllDistinct nodeSubtreeCountDistinct parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
+# @operations: countAtDepthInSubtree depth isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath nodeAdd nodeAssign nodeChmax nodeChmin nodeGet nodePathAllDistinct nodePathAssign nodePathCountDistinct nodeSubtreeAllDistinct nodeSubtreeAssign nodeSubtreeCountDistinct parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
 # @data-structure-type: bitset-seg-tree
 # @complexities:
 #   countAtDepthInSubtree: log(N)
@@ -17,10 +17,12 @@
 #   nodeAssign: log(N)*D/64
 #   nodeChmax: log(N)*D/64
 #   nodeChmin: log(N)*D/64
-#   nodeGet: 1
+#   nodeGet: log(N)
 #   nodePathAllDistinct: log^2(N)*D/64
+#   nodePathAssign: log^2(N)*D/64
 #   nodePathCountDistinct: log^2(N)*D/64
 #   nodeSubtreeAllDistinct: log(N)*D/64
+#   nodeSubtreeAssign: log(N)*D/64
 #   nodeSubtreeCountDistinct: log(N)*D/64
 #   parent: 1
 #   parentRootedAt: log(N)
@@ -35,9 +37,9 @@
 # @memory:
 #   layout: none
 #   node: bits[2*N*D/64]
-#   tags: none
-#   other: val[1*N] par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
-#   note: D = how many distinct values the bitsets have room for (C++: distinctCap); a bitset is D / 64 words
+#   tags: tag[2*N]
+#   other: par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
+#   note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that ever appeared; a bitset is D / 64 words
 
 from bisect import bisect_left
 
@@ -66,7 +68,8 @@ from bisect import bisect_left
 # node, one bit per distinct value under it. A path a..b is O(log n) chain pieces, each O(log n) tree nodes: their
 # bitsets ORed together have one bit per distinct value on the path. With D distinct values a bitset is D / 64 words, so
 # this is for up to a few thousand distinct values (memory is 2 * n * D / 8 bytes). A value gets its bit the first time
-# it appears, also later through an assign.
+# it appears, also later through an assign, and keeps it. An assign over a path or a subtree is kept at the O(log n)
+# tree nodes that cover each stretch and handed down only when something below one of them is needed.
 class Tree:
     # O(n * D / 64) -- builds the layout and the bitset tree; raises ValueError when the edges are not one tree on nodes
     # 0..n-1 or 1..n, or vals has the wrong length
@@ -164,42 +167,89 @@ class Tree:
         if len(vals) != hi + 1:
             raise ValueError(f"Tree: vals[node] is node's value, so nodes {lo}..{hi} need len(vals) = {hi + 1}"
                              f"{' (vals[0] is ignored)' if lo else ''}, got {len(vals)}")
-        val = list(vals)
 
         # bits: a segment tree over the positions (its leaves n .. 2n - 1), each node an int used as a bitset with one
         # bit per distinct value under it; a parent is the OR of its two children. ids: each value's bit, handed out as
-        # values first appear.
-        ids = {}
-        bits = [0] * (2 * n)
+        # values first appear; values[b]: the value whose bit is b. tag[i]: for a leaf, the bit of its value; for a node
+        # above, the bit every value under it was assigned and its children have not been told yet (-1: none).
+        ids, values = {}, []
+        bits, tag = [0] * (2 * n), [-1] * (2 * n)
         for i in range(0, n):
-            x = val[order[i]]
+            x = vals[order[i]]
             b = ids.get(x)
             if b is None:
-                b = ids[x] = len(ids)
-            bits[n + i] = 1 << b
+                b = ids[x] = len(values)
+                values.append(x)
+            bits[n + i], tag[n + i] = 1 << b, b
         for i in range(n - 1, 0, -1):
             bits[i] = bits[2 * i] | bits[2 * i + 1]
-        self.val, self.ids, self.bits = val, ids, bits
+        self.ids, self.values, self.bits, self.tag = ids, values, bits, tag
 
-    # the value kept at node v becomes x
-    def _set(self, v, x):
-        ids, bits = self.ids, self.bits
-        b = ids.get(x)
+    # hands every assign waiting above leaf p down to the two children, top first
+    def _push(self, p):
+        bits, tag = self.bits, self.tag
+        for s in range(p.bit_length() - 1, 0, -1):
+            i = p >> s
+            b = tag[i]
+            if b >= 0:
+                bits[2 * i] = bits[2 * i + 1] = 1 << b
+                tag[2 * i] = tag[2 * i + 1] = b
+                tag[i] = -1
+
+    # recomputes the seg nodes above leaf p (one with an assign waiting is right as it is)
+    def _pull(self, p):
+        bits, tag = self.bits, self.tag
+        p >>= 1
+        while p:
+            if tag[p] < 0:
+                bits[p] = bits[2 * p] | bits[2 * p + 1]
+            p >>= 1
+
+    # the values at positions l..r all become x (nothing for an empty stretch, l > r)
+    def _assign(self, l, r, x):
+        if l > r:
+            return
+        b = self.ids.get(x)
         if b is None:
-            b = ids[x] = len(ids)
-        i = self.n + self.pos[v]
-        bits[i] = 1 << b
-        i >>= 1
-        while i:
-            bits[i] = bits[2 * i] | bits[2 * i + 1]
+            b = self.ids[x] = len(self.values)
+            self.values.append(x)
+        bits, tag = self.bits, self.tag
+        l += self.n
+        r += self.n
+        self._push(l)
+        self._push(r)
+        i, j = l, r + 1
+        while i < j:
+            if i & 1:
+                bits[i], tag[i] = 1 << b, b
+                i += 1
+            if j & 1:
+                j -= 1
+                bits[j], tag[j] = 1 << b, b
             i >>= 1
-        self.val[v] = x
+            j >>= 1
+        self._pull(l)
+        self._pull(r)
 
-    # the bitset of the values at positions l..r
+    # the bit of the value at position p: the topmost assign still waiting above its leaf, else the leaf's own
+    def _bitAt(self, p):
+        tag = self.tag
+        p += self.n
+        for s in range(p.bit_length() - 1, 0, -1):
+            if tag[p >> s] >= 0:
+                return tag[p >> s]
+        return tag[p]
+
+    # the bitset of the values at positions l..r (0 for an empty stretch, l > r)
     def _or(self, l, r):
+        if l > r:
+            return 0
         bits = self.bits
         l += self.n
-        r += self.n + 1
+        r += self.n
+        self._push(l)
+        self._push(r)
+        r += 1
         res = 0
         while l < r:
             if l & 1:
@@ -212,56 +262,71 @@ class Tree:
             r >>= 1
         return res
 
-    # the bitset of the node values on the path a..b: the OR over its chain pieces
-    def _pathBits(self, a, b):
+    # the path a..b as stretches of positions (l, r), one for each chain piece
+    def _pieces(self, a, b):
         head, par, dep, pos = self.head, self.par, self.dep, self.pos
-        res = 0
+        out = []
         while head[a] != head[b]:
             if dep[head[a]] < dep[head[b]]:
                 a, b = b, a
-            res |= self._or(pos[head[a]], pos[a])
+            out.append((pos[head[a]], pos[a]))
             a = par[head[a]]
         l, r = pos[a], pos[b]
         if l > r:
             l, r = r, l
-        return res | self._or(l, r)
+        out.append((l, r))
+        return out
 
-    # O(1) -- val(node)
+    # the bitset of the node values on the path a..b
+    def _pathBits(self, a, b):
+        res = 0
+        for l, r in self._pieces(a, b):
+            res |= self._or(l, r)
+        return res
+
+    # O(log n) -- val(node)
     def nodeGet(self, node):
         if not self.lo <= node <= self.hi:
             self._bad("nodeGet", node)
-        v = node
-        return self.val[v]
+        p = self.pos[node]
+        return self.values[self._bitAt(p)]
 
     # O(log n * D/64) -- val(node) = x
     def nodeAssign(self, node, x):
         if not self.lo <= node <= self.hi:
             self._bad("nodeAssign", node)
-        v = node
-        self._set(v, x)
+        p = self.pos[node]
+        self._assign(p, p, x)
 
     # O(log n * D/64) -- val(node) += x
     def nodeAdd(self, node, x):
         if not self.lo <= node <= self.hi:
             self._bad("nodeAdd", node)
-        v = node
-        self._set(v, self.val[v] + x)
+        p = self.pos[node]
+        self._assign(p, p, self.values[self._bitAt(p)] + x)
 
     # O(log n * D/64) -- val(node) = max(val, x)
     def nodeChmax(self, node, x):
         if not self.lo <= node <= self.hi:
             self._bad("nodeChmax", node)
-        v = node
-        if x > self.val[v]:
-            self._set(v, x)
+        p = self.pos[node]
+        if x > self.values[self._bitAt(p)]:
+            self._assign(p, p, x)
 
     # O(log n * D/64) -- val(node) = min(val, x)
     def nodeChmin(self, node, x):
         if not self.lo <= node <= self.hi:
             self._bad("nodeChmin", node)
-        v = node
-        if x < self.val[v]:
-            self._set(v, x)
+        p = self.pos[node]
+        if x < self.values[self._bitAt(p)]:
+            self._assign(p, p, x)
+
+    # O(log^2 n * D/64) -- val = x for every node on the path a..b
+    def nodePathAssign(self, a, b, x):
+        if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
+            self._bad("nodePathAssign", a, b)
+        for l, r in self._pieces(a, b):
+            self._assign(l, r, x)
 
     # O(log^2 n * D/64) -- number of distinct node values on the path a..b
     def nodePathCountDistinct(self, a, b):
@@ -274,6 +339,13 @@ class Tree:
         if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
             self._bad("nodePathAllDistinct", a, b)
         return bin(self._pathBits(a, b)).count("1") == self._dist(a, b) + 1
+
+    # O(log n * D/64) -- val = x for every node in node's subtree
+    def nodeSubtreeAssign(self, node, x):
+        if not self.lo <= node <= self.hi:
+            self._bad("nodeSubtreeAssign", node)
+        l = self.pos[node]
+        self._assign(l, l + self.sz[node] - 1, x)
 
     # O(log n * D/64) -- number of distinct node values in node's subtree
     def nodeSubtreeCountDistinct(self, node):

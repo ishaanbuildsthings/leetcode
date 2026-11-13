@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/path-distinct-bitset-node/template.cpp
-// @operations: countAtDepthInSubtree depth isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath nodeAdd nodeAssign nodeChmax nodeChmin nodeGet nodePathAllDistinct nodePathCountDistinct nodeSubtreeAllDistinct nodeSubtreeCountDistinct parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
+// @operations: countAtDepthInSubtree depth isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath nodeAdd nodeAssign nodeChmax nodeChmin nodeGet nodePathAllDistinct nodePathAssign nodePathCountDistinct nodeSubtreeAllDistinct nodeSubtreeAssign nodeSubtreeCountDistinct parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
 // @data-structure-type: bitset-seg-tree
 // @complexities:
 //   countAtDepthInSubtree: log(N)
@@ -17,10 +17,12 @@
 //   nodeAssign: log(N)*D/64
 //   nodeChmax: log(N)*D/64
 //   nodeChmin: log(N)*D/64
-//   nodeGet: 1
+//   nodeGet: log(N)
 //   nodePathAllDistinct: log^2(N)*D/64
+//   nodePathAssign: log^2(N)*D/64
 //   nodePathCountDistinct: log^2(N)*D/64
 //   nodeSubtreeAllDistinct: log(N)*D/64
+//   nodeSubtreeAssign: log(N)*D/64
 //   nodeSubtreeCountDistinct: log(N)*D/64
 //   parent: 1
 //   parentRootedAt: log(N)
@@ -35,9 +37,9 @@
 // @memory:
 //   layout: none
 //   node: bits[2*N*D/64]
-//   tags: none
-//   other: val[1*N] par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
-//   note: D = how many distinct values the bitsets have room for (C++: distinctCap); a bitset is D / 64 words
+//   tags: tag[2*N]
+//   other: par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
+//   note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that ever appeared; a bitset is D / 64 words
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -101,7 +103,8 @@ struct HotVector : vector<U> {
 // node, one bit per distinct value under it. A path a..b is O(log n) chain pieces, each O(log n) tree nodes: their
 // bitsets ORed together have one bit per distinct value on the path. With D distinct values a bitset is D / 64 words,
 // so this is for up to a few thousand distinct values (memory is 2 * n * D / 8 bytes). A value gets its bit the first
-// time it appears, also later through an assign.
+// time it appears, also later through an assign, and keeps it. An assign over a path or a subtree is kept at the O(log
+// n) tree nodes that cover each stretch and handed down only when something below one of them is needed.
 template <typename T>
 struct Tree {
     int n, lo, hi, root;  // nodes are lo..hi
@@ -110,13 +113,16 @@ struct Tree {
     HotVector<int> order;  // order[pos[v]] = v
     // depthPos[depthStart[d] .. depthStart[d + 1]) = the positions of the nodes at depth d, increasing
     HotVector<int> depthStart, depthPos;
-    HotVector<T> val;  // the node values
     unordered_map<T, int> ids;  // each value's bit, handed out as values first appear
+    HotVector<T> values;  // values[b]: the value whose bit is b
     int cap, words;  // how many distinct values the bitsets have room for; how many 64-bit words that is
     // bits: a segment tree over the positions (its leaves n .. 2n - 1), `words` words a node: a bitset with one bit per
     // distinct value under the node; a parent is the OR of its two children
     HotVector<unsigned long long> bits;
-    mutable HotVector<unsigned long long> acc;  // the bitset a query ORs its nodes into
+    // tag[i]: for a leaf, the bit of its value; for a node above, the bit every value under it was assigned and its
+    // children have not been told yet (-1: none)
+    HotVector<int> tag;
+    HotVector<unsigned long long> acc;  // the bitset a query ORs its nodes into
 
     // O(n * D / 64) -- builds the layout and the bitset tree; throws invalid_argument when the edges are not one tree
     // on nodes 0..n-1 or 1..n, vals has the wrong length, or the values hold more than distinctCap distinct ones
@@ -208,18 +214,16 @@ struct Tree {
         if ((int)vals.size() != hi + 1)
             throw invalid_argument("Tree: vals[node] is node's value, so nodes " + nodes + " need vals.size() = " +
                                    to_string(hi + 1) + ", got " + to_string(vals.size()));
-        val.assign(vals.begin(), vals.end());
-        for (int i = 0; i < n; i++) ids.emplace(val[order[i]], (int)ids.size());
+        for (int i = 0; i < n; i++) ids.emplace(vals[order[i]], (int)ids.size());
         cap = distinctCap > 0 ? distinctCap : max(1, (int)ids.size());
         if ((int)ids.size() > cap)
             throw invalid_argument("Tree: the values hold " + to_string(ids.size()) +
                                    " distinct ones, more than distinctCap = " + to_string(cap));
         words = (cap + 63) / 64;
-        bits.assign((size_t)2 * n * words, 0), acc.assign(words, 0);
-        for (int i = 0; i < n; i++) {
-            int b = ids[val[order[i]]];
-            bits[(size_t)(n + i) * words + (b >> 6)] |= 1ULL << (b & 63);
-        }
+        values.assign(cap, T());
+        for (const auto& kept : ids) values[kept.second] = kept.first;
+        bits.assign((size_t)2 * n * words, 0), tag.assign(2 * n, -1), acc.assign(words, 0);
+        for (int i = 0; i < n; i++) apply(n + i, ids[vals[order[i]]]);
         for (int i = n - 1; i > 0; i--) pull(i);
     }
 
@@ -227,6 +231,31 @@ struct Tree {
     LEETCODE_NO_SANITIZE void pull(int i) {
         unsigned long long *p = &bits[(size_t)i * words], *l = &bits[(size_t)2 * i * words], *r = l + words;
         for (int w = 0; w < words; w++) p[w] = l[w] | r[w];
+    }
+
+    // every value under seg node i becomes the one with bit b
+    LEETCODE_NO_SANITIZE void apply(int i, int b) {
+        unsigned long long* p = &bits[(size_t)i * words];
+        for (int w = 0; w < words; w++) p[w] = 0;
+        p[b >> 6] = 1ULL << (b & 63);
+        tag[i] = b;
+    }
+
+    // hands every assign waiting above leaf p down to the two children, top first
+    LEETCODE_NO_SANITIZE void push(int p) {
+        for (int s = 31 - __builtin_clz(p); s > 0; s--) {
+            int i = p >> s, b = tag[i];
+            if (b >= 0) {
+                apply(2 * i, b), apply(2 * i + 1, b);
+                tag[i] = -1;
+            }
+        }
+    }
+
+    // recomputes the seg nodes above leaf p (one with an assign waiting is right as it is)
+    LEETCODE_NO_SANITIZE void pullAbove(int p) {
+        for (p >>= 1; p > 0; p >>= 1)
+            if (tag[p] < 0) pull(p);
     }
 
     // the bit of value x: a new one the first time x appears (throws length_error once distinctCap values have one)
@@ -238,24 +267,38 @@ struct Tree {
                                " distinct values (pass a bigger distinctCap)");
         int b = (int)ids.size();
         ids.emplace(x, b);
+        values[b] = x;
         return b;
     }
 
-    // the value kept at node v becomes x
-    void setValue(int v, T x) {
+    // the values at positions l..r all become x (nothing for an empty stretch, l > r)
+    void assignRange(int l, int r, T x) {
+        if (l > r) return;
         int b = idOf(x);
-        int i = n + pos[v];
-        unsigned long long* p = &bits[(size_t)i * words];
-        for (int w = 0; w < words; w++) p[w] = 0;
-        p[b >> 6] = 1ULL << (b & 63);
-        for (i >>= 1; i > 0; i >>= 1) pull(i);
-        val[v] = x;
+        l += n, r += n;
+        push(l), push(r);
+        for (int i = l, j = r + 1; i < j; i >>= 1, j >>= 1) {
+            if (i & 1) apply(i++, b);
+            if (j & 1) apply(--j, b);
+        }
+        pullAbove(l), pullAbove(r);
     }
 
-    // ORs the bitsets of the values at positions l..r into acc
-    LEETCODE_NO_SANITIZE void orInto(int l, int r) const {
+    // the bit of the value at position p: the topmost assign still waiting above its leaf, else the leaf's own
+    LEETCODE_NO_SANITIZE int bitAt(int p) const {
+        p += n;
+        for (int s = 31 - __builtin_clz(p); s > 0; s--)
+            if (tag[p >> s] >= 0) return tag[p >> s];
+        return tag[p];
+    }
+
+    // ORs the bitsets of the values at positions l..r into acc (nothing for an empty stretch, l > r)
+    LEETCODE_NO_SANITIZE void orInto(int l, int r) {
+        if (l > r) return;
+        l += n, r += n;
+        push(l), push(r);
         unsigned long long* out = &acc[0];
-        for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
+        for (r++; l < r; l >>= 1, r >>= 1) {
             if (l & 1) {
                 const unsigned long long* p = &bits[(size_t)l++ * words];
                 for (int w = 0; w < words; w++) out[w] |= p[w];
@@ -268,20 +311,21 @@ struct Tree {
     }
 
     // how many bits acc has set, emptying it for the next query
-    LEETCODE_NO_SANITIZE int takeCount() const {
+    LEETCODE_NO_SANITIZE int takeCount() {
         int count = 0;
         for (int w = 0; w < words; w++) count += __builtin_popcountll(acc[w]), acc[w] = 0;
         return count;
     }
 
-    // how many distinct node values are on the path a..b: the OR over its chain pieces
-    LEETCODE_NO_SANITIZE int pathCount(int a, int b) const {
+    // the path a..b as stretches of positions ls[i]..rs[i], one for each chain piece; returns how many there are
+    LEETCODE_NO_SANITIZE int pieces(int a, int b, int* ls, int* rs) const {
+        int m = 0;
         while (head[a] != head[b]) {
             if (dep[head[a]] < dep[head[b]]) {
                 int t = a;
                 a = b, b = t;
             }
-            orInto(pos[head[a]], pos[a]);
+            ls[m] = pos[head[a]], rs[m++] = pos[a];
             a = par[head[a]];
         }
         int l = pos[a], r = pos[b];
@@ -289,66 +333,86 @@ struct Tree {
             int t = l;
             l = r, r = t;
         }
-        orInto(l, r);
+        ls[m] = l, rs[m++] = r;
+        return m;
+    }
+
+    // how many distinct node values are on the path a..b
+    LEETCODE_NO_SANITIZE int pathCount(int a, int b) {
+        int ls[64], rs[64], m = pieces(a, b, ls, rs);
+        for (int i = 0; i < m; i++) orInto(ls[i], rs[i]);
         return takeCount();
     }
 
-    // O(1) -- val(node)
+    // O(log n) -- val(node)
     LEETCODE_NO_SANITIZE T nodeGet(int node) const {
         if (node < lo || node > hi) bad("nodeGet");
-        int v = node;
-        return val[v];
+        int p = pos[node];
+        return values[bitAt(p)];
     }
 
     // O(log n * D/64) -- val(node) = x
     void nodeAssign(int node, T x) {
         if (node < lo || node > hi) bad("nodeAssign");
-        int v = node;
-        setValue(v, x);
+        int p = pos[node];
+        assignRange(p, p, x);
     }
 
     // O(log n * D/64) -- val(node) += x
     void nodeAdd(int node, T x) {
         if (node < lo || node > hi) bad("nodeAdd");
-        int v = node;
-        setValue(v, val[v] + x);
+        int p = pos[node];
+        assignRange(p, p, values[bitAt(p)] + x);
     }
 
     // O(log n * D/64) -- val(node) = max(val, x)
     void nodeChmax(int node, T x) {
         if (node < lo || node > hi) bad("nodeChmax");
-        int v = node;
-        if (x > val[v]) setValue(v, x);
+        int p = pos[node];
+        if (x > values[bitAt(p)]) assignRange(p, p, x);
     }
 
     // O(log n * D/64) -- val(node) = min(val, x)
     void nodeChmin(int node, T x) {
         if (node < lo || node > hi) bad("nodeChmin");
-        int v = node;
-        if (x < val[v]) setValue(v, x);
+        int p = pos[node];
+        if (x < values[bitAt(p)]) assignRange(p, p, x);
+    }
+
+    // O(log^2 n * D/64) -- val = x for every node on the path a..b
+    void nodePathAssign(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathAssign");
+        int ls[64], rs[64], m = pieces(a, b, ls, rs);
+        for (int i = 0; i < m; i++) assignRange(ls[i], rs[i], x);
     }
 
     // O(log^2 n * D/64) -- number of distinct node values on the path a..b
-    LEETCODE_NO_SANITIZE int nodePathCountDistinct(int a, int b) const {
+    LEETCODE_NO_SANITIZE int nodePathCountDistinct(int a, int b) {
         if (a < lo || a > hi || b < lo || b > hi) bad("nodePathCountDistinct");
         return pathCount(a, b);
     }
 
     // O(log^2 n * D/64) -- are all the node values on the path a..b distinct?
-    LEETCODE_NO_SANITIZE bool nodePathAllDistinct(int a, int b) const {
+    LEETCODE_NO_SANITIZE bool nodePathAllDistinct(int a, int b) {
         if (a < lo || a > hi || b < lo || b > hi) bad("nodePathAllDistinct");
         return pathCount(a, b) == distOf(a, b) + 1;
     }
 
+    // O(log n * D/64) -- val = x for every node in node's subtree
+    void nodeSubtreeAssign(int node, T x) {
+        if (node < lo || node > hi) bad("nodeSubtreeAssign");
+        assignRange(pos[node], pos[node] + sz[node] - 1, x);
+    }
+
     // O(log n * D/64) -- number of distinct node values in node's subtree
-    LEETCODE_NO_SANITIZE int nodeSubtreeCountDistinct(int node) const {
+    LEETCODE_NO_SANITIZE int nodeSubtreeCountDistinct(int node) {
         if (node < lo || node > hi) bad("nodeSubtreeCountDistinct");
         orInto(pos[node], pos[node] + sz[node] - 1);
         return takeCount();
     }
 
     // O(log n * D/64) -- are all the node values in node's subtree distinct?
-    LEETCODE_NO_SANITIZE bool nodeSubtreeAllDistinct(int node) const {
+    LEETCODE_NO_SANITIZE bool nodeSubtreeAllDistinct(int node) {
         if (node < lo || node > hi) bad("nodeSubtreeAllDistinct");
         orInto(pos[node], pos[node] + sz[node] - 1);
         int many = takeCount();

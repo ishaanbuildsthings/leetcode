@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/path-distinct-bitset-edge/template.cpp
-// @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgePathAllDistinct edgePathCountDistinct edgeSubtreeAllDistinct edgeSubtreeCountDistinct isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
+// @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgePathAllDistinct edgePathAssign edgePathCountDistinct edgeSubtreeAllDistinct edgeSubtreeAssign edgeSubtreeCountDistinct isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
 // @data-structure-type: bitset-seg-tree
 // @complexities:
 //   countAtDepthInSubtree: log(N)
@@ -9,10 +9,12 @@
 //   edgeAssign: log(N)*D/64
 //   edgeChmax: log(N)*D/64
 //   edgeChmin: log(N)*D/64
-//   edgeGet: 1
+//   edgeGet: log(N)
 //   edgePathAllDistinct: log^2(N)*D/64
+//   edgePathAssign: log^2(N)*D/64
 //   edgePathCountDistinct: log^2(N)*D/64
 //   edgeSubtreeAllDistinct: log(N)*D/64
+//   edgeSubtreeAssign: log(N)*D/64
 //   edgeSubtreeCountDistinct: log(N)*D/64
 //   isAncestor: 1
 //   isOnPath: log(N)
@@ -35,9 +37,9 @@
 // @memory:
 //   layout: none
 //   node: bits[2*N*D/64]
-//   tags: none
-//   other: val[1*N] par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
-//   note: D = how many distinct values the bitsets have room for (C++: distinctCap); a bitset is D / 64 words
+//   tags: tag[2*N]
+//   other: par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
+//   note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that ever appeared; a bitset is D / 64 words
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -101,7 +103,8 @@ struct HotVector : vector<U> {
 // node, one bit per distinct weight under it. A path a..b is O(log n) chain pieces, each O(log n) tree nodes: their
 // bitsets ORed together have one bit per distinct value on the path. With D distinct values a bitset is D / 64 words,
 // so this is for up to a few thousand distinct values (memory is 2 * n * D / 8 bytes). A value gets its bit the first
-// time it appears, also later through an assign.
+// time it appears, also later through an assign, and keeps it. An assign over a path or a subtree is kept at the O(log
+// n) tree nodes that cover each stretch and handed down only when something below one of them is needed.
 template <typename T>
 struct Tree {
     int n, lo, hi, root;  // nodes are lo..hi
@@ -110,13 +113,16 @@ struct Tree {
     HotVector<int> order;  // order[pos[v]] = v
     // depthPos[depthStart[d] .. depthStart[d + 1]) = the positions of the nodes at depth d, increasing
     HotVector<int> depthStart, depthPos;
-    HotVector<T> val;  // val[v]: the weight of the edge above v (the root has none)
     unordered_map<T, int> ids;  // each value's bit, handed out as values first appear
+    HotVector<T> values;  // values[b]: the value whose bit is b
     int cap, words;  // how many distinct values the bitsets have room for; how many 64-bit words that is
     // bits: a segment tree over the positions (its leaves n .. 2n - 1), `words` words a node: a bitset with one bit per
     // distinct value under the node; a parent is the OR of its two children
     HotVector<unsigned long long> bits;
-    mutable HotVector<unsigned long long> acc;  // the bitset a query ORs its nodes into
+    // tag[i]: for a leaf, the bit of its value; for a node above, the bit every value under it was assigned and its
+    // children have not been told yet (-1: none)
+    HotVector<int> tag;
+    HotVector<unsigned long long> acc;  // the bitset a query ORs its nodes into
 
     // O(n * D / 64) -- builds the layout and the bitset tree; throws invalid_argument when the edges are not one tree
     // on nodes 0..n-1 or 1..n, an edge has no weight, or the values hold more than distinctCap distinct ones
@@ -205,22 +211,21 @@ struct Tree {
         for (int i = 0; i < n; i++) depthPos[slot[dep[order[i]]]++] = i;
         for (const auto& e : edges)
             if (e.size() != 3) throw invalid_argument("Tree: every edge needs its weight here, {a, b, w}");
-        val.assign(hi + 1, T(0));
+        vector<T> above(hi + 1, T(0));  // above[v]: the weight of the edge above v (the root has none)
         for (const auto& e : edges) {
             int a = (int)e[0], b = (int)e[1];
-            val[par[a] == b ? a : b] = (T)e[2];
+            above[par[a] == b ? a : b] = (T)e[2];
         }
-        for (int i = 1; i < n; i++) ids.emplace(val[order[i]], (int)ids.size());
+        for (int i = 1; i < n; i++) ids.emplace(above[order[i]], (int)ids.size());
         cap = distinctCap > 0 ? distinctCap : max(1, (int)ids.size());
         if ((int)ids.size() > cap)
             throw invalid_argument("Tree: the values hold " + to_string(ids.size()) +
                                    " distinct ones, more than distinctCap = " + to_string(cap));
         words = (cap + 63) / 64;
-        bits.assign((size_t)2 * n * words, 0), acc.assign(words, 0);
-        for (int i = 1; i < n; i++) {
-            int b = ids[val[order[i]]];
-            bits[(size_t)(n + i) * words + (b >> 6)] |= 1ULL << (b & 63);
-        }
+        values.assign(cap, T());
+        for (const auto& kept : ids) values[kept.second] = kept.first;
+        bits.assign((size_t)2 * n * words, 0), tag.assign(2 * n, -1), acc.assign(words, 0);
+        for (int i = 1; i < n; i++) apply(n + i, ids[above[order[i]]]);
         for (int i = n - 1; i > 0; i--) pull(i);
     }
 
@@ -228,6 +233,31 @@ struct Tree {
     LEETCODE_NO_SANITIZE void pull(int i) {
         unsigned long long *p = &bits[(size_t)i * words], *l = &bits[(size_t)2 * i * words], *r = l + words;
         for (int w = 0; w < words; w++) p[w] = l[w] | r[w];
+    }
+
+    // every value under seg node i becomes the one with bit b
+    LEETCODE_NO_SANITIZE void apply(int i, int b) {
+        unsigned long long* p = &bits[(size_t)i * words];
+        for (int w = 0; w < words; w++) p[w] = 0;
+        p[b >> 6] = 1ULL << (b & 63);
+        tag[i] = b;
+    }
+
+    // hands every assign waiting above leaf p down to the two children, top first
+    LEETCODE_NO_SANITIZE void push(int p) {
+        for (int s = 31 - __builtin_clz(p); s > 0; s--) {
+            int i = p >> s, b = tag[i];
+            if (b >= 0) {
+                apply(2 * i, b), apply(2 * i + 1, b);
+                tag[i] = -1;
+            }
+        }
+    }
+
+    // recomputes the seg nodes above leaf p (one with an assign waiting is right as it is)
+    LEETCODE_NO_SANITIZE void pullAbove(int p) {
+        for (p >>= 1; p > 0; p >>= 1)
+            if (tag[p] < 0) pull(p);
     }
 
     // the bit of value x: a new one the first time x appears (throws length_error once distinctCap values have one)
@@ -239,24 +269,38 @@ struct Tree {
                                " distinct values (pass a bigger distinctCap)");
         int b = (int)ids.size();
         ids.emplace(x, b);
+        values[b] = x;
         return b;
     }
 
-    // the value kept at node v becomes x
-    void setValue(int v, T x) {
+    // the values at positions l..r all become x (nothing for an empty stretch, l > r)
+    void assignRange(int l, int r, T x) {
+        if (l > r) return;
         int b = idOf(x);
-        int i = n + pos[v];
-        unsigned long long* p = &bits[(size_t)i * words];
-        for (int w = 0; w < words; w++) p[w] = 0;
-        p[b >> 6] = 1ULL << (b & 63);
-        for (i >>= 1; i > 0; i >>= 1) pull(i);
-        val[v] = x;
+        l += n, r += n;
+        push(l), push(r);
+        for (int i = l, j = r + 1; i < j; i >>= 1, j >>= 1) {
+            if (i & 1) apply(i++, b);
+            if (j & 1) apply(--j, b);
+        }
+        pullAbove(l), pullAbove(r);
     }
 
-    // ORs the bitsets of the values at positions l..r into acc
-    LEETCODE_NO_SANITIZE void orInto(int l, int r) const {
+    // the bit of the value at position p: the topmost assign still waiting above its leaf, else the leaf's own
+    LEETCODE_NO_SANITIZE int bitAt(int p) const {
+        p += n;
+        for (int s = 31 - __builtin_clz(p); s > 0; s--)
+            if (tag[p >> s] >= 0) return tag[p >> s];
+        return tag[p];
+    }
+
+    // ORs the bitsets of the values at positions l..r into acc (nothing for an empty stretch, l > r)
+    LEETCODE_NO_SANITIZE void orInto(int l, int r) {
+        if (l > r) return;
+        l += n, r += n;
+        push(l), push(r);
         unsigned long long* out = &acc[0];
-        for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
+        for (r++; l < r; l >>= 1, r >>= 1) {
             if (l & 1) {
                 const unsigned long long* p = &bits[(size_t)l++ * words];
                 for (int w = 0; w < words; w++) out[w] |= p[w];
@@ -269,20 +313,21 @@ struct Tree {
     }
 
     // how many bits acc has set, emptying it for the next query
-    LEETCODE_NO_SANITIZE int takeCount() const {
+    LEETCODE_NO_SANITIZE int takeCount() {
         int count = 0;
         for (int w = 0; w < words; w++) count += __builtin_popcountll(acc[w]), acc[w] = 0;
         return count;
     }
 
-    // how many distinct edge weights are on the path a..b: the OR over its chain pieces
-    LEETCODE_NO_SANITIZE int pathCount(int a, int b) const {
+    // the path a..b as stretches of positions ls[i]..rs[i], one for each chain piece; returns how many there are
+    LEETCODE_NO_SANITIZE int pieces(int a, int b, int* ls, int* rs) const {
+        int m = 0;
         while (head[a] != head[b]) {
             if (dep[head[a]] < dep[head[b]]) {
                 int t = a;
                 a = b, b = t;
             }
-            orInto(pos[head[a]], pos[a]);
+            ls[m] = pos[head[a]], rs[m++] = pos[a];
             a = par[head[a]];
         }
         int l = pos[a], r = pos[b];
@@ -290,7 +335,14 @@ struct Tree {
             int t = l;
             l = r, r = t;
         }
-        if (l < r) orInto(l + 1, r);  // (the lca's own position is the edge above it)
+        if (l < r) ls[m] = l + 1, rs[m++] = r;  // (the lca's own position is the edge above it)
+        return m;
+    }
+
+    // how many distinct edge weights are on the path a..b
+    LEETCODE_NO_SANITIZE int pathCount(int a, int b) {
+        int ls[64], rs[64], m = pieces(a, b, ls, rs);
+        for (int i = 0; i < m; i++) orInto(ls[i], rs[i]);
         return takeCount();
     }
 
@@ -302,50 +354,64 @@ struct Tree {
         throw out_of_range(string(name) + ": needs an edge between a and b");
     }
 
-    // O(1) -- weight(a - b); a and b are the edge's two ends, in either order
+    // O(log n) -- weight(a - b); a and b are the edge's two ends, in either order
     LEETCODE_NO_SANITIZE T edgeGet(int a, int b) const {
-        int v = edgeAt("edgeGet", a, b);
-        return val[v];
+        int p = pos[edgeAt("edgeGet", a, b)];
+        return values[bitAt(p)];
     }
 
     // O(log n * D/64) -- weight(a - b) = w; a and b are the edge's two ends, in either order
     void edgeAssign(int a, int b, T w) {
-        int v = edgeAt("edgeAssign", a, b);
-        setValue(v, w);
+        int p = pos[edgeAt("edgeAssign", a, b)];
+        assignRange(p, p, w);
     }
 
     // O(log n * D/64) -- weight(a - b) += w; a and b are the edge's two ends, in either order
     void edgeAdd(int a, int b, T w) {
-        int v = edgeAt("edgeAdd", a, b);
-        setValue(v, val[v] + w);
+        int p = pos[edgeAt("edgeAdd", a, b)];
+        assignRange(p, p, values[bitAt(p)] + w);
     }
 
     // O(log n * D/64) -- weight(a - b) = max(weight, w); a and b are the edge's two ends, in either order
     void edgeChmax(int a, int b, T w) {
-        int v = edgeAt("edgeChmax", a, b);
-        if (w > val[v]) setValue(v, w);
+        int p = pos[edgeAt("edgeChmax", a, b)];
+        if (w > values[bitAt(p)]) assignRange(p, p, w);
     }
 
     // O(log n * D/64) -- weight(a - b) = min(weight, w); a and b are the edge's two ends, in either order
     void edgeChmin(int a, int b, T w) {
-        int v = edgeAt("edgeChmin", a, b);
-        if (w < val[v]) setValue(v, w);
+        int p = pos[edgeAt("edgeChmin", a, b)];
+        if (w < values[bitAt(p)]) assignRange(p, p, w);
+    }
+
+    // O(log^2 n * D/64) -- weight = w for every edge on the path a..b
+    void edgePathAssign(int a, int b, T w) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathAssign");
+        int ls[64], rs[64], m = pieces(a, b, ls, rs);
+        for (int i = 0; i < m; i++) assignRange(ls[i], rs[i], w);
     }
 
     // O(log^2 n * D/64) -- number of distinct edge weights on the path a..b; 0 when a == b (no edges)
-    LEETCODE_NO_SANITIZE int edgePathCountDistinct(int a, int b) const {
+    LEETCODE_NO_SANITIZE int edgePathCountDistinct(int a, int b) {
         if (a < lo || a > hi || b < lo || b > hi) bad("edgePathCountDistinct");
         return pathCount(a, b);
     }
 
     // O(log^2 n * D/64) -- are all the edge weights on the path a..b distinct?; True when a == b (no edges)
-    LEETCODE_NO_SANITIZE bool edgePathAllDistinct(int a, int b) const {
+    LEETCODE_NO_SANITIZE bool edgePathAllDistinct(int a, int b) {
         if (a < lo || a > hi || b < lo || b > hi) bad("edgePathAllDistinct");
         return pathCount(a, b) == distOf(a, b);
     }
 
+    // O(log n * D/64) -- weight = w for every edge in node's subtree
+    void edgeSubtreeAssign(int node, T w) {
+        if (node < lo || node > hi) bad("edgeSubtreeAssign");
+        // the edges below node: the positions after its own (none for a leaf: an empty stretch)
+        assignRange(pos[node] + 1, pos[node] + sz[node] - 1, w);
+    }
+
     // O(log n * D/64) -- number of distinct edge weights in node's subtree; 0 when node is a leaf (no edges)
-    LEETCODE_NO_SANITIZE int edgeSubtreeCountDistinct(int node) const {
+    LEETCODE_NO_SANITIZE int edgeSubtreeCountDistinct(int node) {
         if (node < lo || node > hi) bad("edgeSubtreeCountDistinct");
         // the edges below node: the positions after its own (none for a leaf: an empty stretch)
         orInto(pos[node] + 1, pos[node] + sz[node] - 1);
@@ -353,7 +419,7 @@ struct Tree {
     }
 
     // O(log n * D/64) -- are all the edge weights in node's subtree distinct?; True when node is a leaf (no edges)
-    LEETCODE_NO_SANITIZE bool edgeSubtreeAllDistinct(int node) const {
+    LEETCODE_NO_SANITIZE bool edgeSubtreeAllDistinct(int node) {
         if (node < lo || node > hi) bad("edgeSubtreeAllDistinct");
         // the edges below node: the positions after its own (none for a leaf: an empty stretch)
         orInto(pos[node] + 1, pos[node] + sz[node] - 1);
