@@ -1,4 +1,4 @@
-"""Tests the tree templates that hold values (tree-queries/node-* and edge-*) against a brute force.
+"""Tests the tree templates that hold values (tree-queries/node-*, edge-* and both-*) against a brute force.
 
 The brute force is a plain tree: a value per node, every path walked node by node through parent pointers, every
 subtree listed. What an op means on a list of values comes from the range-query tests (range-query-tests/
@@ -17,6 +17,7 @@ shapes, a few shape ops per script, and calls with a node that is not in the tre
     python3 test_tree.py rangeAdd beats  # folders whose name contains one of these
     python3 test_tree.py --shard 3/8     # every 8th folder from the 3rd (run 8 side by side)
     python3 test_tree.py --trials 60     # more random trees per folder (default 24)
+    python3 test_tree.py --from f.txt    # exactly the folders listed in f.txt (one per line)
 """
 import hashlib
 import os
@@ -148,7 +149,7 @@ def make_trials(folder, ops, range_folder, trials):
     range_ops = RT.parse_ops(os.path.join(RT.DIR, range_folder, "template.py"), "#")
     gen, delta, extra, ctx = RT.domain(range_folder, range_ops)
     value_ops = [op for op in ops if op in TABLE]
-    edge = folder.startswith("edge-")
+    weights, node_vals = not folder.startswith("node-"), not folder.startswith("edge-")  # (both- has the two)
     updates = [op for op in value_ops if TABLE[op][1] == "update"]
     queries = [op for op in value_ops if TABLE[op][1] != "update"]
     wide = [op for op in updates if TABLE[op][0] != "one"]  # (path / subtree updates: their tags interact the most)
@@ -157,26 +158,55 @@ def make_trials(folder, ops, range_folder, trials):
     # differ). So where nothing else needs values >= 0, every other trial uses signed values and skips those searches.
     signed_ok = "leftmostPrefixSumGteX" in range_ops and not (set(range_ops) & KEEPS_NONNEG)
     base_gen, base_queries = gen, queries
-    out = []
-    for t in range(trials):
+    called = set()  # the value ops that got a real call (not only one that must raise)
+
+    def build(t, force=()):
+        """Trial t: a random tree and script. force: ops to call once more each, on a 20-node tree (see below)."""
         rng = random.Random(int(hashlib.md5(f"{folder}/{t}".encode()).hexdigest()[:8], 16))
         gen, queries = base_gen, base_queries
         if signed_ok and t % 2:
             gen = lambda r: r.randint(-6, 6)  # noqa: E731
             queries = [op for op in base_queries if TABLE[op][2] not in NONNEG_SEARCHES]
-        n = rng.choice((1, 2, 3, 5, 8, 13, 20, 30, 45, 60))
+        n = 20 if force else rng.choice((1, 2, 3, 5, 8, 13, 20, 30, 45, 60))
         edges, root, lo = TS.make_tree(n, rng.choice(TS.SHAPES), rng)
         hi = lo + n - 1
-        if edge:  # the weights are the values
-            edges, vals = [[e[0], e[1], gen(rng)] for e in edges], None
-        else:
-            vals = [gen(rng) for _ in range(hi + 1)]
-        sim = Sim(edges, root, vals, ctx, edge)
+        if weights:  # an edge / both template: every edge carries its weight
+            edges = [[e[0], e[1], gen(rng)] for e in edges]
+        vals = [gen(rng) for _ in range(hi + 1)] if node_vals else None
+        sim = Sim(edges, root, vals, ctx)
         ref = sim.ref
         # (a path between two leaves crosses the most chains: half the path ops get one)
         leaves = [v for v in ref.nodes if len(ref.below[v]) == 1]
         seq = []
-        for _ in range(OPS_PER_TRIAL):
+
+        def call(op):
+            """One call of a value op with random arguments, as (op, args), or ("!" + op, args) when it must raise;
+            None when this tree has no place for it (an edge op on one node)."""
+            where, how, rop, _ = TABLE[op]
+            if is_edge(op) and where == "one":  # an edge: a node and its parent, in either order
+                if n == 1:
+                    return None
+                child = rng.choice([v for v in ref.nodes if v != root])
+                nodes = [child, ref.par[child]][::rng.choice((1, -1))]
+            else:
+                nodes = [rng.choice(leaves) if where == "path" and rng.random() < 0.5 else rng.randrange(lo, hi + 1)
+                         for _ in range(2 if where == "path" else 1)]
+            seg = sim.values(op, nodes)
+            if not seg and how == "query" and no_edges(op) == "raise":  # nothing to rank: the call must raise
+                return "!" + op, nodes + [1] * TABLE[op][3]
+            if how == "find" and "Sum" not in rop:
+                rest = [search_x(seg, rop, rng, gen)]
+            else:
+                rest = extra_args(rop, how, max(1, len(seg)), rng, gen, delta, ctx["mod"])
+            return op, nodes + rest
+
+        def add(made):
+            seq.append(made)
+            if not made[0].startswith("!"):
+                called.add(made[0])
+                sim.run(*made)  # (keeps the values current for the next search)
+
+        for _ in range(OPS_PER_TRIAL * (2 if weights and node_vals else 1)):  # (a both- template has twice the ops)
             roll = rng.random()
             if roll < 0.08:  # a shape op
                 op = rng.choice(SHAPE_OPS)
@@ -187,54 +217,53 @@ def make_trials(folder, ops, range_folder, trials):
                 op = rng.choice(wide) if wide and rng.random() < 0.6 else rng.choice(updates)
             else:
                 op = rng.choice(queries or updates)
-            where, how, rop, _ = TABLE[op]
-            if edge and where == "one":  # an edge: a node and its parent, in either order
-                if n == 1:
-                    continue
-                child = rng.choice([v for v in ref.nodes if v != root])
-                nodes = [child, ref.par[child]][::rng.choice((1, -1))]
-            else:
-                nodes = [rng.choice(leaves) if where == "path" and rng.random() < 0.5 else rng.randrange(lo, hi + 1)
-                         for _ in range(2 if where == "path" else 1)]
-            seg = sim.values(op, nodes)
-            if not seg and how == "query" and no_edges(op) == "raise":  # nothing to rank: the call must raise
-                seq.append(("!" + op, nodes + [1] * TABLE[op][3]))
-                continue
-            if how == "find" and "Sum" not in rop:
-                rest = [search_x(seg, rop, rng, gen)]
-            else:
-                rest = extra_args(rop, how, max(1, len(seg)), rng, gen, delta, ctx["mod"])
-            seq.append((op, nodes + rest))
-            sim.run(op, nodes + rest)  # (keeps the values current for the next search)
+            made = call(op)
+            if made:
+                add(made)
+        for op in force:  # (up to 60 tries each: an edge op needs a path or subtree that has an edge)
+            for _ in range(60):
+                made = call(op)
+                if made and not made[0].startswith("!"):
+                    add(made)
+                    break
         # a few calls with a node that is not in the tree: each must raise
         for op, args in rng.sample(seq, min(3, len(seq))):
             if op in TABLE:
                 bad = list(args)
                 bad[rng.randrange(node_count(op))] = rng.choice((lo - 1, hi + 1))
                 seq.append(("!" + op, bad))
-                if edge and TABLE[op][0] == "one":  # and two nodes with no edge between them (a node and itself)
+                if is_edge(op) and TABLE[op][0] == "one":  # and two nodes with no edge between them (a node and itself)
                     seq.append(("!" + op, [args[0], args[0]] + args[2:]))
-        out.append((edges, root, vals, seq))
+        return edges, root, vals, seq
+
+    out = [build(t) for t in range(trials)]
+    # A random script can miss an op, or only ever catch an edge op where there are no edges (a leaf's subtree) and it
+    # must raise. Every op gets one real call at least: the ones left over go into one more trial.
+    missing = [op for op in value_ops if op not in called]
+    if missing:
+        out.append(build(trials, force=missing))
     return out, extra, ctx
 
 
 class Sim:
-    """The brute force for one tree: a value per node, every path and subtree listed node by node."""
+    """The brute force for one tree: a value per node and a weight per edge (kept under its lower end), every path and
+    subtree listed node by node. A node... op reads the values, an edge... op the weights."""
 
-    def __init__(self, edges, root, vals, ctx, edge=False):
-        self.ref, self.ctx, self.edge = TS.Brute(edges, root), ctx, edge
-        mod = ctx["mod"]
-        if edge:  # a weight per edge, kept under its lower end
-            par = self.ref.par
-            self.val = {(e[0] if par[e[0]] == e[1] else e[1]): (e[2] % mod if mod else e[2]) for e in edges}
-        else:
-            self.val = {v: (vals[v] % mod if mod else vals[v]) for v in self.ref.nodes}
+    def __init__(self, edges, root, vals, ctx):
+        self.ref, self.ctx = TS.Brute(edges, root), ctx
+        mod, par = ctx["mod"], self.ref.par
+        fit = (lambda v: v % mod) if mod else (lambda v: v)
+        self.val = {v: fit(vals[v]) for v in self.ref.nodes} if vals is not None else {}
+        self.weight = {(e[0] if par[e[0]] == e[1] else e[1]): fit(e[2]) for e in edges if len(e) == 3}
+
+    def store(self, op):
+        return self.weight if is_edge(op) else self.val
 
     def reach(self, op, args):
-        """(what op covers, in the order it reads it; the arguments after the nodes). Nodes for a node template; for an
-        edge template the edges, each as its lower end."""
+        """(what op covers, in the order it reads it; the arguments after the nodes). Nodes for a node op; for an edge
+        op the edges, each as its lower end."""
         where, ref = TABLE[op][0], self.ref
-        if not self.edge:
+        if not is_edge(op):
             if where == "path":
                 return ref.path(args[0], args[1]), args[2:]
             if where == "subtree":
@@ -253,7 +282,7 @@ class Sim:
         return [lower(args[0], args[1])], args[2:]
 
     def values(self, op, args):
-        return [self.val[v] for v in self.reach(op, args)[0]]
+        return [self.store(op)[v] for v in self.reach(op, args)[0]]
 
     def run(self, op, args):
         """What op returns (None for an update, which is applied)."""
@@ -263,16 +292,17 @@ class Sim:
             return self.ref.run(op, args)
         where, how, rop, _ = TABLE[op]
         nodes, rest = self.reach(op, args)
-        seg = [self.val[v] for v in nodes]
+        held = self.store(op)
+        seg = [held[v] for v in nodes]
         last = len(seg) - 1
-        if not seg:  # (only an edge template: a path a..a, a leaf's subtree, the root's edge above)
+        if not seg:  # (only an edge op: a path a..a, a leaf's subtree, the root's edge above)
             return None if how == "update" else -1 if how == "find" else no_edges(op)
         if how == "get":
             return seg[0]
         if how == "update":
             RT.brute_update(seg, rop, ([0] if where == "one" else [0, last]) + rest, self.ctx)
             for v, x in zip(nodes, seg):
-                self.val[v] = x
+                held[v] = x
             return None
         if how == "find":
             i = RT.BRUTE_QUERIES[rop][1](seg, 0, last, *rest, self.ctx)
@@ -286,7 +316,7 @@ def expected(trials, ctx):
     """What every op that returns something must return (in script order)."""
     exp = []
     for edges, root, vals, seq in trials:
-        sim = Sim(edges, root, vals, ctx, edge=vals is None)  # (an edge template has no vals: the weights are in edges)
+        sim = Sim(edges, root, vals, ctx)
         for op, args in seq:
             res = sim.run(op, args)
             if answers(op):
@@ -337,6 +367,8 @@ def run_py(text, trials, extra):
 # ------------------------------------------------------------------------------------------------ C++
 def cpp_driver(folder, ops, extra):
     extra_text = "".join(f", {e}" for e in extra)
+    weights = not folder.startswith("node-")  # (an edge- or both- template: the weights ride in the edge list)
+    small_vals = ", vector<long long>{1, 2, 1}" if folder.startswith("both-") else ""
     lines = [f'#include "{os.path.join(DIR, folder, "template.cpp")}"',
              "template struct Tree<int>;  // (type-check the generic code for int too)",
              "template <class X> void out(const X& x) { cout << x << '\\n'; }",
@@ -347,13 +379,13 @@ def cpp_driver(folder, ops, extra):
              "  ios::sync_with_stdio(false); cin.tie(nullptr);",
              # (the trials pass long long weights: this builds an edge tree from int ones, as LeetCode gives them;
              # weights 1 and 2 are inside every range template's allowed values)
-             *([f"  {{ vector<vector<int>> ints = {{{{0, 1, 1}}, {{1, 2, 2}}}}; Tree<long long> small(ints, 0{extra_text}); "
-                "if (small.subtreeSize(0) != 3) return 3; }"] if folder.startswith("edge-") else []),
+             *([f"  {{ vector<vector<int>> ints = {{{{0, 1, 1}}, {{1, 2, 2}}}}; Tree<long long> small(ints, 0{small_vals}{extra_text}); "
+                "if (small.subtreeSize(0) != 3) return 3; }"] if weights else []),
              "  int cases; cin >> cases;",
              "  while (cases--) {",
              "    int m, root; cin >> m >> root;",
              # (an edge template's weights ride in the edge list and can be far past int: read them as long long)
-             f"    vector<vector<{'long long' if folder.startswith('edge-') else 'int'}>> edges(m);",
+             f"    vector<vector<{'long long' if weights else 'int'}>> edges(m);",
              "    for (auto& e : edges) { int len; cin >> len; e.resize(len); for (auto& x : e) cin >> x; }",
              "    int nv; cin >> nv; vector<long long> vals(nv); for (auto& x : vals) cin >> x;",
              f"    Tree<long long> t(edges, root{extra_text});" if folder.startswith("edge-") else
@@ -465,7 +497,7 @@ def test_folder(folder, langs, trials_n):
 def main():
     args = sys.argv[1:]
     langs = [a for a in args if a in ("--py", "--cpp")] or ["--py", "--cpp"]
-    trials_n, shard, names, k = 24, None, [], 0
+    trials_n, shard, names, listed, k = 24, None, [], None, 0
     while k < len(args):
         if args[k] == "--trials":
             trials_n = int(args[k + 1])
@@ -473,12 +505,17 @@ def main():
         elif args[k] == "--shard":
             shard = tuple(map(int, args[k + 1].split("/")))
             k += 1
+        elif args[k] == "--from":
+            listed = set(open(args[k + 1]).read().split())
+            k += 1
         elif not args[k].startswith("--"):
             names.append(args[k])
         k += 1
-    folders = sorted(f for f in os.listdir(DIR) if f.startswith(("node-", "edge-")) and os.path.isdir(os.path.join(DIR, f)))
+    folders = sorted(f for f in os.listdir(DIR) if f.startswith(("node-", "edge-", "both-")) and os.path.isdir(os.path.join(DIR, f)))
     if names:
         folders = [f for f in folders if any(n in f for n in names)]
+    if listed is not None:
+        folders = [f for f in folders if f in listed]
     if shard:
         folders = folders[shard[0]::shard[1]]
     fails = 0

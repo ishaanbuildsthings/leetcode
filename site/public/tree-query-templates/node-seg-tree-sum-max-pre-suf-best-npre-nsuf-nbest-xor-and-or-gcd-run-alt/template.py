@@ -1171,7 +1171,8 @@ class Tree:
 
     def _firstPrefixSumGteX(self, a, b, x):
         head, par, dep, pos, order = self.head, self.par, self.dep, self.pos, self.order
-        first, last, total = self.seg.leftmostPrefixSumGteX, self.seg.rightmostSuffixSumGteX, self.seg.rangeSum
+        seg = self.seg
+        first, last, total = seg.leftmostPrefixSumGteX, seg.rightmostSuffixSumGteX, seg.rangeSum
         run = 0  # the sum of the pieces already walked
         downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
         while head[a] != head[b]:
@@ -1219,7 +1220,8 @@ class Tree:
 
     def _firstPrefixSumGtX(self, a, b, x):
         head, par, dep, pos, order = self.head, self.par, self.dep, self.pos, self.order
-        first, last, total = self.seg.leftmostPrefixSumGtX, self.seg.rightmostSuffixSumGtX, self.seg.rangeSum
+        seg = self.seg
+        first, last, total = seg.leftmostPrefixSumGtX, seg.rightmostSuffixSumGtX, seg.rangeSum
         run = 0  # the sum of the pieces already walked
         downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
         while head[a] != head[b]:
@@ -1267,7 +1269,8 @@ class Tree:
 
     def _firstPrefixSumLteX(self, a, b, x):
         head, par, dep, pos, order = self.head, self.par, self.dep, self.pos, self.order
-        first, last, total = self.seg.leftmostPrefixSumLteX, self.seg.rightmostSuffixSumLteX, self.seg.rangeSum
+        seg = self.seg
+        first, last, total = seg.leftmostPrefixSumLteX, seg.rightmostSuffixSumLteX, seg.rangeSum
         run = 0  # the sum of the pieces already walked
         downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
         while head[a] != head[b]:
@@ -1315,7 +1318,8 @@ class Tree:
 
     def _firstPrefixSumLtX(self, a, b, x):
         head, par, dep, pos, order = self.head, self.par, self.dep, self.pos, self.order
-        first, last, total = self.seg.leftmostPrefixSumLtX, self.seg.rightmostSuffixSumLtX, self.seg.rangeSum
+        seg = self.seg
+        first, last, total = seg.leftmostPrefixSumLtX, seg.rightmostSuffixSumLtX, seg.rangeSum
         run = 0  # the sum of the pieces already walked
         downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
         while head[a] != head[b]:

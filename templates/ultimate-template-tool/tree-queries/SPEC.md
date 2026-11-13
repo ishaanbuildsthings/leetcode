@@ -1,7 +1,7 @@
 # Tree query templates: spec
 
 The menu is `site/lib/tree-query-picker.ts`. This file says how every op on it gets a template. Built so far: the
-shape templates and the node-value and edge-value templates (steps 1, 2 and 2b in section 9).
+shape templates and the node-, edge- and both-value templates (steps 1 to 3 in section 9).
 
 ## 1. Input (every template)
 
@@ -64,11 +64,10 @@ translates calls. Complexity: subtree and one-node ops cost what the range op co
 
 ## 5. Node and edge values together
 
-- Any selection: two templates, one for the `node...` ops and one for the `edge...` ops, two objects built from the
-  same edge list (the layout is built twice; node and edge values never affect each other).
-- Common ops get one combined template (one `Tree` class, one layout, two range structures). Common = Get, Assign,
-  Add, Chmax, Chmin on one node / edge, path, subtree, and Sum, Min, Max on path and subtree. That is 65 range
-  structures, so 65 x 65 = about 4,200 combined folders.
+- A `both-` template: node values and edge weights in one `Tree`, two copies of one range structure over one layout
+  (section 9, step 3). It needs one structure that covers both sides' ops.
+- Where no single structure does, use a node- template and an edge- template side by side, built from the same edge
+  list: node values and edge weights never affect each other.
 
 ## 6. Size
 
@@ -76,7 +75,7 @@ translates calls. Complexity: subtree and one-node ops cost what the range op co
 |---|---|
 | Node-value templates (one per structure type and set of tree ops) | 530 today (grows as more path ops are covered) |
 | Edge-value templates | 530 today |
-| Combined node + edge (common ops) | about 4,200 |
+| Node values + edge weights in one Tree (both-) | 530 today |
 | Dedicated (section 4) | 40 to 60 |
 
 Each folder: `template.py` and one `template.cpp`. For scale: range queries are 14,760 folders, sets 6,734.
@@ -137,7 +136,13 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    sums, counts, xor, OR and gcd; +inf / -inf (C++: the type's largest / smallest value) for min / max; None / nullopt
    for nearest-to-x; -1 for AND; True for the all-distinct / all-even checks; -1 for searches. Queries with no neutral
    value (kth smallest, sum of the k smallest, mode, sum of |weight - median|) raise.
-3. Combined node + edge for the common ops.
+3. Node values and edge weights together. DONE, wider than first planned: `tree-queries/both-<range folder>/`, one per
+   range folder that makes a node- folder (530). One `Tree(edges, root, vals)`, one layout, two copies of the same
+   range structure (`nodeSeg`, `edgeSeg`), every node op and every edge op that structure gives. So a mixed selection
+   is covered whenever one structure can do both sides, not only for the common ops; the cost is that the two sides
+   cannot have different structures (a lighter one for the side that needs less). Pairing two different structures
+   would be the square of the count and would need their classes and helpers renamed apart. The picker offers a both-
+   template only when both a node op and an edge op are picked.
 4. Single-log and static dedicated templates.
 5. Persistent path-rank family, direction-aware merges, SubtreeAddByDepth.
 6. Bitset path CountDistinct / AllDistinct.

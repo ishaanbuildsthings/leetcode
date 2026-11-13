@@ -32,7 +32,11 @@ const TREE_QUERY_CATALOG: PickerCatalog<TreeQueryTemplate> = {
   githubBase: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/",
   typeOrder: TREE_STRUCTURE_TYPES,
   perType: 2,
-  allowed: (t, picked) => picked.some(isTreeModOp) || !t.operations.some(isTreeModOp),
+  allowed: (t, picked) =>
+    (picked.some(isTreeModOp) || !t.operations.some(isTreeModOp)) &&
+    // a both- template (node values and edge weights in one Tree) only competes when both kinds of op are picked:
+    // for one kind alone it is the node- or edge- template with a second structure nobody asked for
+    (!t.folder.startsWith("both-") || (picked.some((op) => op.startsWith("node")) && picked.some((op) => op.startsWith("edge")))),
   modes: {
     ariaLabel: "Which templates compete",
     storageKey: "treeQueryPicker.mode",
@@ -40,7 +44,8 @@ const TREE_QUERY_CATALOG: PickerCatalog<TreeQueryTemplate> = {
     parse: () => "all",
     views: () => TEMPLATES,
   },
-  kindLabel: (t) => treeStructureLabel(t.dataStructureType),
+  // "Lazy seg tree over heavy-light order (node values + edge weights)" for a both- template
+  kindLabel: (t) => treeStructureLabel(t.dataStructureType) + (t.folder.startsWith("both-") ? " (node values + edge weights)" : ""),
   memoryGroups: (t) => [
     { id: "node", label: "Tree layout" },
     ...(t.memory.other.arrays.length ? [{ id: "other" as const, label: "Extra arrays" }] : []),
