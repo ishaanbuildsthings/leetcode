@@ -148,7 +148,11 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    cannot have different structures (a lighter one for the side that needs less). Pairing two different structures
    would be the square of the count and would need their classes and helpers renamed apart. The picker offers a both-
    template only when both a node op and an edge op are picked.
-4. Single-log and static dedicated templates.
+4. Single-log path sum / xor with one-value updates. DONE: `tree-queries/path-{sum,xor}-fenwick-{node,edge}` from
+   `tree-query-tests/gen_tree_fenwick.py`: each value sits at its node's position in a Fenwick tree and is taken back
+   just past that node's subtree, so a prefix is a root path and a path is two prefixes minus the part above the lca.
+   Get / assign / add / chmax / chmin on one node or edge, path sum (or xor), subtree sum (or xor), all O(log n).
+   Not yet: the static prefix-from-root and sparse-table versions, and path add with one-node reads.
 5. By-rank on a path. DONE for fixed values: `tree-queries/path-rank-node` and `path-rank-edge`, written by
    `tree-query-tests/gen_tree_rank.py` (a persistent seg tree with a version per node: its path from the root; a path is
    `ver[a] + ver[b] - ver[lca] - ver[parent(lca)]`, for edges `ver[a] + ver[b] - 2 * ver[lca]`). Kth smallest / largest,

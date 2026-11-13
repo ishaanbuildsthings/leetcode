@@ -25,7 +25,7 @@ const TYPES = [
   "merge-sort-tree", "wavelet", "persistent", "bit-of-trees", "bit-of-tries", "seg-of-trees", "position-trees", "sqrt",
   "sqrt-tries",
   // structures of the tree templates' own (no range template inside)
-  "persistent-paths",
+  "euler-fenwick", "persistent-paths",
 ];
 
 const errors = [];

@@ -351,14 +351,16 @@ const VALUE_STRUCTURE_TYPES = [
   "merge-sort-tree", "wavelet", "persistent", "bit-of-trees", "bit-of-tries", "seg-of-trees", "position-trees", "sqrt",
   "sqrt-tries",
 ] as const satisfies readonly DataStructureType[];
-// structures of the tree templates' own (no range template inside): a persistent seg tree with a version per node
-const OWN_STRUCTURE_TYPES = ["persistent-paths"] as const;
+// structures of the tree templates' own (no range template inside): a Fenwick tree whose prefixes are root paths; a
+// persistent seg tree with a version per node
+const OWN_STRUCTURE_TYPES = ["euler-fenwick", "persistent-paths"] as const;
 export const TREE_STRUCTURE_TYPES = ["heavy-light", "heavy-light-lca-table", ...VALUE_STRUCTURE_TYPES, ...OWN_STRUCTURE_TYPES] as const;
 export type TreeStructureType = (typeof TREE_STRUCTURE_TYPES)[number];
 
 const SHAPE_LABELS = {
   "heavy-light": "Heavy-light decomposition",
   "heavy-light-lca-table": "Heavy-light decomposition + O(1) lca table",
+  "euler-fenwick": "Fenwick tree on the Euler tour (single-log path sums)",
   "persistent-paths": "Persistent seg tree, a version per node (its path from the root)",
 } as const;
 
