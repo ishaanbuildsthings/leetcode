@@ -210,7 +210,18 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    - Ops: get / assign / add on one node or edge (plus chmax / chmin without MOD), SubtreeAdd, SubtreeAddByDepth,
      SubtreeSum, PathSum (the MOD folders: SubtreeAddMod, SubtreeAddByDepthMod, SubtreeSumMod, PathSumMod; values kept
      in [0, MOD)). No path updates: a path add would break the sums from the root that make the path sum one log.
-9. Still to do: by-rank on a path with updates; the static path templates (prefix from the root, sparse table).
+9. By-rank on a path with one-value updates. NEXT, not yet written. Plan: extend `gen_tree_rank.py` with an
+   updates flag (folders `path-rank-updates-{node,edge}`). The starting values stay in the persistent tree (a version
+   per node); changes go into a Fenwick tree over the positions whose nodes are value trees from the same node pool:
+   changing v from old to new adds (old, -1), (new, +1) at `pos[v]` and the opposite just past v's subtree, so the
+   prefix through `pos[u]` corrects the path root..u. A query walks the value range once over the 4 versions plus the
+   4 * O(log n) Fenwick trees (each with its sign): O(log n * log U). Values are not known up front, so the value range
+   comes from `valLo` / `valHi` constructor arguments, as in the range templates.
+   Memory is the catch, and the template must say so plainly: each update can make about 4 * log n * log U new tree
+   nodes (around 20 bytes each in C++), so it suits up to a few 10^4 updates on a large tree, not 10^5 or more. An
+   alternative with small memory (a value tree whose nodes hold ordered sets of positions) costs another log per
+   query and much more code; not planned.
+10. Still to do after that: the static path templates (prefix from the root, sparse table).
 
 ## 10. Decided
 
