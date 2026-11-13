@@ -223,7 +223,19 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    start, then about 500 new tree nodes (10 KB) an update, never freed, so 10^4 updates add 100 MB. Time is no issue
    (10^4 updates in 0.07 s, 2 * 10^4 queries in 0.02 s). An alternative with small memory (a value tree whose nodes
    hold ordered sets of positions) costs another log per query and much more code; not planned.
-10. Still to do: the static path templates (prefix from the root, sparse table).
+10. Static path templates. NEXT, not yet written. What is left of them after wrapping:
+   - Path min / max / gcd / AND / OR with no updates are already O(log n) through the wrapped sparse-table folders
+     (`node-pointGet-rangeMin`, ...), and path sum through the wrapped prefix-sum folder (`node-rangeSum`). A sparse
+     table over the layout would cost the same log, so no dedicated template for those.
+   - Worth building: fixed values with O(1) queries. Sums, xors and hashes from the root are prefix arrays, so a path
+     is two or three array reads once the lca is known, and the lca is O(1) with the shape template's table
+     (`shape-heavy-light-lca-table`: n log n memory). Folders `path-static-node` / `path-static-edge`: PathSum,
+     PathXOR, PathHash / HashReversed / IsPalindrome / PathsEqual, SubtreeSum, SubtreeXOR, all O(1).
+     `gen_tree_shape.py`'s `py_layout_body()` ... `cpp_shape_methods()` hand out the plain variant only: give them a
+     `table` argument first.
+     Hash of a path read a -> b: keep `down[v]` (the hash of root..v read downwards) and `up[v]` (the sum of
+     value * base^depth along root..v). The lca -> b part is `down[b] - down[above lca] * base^len`; the a -> lca
+     part is `(up[a] - up[above lca]) / base^depth(lca)`, with the inverse powers of the base precomputed.
 
 ## 10. Decided
 
