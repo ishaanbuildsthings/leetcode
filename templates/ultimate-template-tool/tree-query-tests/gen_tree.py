@@ -377,6 +377,10 @@ def indent(text, by):
 
 
 def py_check(name, nodes):
+    if len(nodes) > 3:  # (four nodes: the bounds as locals, to stay within the line)
+        cond = " and ".join(f"lo <= {v} <= hi" for v in nodes)
+        return ("        lo, hi = self.lo, self.hi\n"
+                f"        if not ({cond}):\n            self._bad(\"{name}\", {', '.join(nodes)})\n")
     cond = " and ".join(f"self.lo <= {v} <= self.hi" for v in nodes)
     if len(nodes) > 1:
         cond = f"({cond})"
@@ -475,7 +479,7 @@ def walk(template, up, down, edge=False):
 
 # the Tree's own fields: no method argument may share a name with one (in C++ it would hide it)
 MEMBERS = {"n", "lo", "hi", "root", "par", "dep", "sz", "head", "pos", "order", "depthStart", "depthPos", "seg", "modulus",
-           "mod", "nodeSeg", "edgeSeg"}
+           "mod", "nodeSeg", "edgeSeg", "hashPow"}
 
 
 class Maker:
@@ -873,11 +877,53 @@ class Maker:
             self.add("Path" + name, [], cost, f"{low} sum of a non-empty stretch of the path a..b" + self.empty(name, low, "path")[1],
                      py, cpp, [], "auto", nodes=("a", "b"))
 
+    # ---- a path's hash: each piece's own hash (its reversed hash when the piece is read backwards), joined piece after
+    # piece the way the range structure joins two halves: hash(A then B) = hash(A) * base^len(B) + hash(B)
+    def path_hash(self):
+        r = self.r
+        if not r.has("rangeHash", "rangeHashReversed"):
+            return
+        cost = times_log(worst(self.cost("rangeHash"), self.cost("rangeHashReversed")))
+        up = "res = (res * pow(_HB, r - l + 1, _HP) + back(l, r)) % _HP"
+        down = "res = (res * pow(_HB, r - l + 1, _HP) + forward(l, r)) % _HP"
+        cup = "res = joined(res, seg.rangeHashReversed(l, r), r - l + 1);"
+        cdown = "res = joined(res, seg.rangeHash(l, r), r - l + 1);"
+        self.helpers.append(("_hash", "hashOf"))
+        self.ops.append(Op(None, None, None, None,
+                           f"    # the hash of the {self.words['vals']} read walking a -> b\n"
+                           "    def _hash(self, a, b):\n"
+                           "        head, par, dep, pos = self.head, self.par, self.dep, self.pos\n"
+                           "        forward, back = self.seg.rangeHash, self.seg.rangeHashReversed\n"
+                           "        res = 0\n" + self.walk(PY_WALK, up, down) + "        return res\n",
+                           f"    // the hash of the {self.words['vals']} read walking a -> b\n"
+                           "    LEETCODE_NO_SANITIZE unsigned long long hashOf(int a, int b) {\n"
+                           "        unsigned long long res = 0;\n" + self.walk(CPP_WALK, cup, cdown) + "        return res;\n    }\n"))
+        vals = self.words["vals"]
+        none = "; 0 when a == b (no edges)" if self.edge else ""
+        same = " (two paths with no edges are equal)" if self.edge else ""
+        size = "self._dist({}, {})"  # (the number of values on a path follows its number of edges)
+        for name, args, nodes, doc, py, cpp, ret in (
+            ("Hash", "a, b", ("a", "b"), f"hash of the {vals} read a -> b: equal sequences hash equal, and it equals the "
+             f"range structure's rangeHash of the same values{none}",
+             "        return self._hash(a, b)\n", "        return hashOf(a, b);\n", "unsigned long long"),
+            ("HashReversed", "a, b", ("a", "b"), f"hash of the {vals} read b -> a (equal to {self.t}PathHash(b, a)){none}",
+             "        return self._hash(b, a)\n", "        return hashOf(b, a);\n", "unsigned long long"),
+            ("IsPalindrome", "a, b", ("a", "b"), f"do the {vals} read the same a -> b and b -> a?"
+             + (" (True when a == b: no edges)" if self.edge else ""),
+             "        return self._hash(a, b) == self._hash(b, a)\n", "        return hashOf(a, b) == hashOf(b, a);\n", "bool"),
+        ):
+            self.add("Path" + name, [], cost, doc, py, cpp, [], ret, nodes=nodes)
+        self.add("PathsEqual", [], cost, f"do the {vals} read a -> b equal those read c -> d?{same}",
+                 f"        return {size.format('a', 'b')} == {size.format('c', 'd')} and self._hash(a, b) == self._hash(c, d)\n",
+                 "        return distOf(a, b) == distOf(c, d) && hashOf(a, b) == hashOf(c, d);\n", [], "bool",
+                 nodes=("a", "b", "c", "d"))
+
     def build(self):
         self.point()
         self.path_unordered()
         self.path_arith()
         self.subarray_sums()
+        self.path_hash()
         self.prefix_sums()
         self.searches()
         self.subtree()
@@ -1210,6 +1256,20 @@ def make_cpp(folder, rng, ops, target="node"):
         ctor = (comment("//", build, "builds the layout and the range structure; throws invalid_argument when the edges "
                         "are not one tree on nodes 0..n-1 or 1..n, or vals has the wrong size")
                 + sig + init + values_layout)
+    if any(op.name and op.name.endswith("PathHash") for op in ops):  # hashing: base powers, and how two hashes join
+        members += "    HotVector<unsigned long long> hashPow;  // hashPow[k] = base^k, the range structure's own base\n"
+        assert init.endswith(" {}\n\n")
+        init = (init[:-len(" {}\n\n")] + " {\n"
+                "        hashPow.assign(n + 1, 1);\n"
+                f"        for (int k = 1; k <= n; k++) hashPow[k] = {rng.cls}<T>::hmul(hashPow[k - 1], {rng.cls}<T>::HB());\n"
+                "    }\n\n")
+        ctor_was = ctor
+        ctor = ctor.replace(" {}\n\n", init[init.index(" {\n"):], 1)
+        assert ctor != ctor_was
+        ctor += ("\n    // the hash of a sequence followed by one of `len` more values: hash(A then B) = hash(A) * base^len(B) + hash(B)\n"
+                 "    LEETCODE_NO_SANITIZE unsigned long long joined(unsigned long long front, unsigned long long back, int len) const {\n"
+                 f"        return {rng.cls}<T>::hadd({rng.cls}<T>::hmul(front, hashPow[len]), back);\n"
+                 "    }\n")
     methods = "\n".join(op.cpp for op in ops)
     return (head + "#include <bits/stdc++.h>\nusing namespace std;\nusing ll = long long;\n\n" + shape.FAST_NOTE + "\n"
             + inner + "\n\n" + doc + "template <typename T>\nstruct Tree {\n" + members + "\n" + ctor + "\n" + methods + "\n"

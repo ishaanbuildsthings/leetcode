@@ -1,0 +1,1418 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/both-lazy-seg-tree-sum-hash-npre-nsuf-updates-assign/template.cpp
+// The range structure inside is https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-hash-npre-nsuf-updates-assign/fast.cpp
+// @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgePathAssign edgePathFirstPrefixSumLtX edgePathFirstPrefixSumLteX edgePathHash edgePathHashReversed edgePathIsPalindrome edgePathLastSuffixSumLtX edgePathLastSuffixSumLteX edgePathMinPrefixSum edgePathMinSuffixSum edgePathSum edgePathsEqual edgeSubtreeAssign edgeSubtreeSum isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath nodeAdd nodeAssign nodeChmax nodeChmin nodeGet nodePathAssign nodePathFirstPrefixSumLtX nodePathFirstPrefixSumLteX nodePathHash nodePathHashReversed nodePathIsPalindrome nodePathLastSuffixSumLtX nodePathLastSuffixSumLteX nodePathMinPrefixSum nodePathMinSuffixSum nodePathSum nodePathsEqual nodeSubtreeAssign nodeSubtreeSum parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
+// @data-structure-type: lazy-seg-tree
+// @complexities:
+//   countAtDepthInSubtree: log(N)
+//   depth: 1
+//   edgeAdd: log(N)
+//   edgeAssign: log(N)
+//   edgeChmax: log(N)
+//   edgeChmin: log(N)
+//   edgeGet: log(N)
+//   edgePathAssign: log^2(N)
+//   edgePathFirstPrefixSumLtX: log^2(N)
+//   edgePathFirstPrefixSumLteX: log^2(N)
+//   edgePathHash: log^2(N)
+//   edgePathHashReversed: log^2(N)
+//   edgePathIsPalindrome: log^2(N)
+//   edgePathLastSuffixSumLtX: log^2(N)
+//   edgePathLastSuffixSumLteX: log^2(N)
+//   edgePathMinPrefixSum: log^2(N)
+//   edgePathMinSuffixSum: log^2(N)
+//   edgePathSum: log^2(N)
+//   edgePathsEqual: log^2(N)
+//   edgeSubtreeAssign: log(N)
+//   edgeSubtreeSum: log(N)
+//   isAncestor: 1
+//   isOnPath: log(N)
+//   kthAncestor: log(N)
+//   kthNodeOnPath: log(N)
+//   lca: log(N)
+//   lcaRootedAt: log(N)
+//   median: log(N)
+//   nextNodeOnPath: log(N)
+//   nodeAdd: log(N)
+//   nodeAssign: log(N)
+//   nodeChmax: log(N)
+//   nodeChmin: log(N)
+//   nodeGet: log(N)
+//   nodePathAssign: log^2(N)
+//   nodePathFirstPrefixSumLtX: log^2(N)
+//   nodePathFirstPrefixSumLteX: log^2(N)
+//   nodePathHash: log^2(N)
+//   nodePathHashReversed: log^2(N)
+//   nodePathIsPalindrome: log^2(N)
+//   nodePathLastSuffixSumLtX: log^2(N)
+//   nodePathLastSuffixSumLteX: log^2(N)
+//   nodePathMinPrefixSum: log^2(N)
+//   nodePathMinSuffixSum: log^2(N)
+//   nodePathSum: log^2(N)
+//   nodePathsEqual: log^2(N)
+//   nodeSubtreeAssign: log(N)
+//   nodeSubtreeSum: log(N)
+//   parent: 1
+//   parentRootedAt: log(N)
+//   pathIntersection: log(N)
+//   pathNodes: K+log(N)
+//   subtreeSize: 1
+//   subtreeSizeRootedAt: log(N)
+//   unweightedDist: log(N)
+//   unweightedDistBetweenPaths: log(N)
+//   unweightedDistToPath: log(N)
+//   build: N
+// @memory:
+//   layout: 2n-iterative
+//   node: sm[4*N] fh[4*N] bh[4*N] npre[4*N] nsuf[4*N]
+//   tags: asg[2*N] hasAsg[2*N]
+//   other: PW[2*log(N)] GS[2*log(N)] par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
+//   note: leaves [n, 2n) hold each value's own aggregates; tags live on the N internal nodes only; hash powers are per level (a covering node of level s has 2^s leaves)
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// FAST MODE (this is the only C++ version): sanitizers are skipped inside this template, so a bad access in it goes
+// unreported. To turn that off (say, when debugging with sanitizers), put this line above the template:
+//   #define LEETCODE_NO_SANITIZE
+// Without sanitizers (Codeforces, a plain -O2 build) it changes nothing. It needs GCC or Clang.
+
+// Lazy segment tree with composable aggregates (2N iterative): range updates (rangeAssign) and range queries in
+// O(logN); each node keeps its sum, its forward / backward hash (and B^size), its min prefix sum, its min suffix sum
+// over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing qualifies. Leaves
+// tree[n..2n); a node used by a query or update is a perfect subtree of 2^s leaves (s = its level), and every
+// internal node holds its pending tags ("applied here, not yet to my children"): an update pushes the tags on its two
+// boundary leaf paths, tags the covering nodes, then rebuilds both paths, each node redoing its own pending tag.
+// T: int, long long, ...; sums are kept in S (long long for small T).
+#ifdef __SSE2__
+#include <immintrin.h>
+#endif
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
+template <typename T>
+struct LazySegTree {
+    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    using U64 = unsigned long long;
+    int n, h;
+    HotVector<S> sm;
+    HotVector<U64> fh;
+    HotVector<U64> bh;
+    HotVector<S> npre;
+    HotVector<S> nsuf;
+    HotVector<T> asg;
+    HotVector<char> hasAsg;
+    HotVector<U64> PW, GS;  // PW[s] = B^(2^s), GS[s] = 1 + B + ... + B^(2^s - 1): per level
+
+    LEETCODE_NO_SANITIZE static unsigned long long rnd() {
+        static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
+        return g();
+    }
+    // range hashes: mod the prime 2^61 - 1, with a base picked at random each run (so no test can be built against it)
+    static constexpr unsigned long long HP = (1ULL << 61) - 1;
+    LEETCODE_NO_SANITIZE static unsigned long long HB() {
+        static unsigned long long b = (1ULL << 40) + rnd() % (HP - (1ULL << 41));
+        return b;
+    }
+    LEETCODE_NO_SANITIZE static unsigned long long hmul(unsigned long long a, unsigned long long b) {
+        __uint128_t c = (__uint128_t)a * b;
+        unsigned long long r = (unsigned long long)(c & HP) + (unsigned long long)(c >> 61);
+        r = (r & HP) + (r >> 61);
+        return r >= HP ? r - HP : r;
+    }
+    LEETCODE_NO_SANITIZE static unsigned long long hadd(unsigned long long a, unsigned long long b) {
+        return a + b >= HP ? a + b - HP : a + b;
+    }
+    LEETCODE_NO_SANITIZE static unsigned long long hraw(T v) {
+        // v as a residue (what an add changes a hash by, per position)
+        long long r = (long long)v % (long long)HP;
+        return r < 0 ? (unsigned long long)(r + (long long)HP) : (unsigned long long)r;
+    }
+    LEETCODE_NO_SANITIZE static unsigned long long hval(T v) {
+        // the hash of value v: v + an offset random per run, so no common value is 0
+        static unsigned long long off = 1 + rnd() % (HP - 1);
+        return hadd(hraw(v), off);
+    }
+
+    // O(N) -- arr: the initial array (non-empty)
+    explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
+        sm.assign(2 * n, 0);
+        fh.assign(2 * n, 0);
+        bh.assign(2 * n, 0);
+        npre.assign(2 * n, 0);
+        nsuf.assign(2 * n, 0);
+        asg.assign(n, T(0));
+        hasAsg.assign(n, 0);
+        for (int i = 0; i < n; i++) setLeaf(n + i, arr[i]);
+        PW.assign(1, HB());
+        while ((int)PW.size() <= h) PW.push_back(hmul(PW.back(), PW.back()));
+        GS.assign(1, 1);
+        for (int k = 0; k < h; k++) GS.push_back(hadd(hmul(GS[k], PW[k]), GS[k]));
+        for (int x = n - 1; x > 0; x--) {
+            int s = 0;
+            for (int y = x; y < n; y <<= 1) s++;  // (x's level: down its left edge to the leaves)
+            pull(x, s);
+        }
+    }
+
+    // O(N) -- the whole array, every pending tag pushed down on the way
+    LEETCODE_NO_SANITIZE vector<T> getAll() {
+        for (int x = 1; x < n; x++) {  // (parents before children)
+            int s = 0;
+            for (int y = x; y < n; y <<= 1) s++;
+            push(x, s);
+        }
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = leaf(n + i);
+        return out;
+    }
+
+    // O(logN) -- is a[l..r] a palindrome (its two hashes agree); needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE bool isPalindrome(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("isPalindrome: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        U64 f = 0, b = 0, p = 1;
+        for (int i = 0; i < c; i++) {
+            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        }
+        return f == b;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE int leftmostPrefixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            if (acc + npre[t] < S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + npre[2 * t] < S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE int leftmostPrefixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            if (acc + npre[t] <= S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + npre[2 * t] <= S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- min of a[l] + ... + a[i] over i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE S minPrefixSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("minPrefixSum: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S res = npre[ns[0]], acc = sm[ns[0]];
+        for (int i = 1; i < c; i++) res = min(res, acc + npre[ns[i]]), acc += sm[ns[i]];
+        return res;
+    }
+
+    // O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE S minSuffixSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("minSuffixSum: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S res = nsuf[ns[c - 1]], acc = sm[ns[c - 1]];
+        for (int i = c - 2; i >= 0; i--) res = min(res, acc + nsuf[ns[i]]), acc += sm[ns[i]];
+        return res;
+    }
+
+    // O(logN) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        int p = i + n;
+        pushPath(p);
+        setLeaf(p, T(leaf(p) + v)), rebuild(p);
+    }
+
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        int p = i + n;
+        pushPath(p);
+        setLeaf(p, v), rebuild(p);
+    }
+
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        int p = i + n;
+        pushPath(p);
+        setLeaf(p, max(leaf(p), v)), rebuild(p);
+    }
+
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        int p = i + n;
+        pushPath(p);
+        setLeaf(p, min(leaf(p), v)), rebuild(p);
+    }
+
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        int p = i + n;
+        pushPath(p);
+        return leaf(p);
+    }
+
+    // O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
+        pushPath(l + n), pushPath(r + n);
+        for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
+            if (lo & 1) applyAssign(lo, s, v), lo++;
+            if (hi & 1) hi--, applyAssign(hi, s, v);
+        }
+        rebuild(l + n), rebuild(r + n);
+    }
+
+    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
+    // 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE U64 rangeHash(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeHash: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        U64 res = 0;
+        for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
+        return res;
+    }
+
+    // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs 0 <= l <= r < n, else
+    // throws out_of_range
+    LEETCODE_NO_SANITIZE U64 rangeHashReversed(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeHashReversed: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        U64 res = 0, p = 1;
+        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
+        return res;
+    }
+
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
+        pushPath(l + n), pushPath(r + n);
+        S res = S(0);
+        for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
+            if (lo & 1) res += sm[lo++];
+            if (hi & 1) res += sm[--hi];
+        }
+        return res;
+    }
+
+    // O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
+    // 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE bool rangesEqual(int l1, int r1, int l2, int r2) {
+        if (l1 < 0 || l1 > r1 || r1 >= n || l2 < 0 || l2 > r2 || r2 >= n)
+            throw out_of_range("rangesEqual: needs 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n");
+        return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
+    }
+
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (a walk pruned by min suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE int rightmostSuffixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i], s = ls[i];
+            if (acc + nsuf[t] < S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + nsuf[2 * t + 1] < S(x)) t = 2 * t + 1;
+                    else acc += sm[2 * t + 1], t = 2 * t;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (a walk pruned by min suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE int rightmostSuffixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i], s = ls[i];
+            if (acc + nsuf[t] <= S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + nsuf[2 * t + 1] <= S(x)) t = 2 * t + 1;
+                    else acc += sm[2 * t + 1], t = 2 * t;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(log^2(N)) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
+        long long len = n;
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
+        long long lo = 0, hi = min(i, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo, i + lo};
+    }
+
+    // O(log^2(N)) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the
+    // empty
+    // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
+    // needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
+        long long len = n;
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtIPlusOne: needs 0 <= i < n");
+        long long lo = 0, hi = min(i + 1, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid + 1, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo + 1, i + lo};
+    }
+
+    // O(log(N)) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAll() {
+        if (n < 1) throw out_of_range("hashAll: needs n >= 1");
+        return rangeHash(0, n - 1);
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- hash of the whole array reversed, a[n-1], ..., a[0] (rangeHashReversed(0, n - 1)); it uses the same
+    // base and mod as rangeHash, so it equals rangeHash of any range holding those values in that order (and any
+    // structure's hashes this run); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAllReversed() {
+        if (n < 1) throw out_of_range("hashAllReversed: needs n >= 1");
+        return rangeHashReversed(0, n - 1);
+    }
+
+    // ---- internals ----
+
+    LEETCODE_NO_SANITIZE void setLeaf(int p, T v) {  // leaf p holds v alone
+        sm[p] = S(v), fh[p] = hval(v), bh[p] = hval(v), npre[p] = S(v), nsuf[p] = S(v);
+    }
+
+    LEETCODE_NO_SANITIZE T leaf(int p) const { return T(sm[p]); }  // the value at leaf p
+
+    LEETCODE_NO_SANITIZE void pull(int x, int s) {
+        // recompute node x (level s) from its children, then redo its own pending tags
+        int a = 2 * x, b = 2 * x + 1;
+        npre[x] = min(npre[a], sm[a] + npre[b]);
+        nsuf[x] = min(nsuf[b], sm[b] + nsuf[a]);
+        sm[x] = sm[a] + sm[b];
+        fh[x] = hadd(hmul(fh[a], PW[s - 1]), fh[b]), bh[x] = hadd(hmul(bh[b], PW[s - 1]), bh[a]);
+        if (hasAsg[x]) setAssign(x, s, asg[x]);
+    }
+
+    LEETCODE_NO_SANITIZE void rebuild(int p) {  // recompute every ancestor of leaf p
+        for (int s = 1; p > 1; s++) p >>= 1, pull(p, s);
+    }
+
+    LEETCODE_NO_SANITIZE int cover(int l, int r, int* ns, int* ls) {
+        // the nodes covering a[l..r] left to right (ns) and their levels (ls)
+        pushPath(l + n), pushPath(r + n);
+        int c = 0, rc = 0, rn[32], rl[32];
+        for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
+            if (lo & 1) ns[c] = lo++, ls[c++] = s;
+            if (hi & 1) rn[rc] = --hi, rl[rc++] = s;
+        }
+        while (rc) rc--, ns[c] = rn[rc], ls[c++] = rl[rc];
+        return c;
+    }
+
+    LEETCODE_NO_SANITIZE void setAssign(int x, int s, T v) {  // every value under node x becomes v
+        int k = 1 << s;
+        sm[x] = S(v) * k;
+        fh[x] = bh[x] = hmul(hval(v), GS[s]);
+        npre[x] = nsuf[x] = v < T(0) ? S(v) * k : S(v);
+    }
+
+    LEETCODE_NO_SANITIZE void applyAssign(int x, int s, T v) {
+        setAssign(x, s, v);
+        if (x < n) asg[x] = v, hasAsg[x] = 1;
+    }
+
+    LEETCODE_NO_SANITIZE void push(int x, int s) {  // hand node x's pending tags to its children
+        int a = 2 * x, b = 2 * x + 1, c = s - 1;  // (their level)
+        if (hasAsg[x]) applyAssign(a, c, asg[x]), applyAssign(b, c, asg[x]), hasAsg[x] = 0;
+    }
+
+    LEETCODE_NO_SANITIZE void pushPath(int p) {  // hand down every pending tag on the path from the root to leaf p
+        for (int s = h; s > 0; s--) push(p >> s, s);
+    }
+};
+
+// Tree tree(edges, root, vals);
+//
+// edges: the tree's n - 1 edges with their weights, vector<vector<int>> (vector<vector<long long>> works too). Whether
+//        nodes are 0..n-1 or 1..n is detected automatically from the edge list (smallest label is 0 -> 0..n-1,
+//        otherwise 1..n; with no edges, from root)
+//   {{a, b, w}, ...}     e.g. {{0, 1, 5}, {1, 2, 7}}
+// root: the root node (required), e.g. 0 or 1.
+// vals: the node values, vector<T> (T = long long, or int; the weights are kept as T too), vals[node] is node's value
+//   nodes 0..n-1: size n        e.g. n = 3: {10, 20, 30}         node 0 -> 10
+//   nodes 1..n:   size n + 1    e.g. n = 3: {0, 10, 20, 30}      vals[0] is ignored, node 1 -> 10
+//
+//   Tree<long long> tree({{0, 1, 5}, {1, 2, 7}}, 0, {10, 20, 30});       // nodes 0..2, rooted at 0
+//   Tree<long long> tree({{1, 2, 5}, {2, 3, 7}}, 1, {0, 10, 20, 30});    // nodes 1..3, rooted at 1
+//
+// The node... ops act on the node values and the edge... ops on the edge weights: the two never affect each other. For
+// nodes, a path a..b includes both a and b. For edges, a path a..b covers the edges between a and b and a subtree the
+// edges below node; an edge is named by its two ends in either order, a search that finds an edge returns its lower end
+// (the end farther from the root), and a query with no edges to look at (a path a..a, a leaf's subtree) says what it
+// returns. Nodes go in and come out with your labels, -1 means "none", and a label that is not in the tree throws
+// out_of_range. Nothing recurses, so a 10^6-node chain is fine.
+//
+// How it works: one heavy-light pass gives every node a position, so that each heavy chain and each subtree is one
+// stretch of positions (pos[node] .. pos[node] + sz[node] - 1). Two copies of the range structure above (LazySegTree)
+// sit over those positions: nodeSeg holds each node's value at its position, edgeSeg each edge's weight at its lower
+// end's position (the root's holds no edge). A subtree is one range, and a path a..b is O(log n) ranges, one per chain
+// it crosses.
+template <typename T>
+struct Tree {
+    int n, lo, hi, root;  // nodes are lo..hi
+    // by node label: parent (-1 for the root), depth, subtree size, top of its chain, position
+    HotVector<int> par, dep, sz, head, pos;
+    HotVector<int> order;  // order[pos[v]] = v
+    // depthPos[depthStart[d] .. depthStart[d + 1]) = the positions of the nodes at depth d, increasing
+    HotVector<int> depthStart, depthPos;
+    LazySegTree<T> nodeSeg;  // the node values, in position order
+    LazySegTree<T> edgeSeg;  // each edge's weight, at its lower end's position
+    HotVector<unsigned long long> hashPow;  // hashPow[k] = base^k, the range structure's own base
+
+    // O(n) -- builds the layout and the two range structures; throws invalid_argument when the edges are not one tree
+    // on nodes 0..n-1 or 1..n, an edge has no weight, or vals has the wrong size
+    template <typename E = int> Tree(const vector<vector<E>>& edges, int root, const vector<T>& vals)
+        : nodeSeg(layout(edges, root, vals)), edgeSeg(weights(edges)) {
+        hashPow.assign(n + 1, 1);
+        for (int k = 1; k <= n; k++) hashPow[k] = LazySegTree<T>::hmul(hashPow[k - 1], LazySegTree<T>::HB());
+    }
+
+    // lays the tree out (fills the arrays above) and returns the values in position order
+    template <typename E> vector<T> layout(const vector<vector<E>>& edges, int root, const vector<T>& vals) {
+        this->root = root;
+        n = (int)edges.size() + 1;
+        long long least = root;
+        if (!edges.empty()) {
+            least = LLONG_MAX;
+            for (const auto& e : edges) {
+                if (e.size() != 2 && e.size() != 3)
+                    throw invalid_argument("Tree: every edge needs 2 or 3 numbers, {a, b} or {a, b, w}");
+                least = min({least, (long long)e[0], (long long)e[1]});
+            }
+        }
+        if (least != 0 && least != 1)
+            throw invalid_argument("Tree: nodes must be labeled 0..n-1 or 1..n, but the smallest label is " +
+                                   to_string(least));
+        lo = (int)least, hi = lo + n - 1;
+        string nodes = to_string(lo) + ".." + to_string(hi);
+        if (root < lo || root > hi)
+            throw invalid_argument("Tree: root must be one of the nodes " + nodes + ", got " + to_string(root));
+        int size = hi + 1;
+
+        // the neighbors of v are adj[start[v] .. start[v + 1])
+        vector<int> start(size + 1, 0), adj(2 * (n - 1));
+        for (const auto& e : edges) {
+            if ((long long)e[0] > hi || (long long)e[1] > hi)
+                throw invalid_argument("Tree: " + to_string(n - 1) + " edges means the nodes are " + nodes +
+                                       ", got the edge (" + to_string(e[0]) + ", " + to_string(e[1]) + ")");
+            start[e[0] + 1]++, start[e[1] + 1]++;
+        }
+        for (int v = 0; v < size; v++) start[v + 1] += start[v];
+        vector<int> at(start.begin(), start.end() - 1);
+        for (const auto& e : edges) {
+            int a = (int)e[0], b = (int)e[1];
+            adj[at[a]++] = b, adj[at[b]++] = a;
+        }
+
+        // parents and depths, top down (par is -2 until a node is reached)
+        par.assign(size, -2), dep.assign(size, 0);
+        vector<int> bfs(n);
+        int reached = 0;
+        par[root] = -1, bfs[reached++] = root;
+        for (int i = 0; i < reached; i++) {
+            int v = bfs[i];
+            for (int k = start[v]; k < start[v + 1]; k++) {
+                int u = adj[k];
+                if (par[u] == -2) par[u] = v, dep[u] = dep[v] + 1, bfs[reached++] = u;
+            }
+        }
+        if (reached != n)
+            throw invalid_argument("Tree: the edges do not form one tree (some node cannot be reached from root)");
+
+        // subtree sizes bottom up, then each node's heavy child (the one with the biggest subtree)
+        sz.assign(size, 1);
+        for (int i = n - 1; i > 0; i--) sz[par[bfs[i]]] += sz[bfs[i]];
+        vector<int> heavy(size, -1);
+        for (int i = 1; i < n; i++) {
+            int v = bfs[i], p = par[v];
+            if (heavy[p] == -1 || sz[v] > sz[heavy[p]]) heavy[p] = v;
+        }
+
+        // positions: a preorder that always steps into the heavy child first, so a heavy chain is one stretch
+        head.assign(size, 0), pos.assign(size, 0), order.assign(n, 0);
+        vector<int> todo = {root};
+        todo.reserve(n);
+        head[root] = root;
+        int t = 0;
+        while (!todo.empty()) {
+            int v = todo.back();
+            todo.pop_back();
+            pos[v] = t, order[t++] = v;
+            int h = heavy[v], p = par[v];
+            for (int k = start[v]; k < start[v + 1]; k++) {
+                int u = adj[k];
+                if (u != p && u != h) head[u] = u, todo.push_back(u);
+            }
+            if (h != -1) head[h] = head[v], todo.push_back(h);  // pushed last, so it is popped next
+        }
+
+        int maxDep = dep[bfs[n - 1]];
+        depthStart.assign(maxDep + 2, 0), depthPos.assign(n, 0);
+        for (int i = 0; i < n; i++) depthStart[dep[bfs[i]] + 1]++;
+        for (int d = 0; d <= maxDep; d++) depthStart[d + 1] += depthStart[d];
+        vector<int> slot(depthStart.begin(), depthStart.end() - 1);
+        for (int i = 0; i < n; i++) depthPos[slot[dep[order[i]]]++] = i;
+        if ((int)vals.size() != hi + 1)
+            throw invalid_argument("Tree: vals[node] is node's value, so nodes " + nodes + " need vals.size() = " +
+                                   to_string(hi + 1) + ", got " + to_string(vals.size()));
+        vector<T> inOrder(n);
+        for (int i = 0; i < n; i++) inOrder[i] = vals[order[i]];
+        return inOrder;
+    }
+
+    // each edge's weight, at its lower end's position (the layout is built by the time this runs)
+    template <typename E> vector<T> weights(const vector<vector<E>>& edges) {
+        for (const auto& e : edges)
+            if (e.size() != 3) throw invalid_argument("Tree: every edge needs its weight here, {a, b, w}");
+        // (position 0 is the root's: it holds no edge and is never read)
+        vector<T> inOrder(n, edges.empty() ? T(0) : (T)edges[0][2]);
+        for (const auto& e : edges) {
+            int a = (int)e[0], b = (int)e[1];
+            inOrder[par[a] == b ? pos[a] : pos[b]] = (T)e[2];
+        }
+        return inOrder;
+    }
+
+    // the hash of a sequence followed by one of `len` more values: hash(A then B) = hash(A) * base^len(B) + hash(B)
+    LEETCODE_NO_SANITIZE unsigned long long joined(unsigned long long front, unsigned long long back, int len) const {
+        return LazySegTree<T>::hadd(LazySegTree<T>::hmul(front, hashPow[len]), back);
+    }
+
+    // O(log n) -- val(node)
+    LEETCODE_NO_SANITIZE auto nodeGet(int node) {
+        if (node < lo || node > hi) bad("nodeGet");
+        return nodeSeg.pointGet(pos[node]);
+    }
+
+    // O(log n) -- val(node) = x
+    LEETCODE_NO_SANITIZE void nodeAssign(int node, T x) {
+        if (node < lo || node > hi) bad("nodeAssign");
+        nodeSeg.pointAssign(pos[node], x);
+    }
+
+    // O(log n) -- val(node) += x
+    LEETCODE_NO_SANITIZE void nodeAdd(int node, T x) {
+        if (node < lo || node > hi) bad("nodeAdd");
+        nodeSeg.pointAdd(pos[node], x);
+    }
+
+    // O(log n) -- val(node) = max(val, x)
+    LEETCODE_NO_SANITIZE void nodeChmax(int node, T x) {
+        if (node < lo || node > hi) bad("nodeChmax");
+        nodeSeg.pointChmax(pos[node], x);
+    }
+
+    // O(log n) -- val(node) = min(val, x)
+    LEETCODE_NO_SANITIZE void nodeChmin(int node, T x) {
+        if (node < lo || node > hi) bad("nodeChmin");
+        nodeSeg.pointChmin(pos[node], x);
+    }
+
+    // O(log^2 n) -- val = x for every node on the path a..b
+    LEETCODE_NO_SANITIZE void nodePathAssign(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathAssign");
+        while (head[a] != head[b]) {
+            if (dep[head[a]] < dep[head[b]]) {
+                int t = a;
+                a = b, b = t;
+            }
+            nodeSeg.rangeAssign(pos[head[a]], pos[a], x);
+            a = par[head[a]];
+        }
+        int l = pos[a], r = pos[b];
+        if (l <= r) nodeSeg.rangeAssign(l, r, x);
+        else nodeSeg.rangeAssign(r, l, x);
+    }
+
+    // O(log^2 n) -- sum of the node values on the path a..b
+    LEETCODE_NO_SANITIZE auto nodePathSum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathSum");
+        using R = decltype(nodeSeg.rangeSum(0, 0));
+        R res = 0;
+        while (head[a] != head[b]) {
+            if (dep[head[a]] < dep[head[b]]) {
+                int t = a;
+                a = b, b = t;
+            }
+            R v = nodeSeg.rangeSum(pos[head[a]], pos[a]);
+            res += v;
+            a = par[head[a]];
+        }
+        int l = pos[a], r = pos[b];
+        if (l > r) {
+            int t = l;
+            l = r, r = t;
+        }
+        R v = nodeSeg.rangeSum(l, r);
+        res += v;
+        return res;
+    }
+
+    // the hash of the node values read walking a -> b
+    LEETCODE_NO_SANITIZE unsigned long long nodeHashOf(int a, int b) {
+        unsigned long long res = 0;
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                res = joined(res, nodeSeg.rangeHashReversed(l, r), r - l + 1);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] >= pos[b]) {  // the piece holding the lca: b is the top
+            int l = pos[b], r = pos[a];
+            res = joined(res, nodeSeg.rangeHashReversed(l, r), r - l + 1);
+        } else {
+            int l = pos[a], r = pos[b];
+            res = joined(res, nodeSeg.rangeHash(l, r), r - l + 1);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            res = joined(res, nodeSeg.rangeHash(l, r), r - l + 1);
+        }
+        return res;
+    }
+
+    // O(log^2 n) -- hash of the node values read a -> b: equal sequences hash equal, and it equals the range
+    // structure's rangeHash of the same values
+    LEETCODE_NO_SANITIZE unsigned long long nodePathHash(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathHash");
+        return nodeHashOf(a, b);
+    }
+
+    // O(log^2 n) -- hash of the node values read b -> a (equal to nodePathHash(b, a))
+    LEETCODE_NO_SANITIZE unsigned long long nodePathHashReversed(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathHashReversed");
+        return nodeHashOf(b, a);
+    }
+
+    // O(log^2 n) -- do the node values read the same a -> b and b -> a?
+    LEETCODE_NO_SANITIZE bool nodePathIsPalindrome(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathIsPalindrome");
+        return nodeHashOf(a, b) == nodeHashOf(b, a);
+    }
+
+    // O(log^2 n) -- do the node values read a -> b equal those read c -> d?
+    LEETCODE_NO_SANITIZE bool nodePathsEqual(int a, int b, int c, int d) {
+        if (a < lo || a > hi || b < lo || b > hi || c < lo || c > hi || d < lo || d > hi) bad("nodePathsEqual");
+        return distOf(a, b) == distOf(c, d) && nodeHashOf(a, b) == nodeHashOf(c, d);
+    }
+
+    LEETCODE_NO_SANITIZE auto nodeMinPrefixSum(int a, int b) {
+        using R = decltype(nodeSeg.rangeSum(0, 0));
+        R run = 0, best = numeric_limits<R>::max();  // the sum of the pieces already walked; the best prefix so far
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                R v = run + nodeSeg.minSuffixSum(l, r);
+                if (v < best) best = v;
+                run += nodeSeg.rangeSum(l, r);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] >= pos[b]) {  // the piece holding the lca: b is the top
+            int l = pos[b], r = pos[a];
+            R v = run + nodeSeg.minSuffixSum(l, r);
+            if (v < best) best = v;
+            run += nodeSeg.rangeSum(l, r);
+        } else {
+            int l = pos[a], r = pos[b];
+            R v = run + nodeSeg.minPrefixSum(l, r);
+            if (v < best) best = v;
+            run += nodeSeg.rangeSum(l, r);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            R v = run + nodeSeg.minPrefixSum(l, r);
+            if (v < best) best = v;
+            run += nodeSeg.rangeSum(l, r);
+        }
+        return best;
+    }
+
+    // O(log^2 n) -- min sum of a prefix of the path a -> b (a stretch starting at a)
+    LEETCODE_NO_SANITIZE auto nodePathMinPrefixSum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathMinPrefixSum");
+        return nodeMinPrefixSum(a, b);
+    }
+
+    // O(log^2 n) -- min sum of a suffix of the path a -> b (a stretch ending at b)
+    LEETCODE_NO_SANITIZE auto nodePathMinSuffixSum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathMinSuffixSum");
+        return nodeMinPrefixSum(b, a);
+    }
+
+    LEETCODE_NO_SANITIZE int nodeFirstPrefixSumLteX(int a, int b, T x) {
+        decltype(nodeSeg.rangeSum(0, 0)) run = 0;  // the sum of the pieces already walked
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                int i = nodeSeg.rightmostSuffixSumLteX(l, r, x - run);
+                if (i != -1) return order[i];
+                run += nodeSeg.rangeSum(l, r);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] >= pos[b]) {  // the piece holding the lca: b is the top
+            int l = pos[b], r = pos[a];
+            int i = nodeSeg.rightmostSuffixSumLteX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += nodeSeg.rangeSum(l, r);
+        } else {
+            int l = pos[a], r = pos[b];
+            int i = nodeSeg.leftmostPrefixSumLteX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += nodeSeg.rangeSum(l, r);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            int i = nodeSeg.leftmostPrefixSumLteX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += nodeSeg.rangeSum(l, r);
+        }
+        return -1;
+    }
+
+    // O(log^2 n) -- first node walking a -> b where the sum from a to it is <= x (-1 if none)
+    LEETCODE_NO_SANITIZE int nodePathFirstPrefixSumLteX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathFirstPrefixSumLteX");
+        return nodeFirstPrefixSumLteX(a, b, x);
+    }
+
+    // O(log^2 n) -- last node walking a -> b where the sum from it to b is <= x (-1 if none)
+    LEETCODE_NO_SANITIZE int nodePathLastSuffixSumLteX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathLastSuffixSumLteX");
+        return nodeFirstPrefixSumLteX(b, a, x);
+    }
+
+    LEETCODE_NO_SANITIZE int nodeFirstPrefixSumLtX(int a, int b, T x) {
+        decltype(nodeSeg.rangeSum(0, 0)) run = 0;  // the sum of the pieces already walked
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                int i = nodeSeg.rightmostSuffixSumLtX(l, r, x - run);
+                if (i != -1) return order[i];
+                run += nodeSeg.rangeSum(l, r);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] >= pos[b]) {  // the piece holding the lca: b is the top
+            int l = pos[b], r = pos[a];
+            int i = nodeSeg.rightmostSuffixSumLtX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += nodeSeg.rangeSum(l, r);
+        } else {
+            int l = pos[a], r = pos[b];
+            int i = nodeSeg.leftmostPrefixSumLtX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += nodeSeg.rangeSum(l, r);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            int i = nodeSeg.leftmostPrefixSumLtX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += nodeSeg.rangeSum(l, r);
+        }
+        return -1;
+    }
+
+    // O(log^2 n) -- first node walking a -> b where the sum from a to it is < x (-1 if none)
+    LEETCODE_NO_SANITIZE int nodePathFirstPrefixSumLtX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathFirstPrefixSumLtX");
+        return nodeFirstPrefixSumLtX(a, b, x);
+    }
+
+    // O(log^2 n) -- last node walking a -> b where the sum from it to b is < x (-1 if none)
+    LEETCODE_NO_SANITIZE int nodePathLastSuffixSumLtX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nodePathLastSuffixSumLtX");
+        return nodeFirstPrefixSumLtX(b, a, x);
+    }
+
+    // O(log n) -- val = x for every node in node's subtree
+    LEETCODE_NO_SANITIZE void nodeSubtreeAssign(int node, T x) {
+        if (node < lo || node > hi) bad("nodeSubtreeAssign");
+        int l = pos[node];
+        nodeSeg.rangeAssign(l, l + sz[node] - 1, x);
+    }
+
+    // O(log n) -- sum of the node values in node's subtree
+    LEETCODE_NO_SANITIZE auto nodeSubtreeSum(int node) {
+        if (node < lo || node > hi) bad("nodeSubtreeSum");
+        int l = pos[node];
+        return nodeSeg.rangeSum(l, l + sz[node] - 1);
+    }
+
+    // the position that holds the edge a - b: its lower end's (a and b in either order)
+    LEETCODE_NO_SANITIZE int edgeAt(const char* name, int a, int b) const {
+        if (a < lo || a > hi || b < lo || b > hi) bad(name);
+        if (par[a] == b) return pos[a];
+        if (par[b] == a) return pos[b];
+        throw out_of_range(string(name) + ": needs an edge between a and b");
+    }
+
+    // O(log n) -- weight(a - b); a and b are the edge's two ends, in either order
+    LEETCODE_NO_SANITIZE auto edgeGet(int a, int b) {
+        return edgeSeg.pointGet(edgeAt("edgeGet", a, b));
+    }
+
+    // O(log n) -- weight(a - b) = w; a and b are the edge's two ends, in either order
+    LEETCODE_NO_SANITIZE void edgeAssign(int a, int b, T w) {
+        edgeSeg.pointAssign(edgeAt("edgeAssign", a, b), w);
+    }
+
+    // O(log n) -- weight(a - b) += w; a and b are the edge's two ends, in either order
+    LEETCODE_NO_SANITIZE void edgeAdd(int a, int b, T w) {
+        edgeSeg.pointAdd(edgeAt("edgeAdd", a, b), w);
+    }
+
+    // O(log n) -- weight(a - b) = max(weight, w); a and b are the edge's two ends, in either order
+    LEETCODE_NO_SANITIZE void edgeChmax(int a, int b, T w) {
+        edgeSeg.pointChmax(edgeAt("edgeChmax", a, b), w);
+    }
+
+    // O(log n) -- weight(a - b) = min(weight, w); a and b are the edge's two ends, in either order
+    LEETCODE_NO_SANITIZE void edgeChmin(int a, int b, T w) {
+        edgeSeg.pointChmin(edgeAt("edgeChmin", a, b), w);
+    }
+
+    // O(log^2 n) -- weight = w for every edge on the path a..b
+    LEETCODE_NO_SANITIZE void edgePathAssign(int a, int b, T w) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathAssign");
+        while (head[a] != head[b]) {
+            if (dep[head[a]] < dep[head[b]]) {
+                int t = a;
+                a = b, b = t;
+            }
+            edgeSeg.rangeAssign(pos[head[a]], pos[a], w);
+            a = par[head[a]];
+        }
+        int l = pos[a], r = pos[b];
+        if (l < r) edgeSeg.rangeAssign(l + 1, r, w);  // (the lca's own position is the edge above it)
+        else if (l > r) edgeSeg.rangeAssign(r + 1, l, w);
+    }
+
+    // O(log^2 n) -- sum of the edge weights on the path a..b; 0 when a == b (no edges)
+    LEETCODE_NO_SANITIZE auto edgePathSum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathSum");
+        using R = decltype(edgeSeg.rangeSum(0, 0));
+        R res = 0;
+        while (head[a] != head[b]) {
+            if (dep[head[a]] < dep[head[b]]) {
+                int t = a;
+                a = b, b = t;
+            }
+            R v = edgeSeg.rangeSum(pos[head[a]], pos[a]);
+            res += v;
+            a = par[head[a]];
+        }
+        int l = pos[a], r = pos[b];
+        if (l > r) {
+            int t = l;
+            l = r, r = t;
+        }
+        if (l < r) {  // (the lca's own position is the edge above it)
+            R v = edgeSeg.rangeSum(l + 1, r);
+            res += v;
+        }
+        return res;
+    }
+
+    // the hash of the edge weights read walking a -> b
+    LEETCODE_NO_SANITIZE unsigned long long edgeHashOf(int a, int b) {
+        unsigned long long res = 0;
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                res = joined(res, edgeSeg.rangeHashReversed(l, r), r - l + 1);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] > pos[b]) {  // the piece holding the lca (b): its edges sit after the lca's position
+            int l = pos[b] + 1, r = pos[a];
+            res = joined(res, edgeSeg.rangeHashReversed(l, r), r - l + 1);
+        } else if (pos[a] < pos[b]) {
+            int l = pos[a] + 1, r = pos[b];
+            res = joined(res, edgeSeg.rangeHash(l, r), r - l + 1);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            res = joined(res, edgeSeg.rangeHash(l, r), r - l + 1);
+        }
+        return res;
+    }
+
+    // O(log^2 n) -- hash of the edge weights read a -> b: equal sequences hash equal, and it equals the range
+    // structure's rangeHash of the same values; 0 when a == b (no edges)
+    LEETCODE_NO_SANITIZE unsigned long long edgePathHash(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathHash");
+        return edgeHashOf(a, b);
+    }
+
+    // O(log^2 n) -- hash of the edge weights read b -> a (equal to edgePathHash(b, a)); 0 when a == b (no edges)
+    LEETCODE_NO_SANITIZE unsigned long long edgePathHashReversed(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathHashReversed");
+        return edgeHashOf(b, a);
+    }
+
+    // O(log^2 n) -- do the edge weights read the same a -> b and b -> a? (True when a == b: no edges)
+    LEETCODE_NO_SANITIZE bool edgePathIsPalindrome(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathIsPalindrome");
+        return edgeHashOf(a, b) == edgeHashOf(b, a);
+    }
+
+    // O(log^2 n) -- do the edge weights read a -> b equal those read c -> d? (two paths with no edges are equal)
+    LEETCODE_NO_SANITIZE bool edgePathsEqual(int a, int b, int c, int d) {
+        if (a < lo || a > hi || b < lo || b > hi || c < lo || c > hi || d < lo || d > hi) bad("edgePathsEqual");
+        return distOf(a, b) == distOf(c, d) && edgeHashOf(a, b) == edgeHashOf(c, d);
+    }
+
+    LEETCODE_NO_SANITIZE auto edgeMinPrefixSum(int a, int b) {
+        using R = decltype(edgeSeg.rangeSum(0, 0));
+        R run = 0, best = numeric_limits<R>::max();  // the sum of the pieces already walked; the best prefix so far
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                R v = run + edgeSeg.minSuffixSum(l, r);
+                if (v < best) best = v;
+                run += edgeSeg.rangeSum(l, r);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] > pos[b]) {  // the piece holding the lca (b): its edges sit after the lca's position
+            int l = pos[b] + 1, r = pos[a];
+            R v = run + edgeSeg.minSuffixSum(l, r);
+            if (v < best) best = v;
+            run += edgeSeg.rangeSum(l, r);
+        } else if (pos[a] < pos[b]) {
+            int l = pos[a] + 1, r = pos[b];
+            R v = run + edgeSeg.minPrefixSum(l, r);
+            if (v < best) best = v;
+            run += edgeSeg.rangeSum(l, r);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            R v = run + edgeSeg.minPrefixSum(l, r);
+            if (v < best) best = v;
+            run += edgeSeg.rangeSum(l, r);
+        }
+        return best;
+    }
+
+    // O(log^2 n) -- min sum of a prefix of the path a -> b (a stretch starting at a); the largest value of its type
+    // when a == b (no edges)
+    LEETCODE_NO_SANITIZE auto edgePathMinPrefixSum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathMinPrefixSum");
+        return edgeMinPrefixSum(a, b);
+    }
+
+    // O(log^2 n) -- min sum of a suffix of the path a -> b (a stretch ending at b); the largest value of its type when
+    // a == b (no edges)
+    LEETCODE_NO_SANITIZE auto edgePathMinSuffixSum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathMinSuffixSum");
+        return edgeMinPrefixSum(b, a);
+    }
+
+    LEETCODE_NO_SANITIZE int edgeFirstPrefixSumLteX(int a, int b, T x) {
+        decltype(edgeSeg.rangeSum(0, 0)) run = 0;  // the sum of the pieces already walked
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                int i = edgeSeg.rightmostSuffixSumLteX(l, r, x - run);
+                if (i != -1) return order[i];
+                run += edgeSeg.rangeSum(l, r);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] > pos[b]) {  // the piece holding the lca (b): its edges sit after the lca's position
+            int l = pos[b] + 1, r = pos[a];
+            int i = edgeSeg.rightmostSuffixSumLteX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += edgeSeg.rangeSum(l, r);
+        } else if (pos[a] < pos[b]) {
+            int l = pos[a] + 1, r = pos[b];
+            int i = edgeSeg.leftmostPrefixSumLteX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += edgeSeg.rangeSum(l, r);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            int i = edgeSeg.leftmostPrefixSumLteX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += edgeSeg.rangeSum(l, r);
+        }
+        return -1;
+    }
+
+    // O(log^2 n) -- first edge walking a -> b where the sum from a to it is <= x, as its lower end (-1 if none)
+    LEETCODE_NO_SANITIZE int edgePathFirstPrefixSumLteX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathFirstPrefixSumLteX");
+        return edgeFirstPrefixSumLteX(a, b, x);
+    }
+
+    // O(log^2 n) -- last edge walking a -> b where the sum from it to b is <= x, as its lower end (-1 if none)
+    LEETCODE_NO_SANITIZE int edgePathLastSuffixSumLteX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathLastSuffixSumLteX");
+        return edgeFirstPrefixSumLteX(b, a, x);
+    }
+
+    LEETCODE_NO_SANITIZE int edgeFirstPrefixSumLtX(int a, int b, T x) {
+        decltype(edgeSeg.rangeSum(0, 0)) run = 0;  // the sum of the pieces already walked
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                int i = edgeSeg.rightmostSuffixSumLtX(l, r, x - run);
+                if (i != -1) return order[i];
+                run += edgeSeg.rangeSum(l, r);
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] > pos[b]) {  // the piece holding the lca (b): its edges sit after the lca's position
+            int l = pos[b] + 1, r = pos[a];
+            int i = edgeSeg.rightmostSuffixSumLtX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += edgeSeg.rangeSum(l, r);
+        } else if (pos[a] < pos[b]) {
+            int l = pos[a] + 1, r = pos[b];
+            int i = edgeSeg.leftmostPrefixSumLtX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += edgeSeg.rangeSum(l, r);
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            int i = edgeSeg.leftmostPrefixSumLtX(l, r, x - run);
+            if (i != -1) return order[i];
+            run += edgeSeg.rangeSum(l, r);
+        }
+        return -1;
+    }
+
+    // O(log^2 n) -- first edge walking a -> b where the sum from a to it is < x, as its lower end (-1 if none)
+    LEETCODE_NO_SANITIZE int edgePathFirstPrefixSumLtX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathFirstPrefixSumLtX");
+        return edgeFirstPrefixSumLtX(a, b, x);
+    }
+
+    // O(log^2 n) -- last edge walking a -> b where the sum from it to b is < x, as its lower end (-1 if none)
+    LEETCODE_NO_SANITIZE int edgePathLastSuffixSumLtX(int a, int b, T x) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathLastSuffixSumLtX");
+        return edgeFirstPrefixSumLtX(b, a, x);
+    }
+
+    // O(log n) -- weight = w for every edge in node's subtree
+    LEETCODE_NO_SANITIZE void edgeSubtreeAssign(int node, T w) {
+        if (node < lo || node > hi) bad("edgeSubtreeAssign");
+        int l = pos[node] + 1, r = pos[node] + sz[node] - 1;  // (l > r for a leaf: no edges below it)
+        if (l > r) return;
+        edgeSeg.rangeAssign(l, r, w);
+    }
+
+    // O(log n) -- sum of the edge weights in node's subtree; 0 when node is a leaf (no edges)
+    LEETCODE_NO_SANITIZE auto edgeSubtreeSum(int node) {
+        if (node < lo || node > hi) bad("edgeSubtreeSum");
+        int l = pos[node] + 1, r = pos[node] + sz[node] - 1;  // (l > r for a leaf: no edges below it)
+        using R = decltype(edgeSeg.rangeSum(0, 0));
+        if (l > r) return R(0);
+        return edgeSeg.rangeSum(l, r);
+    }
+
+    [[noreturn]] void bad(const char* name) const {
+        throw out_of_range(string(name) + ": needs " + to_string(lo) + " <= node <= " + to_string(hi));
+    }
+
+    LEETCODE_NO_SANITIZE int lcaOf(int a, int b) const {
+        while (head[a] != head[b]) {
+            if (dep[head[a]] > dep[head[b]]) a = par[head[a]];
+            else b = par[head[b]];
+        }
+        return dep[a] < dep[b] ? a : b;
+    }
+
+    // the node k steps above node (k <= its depth): a whole chain at a time
+    LEETCODE_NO_SANITIZE int kthOf(int node, int k) const {
+        while (true) {
+            int h = head[node], d = pos[node] - pos[h];
+            if (k <= d) return order[pos[node] - k];
+            k -= d + 1;
+            node = par[h];
+        }
+    }
+
+    LEETCODE_NO_SANITIZE int distOf(int a, int b) const { return dep[a] + dep[b] - 2 * dep[lcaOf(a, b)]; }
+
+    // of the three pairwise lcas two are equal and the third, the deeper one, is the median
+    LEETCODE_NO_SANITIZE int medianOf(int a, int b, int c) const {
+        int x = lcaOf(a, b), y = lcaOf(a, c), z = lcaOf(b, c);
+        if (dep[y] > dep[x]) x = y;
+        return dep[z] > dep[x] ? z : x;
+    }
+
+    LEETCODE_NO_SANITIZE bool above(int a, int b) const { return pos[a] <= pos[b] && pos[b] < pos[a] + sz[a]; }
+
+    LEETCODE_NO_SANITIZE bool onPath(int a, int b, int node) const {
+        return above(lcaOf(a, b), node) && (above(node, a) || above(node, b));
+    }
+
+    // the neighbor of a on the way to b (a != b): the child holding b when b is below a, else a's parent
+    LEETCODE_NO_SANITIZE int nextOf(int a, int b) const {
+        return above(a, b) ? kthOf(b, dep[b] - dep[a] - 1) : par[a];
+    }
+
+    LEETCODE_NO_SANITIZE int lowerPos(int s, int e, int x) const {  // first index in [s, e) with depthPos >= x
+        while (s < e) {
+            int m = (s + e) >> 1;
+            if (depthPos[m] < x) s = m + 1;
+            else e = m;
+        }
+        return s;
+    }
+
+    // O(log n) -- lowest common ancestor of a and b
+    LEETCODE_NO_SANITIZE int lca(int a, int b) const {
+        if (a < lo || a > hi || b < lo || b > hi) bad("lca");
+        return lcaOf(a, b);
+    }
+
+    // O(log n) -- number of edges on the path a..b
+    LEETCODE_NO_SANITIZE int unweightedDist(int a, int b) const {
+        if (a < lo || a > hi || b < lo || b > hi) bad("unweightedDist");
+        return distOf(a, b);
+    }
+
+    // O(1) -- edges from the root to node (the root is depth 0)
+    LEETCODE_NO_SANITIZE int depth(int node) const {
+        if (node < lo || node > hi) bad("depth");
+        return dep[node];
+    }
+
+    // O(1) -- node's parent (-1 for the root)
+    LEETCODE_NO_SANITIZE int parent(int node) const {
+        if (node < lo || node > hi) bad("parent");
+        return par[node];
+    }
+
+    // O(log n) -- the node k steps above node (k = 0 is node itself; -1 if that is past the root); needs k >= 0
+    LEETCODE_NO_SANITIZE int kthAncestor(int node, int k) const {
+        if (node < lo || node > hi) bad("kthAncestor");
+        if (k < 0) throw out_of_range("kthAncestor: needs k >= 0");
+        return k <= dep[node] ? kthOf(node, k) : -1;
+    }
+
+    // O(1) -- is a an ancestor of b? (true when a == b)
+    LEETCODE_NO_SANITIZE bool isAncestor(int a, int b) const {
+        if (a < lo || a > hi || b < lo || b > hi) bad("isAncestor");
+        return above(a, b);
+    }
+
+    // O(1) -- number of nodes in node's subtree (node included)
+    LEETCODE_NO_SANITIZE int subtreeSize(int node) const {
+        if (node < lo || node > hi) bad("subtreeSize");
+        return sz[node];
+    }
+
+    // O(log n) -- number of nodes in node's subtree at depth d (the root is depth 0); 0 when there are none
+    LEETCODE_NO_SANITIZE int countAtDepthInSubtree(int node, int d) const {
+        if (node < lo || node > hi) bad("countAtDepthInSubtree");
+        if (d < 0 || d + 1 >= (int)depthStart.size()) return 0;
+        int s = depthStart[d], e = depthStart[d + 1], l = pos[node];
+        return lowerPos(s, e, l + sz[node]) - lowerPos(s, e, l);
+    }
+
+    // O(log n) -- lca of a and b if the tree were rooted at r instead
+    LEETCODE_NO_SANITIZE int lcaRootedAt(int r, int a, int b) const {
+        if (r < lo || r > hi || a < lo || a > hi || b < lo || b > hi) bad("lcaRootedAt");
+        return medianOf(a, b, r);
+    }
+
+    // O(log n) -- node's parent if the tree were rooted at r (-1 when node == r)
+    LEETCODE_NO_SANITIZE int parentRootedAt(int r, int node) const {
+        if (r < lo || r > hi || node < lo || node > hi) bad("parentRootedAt");
+        return node == r ? -1 : nextOf(node, r);
+    }
+
+    // O(log n) -- size of node's subtree if the tree were rooted at r
+    LEETCODE_NO_SANITIZE int subtreeSizeRootedAt(int r, int node) const {
+        if (r < lo || r > hi || node < lo || node > hi) bad("subtreeSizeRootedAt");
+        if (node == r) return n;
+        // r hangs below node: everything but the child holding r
+        if (above(node, r)) return n - sz[kthOf(r, dep[r] - dep[node] - 1)];
+        return sz[node];
+    }
+
+    // O(log n) -- the kth node walking a -> b (k = 0 is a, k = unweightedDist(a, b) is b; -1 if k is past b); needs
+    // k >= 0
+    LEETCODE_NO_SANITIZE int kthNodeOnPath(int a, int b, int k) const {
+        if (a < lo || a > hi || b < lo || b > hi) bad("kthNodeOnPath");
+        if (k < 0) throw out_of_range("kthNodeOnPath: needs k >= 0");
+        int c = lcaOf(a, b), up = dep[a] - dep[c], total = up + dep[b] - dep[c];
+        if (k > total) return -1;
+        return k <= up ? kthOf(a, k) : kthOf(b, total - k);
+    }
+
+    // O(log n) -- the neighbor of a one step toward b (-1 if a == b)
+    LEETCODE_NO_SANITIZE int nextNodeOnPath(int a, int b) const {
+        if (a < lo || a > hi || b < lo || b > hi) bad("nextNodeOnPath");
+        return a == b ? -1 : nextOf(a, b);
+    }
+
+    // O(log n) -- does the path a..b pass through node? (a and b count)
+    LEETCODE_NO_SANITIZE bool isOnPath(int a, int b, int node) const {
+        if (a < lo || a > hi || b < lo || b > hi || node < lo || node > hi) bad("isOnPath");
+        return onPath(a, b, node);
+    }
+
+    // O(log n) -- fewest edges from node to any node on the path a..b (0 if node is on it)
+    LEETCODE_NO_SANITIZE int unweightedDistToPath(int a, int b, int node) const {
+        if (a < lo || a > hi || b < lo || b > hi || node < lo || node > hi) bad("unweightedDistToPath");
+        return distOf(node, medianOf(a, b, node));
+    }
+
+    // O(log n) -- fewest edges between any node on path a..b and any node on path c..d (0 if they share a node)
+    LEETCODE_NO_SANITIZE int unweightedDistBetweenPaths(int a, int b, int c, int d) const {
+        if (a < lo || a > hi || b < lo || b > hi || c < lo || c > hi || d < lo || d > hi)
+            bad("unweightedDistBetweenPaths");
+        int p = medianOf(a, b, c);  // where c's side meets the path a..b
+        if (p != medianOf(a, b, d)) return 0;  // c and d meet it at different nodes, so c..d runs along it
+        return distOf(p, medianOf(c, d, p));
+    }
+
+    // O(log n) -- the one node that lies on all three paths between a, b and c
+    LEETCODE_NO_SANITIZE int median(int a, int b, int c) const {
+        if (a < lo || a > hi || b < lo || b > hi || c < lo || c > hi) bad("median");
+        return medianOf(a, b, c);
+    }
+
+    // O(log n) -- the shared part of paths a..b and c..d as its two end nodes {p, q}, p first walking a -> b; p == q
+    // if they share one node; {-1, -1} if they share none
+    LEETCODE_NO_SANITIZE pair<int, int> pathIntersection(int a, int b, int c, int d) const {
+        if (a < lo || a > hi || b < lo || b > hi || c < lo || c > hi || d < lo || d > hi) bad("pathIntersection");
+        int p = medianOf(a, b, c), q = medianOf(a, b, d);  // where c's side and d's side meet the path a..b
+        if (p == q) return onPath(c, d, p) ? pair<int, int>{p, p} : pair<int, int>{-1, -1};
+        return distOf(a, p) < distOf(a, q) ? pair<int, int>{p, q} : pair<int, int>{q, p};
+    }
+
+    // O(K + log n) -- every node on the path a..b, in order from a (K = how many)
+    LEETCODE_NO_SANITIZE vector<int> pathNodes(int a, int b) const {
+        if (a < lo || a > hi || b < lo || b > hi) bad("pathNodes");
+        int c = lcaOf(a, b), up = dep[a] - dep[c], len = up + dep[b] - dep[c] + 1;
+        vector<int> out(len);
+        int* p = out.data();
+        for (int i = 0; a != c; a = par[a]) p[i++] = a;
+        p[up] = c;
+        for (int i = len - 1; b != c; b = par[b]) p[i--] = b;
+        return out;
+    }
+};

@@ -77,6 +77,13 @@ def op_table(target="node"):
             t[f"{target}Path{last}{suffix}"] = ("path", "find", right, 1)
             if not prefix:
                 t[f"{target}NearestAncestor{suffix}"] = ("up", "find", left, 1)
+    # A hash is random per run, so the tests ask what it promises: PathHash(a, b) == PathHash(c, d) exactly when the two
+    # paths read the same, PathHashReversed(a, b) == PathHash(c, d) when the second is the first backwards. "hash" ops
+    # take two paths (four nodes).
+    t[f"{target}PathHash"] = ("path", "hash", "rangeHash", 0)
+    t[f"{target}PathHashReversed"] = ("path", "hash", "rangeHashReversed", 0)
+    t[f"{target}PathsEqual"] = ("path", "hash", "rangesEqual", 0)
+    t[f"{target}PathIsPalindrome"] = ("path", "query", "isPalindrome", 0)
     for big in ("Max", "Min"):
         t[f"{target}Path{big}PrefixSum"] = ("path", "query", f"{big.lower()}PrefixSum", 0)
         t[f"{target}Path{big}SuffixSum"] = ("path", "query", f"{big.lower()}SuffixSum", 0)
@@ -103,8 +110,8 @@ def has_node_values(ops):
 
 def node_count(op):
     """How many nodes op takes before its other arguments (an edge is named by its two ends)."""
-    where = TABLE[op.lstrip("!")][0]
-    return 2 if where == "path" or (where == "one" and is_edge(op)) else 1
+    where, how = TABLE[op.lstrip("!")][:2]
+    return 4 if how == "hash" else 2 if where == "path" or (where == "one" and is_edge(op)) else 1
 
 
 # What an edge query must answer when there are no edges to look at (a path a..a, a leaf's subtree), by the op's name
@@ -119,7 +126,7 @@ for _name in ("Max", "MaxXorAgainstX", "MaxPrefixSum", "MaxSuffixSum", "MaxSubar
     NO_EDGES[_name] = ("-inf",)
 for _name in ("SmallestGteX", "SmallestGtX", "LargestLteX", "LargestLtX"):
     NO_EDGES[_name] = None
-for _name in ("AllDistinct", "AllEvenFrequency"):
+for _name in ("AllDistinct", "AllEvenFrequency", "IsPalindrome"):
     NO_EDGES[_name] = True
 NO_EDGES["AND"] = -1
 for _name in ("KthSmallest", "KthLargest", "SumSmallestK", "SumLargestK", "SumKthSmallestRange", "SumKthLargestRange",
@@ -191,12 +198,14 @@ def nested_tree(n, rng):
 def is_ordered(op):
     """A path op whose answer depends on the order the path is read in (a wrong piece direction shows only there)."""
     return TABLE[op][0] in ("path", "up") and (
-        TABLE[op][1] == "find" or any(k in op for k in ("SubarraySum", "ArithSeq", "PrefixSum", "SuffixSum")))
+        TABLE[op][1] in ("find", "hash") or any(k in op for k in ("SubarraySum", "ArithSeq", "PrefixSum", "SuffixSum", "IsPalindrome")))
 
 
 def ordered_kind(op):
     """Which piece of generated code an ordered op runs: the searches share theirs across >=, >, <=, <, = (and first /
     last); every other ordered op has its own."""
+    if TABLE[op][1] == "hash" or "IsPalindrome" in op:
+        return "hash"
     if TABLE[op][0] == "up":
         return "nearest ancestor"
     if TABLE[op][1] == "find":
@@ -276,10 +285,47 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         leaves = [v for v in ref.nodes if len(ref.below[v]) == 1]
         seq = []
 
+        def path_ends():
+            return [rng.choice(leaves) if rng.random() < 0.5 else rng.randrange(lo, hi + 1) for _ in range(2)]
+
+        def hash_call(op):
+            """A hash op (or IsPalindrome) on a path that, half the time, was just made a palindrome by one-value
+            assigns: its two halves sit in different chain pieces read in different directions, so a wrong piece order
+            or direction turns the expected "equal" into "different". Otherwise the second path is the same one, its
+            reverse, or another of the same length."""
+            a, b = path_ends()
+            keys = sim.reach(op, [a, b])[0]
+            assign, held, made = op[:4] + "Assign", sim.store(op), []
+            plant = assign in value_ops and len(keys) > 1 and rng.random() < 0.5
+            if plant:
+                now = [held[k] for k in keys]
+                for i in range(len(keys) // 2):
+                    k = keys[len(keys) - 1 - i]
+                    if now[i] != held[k]:
+                        made.append((assign, ([k, ref.par[k]] if is_edge(op) else [k]) + [now[i]]))
+            if op.endswith("IsPalindrome"):
+                return made + [(op, [a, b])]
+            backwards = TABLE[op][2] == "rangeHashReversed"
+            roll = rng.random()
+            if plant or roll < 0.3:  # a pair that matches when the path is a palindrome (planted) or always (not)
+                c, d = (a, b) if backwards == plant else (b, a)
+            elif roll < 0.45:
+                c, d = (b, a) if backwards == plant else (a, b)
+            else:  # another path with as many values (so the two can read the same)
+                c, d = path_ends()
+                for _ in range(40):
+                    if len(sim.reach(op, [c, d])[0]) == len(keys):
+                        break
+                    c, d = path_ends()
+            return made + [(op, [a, b, c, d])]
+
         def call(op):
-            """One call of a value op with random arguments, as (op, args), or ("!" + op, args) when it must raise;
-            None when this tree has no place for it (an edge op on one node)."""
+            """One call of a value op with random arguments, as a list holding (op, args), or ("!" + op, args) when it
+            must raise; a hash op may bring assigns before it. None when this tree has no place for it (an edge op on
+            one node)."""
             where, how, rop, _ = TABLE[op]
+            if how == "hash" or op.endswith("IsPalindrome"):
+                return hash_call(op)
             if is_edge(op) and where == "one":  # an edge: a node and its parent, in either order
                 if n == 1:
                     return None
@@ -290,18 +336,19 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
                          for _ in range(2 if where == "path" else 1)]
             seg = sim.values(op, nodes)
             if not seg and how == "query" and no_edges(op) == "raise":  # nothing to rank: the call must raise
-                return "!" + op, nodes + [1] * TABLE[op][3]
+                return [("!" + op, nodes + [1] * TABLE[op][3])]
             if how == "find" and "Sum" not in rop:
                 rest = [search_x(seg, rop, rng, gen)]
             else:
                 rest = extra_args(rop, how, max(1, len(seg)), rng, gen, delta, ctx["mod"])
-            return op, nodes + rest
+            return [(op, nodes + rest)]
 
-        def add(made):
-            seq.append(made)
-            if not made[0].startswith("!"):
-                called.add(made[0])
-                sim.run(*made)  # (keeps the values current for the next search)
+        def add(calls):
+            for made in calls:
+                seq.append(made)
+                if not made[0].startswith("!"):
+                    called.add(made[0])
+                    sim.run(*made)  # (keeps the values current for the next search)
 
         for _ in range(OPS_PER_TRIAL * (2 if weights and node_vals else 1)):  # (a both- template has twice the ops)
             roll = rng.random()
@@ -325,7 +372,7 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         for op in force:  # (up to 60 tries each: an edge op needs a path or subtree that has an edge)
             for _ in range(60):
                 made = call(op)
-                if made and not made[0].startswith("!"):
+                if made and not made[-1][0].startswith("!"):
                     add(made)
                     break
         # a few calls with a node that is not in the tree: each must raise
@@ -393,6 +440,9 @@ class Sim:
         if op not in TABLE:  # a shape op
             return self.ref.run(op, args)
         where, how, rop, _ = TABLE[op]
+        if how == "hash":  # two paths: do they read the same (the first one backwards, for the reversed hash)?
+            first, second = self.values(op, args[:2]), self.values(op, args[2:4])
+            return (first[::-1] if rop == "rangeHashReversed" else first) == second
         nodes, rest = self.reach(op, args)
         held = self.store(op)
         seg = [held[v] for v in nodes]
@@ -447,6 +497,13 @@ def answers(op):
     return op.startswith("!") or returns(op)
 
 
+def invoke(tree, op, args):
+    """One call on the Python template. A hash is compared with the plain hash of the second path."""
+    if TABLE.get(op, ("", ""))[1] == "hash" and not op.endswith("PathsEqual"):
+        return getattr(tree, op)(*args[:2]) == getattr(tree, op[:4] + "PathHash")(*args[2:])
+    return getattr(tree, op)(*args)
+
+
 def run_py(text, trials, extra):
     ns = {}
     exec(compile(text, "template.py", "exec"), ns)
@@ -456,11 +513,11 @@ def run_py(text, trials, extra):
         for op, args in seq:
             if op.startswith("!"):
                 try:
-                    out.append(f"no error, returned {RT.norm(getattr(tree, op[1:])(*args))}")
+                    out.append(f"no error, returned {RT.norm(invoke(tree, op[1:], args))}")
                 except IndexError:
                     out.append("OOR")
                 continue
-            res = getattr(tree, op)(*args)
+            res = invoke(tree, op, args)
             if returns(op):
                 out.append(RT.norm(res))
     return out
@@ -505,6 +562,8 @@ def cpp_driver(folder, ops, extra):
         count = len(TS.OPS[op]) if op in TS.OPS else node_count(op) + TABLE[op][3]
         call = f"t.{op}({', '.join(f'a[{i}]' for i in range(count))})"
         body = f"out({call});" if returns(op) else f"{call};"
+        if op in TABLE and TABLE[op][1] == "hash" and not op.endswith("PathsEqual"):  # (compared with the plain hash)
+            body = f"out(t.{op}(a[0], a[1]) == t.{op[:4]}PathHash(a[2], a[3]));"
         if op == "pathNodes":
             body = f"auto r = {call}; cout << r.size() << '\\n';"
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
