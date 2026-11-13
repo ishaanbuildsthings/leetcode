@@ -796,6 +796,41 @@ def fill(text, table, cm):
     return t
 
 
+# ------------------------------------------------------------------------------------------------ for gen_tree.py
+# The value templates (gen_tree.py) are the same layout and the same shape methods around a range structure: these
+# hand out the pieces of the heavy-light text above, so there is one copy of that code.
+def _between(text, start, end):
+    a = text.index(start) + len(start)
+    return text[a:text.index(end, a)]
+
+
+def py_layout_body():
+    """The constructor's body: from the edge list to self.par ... self.depthPos (uses edges, root; leaves n, lo, hi,
+    order, pos, ... as locals too)."""
+    return _between(fill(PY, False, "#"), "    def __init__(self, edges, root):\n", "\n    def _bad(")
+
+
+def py_shape_methods():
+    """_bad, the private helpers and every public shape method."""
+    text = fill(PY, False, "#")
+    return text[text.index("    def _bad("):]
+
+
+def cpp_members():
+    return _between(fill(CPP, False, "//"), "struct Tree {\n", "\n    // O(n) -- builds the layout")
+
+
+def cpp_layout_body():
+    """The constructor's body (uses edges, root; fills n, lo, hi and the layout arrays)."""
+    return _between(fill(CPP, False, "//"), "int root) : root(root) {\n", "\n    }\n\n    [[noreturn]]")
+
+
+def cpp_shape_methods():
+    """bad, the private helpers and every public shape method (without the struct's closing brace)."""
+    text = fill(CPP, False, "//")
+    return text[text.index("    [[noreturn]] void bad("):text.rindex("};")]
+
+
 def sources():
     out = {}
     for folder, kind, table in VARIANTS:

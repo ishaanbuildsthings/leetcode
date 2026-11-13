@@ -7,6 +7,7 @@ import {
   type PickerTemplate,
   type TemplateLang,
 } from "@/lib/template-picker";
+import { DATA_STRUCTURE_TYPE_LABELS, type DataStructureType } from "@/lib/range-query-picker";
 
 // The Tree queries picker (/templates/tree-queries): every op it will offer, grouped like the range picker. Templates
 // are not generated yet, so nothing matches; the grid is the full menu of what's planned.
@@ -135,7 +136,7 @@ function valueGroups(t: Target): PickerOpGroup[] {
           q("CountLteX", "x", `How many ${vals} ${w} are ≤ x`),
           q("CountGtX", "x", `How many ${vals} ${w} are > x`),
           q("CountGteX", "x", `How many ${vals} ${w} are ≥ x`),
-          q("CountInValRange", "lo, hi", `How many ${vals} ${w} are in [lo, hi]`),
+          q("CountInValRange", "low, high", `How many ${vals} ${w} are in [low, high]`),
         ],
       },
       {
@@ -146,7 +147,7 @@ function valueGroups(t: Target): PickerOpGroup[] {
           q("SumLteX", "x", `Sum of the ${vals} ${w} that are ≤ x`),
           q("SumGtX", "x", `Sum of the ${vals} ${w} that are > x`),
           q("SumGteX", "x", `Sum of the ${vals} ${w} that are ≥ x`),
-          q("SumInValRange", "lo, hi", `Sum of the ${vals} ${w} in [lo, hi]`),
+          q("SumInValRange", "low, high", `Sum of the ${vals} ${w} in [low, high]`),
         ],
       },
       {
@@ -343,14 +344,30 @@ export const TREE_UPDATE_OPS = new Set([
 ]);
 
 // what each implementation is, lightest first (the picker's tie-breaker); the same list as TYPES in
-// scripts/build-tree-query-templates.mjs
-export const TREE_STRUCTURE_TYPES = ["heavy-light", "heavy-light-lca-table"] as const;
+// scripts/build-tree-query-templates.mjs. The two shape templates, then the value templates: each is named for the
+// range structure it keeps the values in, in the range picker's order.
+const VALUE_STRUCTURE_TYPES = [
+  "prefix-sum", "difference-array", "positions", "interval-map", "sparse-table", "BIT", "seg-tree", "lazy-seg-tree", "beats",
+  "merge-sort-tree", "wavelet", "persistent", "bit-of-trees", "bit-of-tries", "seg-of-trees", "position-trees", "sqrt",
+  "sqrt-tries",
+] as const satisfies readonly DataStructureType[];
+export const TREE_STRUCTURE_TYPES = ["heavy-light", "heavy-light-lca-table", ...VALUE_STRUCTURE_TYPES] as const;
 export type TreeStructureType = (typeof TREE_STRUCTURE_TYPES)[number];
 
-export const TREE_STRUCTURE_LABELS: Record<TreeStructureType, string> = {
+const SHAPE_LABELS = {
   "heavy-light": "Heavy-light decomposition",
   "heavy-light-lca-table": "Heavy-light decomposition + O(1) lca table",
-};
+} as const;
+
+// "Lazy seg tree over heavy-light order": the range structure, laid over the tree's positions
+export const treeStructureLabel = (type: TreeStructureType): string =>
+  type in SHAPE_LABELS
+    ? SHAPE_LABELS[type as keyof typeof SHAPE_LABELS]
+    : `${DATA_STRUCTURE_TYPE_LABELS[type as DataStructureType]} over heavy-light order`;
+
+// A template with one of these keeps every value mod MOD, so it is only offered once one of them is picked (else a
+// plain selection like nodeGet + nodeAdd could land on a mod template).
+export const isTreeModOp = (op: string) => /Mod$/.test(op);
 
 export interface TreeQueryTemplate extends PickerTemplate {
   dataStructureType: TreeStructureType;

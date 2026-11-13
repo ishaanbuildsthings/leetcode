@@ -80,10 +80,18 @@ else run union-find python3 union-find-tests/test_union_find.py "${LANGS[0]}"; f
 run strings python3 string-tests/test_strings.py
 run palindromes python3 string-tests/test_palindromes.py
 
-echo "== tree queries"
+echo "== tree queries: brute-force tests, $JOBS shards per language ($(ls tree-queries | wc -l | tr -d ' ') folders)"
 if [ "${#LANGS[@]}" -eq 2 ]; then run tree-shape python3 tree-query-tests/test_tree_shape.py
 else run tree-shape python3 tree-query-tests/test_tree_shape.py "${LANGS[0]}"; fi
-run tree-fresh python3 tree-query-tests/gen_tree_shape.py --check  # every tree file matches what its generator writes
+for lang in "${LANGS[@]}"; do
+    for ((k = 0; k < JOBS; k++)); do
+        run "tree${lang}-$k" python3 tree-query-tests/test_tree.py "$lang" --shard "$k/$JOBS" &
+    done
+    wait
+done
+# every tree file matches what its generator writes from the range templates as they are now
+run tree-fresh-shape python3 tree-query-tests/gen_tree_shape.py --check
+run tree-fresh-values python3 tree-query-tests/gen_tree.py --check
 
 echo "== small folders: bit operations, matrices, bubble sort, generics, combinatorics, permutations, trees, bitset"
 run generic-brute-py python3 range-query-tests/test_generic_brute.py

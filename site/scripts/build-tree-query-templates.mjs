@@ -18,7 +18,13 @@ const manifestPath = path.join(siteDir, "lib/generated/tree-query-templates.ts")
 
 const TAGS = ["operations", "data-structure-type", "complexities", "memory"];
 // (the same list, in the same order, as TREE_STRUCTURE_TYPES in lib/tree-query-picker.ts)
-const TYPES = ["heavy-light", "heavy-light-lca-table"];
+const TYPES = [
+  "heavy-light", "heavy-light-lca-table",
+  // a value template is named for the range structure it keeps the values in (the range picker's types)
+  "prefix-sum", "difference-array", "positions", "interval-map", "sparse-table", "BIT", "seg-tree", "lazy-seg-tree", "beats",
+  "merge-sort-tree", "wavelet", "persistent", "bit-of-trees", "bit-of-tries", "seg-of-trees", "position-trees", "sqrt",
+  "sqrt-tries",
+];
 
 const errors = [];
 const entries = [];

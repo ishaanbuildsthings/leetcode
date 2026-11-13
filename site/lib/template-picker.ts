@@ -132,6 +132,8 @@ const FACTOR_VALUES: Record<string, number> = {
   N: SIZES.N,
   "log(N)": Math.log2(SIZES.N),
   "log^2(N)": Math.log2(SIZES.N) ** 2,
+  // (a tree path over a log^2 range op: the tree query templates)
+  "log^3(N)": Math.log2(SIZES.N) ** 3,
   "sqrt(N)": Math.sqrt(SIZES.N),
   "sqrt(NlogN)": Math.sqrt(SIZES.N * Math.log2(SIZES.N)),
   "sqrt(N/logN)": Math.sqrt(SIZES.N / Math.log2(SIZES.N)),
@@ -234,6 +236,7 @@ const PRETTY_FACTORS: Record<string, string> = {
   N: "N",
   "log(N)": "logN",
   "log^2(N)": "log²N",
+  "log^3(N)": "log³N",
   "sqrt(N)": "√N",
   "sqrt(NlogN)": "√(NlogN)",
   "sqrt(N/logN)": "√(N/logN)",
