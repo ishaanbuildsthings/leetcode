@@ -131,9 +131,9 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
      piece gives its hash, or its reversed hash when read backwards, and the pieces are joined the way the range
      structure joins two halves, hash(A then B) = hash(A) * base^len(B) + hash(B), with its own base and modulus, so a
      path's hash equals the range structure's hash of the same values).
-   - Not yet (they need more than the range template's public answers): on a path: longest equal run, CountDistinct / AllDistinct (the by-rank ops and AllEvenFrequency have their own templates:
-     steps 4 and 5); and
-     SubtreeAddByDepth. Range folders left out: those whose constructor takes something a Tree cannot pass through
+   - Not yet (they need more than the range template's public answers): longest equal run on a path, and
+     SubtreeAddByDepth. (The by-rank ops, AllEvenFrequency and CountDistinct / AllDistinct on a path have their own
+     templates: steps 4, 5 and 6.) Range folders left out: those whose constructor takes something a Tree cannot pass through
      (brackets, an update list, a stride cutoff), that split their ops over two classes, or that only have updates
      (nothing would read a value back: the range versions rely on getAll, which the tree menu does not have).
 2b. Edge-value templates. DONE: the same generator with the edge target writes `tree-queries/edge-<range folder>/` (1,192
@@ -163,8 +163,18 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    `ver[a] + ver[b] - ver[lca] - ver[parent(lca)]`, for edges `ver[a] + ver[b] - 2 * ver[lca]`). Kth smallest / largest,
    sum of the k smallest / largest, sum of a rank range, sum of |value - median|, and in one log the counts and sums by
    value, nearest to x, sum, min, max. Not yet: the same with updates (a Fenwick tree of value trees over the Euler
-   tour), longest equal run on a path, SubtreeAddByDepth.
-6. Bitset path CountDistinct / AllDistinct.
+   tour).
+6. Count distinct on a path. DONE: `tree-queries/path-distinct-bitset-node` and `path-distinct-bitset-edge`, written
+   by `tree-query-tests/gen_tree_bitset.py`: a segment tree over the positions whose nodes each hold a bitset, one bit
+   per distinct value under the node (a parent is the OR of its children). A path ORs the O(log n) nodes of each of
+   its O(log n) chain pieces and counts the bits: O(log^2 n * D / 64) for D distinct values, 2 * n * D / 8 bytes, so
+   for up to a few thousand distinct values. PathCountDistinct / PathAllDistinct, the same two on a subtree
+   (O(log n * D / 64)), and get / assign / add / chmax / chmin on one node or edge. A value gets its bit the first
+   time it appears; C++ takes `distinctCap` (how many distinct values can ever appear: it sizes the bitsets, default
+   the ones in the input) and throws `length_error` past it, Python ints grow by themselves. A bit is never handed
+   back, so D counts every value that ever appeared. The site ranks the new cost factor `D/64` as 16 words.
+7. Still to do: longest equal run on a path; SubtreeAddByDepth; by-rank on a path with updates; the static path
+   templates (prefix from the root, sparse table).
 
 ## 10. Decided
 

@@ -139,6 +139,8 @@ const FACTOR_VALUES: Record<string, number> = {
   "sqrt(N/logN)": Math.sqrt(SIZES.N / Math.log2(SIZES.N)),
   U: SIZES.U,
   "U/64": SIZES.U / 64,
+  // a bitset with a bit per distinct value (the count-distinct path templates): ranked as about 1,000 distinct values
+  "D/64": 16,
   "log(U)": Math.log2(SIZES.U),
   "log64(U)": Math.log2(SIZES.U) / 6,
   "log(log(U))": Math.log2(Math.log2(SIZES.U)),
@@ -242,6 +244,7 @@ const PRETTY_FACTORS: Record<string, string> = {
   "sqrt(N/logN)": "√(N/logN)",
   U: "U",
   "U/64": "U/64",
+  "D/64": "D/64",
   "N/64": "N/64",
   "L/64": "L/64",
   "log(U)": "logU",

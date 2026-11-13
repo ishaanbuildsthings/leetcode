@@ -13,8 +13,9 @@ const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 // α(N) = inverse Ackermann of N (union find with path compression: at most 4 or so).
 // K = how many elements a call handles (union find: the size of the group it lists; insertCopiesAt: the copies it inserts).
 // U/64 = U 64-bit words (a bitset over U values).
+// D/64 = D 64-bit words, D = how many distinct values there are (a bitset with a bit per distinct value).
 // U^(1/4) = Pollard rho's expected steps on a value too big for the sieve.
-const FACTORS = new Set(["1", "α(N)", "K", "N", "log(N)", "log^2(N)", "log^3(N)", "sqrt(N)", "sqrt(NlogN)", "sqrt(N/logN)", "U", "U/64", "log(U)", "log64(U)", "log(log(U))", "U^(1/4)"]);
+const FACTORS = new Set(["1", "α(N)", "K", "N", "log(N)", "log^2(N)", "log^3(N)", "sqrt(N)", "sqrt(NlogN)", "sqrt(N/logN)", "U", "U/64", "D/64", "log(U)", "log64(U)", "log(log(U))", "U^(1/4)"]);
 
 // A cost is terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
 // constant, e.g. 36*N), optionally followed by " amortized", " expected" or " amortized expected", then optionally " ?" (a bound we are

@@ -53,7 +53,7 @@ SHAPE_OPS = [op for op in TS.OPS if op != "pathNodes"]  # (a few per script: the
 BY_RANK = {"KthSmallest", "KthLargest", "SumSmallestK", "SumLargestK", "SumKthSmallestRange", "SumKthLargestRange",
            "SumAbsDiffToMedian"}
 # path ops the wrapped templates cannot give piece by piece, answered by templates with their own structure
-PATH_OWN = BY_RANK | {"AllEvenFrequency"}
+PATH_OWN = BY_RANK | {"AllEvenFrequency", "CountDistinct", "AllDistinct"}
 
 
 def op_table(target="node"):
@@ -248,6 +248,11 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         if any("EvenFrequency" in op or "Distinct" in op for op in ops):  # (few values, so both answers come up)
             gen, delta = (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1))
         ctx = {"mod": None, "full": None, "lcmCap": None}
+    # the bitset templates: C++ sizes its bitsets from distinctCap, the one constructor extra (more values than a trial
+    # can ever hold: at most 201 to start with, plus the ones its updates make)
+    bitset = folder.startswith("path-distinct-bitset")
+    if bitset:
+        extra = [320]
     value_ops = [op for op in ops if op in TABLE]
     weights, node_vals = has_weights(ops), has_node_values(ops)  # (a both- template has the two)
     updates = [op for op in value_ops if TABLE[op][1] == "update"]
@@ -268,14 +273,21 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         if signed_ok and t % 2:
             gen = lambda r: r.randint(-6, 6)  # noqa: E731
             queries = [op for op in base_queries if TABLE[op][2] not in NONNEG_SEARCHES]
-        n = 20 if force else rng.choice((1, 2, 3, 5, 8, 13, 20, 30, 45, 60))
+        big = 0
+        if bitset:  # few values (so equal ones meet on a path), or many: then mostly on a tree big enough to hold
+            # more than 64 distinct ones, which is what puts a C++ bitset's second and third words to use
+            span = rng.choice((2, 40, 100))
+            gen = lambda r: r.randint(-span, span)  # noqa: E731
+            if span > 2 and not force and rng.random() < 0.7:
+                big = rng.choice((90, 130, 170))
+        n = 20 if force else big or rng.choice((1, 2, 3, 5, 8, 13, 20, 30, 45, 60))
         nested = (stress or t % 3 == 2) and not force  # every third trial: chains nested in chains (see nested_tree)
         here = {}  # the ordered ops this trial may call, by kind
         for op in ordered:
             if op in queries or op in updates:
                 here.setdefault(ordered_kind(op), []).append(op)
         if nested:
-            n = rng.choice((30, 45, 60))
+            n = big or rng.choice((30, 45, 60))
             edges, root, lo = nested_tree(n, rng)
         else:
             edges, root, lo = TS.make_tree(n, rng.choice(TS.SHAPES), rng)
@@ -528,6 +540,48 @@ def run_py(text, trials, extra):
 
 
 # ------------------------------------------------------------------------------------------------ C++
+def bitset_cap_checks(node_vals):
+    """C++ lines for the count-distinct templates: distinctCap left out makes room for the values there now (so one
+    of them can be assigned again, a new one throws length_error), and a cap below them throws invalid_argument."""
+    make = "vector<vector<int>>{{0, 1}, {1, 2}}, 0, vector<long long>{5, 7, 5}" if node_vals else \
+        "vector<vector<int>>{{0, 1, 5}, {1, 2, 7}, {2, 3, 5}}, 0"
+    t, at, far = ("node", "1", "2") if node_vals else ("edge", "1, 2", "3")
+    return [
+        "  {",
+        f"    Tree<long long> s({make});",
+        f"    if (s.{t}PathCountDistinct(0, {far}) != 2 || s.{t}PathAllDistinct(0, {far})) return 4;",
+        f"    s.{t}Assign({at}, 5);  // (a value that has its bit already)",
+        f"    if (s.{t}PathCountDistinct(0, {far}) != 1) return 5;",
+        "    bool threw = false;",
+        f"    try {{ s.{t}Assign({at}, 9); }} catch (const length_error&) {{ threw = true; }}",
+        f"    if (!threw || s.{t}Get({at}) != 5 || s.{t}PathCountDistinct(0, {far}) != 1) return 6;",
+        "    threw = false;",
+        f"    try {{ Tree<long long> low({make}, 1); }} catch (const invalid_argument&) {{ threw = true; }}",
+        "    if (!threw) return 7;",
+        f"    Tree<long long> roomy({make}, 3);",
+        f"    roomy.{t}Assign({at}, 9);",
+        f"    if (roomy.{t}PathCountDistinct(0, {far}) != 2 || roomy.{t}SubtreeCountDistinct(0) != 2) return 8;",
+        "    // a cap that is not a multiple of 64: 70 distinct values on a 71-node chain need the second word",
+        "    vector<vector<int>> chain; vector<long long> own(71, 100);  // (node 70 holds 100 again, as node 0 does)",
+        f"    for (int i = 0; i < 70; i++) chain.push_back({{i, i + 1{'' if node_vals else ', 100 + i'}}}), own[i] = 100 + i;",
+        f"    Tree<long long> wide(chain, 0{', own' if node_vals else ''}, 71);",
+        *([
+            "    if (wide.nodePathCountDistinct(0, 69) != 70 || !wide.nodePathAllDistinct(0, 69)) return 9;",
+            "    if (wide.nodePathCountDistinct(0, 70) != 70 || wide.nodePathAllDistinct(0, 70)) return 10;",
+            "    if (wide.nodeSubtreeCountDistinct(1) != 70 || wide.nodeSubtreeAllDistinct(0)) return 11;",
+            "    wide.nodeAssign(5, 999);  // (the 71st value: its bit is in the second word)",
+            "    if (wide.nodePathCountDistinct(0, 69) != 70 || wide.nodePathCountDistinct(5, 6) != 2) return 12;",
+        ] if node_vals else [
+            "    if (wide.edgePathCountDistinct(0, 70) != 70 || !wide.edgePathAllDistinct(0, 70)) return 9;",
+            "    if (wide.edgePathCountDistinct(70, 1) != 69) return 10;",
+            "    if (wide.edgeSubtreeCountDistinct(1) != 69 || !wide.edgeSubtreeAllDistinct(0)) return 11;",
+            "    wide.edgeAssign(5, 6, 999);  // (the 71st value: its bit is in the second word)",
+            "    if (wide.edgePathCountDistinct(0, 70) != 70 || wide.edgePathCountDistinct(5, 7) != 2) return 12;",
+        ]),
+        "  }",
+    ]
+
+
 def cpp_driver(folder, ops, extra):
     extra_text = "".join(f", {e}" for e in extra)
     weights, node_vals = has_weights(ops), has_node_values(ops)  # (weights ride in the edge list, values in vals)
@@ -544,6 +598,7 @@ def cpp_driver(folder, ops, extra):
              # weights 1 and 2 are inside every range template's allowed values)
              *([f"  {{ vector<vector<int>> ints = {{{{0, 1, 1}}, {{1, 2, 2}}}}; Tree<long long> small(ints, 0{small_vals}{extra_text}); "
                 "if (small.subtreeSize(0) != 3) return 3; }"] if weights else []),
+             *(bitset_cap_checks(node_vals) if folder.startswith("path-distinct-bitset") else []),
              "  int cases; cin >> cases;",
              "  while (cases--) {",
              "    int m, root; cin >> m >> root;",
