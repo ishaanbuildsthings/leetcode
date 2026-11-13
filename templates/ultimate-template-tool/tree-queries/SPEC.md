@@ -131,9 +131,9 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
      piece gives its hash, or its reversed hash when read backwards, and the pieces are joined the way the range
      structure joins two halves, hash(A then B) = hash(A) * base^len(B) + hash(B), with its own base and modulus, so a
      path's hash equals the range structure's hash of the same values).
-   - Not yet: SubtreeAddByDepth. (The by-rank ops, AllEvenFrequency, CountDistinct / AllDistinct and the longest
-     equal run on a path need more than the range template's public answers and have their own templates: steps 4
-     to 7.) Range folders left out: those whose constructor takes something a Tree cannot pass through
+   - Not wrapped: the by-rank ops, AllEvenFrequency, CountDistinct / AllDistinct and the longest equal run on a path
+     (they need more than the range template's public answers), and SubtreeAddByDepth. Each has its own template:
+     steps 4 to 8. Range folders left out: those whose constructor takes something a Tree cannot pass through
      (brackets, an update list, a stride cutoff), that split their ops over two classes, or that only have updates
      (nothing would read a value back: the range versions rely on getAll, which the tree menu does not have).
 2b. Edge-value templates. DONE: the same generator with the edge target writes `tree-queries/edge-<range folder>/` (1,192
@@ -185,9 +185,10 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    with lazy PathAssign / PathAdd / SubtreeAssign / SubtreeAdd (an assign makes a node one run, an add moves its two
    end values) and get / assign / add / chmax / chmin on one node or edge. To mix it with other queries, keep a
    second Tree beside it. Measured in C++: 200,000 nodes, 200,000 mixed path updates and queries in 0.3 to 1 s.
-8. SubtreeAddByDepth. NEXT, designed and not yet written (`tree-query-tests/gen_tree_depth.py`, folders
-   `subtree-depth-add-fenwick-{node,edge}` and `subtree-depth-add-mod-fenwick-{node,edge}`, type `euler-fenwick`; add
-   the `subtree-` prefix to the folder filter in `test_tree.py`, and a brute force for the new update in `Sim.run`).
+8. SubtreeAddByDepth. DONE: `tree-queries/subtree-depth-add-fenwick-{node,edge}` and
+   `subtree-depth-add-mod-fenwick-{node,edge}` (type `euler-fenwick`), written by `tree-query-tests/gen_tree_depth.py`.
+   `test_tree.py` now also takes folders that start with `subtree-`, and `Sim.run` holds the brute force for the new
+   update. Measured in C++: 200,000 nodes, 400,000 mixed updates and sums in 0.2 s (0.4 s with MOD).
    Everything O(log n), on five Fenwick trees over the positions:
    - An update adds `A + B * depth(u)` to every u in a stretch of positions `l..r` whose top is at depth `e`. Node
      template: `l = pos[x]`, `e = depth(x)`; edge template: `l = pos[x] + 1`, `e = depth(x) + 1` (an edge is kept at
@@ -206,10 +207,10 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    - One value: `base[v] + ca(p) + cb(p) * depth(v)`.
    - C++: intermediate products can pass 64 bits though the answer fits (A is about `-step * depth`), so the plain
      version computes in `unsigned long long` (wraps, exact mod 2^64) and the MOD version in `__int128` residues.
-   - Ops: get / assign / add on one node or edge, SubtreeAdd, SubtreeAddByDepth, SubtreeSum, PathSum (the MOD
-     folders: SubtreeAddMod, SubtreeAddByDepthMod, SubtreeSumMod, PathSumMod; values kept in [0, MOD)).
-9. Still to do after that: by-rank on a path with updates; the static path templates (prefix from the root, sparse
-   table).
+   - Ops: get / assign / add on one node or edge (plus chmax / chmin without MOD), SubtreeAdd, SubtreeAddByDepth,
+     SubtreeSum, PathSum (the MOD folders: SubtreeAddMod, SubtreeAddByDepthMod, SubtreeSumMod, PathSumMod; values kept
+     in [0, MOD)). No path updates: a path add would break the sums from the root that make the path sum one log.
+9. Still to do: by-rank on a path with updates; the static path templates (prefix from the root, sparse table).
 
 ## 10. Decided
 

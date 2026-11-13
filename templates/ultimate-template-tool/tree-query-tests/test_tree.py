@@ -87,6 +87,9 @@ def op_table(target="node"):
     t[f"{target}PathsEqual"] = ("path", "hash", "rangesEqual", 0)
     t[f"{target}PathIsPalindrome"] = ("path", "query", "isPalindrome", 0)
     t[f"{target}PathLongestEqualRun"] = ("path", "query", "longestEqualRun", 0)  # (the path-run-* templates)
+    # (the subtree-depth-add-* templates: no range op says what these mean, Sim.run does)
+    t[f"{target}SubtreeAddByDepth"] = ("subtree", "update", "addByDepth", 2)
+    t[f"{target}SubtreeAddByDepthMod"] = ("subtree", "update", "addByDepthMod", 2)
     for big in ("Max", "Min"):
         t[f"{target}Path{big}PrefixSum"] = ("path", "query", f"{big.lower()}PrefixSum", 0)
         t[f"{target}Path{big}SuffixSum"] = ("path", "query", f"{big.lower()}SuffixSum", 0)
@@ -156,6 +159,8 @@ def read_ops(folder):
 def extra_args(rop, how, size, rng, gen, delta, mod):
     """The arguments after the nodes, valid for a path / subtree of `size` values (the range tests' rules)."""
     if how == "update":
+        if rop.startswith("addByDepth"):  # (start, step)
+            return [gen(rng), delta(rng)]
         if rop in RT.POINT_UPDATES:
             return [delta(rng) if rop == "pointAdd" else gen(rng)]
         return RT.update_args(rop, rng, gen, mod)
@@ -251,6 +256,9 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         if any("EvenFrequency" in op or "Distinct" in op or "EqualRun" in op for op in ops):
             gen, delta = (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1))
         ctx = {"mod": None, "full": None, "lcmCap": None}
+        if "-mod-" in folder:  # (values kept in [0, 97), as the range tests do; a step may be anything)
+            gen, delta, extra = (lambda r: r.randint(0, 96)), (lambda r: r.randint(-150, 150)), [97]
+            ctx["mod"] = 97
     # the bitset templates: C++ sizes its bitsets from distinctCap, the one constructor extra (more values than a trial
     # can ever hold: at most 201 to start with, plus the ones its updates make)
     bitset = folder.startswith("path-distinct-bitset")
@@ -470,6 +478,14 @@ class Sim:
             return None if how == "update" else -1 if how == "find" else no_edges(op)
         if how == "get":
             return seg[0]
+        if rop.startswith("addByDepth"):  # each value gets start + step * (how far below the top of the subtree it is)
+            dep, mod = self.ref.dep, self.ctx["mod"]
+            top = dep[args[0]] + (1 if is_edge(op) else 0)  # (an edge is kept at its lower end, one level down)
+            for v in nodes:
+                held[v] += rest[0] + rest[1] * (dep[v] - top)
+                if mod:
+                    held[v] %= mod
+            return None
         if how == "update":
             RT.brute_update(seg, rop, ([0] if where == "one" else [0, last]) + rest, self.ctx)
             for v, x in zip(nodes, seg):
@@ -585,6 +601,48 @@ def bitset_cap_checks(node_vals):
     ]
 
 
+def depth_checks(node_vals, mod):
+    """C++ lines for the add-by-depth templates. Plain: a deep chain and a huge step, where products on the way pass
+    64 bits and the answers do not. MOD: a modulus near 2^62 and inputs below 0, where residues need 128-bit products."""
+    t = "node" if node_vals else "edge"
+    if mod:
+        make = ("vector<vector<int>>{{0, 1}, {1, 2}}, 0, vector<long long>{M - 1, 5, M - 2}, M" if node_vals else
+                "vector<vector<long long>>{{0, 1, M - 1}, {1, 2, 5}, {2, 3, M - 2}}, 0, M")
+        far, one, top, mid = ("2", "1", "0", "1") if node_vals else ("3", "1, 2", "0, 1", "1")
+        return [
+            "  {",
+            "    const long long M = 4000000000000000037LL;",
+            f"    Tree<long long> m({make});",
+            f"    m.{t}SubtreeAddByDepthMod(0, M - 3, M - 5);  // (the values become M - 4, M - 3, M - 15)",
+            f"    if (m.{t}Get({'2' if node_vals else '2, 3'}) != M - 15 || m.{t}PathSumMod(0, {far}) != M - 22) return 4;",
+            f"    if (m.{t}SubtreeSumMod({mid}) != M - 18) return 5;",
+            f"    m.{t}Add({one}, -7), m.{t}Assign({top}, -1);  // (inputs below 0: M - 10 and M - 1)",
+            f"    if (m.{t}Get({one}) != M - 10 || m.{t}Get({top}) != M - 1 || m.{t}PathSumMod({far}, 0) != M - 26) return 6;",
+            "  }",
+        ]
+    w = "" if node_vals else ", 0"
+    lines = [
+        "  {",
+        "    const int big = 100000;",
+        "    const long long step = 1000000000000LL;",
+        "    vector<vector<int>> chain;",
+        f"    for (int i = 0; i < big; i++) chain.push_back({{i, i + 1{w}}});",
+        f"    Tree<long long> deep(chain, 0{', vector<long long>(big + 1, 0)' if node_vals else ''});",
+        f"    deep.{t}SubtreeAddByDepth(90000, 5, step);",
+    ]
+    if node_vals:
+        lines += [
+            "    if (deep.nodeGet(90002) != 5 + 2 * step || deep.nodePathSum(90000, 90002) != 15 + 3 * step) return 4;",
+            "    if (deep.nodeSubtreeSum(99999) != 10 + 19999 * step || deep.nodePathSum(89990, 90001) != 10 + step) return 5;",
+        ]
+    else:
+        lines += [
+            "    if (deep.edgeGet(90002, 90003) != 5 + 2 * step || deep.edgePathSum(90000, 90003) != 15 + 3 * step) return 4;",
+            "    if (deep.edgeSubtreeSum(99998) != 10 + 19997 * step || deep.edgePathSum(89990, 90002) != 10 + step) return 5;",
+        ]
+    return lines + ["  }"]
+
+
 def cpp_driver(folder, ops, extra):
     extra_text = "".join(f", {e}" for e in extra)
     weights, node_vals = has_weights(ops), has_node_values(ops)  # (weights ride in the edge list, values in vals)
@@ -602,6 +660,7 @@ def cpp_driver(folder, ops, extra):
              *([f"  {{ vector<vector<int>> ints = {{{{0, 1, 1}}, {{1, 2, 2}}}}; Tree<long long> small(ints, 0{small_vals}{extra_text}); "
                 "if (small.subtreeSize(0) != 3) return 3; }"] if weights else []),
              *(bitset_cap_checks(node_vals) if folder.startswith("path-distinct-bitset") else []),
+             *(depth_checks(node_vals, "-mod-" in folder) if folder.startswith("subtree-depth-add") else []),
              "  int cases; cin >> cases;",
              "  while (cases--) {",
              "    int m, root; cin >> m >> root;",
@@ -736,7 +795,7 @@ def main():
             names.append(args[k])
         k += 1
     folders = sorted(f for f in os.listdir(DIR)
-                     if f.startswith(("node-", "edge-", "both-", "path-")) and os.path.isdir(os.path.join(DIR, f)))
+                     if f.startswith(("node-", "edge-", "both-", "path-", "subtree-")) and os.path.isdir(os.path.join(DIR, f)))
     if names:
         folders = [f for f in folders if any(n in f for n in names)]
     if listed is not None:
