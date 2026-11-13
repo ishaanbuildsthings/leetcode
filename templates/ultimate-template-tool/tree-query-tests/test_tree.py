@@ -15,7 +15,7 @@ shapes, a few shape ops per script, and calls with a node that is not in the tre
     python3 test_tree.py --py            # Python only
     python3 test_tree.py --cpp           # C++ only
     python3 test_tree.py rangeAdd beats  # folders whose name contains one of these
-    python3 test_tree.py --shard 3/8     # every 8th folder from the 3rd (run 8 side by side)
+    python3 test_tree.py --shard 3/8     # every 8th folder, starting at index 3 (run 0/8 .. 7/8 side by side)
     python3 test_tree.py --trials 60     # more random trees per folder (default 24)
     python3 test_tree.py --from f.txt    # exactly the folders listed in f.txt (one per line)
     python3 test_tree.py --ordered       # the direction stress test: see below
@@ -805,6 +805,8 @@ def main():
             k += 1
         elif args[k] == "--shard":
             shard = tuple(map(int, args[k + 1].split("/")))
+            if not 0 <= shard[0] < shard[1]:  # (8/8 would quietly leave out the first folder)
+                sys.exit(f"--shard k/n counts from 0: needs 0 <= k < n, got {args[k + 1]}")
             k += 1
         elif args[k] == "--from":
             listed = set(open(args[k + 1]).read().split())
