@@ -9,7 +9,8 @@
     "lint": "eslint",
     "gen:range-queries": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-range-query-templates.mjs",
     "gen:sets": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-set-templates.mjs",
-    "gen:union-find": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-union-find-templates.mjs"
+    "gen:union-find": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-union-find-templates.mjs",
+    "gen:tree-queries": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-tree-query-templates.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",

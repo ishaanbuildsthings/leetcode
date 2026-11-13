@@ -21,6 +21,7 @@ import {
   type PickerTemplate,
   type TemplateLang,
   type TierKind,
+  tierOps,
   type Usage,
 } from "@/lib/template-picker";
 import { readUsage } from "@/lib/template-usage";
@@ -31,7 +32,8 @@ const PICKER_PAGES = [
   { href: "/templates/sets", label: "Sets" },
   { href: "/templates/union-find", label: "Union find" },
   { href: "/templates/strings", label: "Strings" },
-  { href: "/templates/trees", label: "Trees" },
+  { href: "/templates/tree-queries", label: "Tree queries" },
+  { href: "/templates/trees", label: "Tree helpers" },
   { href: "/templates/matrices", label: "Matrices" },
   { href: "/templates/combinatorics", label: "Combinatorics" },
   { href: "/templates/bitset", label: "Bit ops & Bitset" },
@@ -44,7 +46,7 @@ export function PickerTabs({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <nav
-      className="mb-4 flex items-center gap-1 border-b border-border text-sm font-medium"
+      className="mb-4 flex flex-wrap items-center gap-1 border-b border-border text-sm font-medium"
       aria-label="Template pickers"
     >
       {PICKER_PAGES.map((p) => {
@@ -65,9 +67,69 @@ export function PickerTabs({ children }: { children?: React.ReactNode }) {
         );
       })}
       {children && (
-        <div className="ml-auto flex items-center gap-2 pb-1">{children}</div>
+        <div className="ml-auto flex flex-wrap items-center gap-2 pb-1">{children}</div>
       )}
     </nav>
+  );
+}
+
+// The tabbed layout (catalog.pane): a frozen left column of groups, the other groups in tabs to its right. Each tab
+// says how many of its ops are picked, and while searching how many match
+function OpPane({
+  pane,
+  opGroups,
+  renderGroup,
+  active,
+  query,
+}: {
+  pane: NonNullable<PickerCatalog<PickerTemplate>["pane"]>;
+  opGroups: PickerOpGroup[];
+  renderGroup: (group: PickerOpGroup) => React.ReactNode;
+  active: ReadonlySet<string>;
+  query: string;
+}) {
+  const [tab, setTab] = useState(pane.tabs[0].id);
+  const byId = new Map(opGroups.map((g) => [g.id, g]));
+  const groupsOf = (ids: string[]) => ids.flatMap((id) => byId.get(id) ?? []);
+  const q = query.trim().toLowerCase();
+  const current = pane.tabs.find((t) => t.id === tab) ?? pane.tabs[0];
+  return (
+    <div className="grid items-start gap-3 xl:grid-cols-3">
+      <div>{groupsOf(pane.fixed).map(renderGroup)}</div>
+      <div className="xl:col-span-2">
+        <div role="tablist" className="mb-3 flex gap-1 border-b border-border">
+          {pane.tabs.map((t) => {
+            const ops = groupsOf(t.groups).flatMap((g) => g.tiers.flatMap(tierOps));
+            const picked = ops.filter((o) => active.has(o.id)).length;
+            const matches = q ? ops.filter((o) => `${o.signature} ${o.description}`.toLowerCase().includes(q)).length : null;
+            const on = t.id === current.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setTab(t.id)}
+                className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+                  on ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.label}
+                {picked > 0 && (
+                  <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">{picked} selected</span>
+                )}
+                {matches !== null && (
+                  <span className="text-[11px] font-normal text-muted-foreground">
+                    {matches} {matches === 1 ? "match" : "matches"}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="columns-1 gap-3 md:columns-2">{groupsOf(current.groups).map(renderGroup)}</div>
+      </div>
+    </div>
   );
 }
 
@@ -156,6 +218,9 @@ export type CtorNote = { py: string; cpp: string; inCall?: boolean; shown?: bool
 export interface PickerCatalog<V extends PickerTemplate> {
   title: string;
   opGroups: PickerOpGroup[];
+  // (optional) instead of one grid: the `fixed` groups in a frozen left column, and the rest in tabs to its right
+  // (tree queries: shape ops on the left, node / edge ops in tabs). Picks stay when you switch tabs
+  pane?: { fixed: string[]; tabs: { id: string; label: string; groups: string[] }[] };
   // a short "still to add" list shown under the op columns
   planned?: string[];
   // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
@@ -680,7 +745,7 @@ function FastPanel({ info }: { info: FastInfo }) {
     <div className="grid gap-2 border-b border-border bg-muted/40 px-4 py-3 text-xs leading-5 text-muted-foreground">
       <p className="text-sm font-semibold text-foreground">Fast mode</p>
       <div>
-        <p className="font-medium text-foreground">Why it's faster</p>
+        <p className="font-medium text-foreground">Why it&apos;s faster</p>
         <p>{info.how}</p>
       </div>
       <div>
@@ -1116,6 +1181,7 @@ export function TemplatePicker<V extends PickerTemplate>({
   const [openFillIn, setOpenFillIn] = useState<FillIn | null>(null);
   const [fillInMenu, setFillInMenu] = useState(false); // the "Generic seg trees" menu is open
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // collapsible groups clicked open
+  const [sectionOf, setSectionOf] = useState<Record<string, string>>({}); // sectioned groups: the section shown
   const [openTypes, setOpenTypes] = useState<Map<string, number>>(new Map()); // result type -> left-out variants shown
   const [query, setQuery] = useState(""); // the search box: only ops whose name or description contains it
   // the bottom sheet (selection + templates) and its current height
@@ -1157,7 +1223,22 @@ export function TemplatePicker<V extends PickerTemplate>({
     });
   };
 
-  const allOps = catalog.opGroups.flatMap((g) => g.tiers.flatMap((t) => t.ops));
+  // the "with fixed MOD" checkbox under an op: selects the mod variant in place of the op (or back)
+  const swapMod = (op: PickerOp, toMod: boolean) => {
+    const v = op.modVariant;
+    if (!v) return;
+    const [from, to] = toMod ? [op.id, v.id] : [v.id, op.id];
+    setSheetHidden(false);
+    setCap(from, null);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.delete(from);
+      next.add(to);
+      return next;
+    });
+  };
+
+  const allOps = catalog.opGroups.flatMap((g) => g.tiers.flatMap(tierOps));
   // ops the checkbox disabled stay remembered but drop out of the selection while it is on
   const active = new Set([...selected].filter((id) => !isDisabled(id)));
   const selectedOps = allOps.filter((op) => active.has(op.id));
@@ -1366,6 +1447,206 @@ export function TemplatePicker<V extends PickerTemplate>({
     matches.filter((m) => m.template.dataStructureType === type),
   );
 
+  // one op group's card (shared by the plain grid and the tabbed pane)
+  const renderGroup = (group: PickerOpGroup) => {
+      // while searching: only the matching ops, groups without one hidden, collapsed groups open
+      const q = query.trim().toLowerCase();
+      const tiers = q
+        ? group.tiers
+            .map((t) => ({
+              ...t,
+              ops: t.ops.filter((op) =>
+                `${op.signature} ${op.description}`
+                  .toLowerCase()
+                  .includes(q),
+              ),
+            }))
+            .filter((t) => t.ops.length > 0)
+        : group.tiers;
+      if (q && tiers.length === 0) return null;
+      const closed = !q && group.collapsible && !expanded.has(group.id);
+      // tiers with a section go behind a switch (one section at a time); tiers without one always show, above it. While
+      // searching, every match shows, headed by its section
+      const sections = [...new Set(group.tiers.flatMap((t) => (t.section ? [t.section] : [])))];
+      const section = sectionOf[group.id] ?? sections[0];
+      const always = tiers.filter((t) => !t.section);
+      const shownTiers = [
+        ...always,
+        ...(q
+          ? tiers
+              .filter((t) => t.section)
+              .map((t) => ({
+                ...t,
+                kind: t.kind === "common" ? ("topic" as const) : t.kind,
+                label: t.label ? `${t.section} · ${t.label}` : t.section,
+              }))
+          : tiers.filter((t) => t.section && t.section === section)),
+      ];
+      const sectionSwitch =
+        sections.length > 0 && !q ? (
+          <div key="section-switch" role="tablist" className={`col-span-3 flex flex-wrap gap-1 px-2 pb-1 ${always.length ? "mt-3" : ""}`}>
+            {sections.map((s) => {
+              const n = group.tiers
+                .filter((t) => t.section === s)
+                .reduce((k, t) => k + tierOps(t).filter((o) => active.has(o.id)).length, 0);
+              const on = s === section;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setSectionOf((prev) => ({ ...prev, [group.id]: s }))}
+                  className={`rounded-md border px-2 py-0.5 text-xs font-medium transition-colors ${
+                    on ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {s}
+                  {n > 0 && <span className="ml-1.5 rounded bg-primary/15 px-1 text-[10px] text-primary">{n} selected</span>}
+                </button>
+              );
+            })}
+          </div>
+        ) : null;
+      const picked = group.tiers.reduce(
+        (n, t) => n + tierOps(t).filter((op) => active.has(op.id)).length,
+        0,
+      );
+      const heading = (
+        <>
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+            {group.collapsible && (
+              <span
+                aria-hidden
+                className={`inline-block text-[10px] text-muted-foreground transition-transform ${closed ? "" : "rotate-90"}`}
+              >
+                ▶
+              </span>
+            )}
+            {group.title}
+            {group.note && <span className="text-xs font-normal text-muted-foreground">{group.note}</span>}
+            {closed && picked > 0 && (
+              <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                {picked} selected
+              </span>
+            )}
+          </h2>
+        </>
+      );
+      return (
+        <section
+          key={group.id}
+          className="mb-3 break-inside-avoid rounded-xl border border-border bg-card px-3 py-2.5"
+        >
+          {group.collapsible ? (
+            <button
+              type="button"
+              aria-expanded={!closed}
+              onClick={() =>
+                setExpanded((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(group.id)) next.delete(group.id);
+                  else next.add(group.id);
+                  return next;
+                })
+              }
+              className={`flex w-full items-baseline justify-between gap-3 text-left ${closed ? "" : "mb-1.5"}`}
+            >
+              {heading}
+            </button>
+          ) : (
+            <div className="mb-1.5 flex items-baseline justify-between gap-3">
+              {heading}
+            </div>
+          )}
+          {!closed && (
+            <div className="-mx-2 grid grid-cols-[auto_auto_minmax(0,1fr)]">
+              {shownTiers.flatMap((tier, tierIdx) => [
+                tierIdx === always.length ? sectionSwitch : null,
+                // a "topic" tier with no label is just the group's list: no header
+                // the "common" tier is just the top of the list (no header); a "topic" tier with no label too
+                tier.kind === "common" ||
+                (tier.kind === "topic" && !tier.label) ? null : (
+                  <h3
+                    key={tier.label ?? tier.kind}
+                    className={`col-span-3 flex items-center gap-2 px-2 ${tierIdx === 0 ? "" : "mt-1.5"}`}
+                  >
+                    <TierBadge kind={tier.kind} label={tier.label} />
+                    <span
+                      aria-hidden
+                      className="h-px flex-1 bg-gradient-to-r from-border to-transparent"
+                    />
+                  </h3>
+                ),
+                ...tier.ops.flatMap((base) => {
+                  // with a mod variant, the row stands for whichever of the two is picked (the checkbox says which)
+                  const modOn = !!base.modVariant && selected.has(base.modVariant.id);
+                  const op = modOn ? base.modVariant! : base;
+                  const off = isDisabled(op.id);
+                  const isOn = active.has(op.id);
+                  const row = (
+                    <button
+                      key={op.id}
+                      type="button"
+                      aria-pressed={isOn}
+                      disabled={off}
+                      onClick={() => toggle(op.id)}
+                      title={off ? flag?.disabledTitle : op.signature}
+                      className={`col-span-3 grid grid-cols-subgrid items-baseline gap-x-2 rounded-md px-2 py-0.5 text-left transition-colors ${
+                        off
+                          ? "cursor-not-allowed opacity-35"
+                          : isOn
+                            ? "bg-primary/15"
+                            : "hover:bg-muted"
+                      }`}
+                    >
+                      <span
+                        aria-hidden
+                        className={`relative top-0.5 flex h-3.5 w-3.5 items-center justify-center self-start rounded-sm border text-[9px] leading-none ${
+                          isOn
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background"
+                        }`}
+                      >
+                        {isOn ? "✓" : ""}
+                      </span>
+                      <span
+                        className={`whitespace-nowrap font-mono text-xs ${isOn ? "font-medium text-primary" : "text-foreground"}`}
+                      >
+                        {opName(op)}
+                        <span className="font-normal text-muted-foreground">
+                          {reword(opArgs(op))}
+                        </span>
+                      </span>
+                      <span className="min-w-0 text-[11px] leading-snug text-muted-foreground">
+                        {reword(op.description)}
+                      </span>
+                    </button>
+                  );
+                  if (!base.modVariant) return [row];
+                  return [
+                    row,
+                    <label
+                      key={`${base.id}-mod`}
+                      className="col-span-3 -mt-0.5 mb-0.5 flex w-fit cursor-pointer items-center gap-1.5 pl-[30px] text-[11px] text-muted-foreground hover:text-foreground"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={modOn}
+                        onChange={(e) => swapMod(base, e.target.checked)}
+                        className="h-3 w-3 accent-primary"
+                      />
+                      with fixed MOD
+                    </label>,
+                  ];
+                }),
+              ])}
+            </div>
+          )}
+        </section>
+      );
+  };
+
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-16 font-[family-name:var(--font-dm-sans)]">
       {/* the tab row and the selection stay put; only the operations scroll */}
@@ -1473,142 +1754,11 @@ export function TemplatePicker<V extends PickerTemplate>({
         </PickerTabs>
       </div>
 
-      <div className="columns-1 gap-3 md:columns-2 xl:columns-3">
-        {catalog.opGroups.map((group) => {
-          // while searching: only the matching ops, groups without one hidden, collapsed groups open
-          const q = query.trim().toLowerCase();
-          const tiers = q
-            ? group.tiers
-                .map((t) => ({
-                  ...t,
-                  ops: t.ops.filter((op) =>
-                    `${op.signature} ${op.description}`
-                      .toLowerCase()
-                      .includes(q),
-                  ),
-                }))
-                .filter((t) => t.ops.length > 0)
-            : group.tiers;
-          if (q && tiers.length === 0) return null;
-          const closed = !q && group.collapsible && !expanded.has(group.id);
-          const picked = group.tiers.reduce(
-            (n, t) => n + t.ops.filter((op) => active.has(op.id)).length,
-            0,
-          );
-          const heading = (
-            <>
-              <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                {group.collapsible && (
-                  <span
-                    aria-hidden
-                    className={`inline-block text-[10px] text-muted-foreground transition-transform ${closed ? "" : "rotate-90"}`}
-                  >
-                    ▶
-                  </span>
-                )}
-                {group.title}
-                {closed && picked > 0 && (
-                  <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">
-                    {picked} selected
-                  </span>
-                )}
-              </h2>
-            </>
-          );
-          return (
-            <section
-              key={group.id}
-              className="mb-3 break-inside-avoid rounded-xl border border-border bg-card px-3 py-2.5"
-            >
-              {group.collapsible ? (
-                <button
-                  type="button"
-                  aria-expanded={!closed}
-                  onClick={() =>
-                    setExpanded((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(group.id)) next.delete(group.id);
-                      else next.add(group.id);
-                      return next;
-                    })
-                  }
-                  className={`flex w-full items-baseline justify-between gap-3 text-left ${closed ? "" : "mb-1.5"}`}
-                >
-                  {heading}
-                </button>
-              ) : (
-                <div className="mb-1.5 flex items-baseline justify-between gap-3">
-                  {heading}
-                </div>
-              )}
-              {!closed && (
-                <div className="-mx-2 grid grid-cols-[auto_auto_minmax(0,1fr)]">
-                  {tiers.flatMap((tier, tierIdx) => [
-                    // a "topic" tier with no label is just the group's list: no header
-                    // the "common" tier is just the top of the list (no header); a "topic" tier with no label too
-                    tier.kind === "common" ||
-                    (tier.kind === "topic" && !tier.label) ? null : (
-                      <h3
-                        key={tier.label ?? tier.kind}
-                        className={`col-span-3 flex items-center gap-2 px-2 ${tierIdx === 0 ? "" : "mt-1.5"}`}
-                      >
-                        <TierBadge kind={tier.kind} label={tier.label} />
-                        <span
-                          aria-hidden
-                          className="h-px flex-1 bg-gradient-to-r from-border to-transparent"
-                        />
-                      </h3>
-                    ),
-                    ...tier.ops.map((op) => {
-                      const off = isDisabled(op.id);
-                      const isOn = active.has(op.id);
-                      return (
-                        <button
-                          key={op.id}
-                          type="button"
-                          aria-pressed={isOn}
-                          disabled={off}
-                          onClick={() => toggle(op.id)}
-                          title={off ? flag?.disabledTitle : op.signature}
-                          className={`col-span-3 grid grid-cols-subgrid items-baseline gap-x-2 rounded-md px-2 py-0.5 text-left transition-colors ${
-                            off
-                              ? "cursor-not-allowed opacity-35"
-                              : isOn
-                                ? "bg-primary/15"
-                                : "hover:bg-muted"
-                          }`}
-                        >
-                          <span
-                            aria-hidden
-                            className={`relative top-0.5 flex h-3.5 w-3.5 items-center justify-center self-start rounded-sm border text-[9px] leading-none ${
-                              isOn
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border bg-background"
-                            }`}
-                          >
-                            {isOn ? "✓" : ""}
-                          </span>
-                          <span
-                            className={`whitespace-nowrap font-mono text-xs ${isOn ? "font-medium text-primary" : "text-foreground"}`}
-                          >
-                            {opName(op)}
-                            <span className="font-normal text-muted-foreground">
-                              {reword(opArgs(op))}
-                            </span>
-                          </span>
-                          <span className="min-w-0 text-[11px] leading-snug text-muted-foreground">
-                            {reword(op.description)}
-                          </span>
-                        </button>
-                      );
-                    }),
-                  ])}
-                </div>
-              )}
-            </section>
-          );
-        })}
-      </div>
+      {catalog.pane ? (
+        <OpPane pane={catalog.pane} opGroups={catalog.opGroups} renderGroup={renderGroup} active={active} query={query} />
+      ) : (
+        <div className="columns-1 gap-3 md:columns-2 xl:columns-3">{catalog.opGroups.map(renderGroup)}</div>
+      )}
 
       {catalog.planned && catalog.planned.length > 0 && (
         <p className="mt-4 text-xs text-muted-foreground">

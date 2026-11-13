@@ -210,8 +210,9 @@ function cppClasses(text: string): ParsedClass[] {
       const line = lines[j].replace(/\/\/.*$/, "");
       if (depth === 1) {
         const whole = joinedSignature(lines, j, "//");
+        // (a constructor may be a template itself, e.g. the trees' "template <typename E = int> Tree(edges, root)")
         const ctor = whole.match(
-          new RegExp(`^\\s{4}(?:explicit\\s+)?${cls.name}\\(`),
+          new RegExp(`^\\s{4}(?:template\\s*<[^>]*>\\s*)?(?:explicit\\s+)?${cls.name}\\(`),
         );
         const m = whole.match(
           /^\s{4}(?:(?:static|inline|constexpr|virtual|LEETCODE_NO_SANITIZE(?:_INLINE)?)\s+)*([\w:<>, *&]+?)\s+(\w+)\((.*)\)\s*(?:const\s*)?(?:\{|$)/,

@@ -7,7 +7,7 @@ import { REROOT } from "@/lib/reroot";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
-  title: "Tree Templates — LeetGoat",
+  title: "Tree Helper Templates — LeetGoat",
 };
 
 export default async function TreeTemplatesPage() {
@@ -31,7 +31,7 @@ export default async function TreeTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Tree templates" sections={[
+        <MiscTemplates title="Tree helper templates" sections={[
             { title: "Trees", items: TREES },
             { title: "Reroot DP", items: REROOT },
           ]} publicBase="/range-query-templates" />

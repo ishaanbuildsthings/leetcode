@@ -5,7 +5,14 @@ export interface PickerOp {
   id: string;
   signature: string;
   description: string;
+  // (optional) the same op done mod a fixed MOD, picked by a checkbox under this op instead of as its own row (tree
+  // queries: nodePathAdd -> nodePathAddMod); checking it swaps which of the two ids is selected
+  modVariant?: PickerOp;
 }
+
+// every op a tier offers, the mod variants behind checkboxes included
+export const tierOps = (tier: PickerOpTier): PickerOp[] =>
+  tier.ops.flatMap((op) => (op.modVariant ? [op, op.modVariant] : [op]));
 
 // "topic" groups ops by what they do rather than how often they come up; it always carries a label
 export type TierKind =
@@ -15,12 +22,17 @@ export interface PickerOpTier {
   kind: TierKind;
   // Overrides the badge text; the kind still sets the color.
   label?: string;
+  // (optional) which section of its group the tier is in: sectioned tiers sit behind a small switch, one section at a
+  // time, below the group's unsectioned tiers (tree queries: One node always shows; Path a..b / Subtree of v switch)
+  section?: string;
   ops: PickerOp[];
 }
 
 export interface PickerOpGroup {
   id: string;
   title: string;
+  // (optional) a short muted note beside the title (tree queries: "(a, b can be either order)" on the edge groups)
+  note?: string;
   // shown as just its header until clicked open (closed on every page load)
   collapsible?: boolean;
   tiers: PickerOpTier[];

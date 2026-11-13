@@ -27,7 +27,7 @@ echo "== syntax: every Python template must parse"
 python3 - <<'PY' > "$LOGS/syntax.log" 2>&1
 import ast, os, sys
 bad = 0
-for sub in ("range-queries", "sets", "union-find", "strings", "next-permutation"):
+for sub in ("range-queries", "sets", "union-find", "strings", "next-permutation", "tree-queries"):
     if not os.path.isdir(sub): continue
     for root, _, files in os.walk(sub):
         for f in files:
@@ -79,6 +79,11 @@ if [ "${#LANGS[@]}" -eq 2 ]; then run union-find python3 union-find-tests/test_u
 else run union-find python3 union-find-tests/test_union_find.py "${LANGS[0]}"; fi
 run strings python3 string-tests/test_strings.py
 run palindromes python3 string-tests/test_palindromes.py
+
+echo "== tree queries"
+if [ "${#LANGS[@]}" -eq 2 ]; then run tree-shape python3 tree-query-tests/test_tree_shape.py
+else run tree-shape python3 tree-query-tests/test_tree_shape.py "${LANGS[0]}"; fi
+run tree-fresh python3 tree-query-tests/gen_tree_shape.py --check  # every tree file matches what its generator writes
 
 echo "== small folders: bit operations, matrices, bubble sort, generics, combinatorics, permutations, trees, bitset"
 run generic-brute-py python3 range-query-tests/test_generic_brute.py
