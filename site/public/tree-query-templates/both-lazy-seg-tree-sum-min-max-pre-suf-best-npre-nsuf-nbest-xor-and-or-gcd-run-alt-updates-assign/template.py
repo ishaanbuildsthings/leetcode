@@ -1,7 +1,7 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/both-lazy-seg-tree-sum-min-max-pre-suf-best-npre-nsuf-nbest-xor-and-or-gcd-run-alt-updates-assign/template.py
 # The range structure inside is https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-min-max-pre-suf-best-npre-nsuf-nbest-xor-and-or-gcd-run-alt-updates-assign/template.py
-# @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgeNearestAncestorGtX edgeNearestAncestorGteX edgeNearestAncestorLtX edgeNearestAncestorLteX edgePathAND edgePathAssign edgePathFirstGtX edgePathFirstGteX edgePathFirstLtX edgePathFirstLteX edgePathFirstPrefixSumGtX edgePathFirstPrefixSumGteX edgePathFirstPrefixSumLtX edgePathFirstPrefixSumLteX edgePathGcd edgePathLastGtX edgePathLastGteX edgePathLastLtX edgePathLastLteX edgePathLastSuffixSumGtX edgePathLastSuffixSumGteX edgePathLastSuffixSumLtX edgePathLastSuffixSumLteX edgePathMax edgePathMaxPrefixSum edgePathMaxSuffixSum edgePathMin edgePathMinPrefixSum edgePathMinSuffixSum edgePathOR edgePathSum edgePathXOR edgeSubtreeAND edgeSubtreeAssign edgeSubtreeGcd edgeSubtreeMax edgeSubtreeMin edgeSubtreeOR edgeSubtreeSum edgeSubtreeXOR isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath nodeAdd nodeAssign nodeChmax nodeChmin nodeGet nodeNearestAncestorGtX nodeNearestAncestorGteX nodeNearestAncestorLtX nodeNearestAncestorLteX nodePathAND nodePathAssign nodePathFirstGtX nodePathFirstGteX nodePathFirstLtX nodePathFirstLteX nodePathFirstPrefixSumGtX nodePathFirstPrefixSumGteX nodePathFirstPrefixSumLtX nodePathFirstPrefixSumLteX nodePathGcd nodePathLastGtX nodePathLastGteX nodePathLastLtX nodePathLastLteX nodePathLastSuffixSumGtX nodePathLastSuffixSumGteX nodePathLastSuffixSumLtX nodePathLastSuffixSumLteX nodePathMax nodePathMaxPrefixSum nodePathMaxSuffixSum nodePathMin nodePathMinPrefixSum nodePathMinSuffixSum nodePathOR nodePathSum nodePathXOR nodeSubtreeAND nodeSubtreeAssign nodeSubtreeGcd nodeSubtreeMax nodeSubtreeMin nodeSubtreeOR nodeSubtreeSum nodeSubtreeXOR parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
+# @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgeNearestAncestorGtX edgeNearestAncestorGteX edgeNearestAncestorLtX edgeNearestAncestorLteX edgePathAND edgePathAssign edgePathFirstGtX edgePathFirstGteX edgePathFirstLtX edgePathFirstLteX edgePathFirstPrefixSumGtX edgePathFirstPrefixSumGteX edgePathFirstPrefixSumLtX edgePathFirstPrefixSumLteX edgePathGcd edgePathLastGtX edgePathLastGteX edgePathLastLtX edgePathLastLteX edgePathLastSuffixSumGtX edgePathLastSuffixSumGteX edgePathLastSuffixSumLtX edgePathLastSuffixSumLteX edgePathMax edgePathMaxPrefixSum edgePathMaxSubarraySum edgePathMaxSuffixSum edgePathMin edgePathMinPrefixSum edgePathMinSubarraySum edgePathMinSuffixSum edgePathOR edgePathSum edgePathXOR edgeSubtreeAND edgeSubtreeAssign edgeSubtreeGcd edgeSubtreeMax edgeSubtreeMin edgeSubtreeOR edgeSubtreeSum edgeSubtreeXOR isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath nodeAdd nodeAssign nodeChmax nodeChmin nodeGet nodeNearestAncestorGtX nodeNearestAncestorGteX nodeNearestAncestorLtX nodeNearestAncestorLteX nodePathAND nodePathAssign nodePathFirstGtX nodePathFirstGteX nodePathFirstLtX nodePathFirstLteX nodePathFirstPrefixSumGtX nodePathFirstPrefixSumGteX nodePathFirstPrefixSumLtX nodePathFirstPrefixSumLteX nodePathGcd nodePathLastGtX nodePathLastGteX nodePathLastLtX nodePathLastLteX nodePathLastSuffixSumGtX nodePathLastSuffixSumGteX nodePathLastSuffixSumLtX nodePathLastSuffixSumLteX nodePathMax nodePathMaxPrefixSum nodePathMaxSubarraySum nodePathMaxSuffixSum nodePathMin nodePathMinPrefixSum nodePathMinSubarraySum nodePathMinSuffixSum nodePathOR nodePathSum nodePathXOR nodeSubtreeAND nodeSubtreeAssign nodeSubtreeGcd nodeSubtreeMax nodeSubtreeMin nodeSubtreeOR nodeSubtreeSum nodeSubtreeXOR parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   countAtDepthInSubtree: log(N)
@@ -36,9 +36,11 @@
 #   edgePathLastSuffixSumLteX: log^2(N)
 #   edgePathMax: log^2(N)
 #   edgePathMaxPrefixSum: log^2(N)
+#   edgePathMaxSubarraySum: log^2(N)
 #   edgePathMaxSuffixSum: log^2(N)
 #   edgePathMin: log^2(N)
 #   edgePathMinPrefixSum: log^2(N)
+#   edgePathMinSubarraySum: log^2(N)
 #   edgePathMinSuffixSum: log^2(N)
 #   edgePathOR: log^2(N)
 #   edgePathSum: log^2(N)
@@ -89,9 +91,11 @@
 #   nodePathLastSuffixSumLteX: log^2(N)
 #   nodePathMax: log^2(N)
 #   nodePathMaxPrefixSum: log^2(N)
+#   nodePathMaxSubarraySum: log^2(N)
 #   nodePathMaxSuffixSum: log^2(N)
 #   nodePathMin: log^2(N)
 #   nodePathMinPrefixSum: log^2(N)
+#   nodePathMinSubarraySum: log^2(N)
 #   nodePathMinSuffixSum: log^2(N)
 #   nodePathOR: log^2(N)
 #   nodePathSum: log^2(N)
@@ -1266,6 +1270,116 @@ class Tree:
         res |= query(l, r)
         return res
 
+    # O(log^2 n) -- max sum of a non-empty stretch of the path a..b
+    def nodePathMaxSubarraySum(self, a, b):
+        if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
+            self._bad("nodePathMaxSubarraySum", a, b)
+        head, par, dep, pos, seg = self.head, self.par, self.dep, self.pos, self.nodeSeg
+        total, starting, ending, inside = seg.rangeSum, seg.maxPrefixSum, seg.maxSuffixSum, seg.maxSubarraySum
+        best = tail = float("-inf")  # the best stretch so far; the best one ending at the last node walked
+        downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
+        while head[a] != head[b]:
+            if dep[head[a]] >= dep[head[b]]:
+                l, r = pos[head[a]], pos[a]
+                s, inner = total(l, r), inside(l, r)
+                if inner > best:
+                    best = inner
+                v = tail + ending(l, r)
+                if v > best:
+                    best = v
+                v = starting(l, r)
+                tail = v if v > tail + s else tail + s
+                a = par[head[a]]
+            else:
+                downs.append(b)
+                b = par[head[b]]
+        if pos[a] >= pos[b]:  # the piece holding the lca: b is the top
+            l, r = pos[b], pos[a]
+            s, inner = total(l, r), inside(l, r)
+            if inner > best:
+                best = inner
+            v = tail + ending(l, r)
+            if v > best:
+                best = v
+            v = starting(l, r)
+            tail = v if v > tail + s else tail + s
+        else:
+            l, r = pos[a], pos[b]
+            s, inner = total(l, r), inside(l, r)
+            if inner > best:
+                best = inner
+            v = tail + starting(l, r)
+            if v > best:
+                best = v
+            v = ending(l, r)
+            tail = v if v > tail + s else tail + s
+        for d in reversed(downs):
+            l, r = pos[head[d]], pos[d]
+            s, inner = total(l, r), inside(l, r)
+            if inner > best:
+                best = inner
+            v = tail + starting(l, r)
+            if v > best:
+                best = v
+            v = ending(l, r)
+            tail = v if v > tail + s else tail + s
+        return best
+
+    # O(log^2 n) -- min sum of a non-empty stretch of the path a..b
+    def nodePathMinSubarraySum(self, a, b):
+        if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
+            self._bad("nodePathMinSubarraySum", a, b)
+        head, par, dep, pos, seg = self.head, self.par, self.dep, self.pos, self.nodeSeg
+        total, starting, ending, inside = seg.rangeSum, seg.minPrefixSum, seg.minSuffixSum, seg.minSubarraySum
+        best = tail = float("inf")  # the best stretch so far; the best one ending at the last node walked
+        downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
+        while head[a] != head[b]:
+            if dep[head[a]] >= dep[head[b]]:
+                l, r = pos[head[a]], pos[a]
+                s, inner = total(l, r), inside(l, r)
+                if inner < best:
+                    best = inner
+                v = tail + ending(l, r)
+                if v < best:
+                    best = v
+                v = starting(l, r)
+                tail = v if v < tail + s else tail + s
+                a = par[head[a]]
+            else:
+                downs.append(b)
+                b = par[head[b]]
+        if pos[a] >= pos[b]:  # the piece holding the lca: b is the top
+            l, r = pos[b], pos[a]
+            s, inner = total(l, r), inside(l, r)
+            if inner < best:
+                best = inner
+            v = tail + ending(l, r)
+            if v < best:
+                best = v
+            v = starting(l, r)
+            tail = v if v < tail + s else tail + s
+        else:
+            l, r = pos[a], pos[b]
+            s, inner = total(l, r), inside(l, r)
+            if inner < best:
+                best = inner
+            v = tail + starting(l, r)
+            if v < best:
+                best = v
+            v = ending(l, r)
+            tail = v if v < tail + s else tail + s
+        for d in reversed(downs):
+            l, r = pos[head[d]], pos[d]
+            s, inner = total(l, r), inside(l, r)
+            if inner < best:
+                best = inner
+            v = tail + starting(l, r)
+            if v < best:
+                best = v
+            v = ending(l, r)
+            tail = v if v < tail + s else tail + s
+        return best
+
     def _nodeMaxPrefixSum(self, a, b):
         head, par, dep, pos = self.head, self.par, self.dep, self.pos
         starting, ending, total = self.nodeSeg.maxPrefixSum, self.nodeSeg.maxSuffixSum, self.nodeSeg.rangeSum
@@ -2011,6 +2125,116 @@ class Tree:
         if l < r:  # (the lca's own position is the edge above it)
             res |= query(l + 1, r)
         return res
+
+    # O(log^2 n) -- max sum of a non-empty stretch of the path a..b; -inf when a == b (no edges)
+    def edgePathMaxSubarraySum(self, a, b):
+        if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
+            self._bad("edgePathMaxSubarraySum", a, b)
+        head, par, dep, pos, seg = self.head, self.par, self.dep, self.pos, self.edgeSeg
+        total, starting, ending, inside = seg.rangeSum, seg.maxPrefixSum, seg.maxSuffixSum, seg.maxSubarraySum
+        best = tail = float("-inf")  # the best stretch so far; the best one ending at the last edge walked
+        downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
+        while head[a] != head[b]:
+            if dep[head[a]] >= dep[head[b]]:
+                l, r = pos[head[a]], pos[a]
+                s, inner = total(l, r), inside(l, r)
+                if inner > best:
+                    best = inner
+                v = tail + ending(l, r)
+                if v > best:
+                    best = v
+                v = starting(l, r)
+                tail = v if v > tail + s else tail + s
+                a = par[head[a]]
+            else:
+                downs.append(b)
+                b = par[head[b]]
+        if pos[a] > pos[b]:  # the piece holding the lca (b): its edges sit after the lca's position
+            l, r = pos[b] + 1, pos[a]
+            s, inner = total(l, r), inside(l, r)
+            if inner > best:
+                best = inner
+            v = tail + ending(l, r)
+            if v > best:
+                best = v
+            v = starting(l, r)
+            tail = v if v > tail + s else tail + s
+        elif pos[a] < pos[b]:
+            l, r = pos[a] + 1, pos[b]
+            s, inner = total(l, r), inside(l, r)
+            if inner > best:
+                best = inner
+            v = tail + starting(l, r)
+            if v > best:
+                best = v
+            v = ending(l, r)
+            tail = v if v > tail + s else tail + s
+        for d in reversed(downs):
+            l, r = pos[head[d]], pos[d]
+            s, inner = total(l, r), inside(l, r)
+            if inner > best:
+                best = inner
+            v = tail + starting(l, r)
+            if v > best:
+                best = v
+            v = ending(l, r)
+            tail = v if v > tail + s else tail + s
+        return best
+
+    # O(log^2 n) -- min sum of a non-empty stretch of the path a..b; inf when a == b (no edges)
+    def edgePathMinSubarraySum(self, a, b):
+        if not (self.lo <= a <= self.hi and self.lo <= b <= self.hi):
+            self._bad("edgePathMinSubarraySum", a, b)
+        head, par, dep, pos, seg = self.head, self.par, self.dep, self.pos, self.edgeSeg
+        total, starting, ending, inside = seg.rangeSum, seg.minPrefixSum, seg.minSuffixSum, seg.minSubarraySum
+        best = tail = float("inf")  # the best stretch so far; the best one ending at the last edge walked
+        downs = []  # the chain pieces on b's side, bottom first (walked last, top first)
+        while head[a] != head[b]:
+            if dep[head[a]] >= dep[head[b]]:
+                l, r = pos[head[a]], pos[a]
+                s, inner = total(l, r), inside(l, r)
+                if inner < best:
+                    best = inner
+                v = tail + ending(l, r)
+                if v < best:
+                    best = v
+                v = starting(l, r)
+                tail = v if v < tail + s else tail + s
+                a = par[head[a]]
+            else:
+                downs.append(b)
+                b = par[head[b]]
+        if pos[a] > pos[b]:  # the piece holding the lca (b): its edges sit after the lca's position
+            l, r = pos[b] + 1, pos[a]
+            s, inner = total(l, r), inside(l, r)
+            if inner < best:
+                best = inner
+            v = tail + ending(l, r)
+            if v < best:
+                best = v
+            v = starting(l, r)
+            tail = v if v < tail + s else tail + s
+        elif pos[a] < pos[b]:
+            l, r = pos[a] + 1, pos[b]
+            s, inner = total(l, r), inside(l, r)
+            if inner < best:
+                best = inner
+            v = tail + starting(l, r)
+            if v < best:
+                best = v
+            v = ending(l, r)
+            tail = v if v < tail + s else tail + s
+        for d in reversed(downs):
+            l, r = pos[head[d]], pos[d]
+            s, inner = total(l, r), inside(l, r)
+            if inner < best:
+                best = inner
+            v = tail + starting(l, r)
+            if v < best:
+                best = v
+            v = ending(l, r)
+            tail = v if v < tail + s else tail + s
+        return best
 
     def _edgeMaxPrefixSum(self, a, b):
         head, par, dep, pos = self.head, self.par, self.dep, self.pos

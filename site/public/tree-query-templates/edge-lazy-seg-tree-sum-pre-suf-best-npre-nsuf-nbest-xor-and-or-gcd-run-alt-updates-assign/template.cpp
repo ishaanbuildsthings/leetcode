@@ -1,7 +1,7 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/edge-lazy-seg-tree-sum-pre-suf-best-npre-nsuf-nbest-xor-and-or-gcd-run-alt-updates-assign/template.cpp
 // The range structure inside is https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-pre-suf-best-npre-nsuf-nbest-xor-and-or-gcd-run-alt-updates-assign/fast.cpp
-// @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgePathAND edgePathAssign edgePathFirstPrefixSumGtX edgePathFirstPrefixSumGteX edgePathFirstPrefixSumLtX edgePathFirstPrefixSumLteX edgePathGcd edgePathLastSuffixSumGtX edgePathLastSuffixSumGteX edgePathLastSuffixSumLtX edgePathLastSuffixSumLteX edgePathMaxPrefixSum edgePathMaxSuffixSum edgePathMinPrefixSum edgePathMinSuffixSum edgePathOR edgePathSum edgePathXOR edgeSubtreeAND edgeSubtreeAssign edgeSubtreeGcd edgeSubtreeOR edgeSubtreeSum edgeSubtreeXOR isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
+// @operations: countAtDepthInSubtree depth edgeAdd edgeAssign edgeChmax edgeChmin edgeGet edgePathAND edgePathAssign edgePathFirstPrefixSumGtX edgePathFirstPrefixSumGteX edgePathFirstPrefixSumLtX edgePathFirstPrefixSumLteX edgePathGcd edgePathLastSuffixSumGtX edgePathLastSuffixSumGteX edgePathLastSuffixSumLtX edgePathLastSuffixSumLteX edgePathMaxPrefixSum edgePathMaxSubarraySum edgePathMaxSuffixSum edgePathMinPrefixSum edgePathMinSubarraySum edgePathMinSuffixSum edgePathOR edgePathSum edgePathXOR edgeSubtreeAND edgeSubtreeAssign edgeSubtreeGcd edgeSubtreeOR edgeSubtreeSum edgeSubtreeXOR isAncestor isOnPath kthAncestor kthNodeOnPath lca lcaRootedAt median nextNodeOnPath parent parentRootedAt pathIntersection pathNodes subtreeSize subtreeSizeRootedAt unweightedDist unweightedDistBetweenPaths unweightedDistToPath
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   countAtDepthInSubtree: log(N)
@@ -23,8 +23,10 @@
 //   edgePathLastSuffixSumLtX: log^2(N)
 //   edgePathLastSuffixSumLteX: log^2(N)
 //   edgePathMaxPrefixSum: log^2(N)
+//   edgePathMaxSubarraySum: log^2(N)
 //   edgePathMaxSuffixSum: log^2(N)
 //   edgePathMinPrefixSum: log^2(N)
+//   edgePathMinSubarraySum: log^2(N)
 //   edgePathMinSuffixSum: log^2(N)
 //   edgePathOR: log^2(N)
 //   edgePathSum: log^2(N)
@@ -977,6 +979,110 @@ struct Tree {
             res |= v;
         }
         return res;
+    }
+
+    // O(log^2 n) -- max sum of a non-empty stretch of the path a..b; the smallest value of its type when a == b (no
+    // edges)
+    LEETCODE_NO_SANITIZE auto edgePathMaxSubarraySum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathMaxSubarraySum");
+        using R = decltype(seg.rangeSum(0, 0));
+        R best = 0, tail = 0;  // the best stretch so far; the best one ending at the last edge walked
+        bool none = true;  // nothing walked yet
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                R s = seg.rangeSum(l, r), inner = seg.maxSubarraySum(l, r);
+                R lead = seg.maxSuffixSum(l, r), trail = seg.maxPrefixSum(l, r);
+                if (none || inner > best) best = inner;
+                if (!none && tail + lead > best) best = tail + lead;
+                tail = none || trail > tail + s ? trail : tail + s;
+                none = false;
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] > pos[b]) {  // the piece holding the lca (b): its edges sit after the lca's position
+            int l = pos[b] + 1, r = pos[a];
+            R s = seg.rangeSum(l, r), inner = seg.maxSubarraySum(l, r);
+            R lead = seg.maxSuffixSum(l, r), trail = seg.maxPrefixSum(l, r);
+            if (none || inner > best) best = inner;
+            if (!none && tail + lead > best) best = tail + lead;
+            tail = none || trail > tail + s ? trail : tail + s;
+            none = false;
+        } else if (pos[a] < pos[b]) {
+            int l = pos[a] + 1, r = pos[b];
+            R s = seg.rangeSum(l, r), inner = seg.maxSubarraySum(l, r);
+            R lead = seg.maxPrefixSum(l, r), trail = seg.maxSuffixSum(l, r);
+            if (none || inner > best) best = inner;
+            if (!none && tail + lead > best) best = tail + lead;
+            tail = none || trail > tail + s ? trail : tail + s;
+            none = false;
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            R s = seg.rangeSum(l, r), inner = seg.maxSubarraySum(l, r);
+            R lead = seg.maxPrefixSum(l, r), trail = seg.maxSuffixSum(l, r);
+            if (none || inner > best) best = inner;
+            if (!none && tail + lead > best) best = tail + lead;
+            tail = none || trail > tail + s ? trail : tail + s;
+            none = false;
+        }
+        return none ? numeric_limits<R>::lowest() : best;
+    }
+
+    // O(log^2 n) -- min sum of a non-empty stretch of the path a..b; the largest value of its type when a == b (no
+    // edges)
+    LEETCODE_NO_SANITIZE auto edgePathMinSubarraySum(int a, int b) {
+        if (a < lo || a > hi || b < lo || b > hi) bad("edgePathMinSubarraySum");
+        using R = decltype(seg.rangeSum(0, 0));
+        R best = 0, tail = 0;  // the best stretch so far; the best one ending at the last edge walked
+        bool none = true;  // nothing walked yet
+        int downs[64], m = 0;  // the chain pieces on b's side, bottom first (walked last, top first)
+        while (head[a] != head[b]) {
+            if (dep[head[a]] >= dep[head[b]]) {
+                int l = pos[head[a]], r = pos[a];
+                R s = seg.rangeSum(l, r), inner = seg.minSubarraySum(l, r);
+                R lead = seg.minSuffixSum(l, r), trail = seg.minPrefixSum(l, r);
+                if (none || inner < best) best = inner;
+                if (!none && tail + lead < best) best = tail + lead;
+                tail = none || trail < tail + s ? trail : tail + s;
+                none = false;
+                a = par[head[a]];
+            } else {
+                downs[m++] = b;
+                b = par[head[b]];
+            }
+        }
+        if (pos[a] > pos[b]) {  // the piece holding the lca (b): its edges sit after the lca's position
+            int l = pos[b] + 1, r = pos[a];
+            R s = seg.rangeSum(l, r), inner = seg.minSubarraySum(l, r);
+            R lead = seg.minSuffixSum(l, r), trail = seg.minPrefixSum(l, r);
+            if (none || inner < best) best = inner;
+            if (!none && tail + lead < best) best = tail + lead;
+            tail = none || trail < tail + s ? trail : tail + s;
+            none = false;
+        } else if (pos[a] < pos[b]) {
+            int l = pos[a] + 1, r = pos[b];
+            R s = seg.rangeSum(l, r), inner = seg.minSubarraySum(l, r);
+            R lead = seg.minPrefixSum(l, r), trail = seg.minSuffixSum(l, r);
+            if (none || inner < best) best = inner;
+            if (!none && tail + lead < best) best = tail + lead;
+            tail = none || trail < tail + s ? trail : tail + s;
+            none = false;
+        }
+        while (m > 0) {
+            int d = downs[--m], l = pos[head[d]], r = pos[d];
+            R s = seg.rangeSum(l, r), inner = seg.minSubarraySum(l, r);
+            R lead = seg.minPrefixSum(l, r), trail = seg.minSuffixSum(l, r);
+            if (none || inner < best) best = inner;
+            if (!none && tail + lead < best) best = tail + lead;
+            tail = none || trail < tail + s ? trail : tail + s;
+            none = false;
+        }
+        return none ? numeric_limits<R>::max() : best;
     }
 
     LEETCODE_NO_SANITIZE auto maxPrefixSum(int a, int b) {

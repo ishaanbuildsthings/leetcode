@@ -18,6 +18,12 @@ shapes, a few shape ops per script, and calls with a node that is not in the tre
     python3 test_tree.py --shard 3/8     # every 8th folder from the 3rd (run 8 side by side)
     python3 test_tree.py --trials 60     # more random trees per folder (default 24)
     python3 test_tree.py --from f.txt    # exactly the folders listed in f.txt (one per line)
+    python3 test_tree.py --ordered       # the direction stress test: see below
+
+--ordered: a wrong reading direction for one chain piece of a path (in a search, a prefix sum, the best stretch, an
+arithmetic-sequence add) changes about one answer in a hundred even on trees built to show it, so an ordinary script
+seldom notices. This mode takes a few folders of each kind (the ones with the most ordered ops, values that can be
+negative first), and gives each 150 trials, every one a nested-chains tree and nearly all its ops ordered ones.
 """
 import hashlib
 import os
@@ -69,6 +75,7 @@ def op_table(target="node"):
     for big in ("Max", "Min"):
         t[f"{target}Path{big}PrefixSum"] = ("path", "query", f"{big.lower()}PrefixSum", 0)
         t[f"{target}Path{big}SuffixSum"] = ("path", "query", f"{big.lower()}SuffixSum", 0)
+        t[f"{target}Path{big}SubarraySum"] = ("path", "query", f"{big.lower()}SubarraySum", 0)
     return t
 
 
@@ -91,9 +98,9 @@ NO_EDGES = {}
 for _name in ("Sum", "SumMod", "Gcd", "XOR", "OR", "CountLtX", "CountLteX", "CountGtX", "CountGteX", "CountInValRange", "SumLtX",
               "SumLteX", "SumGtX", "SumGteX", "SumInValRange", "SumAbsDiffToX", "CountOccurrences", "CountDistinct", "Mex"):
     NO_EDGES[_name] = 0
-for _name in ("Min", "MinXorAgainstX", "MinPrefixSum", "MinSuffixSum"):
+for _name in ("Min", "MinXorAgainstX", "MinPrefixSum", "MinSuffixSum", "MinSubarraySum"):
     NO_EDGES[_name] = ("+inf",)
-for _name in ("Max", "MaxXorAgainstX", "MaxPrefixSum", "MaxSuffixSum"):
+for _name in ("Max", "MaxXorAgainstX", "MaxPrefixSum", "MaxSuffixSum", "MaxSubarraySum"):
     NO_EDGES[_name] = ("-inf",)
 for _name in ("SmallestGteX", "SmallestGtX", "LargestLteX", "LargestLtX"):
     NO_EDGES[_name] = None
@@ -144,8 +151,68 @@ def extra_args(rop, how, size, rng, gen, delta, mod):
     raise AssertionError(f"no argument rule for {rop} ({kind})")
 
 
-def make_trials(folder, ops, range_folder, trials):
-    """[(edges, root, vals, [(op, args)])] and the range tests' context for this folder's range template."""
+def nested_tree(n, rng):
+    """(edges, root, lo): short chains hanging off the middle of chains, to any depth, rooted at the top of the first.
+    A path between two leaves then crosses many chains with two or more nodes on each: the case where the direction a
+    piece is read in matters (searches, prefix sums, the best stretch), which uniform random trees seldom reach."""
+    chains = [list(range(min(n, rng.randint(3, 6))))]
+    pairs = list(zip(chains[0], chains[0][1:]))
+    nxt = len(chains[0])
+    while nxt < n:
+        host = rng.choice(rng.choice(chains)[1:])  # (below its chain's top: the piece above the joint has 2+ nodes)
+        chain = list(range(nxt, min(n, nxt + rng.randint(2, 5))))
+        pairs += [(host, chain[0])] + list(zip(chain, chain[1:]))
+        if len(chain) > 1:
+            chains.append(chain)
+        nxt += len(chain)
+    lo = rng.randrange(2)
+    label = list(range(lo, lo + n))
+    rng.shuffle(label)
+    edges = [[label[a], label[b]][::rng.choice((1, -1))] for a, b in pairs]
+    rng.shuffle(edges)
+    return edges, label[0], lo
+
+
+def is_ordered(op):
+    """A path op whose answer depends on the order the path is read in (a wrong piece direction shows only there)."""
+    return TABLE[op][0] in ("path", "up") and (
+        TABLE[op][1] == "find" or any(k in op for k in ("SubarraySum", "ArithSeq", "PrefixSum", "SuffixSum")))
+
+
+def ordered_kind(op):
+    """Which piece of generated code an ordered op runs: the searches share theirs across >=, >, <=, <, = (and first /
+    last); every other ordered op has its own."""
+    if TABLE[op][0] == "up":
+        return "nearest ancestor"
+    if TABLE[op][1] == "find":
+        return "prefix-sum search" if "Sum" in op else "search"
+    return re.sub(r"^(node|edge)Path", "", op)
+
+
+def ordered_kinds(folder):
+    """(the kinds of ordered op a folder has, whether its values can be negative): what it offers the --ordered test."""
+    ops, range_folder, _ = read_ops(folder)
+    range_ops = set(RT.parse_ops(os.path.join(RT.DIR, range_folder, "template.py"), "#"))
+    kinds = {ordered_kind(op) for op in ops if op in TABLE and is_ordered(op)}
+    return kinds, not range_ops & KEEPS_NONNEG
+
+
+def stress_folders(folders):
+    """For each kind of template and each kind of ordered op, the folder that has it with the most else to stress
+    (signed values first): a handful of folders that between them reach every ordered op's code."""
+    out = []
+    for prefix in ("node-", "edge-", "both-"):
+        have = {f: ordered_kinds(f) for f in folders if f.startswith(prefix)}
+        for kind in sorted({k for kinds, _ in have.values() for k in kinds}):
+            best = min((f for f in have if kind in have[f][0]), key=lambda f: (not have[f][1], -len(have[f][0]), f))
+            if best not in out:
+                out.append(best)
+    return out
+
+
+def make_trials(folder, ops, range_folder, trials, stress=False):
+    """[(edges, root, vals, [(op, args)])] and the range tests' context for this folder's range template.
+    stress: the --ordered mode (every tree nested, nearly every op an ordered one)."""
     range_ops = RT.parse_ops(os.path.join(RT.DIR, range_folder, "template.py"), "#")
     gen, delta, extra, ctx = RT.domain(range_folder, range_ops)
     value_ops = [op for op in ops if op in TABLE]
@@ -158,6 +225,7 @@ def make_trials(folder, ops, range_folder, trials):
     # differ). So where nothing else needs values >= 0, every other trial uses signed values and skips those searches.
     signed_ok = "leftmostPrefixSumGteX" in range_ops and not (set(range_ops) & KEEPS_NONNEG)
     base_gen, base_queries = gen, queries
+    ordered = [op for op in value_ops if is_ordered(op)]
     called = set()  # the value ops that got a real call (not only one that must raise)
 
     def build(t, force=()):
@@ -168,7 +236,16 @@ def make_trials(folder, ops, range_folder, trials):
             gen = lambda r: r.randint(-6, 6)  # noqa: E731
             queries = [op for op in base_queries if TABLE[op][2] not in NONNEG_SEARCHES]
         n = 20 if force else rng.choice((1, 2, 3, 5, 8, 13, 20, 30, 45, 60))
-        edges, root, lo = TS.make_tree(n, rng.choice(TS.SHAPES), rng)
+        nested = (stress or t % 3 == 2) and not force  # every third trial: chains nested in chains (see nested_tree)
+        here = {}  # the ordered ops this trial may call, by kind
+        for op in ordered:
+            if op in queries or op in updates:
+                here.setdefault(ordered_kind(op), []).append(op)
+        if nested:
+            n = rng.choice((30, 45, 60))
+            edges, root, lo = nested_tree(n, rng)
+        else:
+            edges, root, lo = TS.make_tree(n, rng.choice(TS.SHAPES), rng)
         hi = lo + n - 1
         if weights:  # an edge / both template: every edge carries its weight
             edges = [[e[0], e[1], gen(rng)] for e in edges]
@@ -213,8 +290,13 @@ def make_trials(folder, ops, range_folder, trials):
                 args = [rng.randrange(lo, hi + 1) if k == "n" else rng.randrange(0, n + 2) for k in TS.OPS[op]]
                 seq.append((op, args))
                 continue
-            if updates and roll < 0.5:
+            if stress and here and roll < 0.85:
+                op = rng.choice(rng.choice(list(here.values())))
+            elif updates and roll < 0.5:
                 op = rng.choice(wide) if wide and rng.random() < 0.6 else rng.choice(updates)
+            elif nested and here and rng.random() < 0.5:  # (a nested tree is where a piece's direction shows)
+                # a kind of ordered op first, then one of that kind: the many search variants must not crowd out the rest
+                op = rng.choice(rng.choice(list(here.values())))
             else:
                 op = rng.choice(queries or updates)
             made = call(op)
@@ -461,7 +543,7 @@ def mismatch(got, exp, trials, wrap64=False):
     return None
 
 
-def test_folder(folder, langs, trials_n):
+def test_folder(folder, langs, trials_n, stress=False):
     """One line per language: PASS / FAIL (the range tests' style)."""
     lines = []
     try:
@@ -469,12 +551,12 @@ def test_folder(folder, langs, trials_n):
         unknown = [op for op in ops if op not in TABLE and op not in TS.OPS]
         if unknown:
             return [f"FAIL  {folder}: the test has no brute force for {unknown}"]
-        trials, extra, ctx = make_trials(folder, ops, range_folder, trials_n)
+        trials, extra, ctx = make_trials(folder, ops, range_folder, trials_n, stress)
         exp = expected(trials, ctx)
     except Exception as e:  # noqa: BLE001
         return [f"FAIL  {folder}: could not set up: {type(e).__name__}: {str(e)[:300]}"]
     covered = {op for _, _, _, seq in trials for op, _ in seq}
-    missed = [op for op in ops if op in TABLE and op not in covered]
+    missed = [] if stress else [op for op in ops if op in TABLE and op not in covered]
     if "--py" in langs:
         try:
             bad = mismatch(run_py(text, trials, extra), exp, trials)
@@ -497,7 +579,8 @@ def test_folder(folder, langs, trials_n):
 def main():
     args = sys.argv[1:]
     langs = [a for a in args if a in ("--py", "--cpp")] or ["--py", "--cpp"]
-    trials_n, shard, names, listed, k = 24, None, [], None, 0
+    stress = "--ordered" in args
+    trials_n, shard, names, listed, k = (150 if stress else 24), None, [], None, 0
     while k < len(args):
         if args[k] == "--trials":
             trials_n = int(args[k + 1])
@@ -516,14 +599,16 @@ def main():
         folders = [f for f in folders if any(n in f for n in names)]
     if listed is not None:
         folders = [f for f in folders if f in listed]
+    if stress:
+        folders = stress_folders(folders)
     if shard:
         folders = folders[shard[0]::shard[1]]
     fails = 0
     for folder in folders:
-        for line in test_folder(folder, langs, trials_n):
+        for line in test_folder(folder, langs, trials_n, stress):
             fails += line.startswith("FAIL")
             print(line, flush=True)
-    print(f"{'FAIL' if fails else 'PASS'}  tree value templates: {len(folders)} folders, {fails} failures")
+    print(f"{'FAIL' if fails else 'PASS'}  tree value templates{' (ordered stress)' if stress else ''}: {len(folders)} folders, {fails} failures")
     sys.exit(1 if fails else 0)
 
 

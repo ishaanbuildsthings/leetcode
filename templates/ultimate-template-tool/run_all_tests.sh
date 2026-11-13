@@ -89,6 +89,10 @@ for lang in "${LANGS[@]}"; do
     done
     wait
 done
+# the direction stress test: a few folders, many nested-chain trees, nearly every op one whose answer depends on the
+# order a path is read in (a wrong piece direction changes about one answer in a hundred)
+if [ "${#LANGS[@]}" -eq 2 ]; then run tree-ordered python3 tree-query-tests/test_tree.py --ordered
+else run tree-ordered python3 tree-query-tests/test_tree.py --ordered "${LANGS[0]}"; fi
 # every tree file matches what its generator writes from the range templates as they are now
 run tree-fresh-shape python3 tree-query-tests/gen_tree_shape.py --check
 run tree-fresh-values python3 tree-query-tests/gen_tree.py --check

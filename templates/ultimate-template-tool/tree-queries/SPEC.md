@@ -73,9 +73,9 @@ translates calls. Complexity: subtree and one-node ops cost what the range op co
 
 | Part | Folders |
 |---|---|
-| Node-value templates (one per structure type and set of tree ops) | 530 today (grows as more path ops are covered) |
-| Edge-value templates | 530 today |
-| Node values + edge weights in one Tree (both-) | 530 today |
+| Node-value templates (one per structure type and set of tree ops) | 668 today (grows as more path ops are covered) |
+| Edge-value templates | 668 today |
+| Node values + edge weights in one Tree (both-) | 668 today |
 | Dedicated (section 4) | 40 to 60 |
 
 Each folder: `template.py` and one `template.cpp`. For scale: range queries are 14,760 folders, sets 6,734.
@@ -108,6 +108,10 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
 - Shapes: random, chain, star, caterpillar, binary, one node; both labelings; both value targets.
 - Every tree op against every range structure family that backs it; all folders in the full run.
 - A 100,000-node chain in Python for every shell, to prove no recursion.
+- `test_tree.py --ordered`: the direction stress test. A wrong reading direction for one chain piece (in a search, a
+  prefix sum, the best stretch, an arithmetic-sequence add) changes about one answer in a hundred even on trees built
+  to show it, so a few folders that between them have every ordered op get 150 trials each on nested-chain trees,
+  nearly every op an ordered one. After changing a generator, break it on purpose and check a test notices.
 
 ## 9. Order of work
 
@@ -115,20 +119,20 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    n log n memory), written by `tree-query-tests/gen_tree_shape.py`, tested by `tree-query-tests/test_tree_shape.py`,
    on the site through `npm run gen:tree-queries`. No binary-lifting variant: heavy-light matches its cost per op with
    less memory.
-2. Node-value templates. DONE: `tree-query-tests/gen_tree.py` writes `tree-queries/node-<range folder>/` (530 folders:
+2. Node-value templates. DONE: `tree-query-tests/gen_tree.py` writes `tree-queries/node-<range folder>/` (668 folders:
    one per structure type and set of tree ops, from the lightest range folder that gives it), tested by
    `tree-query-tests/test_tree.py` against a plain-tree brute force that reuses the range tests' op semantics.
    Every value template also has every shape op (the layout is already there; `SHAPE_OPS` in `gen_tree.py`).
    - Covered: one node (get, assign, add, chmax, chmin); every subtree update and query the range template has; on a
      path: the uniform updates, the arithmetic-sequence add, Sum / Min / Max / Gcd / XOR / AND / OR, counts and sums by
      value, nearest to x, max / min xor against x, max / min prefix and suffix sums, the prefix-sum searches, First /
-     Last / NearestAncestor searches.
-   - Not yet (they need more than the range template's public answers): on a path: hashing, max / min subarray sum,
-     longest equal run, the by-rank ops, SumAbsDiffToMedian, AllEvenFrequency, CountDistinct / AllDistinct; and
+     Last / NearestAncestor searches, and max / min subarray sum (each piece gives its sum, best prefix, best suffix
+     and best inner stretch: four range ops a piece).
+   - Not yet (they need more than the range template's public answers): on a path: hashing, longest equal run, the by-rank ops, SumAbsDiffToMedian, AllEvenFrequency, CountDistinct / AllDistinct; and
      SubtreeAddByDepth. Range folders left out: those whose constructor takes something a Tree cannot pass through
      (brackets, an update list, a stride cutoff), that split their ops over two classes, or that only have updates
      (nothing would read a value back: the range versions rely on getAll, which the tree menu does not have).
-2b. Edge-value templates. DONE: the same generator with the edge target writes `tree-queries/edge-<range folder>/` (530
+2b. Edge-value templates. DONE: the same generator with the edge target writes `tree-queries/edge-<range folder>/` (668
    folders, the same coverage as the node ones). `Tree(edges, root)` with `[(a, b, w)]`; each edge's weight sits at its
    lower end's position, so a path's lca piece starts one past the lca and a subtree skips its own top. One edge is
    named `(a, b)` in either order; a search returns an edge as its lower end. With no edges to look at (a path a..a,
@@ -137,7 +141,7 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    for nearest-to-x; -1 for AND; True for the all-distinct / all-even checks; -1 for searches. Queries with no neutral
    value (kth smallest, sum of the k smallest, mode, sum of |weight - median|) raise.
 3. Node values and edge weights together. DONE, wider than first planned: `tree-queries/both-<range folder>/`, one per
-   range folder that makes a node- folder (530). One `Tree(edges, root, vals)`, one layout, two copies of the same
+   range folder that makes a node- folder (668). One `Tree(edges, root, vals)`, one layout, two copies of the same
    range structure (`nodeSeg`, `edgeSeg`), every node op and every edge op that structure gives. So a mixed selection
    is covered whenever one structure can do both sides, not only for the common ops; the cost is that the two sides
    cannot have different structures (a lighter one for the side that needs less). Pairing two different structures

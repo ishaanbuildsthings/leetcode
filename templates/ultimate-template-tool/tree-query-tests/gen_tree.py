@@ -33,8 +33,10 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "set-tests", "generators"))
 import gen_tree_shape as shape  # noqa: E402
+from format_long_lines import long_lines  # noqa: E402
 from gen_sets import check_finished  # noqa: E402
 
 RANGE_DIR = os.path.join(ROOT, "range-queries")
@@ -830,10 +832,52 @@ class Maker:
                          f"        return self.{helper}({order_})\n",
                          f"        return {helper[1:]}({order_});\n", [], "auto", nodes=("a", "b"))
 
+    # ---- a path's best stretch: each piece gives its sum, its best prefix, suffix and inner stretch (four range ops),
+    # and the walk keeps the best stretch so far and the best one ending at the last value walked
+    def subarray_sums(self):
+        r = self.r
+        for big, sign in (("Max", ">"), ("Min", "<")):
+            low = big.lower()
+            pre, suf, sub = f"{low}PrefixSum", f"{low}SuffixSum", f"{low}SubarraySum"
+            if not r.has(pre, suf, sub, "rangeSum"):
+                continue
+            cost = times_log(worst(*[self.cost(o) for o in (pre, suf, sub, "rangeSum")]))
+            start = 'float("-inf")' if big == "Max" else 'float("inf")'
+            cnone = "numeric_limits<R>::lowest()" if big == "Max" else "numeric_limits<R>::max()"
+            # (a piece read backwards: the stretch that reaches into it from behind is its array suffix, and the one it
+            # leaves open at the end of the walk is its array prefix)
+            py_piece = ("s, inner = total(l, r), inside(l, r)\n"
+                        f"if inner {sign} best:\n    best = inner\n"
+                        "v = tail + {lead}(l, r)\n"
+                        f"if v {sign} best:\n    best = v\n"
+                        "v = {trail}(l, r)\n"
+                        f"tail = v if v {sign} tail + s else tail + s")
+            cpp_piece = (f"R s = seg.rangeSum(l, r), inner = seg.{sub}(l, r);\n"
+                         "R lead = seg.{lead}(l, r), trail = seg.{trail}(l, r);\n"
+                         f"if (none || inner {sign} best) best = inner;\n"
+                         f"if (!none && tail + lead {sign} best) best = tail + lead;\n"
+                         f"tail = none || trail {sign} tail + s ? trail : tail + s;\n"
+                         "none = false;")
+            py = ("        head, par, dep, pos, seg = self.head, self.par, self.dep, self.pos, self.seg\n"
+                  f"        total, starting, ending, inside = seg.rangeSum, seg.{pre}, seg.{suf}, seg.{sub}\n"
+                  f"        best = tail = {start}  # the best stretch so far; the best one ending at the last {self.words['one']} walked\n"
+                  + self.walk(PY_WALK, py_piece.format(lead="ending", trail="starting"),
+                              py_piece.format(lead="starting", trail="ending"))
+                  + "        return best\n")
+            cpp = ("        using R = decltype(seg.rangeSum(0, 0));\n"
+                   f"        R best = 0, tail = 0;  // the best stretch so far; the best one ending at the last {self.words['one']} walked\n"
+                   "        bool none = true;  // nothing walked yet\n"
+                   + self.walk(CPP_WALK, cpp_piece.format(lead=suf, trail=pre), cpp_piece.format(lead=pre, trail=suf))
+                   + f"        return none ? {cnone} : best;\n")
+            name = f"{big}SubarraySum"
+            self.add("Path" + name, [], cost, f"{low} sum of a non-empty stretch of the path a..b" + self.empty(name, low, "path")[1],
+                     py, cpp, [], "auto", nodes=("a", "b"))
+
     def build(self):
         self.point()
         self.path_unordered()
         self.path_arith()
+        self.subarray_sums()
         self.prefix_sums()
         self.searches()
         self.subtree()
@@ -1225,6 +1269,8 @@ def main():
         texts = {"template.py": check_finished(make_py(folder, rng, ops, target), f"{folder}/template.py"),
                  "template.cpp": check_finished(make_cpp(folder, rng, ops, target), f"{folder}/template.cpp")}
         for name, text in texts.items():
+            too_long = long_lines(text)
+            assert not too_long, f"{folder}/{name}: a line past 120 columns: {too_long[0]}"
             path = os.path.join(DIR, folder, name)
             if os.path.exists(path) and open(path, encoding="utf-8").read() == text:
                 continue
