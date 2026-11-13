@@ -1,20 +1,20 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfSubarrayOrsMod.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfSubarrayORsMod.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // sum over every non-empty subarray of the OR of all its values, mod mod (mod < 2^62) values must be >= 0; B = number
 // of bits in max(arr)
 // Each bit is counted on its own: a subarray has bit b unless it sits inside a run of values that all lack bit b
-// sumOfSubarrayOrsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 15   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 3
+// sumOfSubarrayORsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 15   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 3
 // + 3 + 3
 // O(N * B)
 template <class T>
-long long sumOfSubarrayOrsMod(const vector<T>& arr, long long mod) {
+long long sumOfSubarrayORsMod(const vector<T>& arr, long long mod) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("sumOfSubarrayOrsMod: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("sumOfSubarrayORsMod: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }

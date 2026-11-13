@@ -1,23 +1,23 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfXorPairsEqualToKForAllKMod.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfXORPairsEqualToKForAllKMod.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // c of size 2^B: c[k] = sum of arr1[i] * arr2[j] over every i and every j with i ^ j == k, mod mod (mod must be odd, <
 // 2^62)
 // arr1.size() == arr2.size() == 2^B
-// sumOfXorPairsEqualToKForAllKMod(vector<int>{1, 2}, vector<int>{3, 4}, 7) -> {4, 3}   // 11 % 7, 10 % 7
+// sumOfXORPairsEqualToKForAllKMod(vector<int>{1, 2}, vector<int>{3, 4}, 7) -> {4, 3}   // 11 % 7, 10 % 7
 // O(B * 2^B + log(MOD))
 template <class T>
-vector<long long> sumOfXorPairsEqualToKForAllKMod(const vector<T>& arr1, const vector<T>& arr2, long long mod) {
+vector<long long> sumOfXORPairsEqualToKForAllKMod(const vector<T>& arr1, const vector<T>& arr2, long long mod) {
     int n = (int)arr1.size();
     if (n == 0 || (n & (n - 1)) || (int)arr2.size() != n) {
-        throw invalid_argument("sumOfXorPairsEqualToKForAllKMod: lengths " + to_string(arr1.size()) + " and "
+        throw invalid_argument("sumOfXORPairsEqualToKForAllKMod: lengths " + to_string(arr1.size()) + " and "
             + to_string(arr2.size())
                                + " must be the same power of two");
     }
     if (mod % 2 == 0) {
-        throw invalid_argument("sumOfXorPairsEqualToKForAllKMod: mod " + to_string(mod)
+        throw invalid_argument("sumOfXORPairsEqualToKForAllKMod: mod " + to_string(mod)
             + " is even, so 2^B has no inverse");
     }
     vector<long long> fa(n), fb(n);

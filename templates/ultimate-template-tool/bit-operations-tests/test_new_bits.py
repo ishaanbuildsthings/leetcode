@@ -2,10 +2,11 @@
 # Run: python3 test_new_bits.py
 import os, random
 from functools import reduce
+from operator import xor
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "bit-operations")
 ns = {}
-for f in ("XorBasisDeletable", "XorBasis", "maxTwoGroupXorSum", "maxTwoGroupAndSum", "countSubmasksForAllMasks",
+for f in ("XorBasisDeletable", "XorBasis", "maxTwoGroupXORSum", "maxTwoGroupANDSum", "countSubmasksForAllMasks",
           "sumSubmasksForAllMasks", "countSupermasksForAllMasks", "sumSupermasksForAllMasks"):
     exec(open(os.path.join(SRC, f + ".py")).read(), ns)
 rng = random.Random(11)
@@ -42,17 +43,21 @@ for trial in range(400):
                 held.remove(v)
         s = span(held)
         rank = len(s).bit_length() - 1
-        assert b.size() == len(held) and b.rank() == rank and b.countDistinctXors() == len(s)
+        assert b.size() == len(held) and b.basisSize() == rank and b.countDistinctSubsetXors() == len(s)
         assert span(b.basis()) == s and len(b.basis()) == rank and b.basis() == sorted(b.basis(), reverse=True)
-        assert b.maxXor() == max(s)
+        assert b.maxSubsetXor() == max(s)
         x = rng.randrange(1 << bits)
-        assert b.canMake(x) == (x in s)
-        assert b.maxXorWith(x) == max(x ^ y for y in s) and b.minXorWith(x) == min(x ^ y for y in s)
-        assert b.minNonzeroXor() == (None if not held else 0 if len(held) > rank else min(s - {0}))
+        assert b.doesSubsetXorEqualToXExist(x) == (x in s)
+        assert b.maxXorOfXAndSubsetXor(x) == max(x ^ y for y in s) and b.minXorOfXAndSubsetXor(x) == min(x ^ y for y in s)
+        assert b.minNonEmptySubsetXor() == (None if not held else 0 if len(held) > rank else min(s - {0}))
         ordered = sorted(s)
         for k in range(len(ordered) + 2):
-            assert b.kthSmallestXor(k) == (ordered[k] if k < len(ordered) else None)
-        assert b.countSubsetsMakingMod(x, MOD) == (pow(2, len(held) - rank, MOD) if x in s else 0)
+            assert b.kthSmallestDistinctSubsetXor(k) == (ordered[k] if k < len(ordered) else None)
+        if len(held) <= 12:
+            every = sorted(reduce(xor, (held[i] for i in range(len(held)) if m >> i & 1), 0) for m in range(1 << len(held)))
+            for k in range(len(every) + 2):
+                assert b.kthSmallestSubsetXor(k) == (every[k] if k < len(every) else None)
+        assert b.countSubsetsWithXorEqualToXMod(x, MOD) == (pow(2, len(held) - rank, MOD) if x in s else 0)
 
 # big values, many operations: the rank and max XOR against XorBasis rebuilt from what is held
 for trial in range(30):
@@ -68,7 +73,7 @@ for trial in range(30):
             b.insert(v)
             held.append(v)
         ref = ns["XorBasis"](held)
-        assert b.rank() == ref.rank() and b.maxXor() == ref.maxXor() and b.basis() == ref.basis()
+        assert b.basisSize() == ref.basisSize() and b.maxSubsetXor() == ref.maxSubsetXor() and b.basis() == ref.basis()
 
 # ---- two-group partitions: every split of small arrays
 for trial in range(3000):
@@ -80,10 +85,18 @@ for trial in range(3000):
         B = [arr[i] for i in range(n) if not mask >> i & 1]
         xs.append(reduce(lambda a, c: a ^ c, A) + reduce(lambda a, c: a ^ c, B))
         ands.append(reduce(lambda a, c: a & c, A) + reduce(lambda a, c: a & c, B))
-    assert ns["maxTwoGroupXorSum"](arr) == max(xs), arr
-    assert ns["maxTwoGroupAndSum"](arr) == max(ands), arr
-assert ns["maxTwoGroupAndSum"]([3, 3, 4, 4]) == 7 and ns["maxTwoGroupXorSum"]([1, 2, 3]) == 6
-for fn in ("maxTwoGroupXorSum", "maxTwoGroupAndSum"):
+    assert ns["maxTwoGroupXORSum"](arr) == max(xs), arr
+    assert ns["maxTwoGroupANDSum"](arr) == max(ands), arr
+# AND split with big values (the old method only fit values up to about 2^20)
+for trial in range(3000):
+    n = rng.randrange(2, 11)
+    pool = [rng.randrange(1 << 62) for _ in range(rng.randrange(1, 5))]
+    arr = [rng.choice(pool) & (rng.choice(pool) if rng.randrange(3) else rng.randrange(1 << 62)) for _ in range(n)]
+    best = max(reduce(lambda a, c: a & c, [arr[i] for i in range(n) if m >> i & 1])
+               + reduce(lambda a, c: a & c, [arr[i] for i in range(n) if not m >> i & 1]) for m in range(1, (1 << n) - 1))
+    assert ns["maxTwoGroupANDSum"](arr) == best, arr
+assert ns["maxTwoGroupANDSum"]([3, 3, 4, 4]) == 7 and ns["maxTwoGroupXORSum"]([1, 2, 3]) == 6
+for fn in ("maxTwoGroupXORSum", "maxTwoGroupANDSum"):
     for bad in ([5], [], [1, -2]):
         try:
             ns[fn](bad)

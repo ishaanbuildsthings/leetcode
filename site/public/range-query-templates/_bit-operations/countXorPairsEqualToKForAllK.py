@@ -1,13 +1,13 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countXorPairsEqualToKForAllK.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countXORPairsEqualToKForAllK.py
 
 from operator import add, sub, mul
 
 # res of size 2^B: res[v] = number of pairs i < j with arr[i] ^ arr[j] == v values must be >= 0; B = number of bits in
 # max(arr), so the list is about 2 * max(arr) long
-# countXorPairsEqualToKForAllK([1, 3, 2]) -> [0, 1, 1, 1]   # 1^3 = 2, 1^2 = 3, 3^2 = 1
+# countXORPairsEqualToKForAllK([1, 3, 2]) -> [0, 1, 1, 1]   # 1^3 = 2, 1^2 = 3, 3^2 = 1
 # O(B * 2^B + N)
-def countXorPairsEqualToKForAllK(arr):
+def countXORPairsEqualToKForAllK(arr):
     def bitPairs(n):
         # bit by bit: slice pairs (indexes without the bit, the same indexes with it), C-speed adds on slices
         half = 1
@@ -27,7 +27,7 @@ def countXorPairsEqualToKForAllK(arr):
             g[hi] = map(sub, x, y)
     for x in arr:
         if x < 0:
-            raise ValueError(f"countXorPairsEqualToKForAllK: value {x} is negative")
+            raise ValueError(f"countXORPairsEqualToKForAllK: value {x} is negative")
     n = 1 << max(arr, default=0).bit_length()
     cnt = [0] * n
     for x in arr:

@@ -4,7 +4,7 @@ from functools import reduce
 from itertools import combinations
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "bit-operations")
-OPS = {"Xor": int.__xor__, "And": int.__and__, "Or": int.__or__}
+OPS = {"XOR": int.__xor__, "AND": int.__and__, "OR": int.__or__}
 fns = {}
 for kind in ("Pair", "Subarray"):
     for op in OPS:

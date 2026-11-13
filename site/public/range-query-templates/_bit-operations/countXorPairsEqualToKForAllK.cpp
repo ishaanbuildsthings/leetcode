@@ -1,18 +1,18 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countXorPairsEqualToKForAllK.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countXORPairsEqualToKForAllK.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // res of size 2^B: res[v] = number of pairs i < j with arr[i] ^ arr[j] == v values must be >= 0; B = number of bits in
 // max(arr), so the vector is about 2 * max(arr) long
-// countXorPairsEqualToKForAllK(vector<int>{1, 3, 2}) -> {0, 1, 1, 1}   // 1^3 = 2, 1^2 = 3, 3^2 = 1
+// countXORPairsEqualToKForAllK(vector<int>{1, 3, 2}) -> {0, 1, 1, 1}   // 1^3 = 2, 1^2 = 3, 3^2 = 1
 // O(B * 2^B + N)
 template <class T>
-vector<long long> countXorPairsEqualToKForAllK(const vector<T>& arr) {
+vector<long long> countXORPairsEqualToKForAllK(const vector<T>& arr) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("countXorPairsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("countXORPairsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }

@@ -1,50 +1,52 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/maxTwoGroupAndSum.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/maxTwoGroupANDSum.py
 
 # max of AND(A) + AND(B) over every split of arr into two non-empty groups A and B (each value in exactly one)
-# Why it works: say x = AND(A). Moving into A every other value that contains all of x's bits keeps AND(A) = x and
-# leaves B smaller, so AND(B) can only grow. So some best split has A = "every value that is a supermask of x" for a
-# mask x, and the answer is the best of those (or 2 * AND(all), when both groups' ANDs equal it). A count of the
-# supermasks of every mask (SOS DP) gives each candidate's two ANDs bit by bit.
-# B = number of bits in max(arr): 2^B masks are tried, so values up to about 2^20 fit. Values must be >= 0; needs at
-# least 2 values.
-# maxTwoGroupAndSum([3, 3, 4, 4]) -> 7   # {3, 3} and {4, 4}: 3 + 4
-# O(B * 2^B + N)
-def maxTwoGroupAndSum(arr):
+# Why it works: bits that every value has land in both ANDs whatever the split, so they count twice; set them aside.
+# Then no bit can be in both ANDs, so the rest of the answer is AND(A) | AND(B): go from the highest bit down and keep
+# each bit if some split still has every kept bit in AND(A) or in AND(B). Each value must sit in the group whose kept
+# bits it all has, so the kept bits a value is missing must all belong to the other group: merge them (union-find over
+# bits). With 2 or more merged groups of bits a split always exists (put one group of bits on each side; every value
+# goes opposite the bits it misses); with 1 it exists only if some value has every kept bit.
+# Values must be >= 0 (any size); needs at least 2 values.
+# maxTwoGroupANDSum([3, 3, 4, 4]) -> 7   # {3, 3} and {4, 4}: 3 + 4
+# O(N * B), B = number of bits in max(arr)
+def maxTwoGroupANDSum(arr):
     n = len(arr)
     if n < 2:
-        raise ValueError(f"maxTwoGroupAndSum: needs at least 2 values, got {n}")
+        raise ValueError(f"maxTwoGroupANDSum: needs at least 2 values, got {n}")
+    common = -1
     for v in arr:
         if v < 0:
-            raise ValueError(f"maxTwoGroupAndSum: {v} is negative")
-    bits = max(arr).bit_length()
-    size = 1 << bits
-    sup = [0] * size  # sup[mask] = how many values contain every bit of mask
-    for v in arr:
-        sup[v] += 1
-    for b in range(bits):
-        h = 1 << b
-        for m in range(size):
-            if not m & h:
-                sup[m] += sup[m | h]
-    withBit = [sup[1 << b] for b in range(bits)]  # how many values have bit b
-    allAnd = 0
-    for b in range(bits):
-        if withBit[b] == n:
-            allAnd |= 1 << b
-    best = 2 * allAnd
-    for x in range(size):
-        inA = sup[x]
-        if inA == 0 or inA == n:
-            continue
-        andA = andB = 0
-        for b in range(bits):
-            h = 1 << b
-            withInA = sup[x | h]  # values in A with bit b
-            if withInA == inA:
-                andA |= h
-            if withBit[b] - withInA == n - inA:
-                andB |= h
-        if andA + andB > best:
-            best = andA + andB
-    return best
+            raise ValueError(f"maxTwoGroupANDSum: {v} is negative")
+        common &= v
+    vals = [v & ~common for v in arr]
+    bits = max(vals).bit_length()
+    parent = list(range(bits))
+
+    def find(b):
+        while parent[b] != b:
+            parent[b] = parent[parent[b]]
+            b = parent[b]
+        return b
+
+    missing = [-1] * n  # a kept bit the value lacks (any one: they are all merged), or -1 if it has every kept bit
+    kept = groups = 0
+    for t in range(bits - 1, -1, -1):
+        roots, full = set(), 0
+        for i in range(n):
+            if vals[i] >> t & 1:
+                if missing[i] == -1:
+                    full += 1
+            elif missing[i] != -1:
+                roots.add(find(missing[i]))
+        newGroups = groups - len(roots) + 1  # t merges with the groups of every value that lacks it
+        if newGroups >= 2 or full:
+            kept |= 1 << t
+            groups = newGroups
+            for r in roots:
+                parent[r] = t
+            for i in range(n):
+                if missing[i] == -1 and not vals[i] >> t & 1:
+                    missing[i] = t
+    return 2 * common + kept

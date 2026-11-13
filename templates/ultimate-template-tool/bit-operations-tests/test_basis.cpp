@@ -22,27 +22,32 @@ void checkBasis(const XorBasis& basis, const vector<long long>& vals, long long 
     set<long long> spanSet(all.begin(), all.end());
     vector<long long> span(spanSet.begin(), spanSet.end());
     CHECK(basis.size() == (long long)vals.size());
-    CHECK(basis.countDistinctXors() == span.size());
+    CHECK(basis.countDistinctSubsetXors() == span.size());
     auto bv = basis.basis();
     auto bAll = subsetXors(bv);
     CHECK(set<long long>(bAll.begin(), bAll.end()) == spanSet);
     CHECK(is_sorted(bv.rbegin(), bv.rend()));
-    CHECK(basis.rank() == (int)bv.size());
-    CHECK(basis.maxXor() == span.back());
+    CHECK(basis.basisSize() == (int)bv.size());
+    CHECK(basis.maxSubsetXor() == span.back());
     for (long long k = 0; k < (long long)span.size() + 2; k++) {
-        CHECK(basis.kthSmallestXor(k) == (k < (long long)span.size() ? span[k] : -1));
+        CHECK(basis.kthSmallestDistinctSubsetXor(k) == (k < (long long)span.size() ? span[k] : -1));
+    }
+    vector<long long> every = all;
+    sort(every.begin(), every.end());
+    for (long long k = 0; k < (long long)every.size() + 2; k++) {
+        CHECK(basis.kthSmallestSubsetXor(k) == (k < (long long)every.size() ? every[k] : -1));
     }
     long long mn = -1;
     for (size_t i = 1; i < all.size(); i++) mn = (mn == -1 ? all[i] : min(mn, all[i]));
-    CHECK(basis.minNonzeroXor() == mn);
+    CHECK(basis.minNonEmptySubsetXor() == mn);
     for (int t = 0; t < 10; t++) {
         long long x = rnd(hi * 2);
-        CHECK(basis.canMake(x) == (bool)spanSet.count(x));
+        CHECK(basis.doesSubsetXorEqualToXExist(x) == (bool)spanSet.count(x));
         long long mx = 0, lo = LLONG_MAX;
         for (long long s : span) { mx = max(mx, x ^ s); lo = min(lo, x ^ s); }
-        CHECK(basis.maxXorWith(x) == mx);
-        CHECK(basis.minXorWith(x) == lo);
-        CHECK(basis.countSubsetsMakingMod(x, MOD) == (long long)count(all.begin(), all.end(), x) % MOD);
+        CHECK(basis.maxXorOfXAndSubsetXor(x) == mx);
+        CHECK(basis.minXorOfXAndSubsetXor(x) == lo);
+        CHECK(basis.countSubsetsWithXorEqualToXMod(x, MOD) == (long long)count(all.begin(), all.end(), x) % MOD);
     }
 }
 
@@ -62,13 +67,6 @@ int main() {
         }
         checkBasis(basis, vals, hi == LLONG_MAX ? LLONG_MAX / 2 : hi);
         CHECK(XorBasis(vals).basis() == basis.basis());
-        vector<long long> other;
-        int oc = rnd(5);
-        for (int i = 0; i < oc; i++) other.push_back(rnd(hi));
-        basis.merge(XorBasis(other));
-        auto both = vals;
-        both.insert(both.end(), other.begin(), other.end());
-        checkBasis(basis, both, hi == LLONG_MAX ? LLONG_MAX / 2 : hi);
     }
     vector<long long> rhis = {1, 2, 8, 32, 1LL << 50, LLONG_MAX};
     for (int it = 0; it < 2000; it++) {
@@ -81,24 +79,24 @@ int main() {
             for (int r = l; r < n; r++) {
                 auto all = subsetXors(vector<long long>(arr.begin() + l, arr.begin() + r + 1));
                 set<long long> span(all.begin(), all.end());
-                CHECK(rxb.maxXorInRange(l, r) == *span.rbegin());
-                CHECK(rxb.countDistinctXorsInRange(l, r) == span.size());
-                CHECK((1ULL << rxb.rankInRange(l, r)) == span.size());
+                CHECK(rxb.maxSubsetXorInRange(l, r) == *span.rbegin());
+                CHECK(rxb.countDistinctSubsetXorsInRange(l, r) == span.size());
+                CHECK((1ULL << rxb.basisSizeInRange(l, r)) == span.size());
                 for (int t = 0; t < 4; t++) {
                     long long x = rnd(hi == LLONG_MAX ? hi : hi * 2);
-                    CHECK(rxb.canMakeInRange(l, r, x) == (bool)span.count(x));
+                    CHECK(rxb.doesSubsetXorEqualToXExistInRange(l, r, x) == (bool)span.count(x));
                     long long mx = 0;
                     for (long long s : span) mx = max(mx, x ^ s);
-                    CHECK(rxb.maxXorWithInRange(l, r, x) == mx);
+                    CHECK(rxb.maxXorOfXAndSubsetXorInRange(l, r, x) == mx);
                 }
             }
         }
         bool threw = false;
-        try { rxb.maxXorInRange(0, n); } catch (const out_of_range&) { threw = true; }
+        try { rxb.maxSubsetXorInRange(0, n); } catch (const out_of_range&) { threw = true; }
         CHECK(threw);
     }
     vector<int> ints = {3, 10, 5};
-    CHECK(XorBasis(ints).maxXorWith(4) == 14);
-    CHECK(RangeXorBasis(vector<int>{3, 10, 5, 6}).maxXorInRange(1, 3) == 15);
+    CHECK(XorBasis(ints).maxXorOfXAndSubsetXor(4) == 14);
+    CHECK(RangeXorBasis(vector<int>{3, 10, 5, 6}).maxSubsetXorInRange(1, 3) == 15);
     cout << "c++ basis tests passed" << endl;
 }

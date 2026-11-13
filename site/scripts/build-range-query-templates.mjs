@@ -199,7 +199,7 @@ for (const name of fs.readdirSync(stringsDir).filter((name) => /\.(py|cpp)$/.tes
 // the matrix templates (the Matrices tab): only these files, not the older ones or tests sharing the folder
 const matricesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/matrices");
 fs.mkdirSync(path.join(publicDir, "_matrices"));
-for (const name of fs.readdirSync(matricesDir).filter((name) => /^(ModMatrix|MinPlusMatrix|MaxPlusMatrix|LinearRecurrence)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
+for (const name of fs.readdirSync(matricesDir).filter((name) => /^(matMul|vecMatMul|matPow)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
 
 // the combinatorics templates (the Combinatorics tab)
 const combinatoricsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/combinatorics");

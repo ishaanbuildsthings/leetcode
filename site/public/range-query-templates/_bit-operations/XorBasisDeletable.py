@@ -8,7 +8,7 @@
 #
 # basis = XorBasisDeletable([3, 10, 5])
 # basis.remove(10)    # True: one copy of 10 was held
-# basis.maxXor()      # 6, from 3 ^ 5
+# basis.maxSubsetXor()      # 6, from 3 ^ 5
 #
 # How deletes work (https://eolymp.com/posts/7u074ngkv127l3fl0m33bf5gck): the values are split into several bases, each
 # spanning a subspace of the one before, grouped by dimension; the biggest spans everything, so queries read it. A value
@@ -30,7 +30,7 @@ class XorBasisDeletable:
         for x in arr:
             self.insert(x)
 
-    # inserts x; returns True if x couldn't be made before (the rank grew), else False
+    # inserts x; returns True if x couldn't be made before (the basis grew), else False
     # O(B^2)
     def insert(self, x):
         if x < 0:
@@ -102,7 +102,7 @@ class XorBasisDeletable:
 
     # True if some subset XORs to exactly x (x = 0 is always True: the empty subset)
     # O(B)
-    def canMake(self, x):
+    def doesSubsetXorEqualToXExist(self, x):
         if x < 0:
             return False
         top = self._top()
@@ -110,14 +110,14 @@ class XorBasisDeletable:
 
     # largest XOR of any subset (0 if nothing is held)
     # O(B)
-    def maxXor(self):
-        return self.maxXorWith(0)
+    def maxSubsetXor(self):
+        return self.maxXorOfXAndSubsetXor(0)
 
     # largest x ^ (XOR of some subset)
     # O(B)
-    def maxXorWith(self, x):
+    def maxXorOfXAndSubsetXor(self, x):
         if x < 0:
-            raise ValueError(f"XorBasisDeletable.maxXorWith: {x} is negative")
+            raise ValueError(f"XorBasisDeletable.maxXorOfXAndSubsetXor: {x} is negative")
         top = self._top()
         if top is not None:
             for v, p in zip(top.vec, top.piv):
@@ -127,15 +127,15 @@ class XorBasisDeletable:
 
     # smallest x ^ (XOR of some subset)
     # O(B)
-    def minXorWith(self, x):
+    def minXorOfXAndSubsetXor(self, x):
         if x < 0:
-            raise ValueError(f"XorBasisDeletable.minXorWith: {x} is negative")
+            raise ValueError(f"XorBasisDeletable.minXorOfXAndSubsetXor: {x} is negative")
         top = self._top()
         return x if top is None else self._reduce(top, x)
 
     # smallest XOR of a non-empty subset: 0 if some non-empty subset XORs to 0, None if nothing is held
     # O(B)
-    def minNonzeroXor(self):
+    def minNonEmptySubsetXor(self):
         if self.count == 0:
             return None
         top = self._top()
@@ -143,11 +143,12 @@ class XorBasisDeletable:
             return 0
         return min(top.vec)
 
-    # the kth smallest distinct value some subset makes, k 0-indexed (k = 0 -> 0), or None if k >= countDistinctXors()
+    # the kth smallest distinct value some subset makes, k 0-indexed (k = 0 -> 0), or None if k >=
+    # countDistinctSubsetXors()
     # O(B log B)
-    def kthSmallestXor(self, k):
+    def kthSmallestDistinctSubsetXor(self, k):
         if k < 0:
-            raise ValueError(f"XorBasisDeletable.kthSmallestXor: k = {k} is negative")
+            raise ValueError(f"XorBasisDeletable.kthSmallestDistinctSubsetXor: k = {k} is negative")
         top = self._top()
         rows = sorted(top.vec) if top is not None else []
         if k >> len(rows):
@@ -158,20 +159,33 @@ class XorBasisDeletable:
                 res ^= v
         return res
 
-    # number of distinct values the subsets make, counting 0 from the empty subset: 2^rank
+    # the kth smallest XOR over all 2^N subsets by position (the empty one included, repeats kept), k 0-indexed, or
+    # None if k >= 2^N. Each distinct value comes from 2^(N - basisSize()) subsets, so it is the distinct one at
+    # k >> (N - basisSize())
+    # XorBasisDeletable([1, 1]).kthSmallestSubsetXor(1) -> 0   # every subset XOR, sorted: 0, 0, 1, 1
+    # O(B log B)
+    def kthSmallestSubsetXor(self, k):
+        if k < 0:
+            raise ValueError(f"XorBasisDeletable.kthSmallestSubsetXor: k = {k} is negative")
+        n = self.size()
+        if k >> n:
+            return None
+        return self.kthSmallestDistinctSubsetXor(k >> (n - self.basisSize()))
+
+    # number of distinct values the subsets make, counting 0 from the empty subset: 2^basisSize()
     # O(B)
-    def countDistinctXors(self):
-        return 1 << self.rank()
+    def countDistinctSubsetXors(self):
+        return 1 << self.basisSize()
 
     # number of subsets of the held values (by position, the empty one included) whose XOR is exactly x, mod mod:
-    # 2^(N - rank) if x can be made, else 0
+    # 2^(N - basisSize()) if x can be made, else 0
     # O(B + log(N))
-    def countSubsetsMakingMod(self, x, mod):
-        return pow(2, self.count - self.rank(), mod) if self.canMake(x) else 0
+    def countSubsetsWithXorEqualToXMod(self, x, mod):
+        return pow(2, self.count - self.basisSize(), mod) if self.doesSubsetXorEqualToXExist(x) else 0
 
     # size of the basis of the held values
     # O(B)
-    def rank(self):
+    def basisSize(self):
         return self._topLevel()
 
     # how many values are held, copies and zeros included
@@ -179,7 +193,7 @@ class XorBasisDeletable:
     def size(self):
         return self.count
 
-    # a basis of the held values, largest first (rank of them, fully reduced)
+    # a basis of the held values, largest first (basisSize() of them, fully reduced)
     # O(B log B)
     def basis(self):
         top = self._top()

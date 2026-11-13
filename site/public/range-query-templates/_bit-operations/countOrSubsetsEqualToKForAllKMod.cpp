@@ -1,18 +1,18 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countOrSubsetsEqualToKForAllKMod.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countORSubsetsEqualToKForAllKMod.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // res of size 2^B: res[v] = number of non-empty subsets (by position) whose OR is exactly v, mod mod values must be >=
 // 0; B = number of bits in max(arr), so the vector is about 2 * max(arr) long; mod < 2^62
-// countOrSubsetsEqualToKForAllKMod(vector<int>{1, 2, 3}, 1'000'000'007) -> {0, 1, 1, 5}   // 5 of the 7 subsets OR to 3
+// countORSubsetsEqualToKForAllKMod(vector<int>{1, 2, 3}, 1'000'000'007) -> {0, 1, 1, 5}   // 5 of the 7 subsets OR to 3
 // O(B * 2^B + N)
 template <class T>
-vector<long long> countOrSubsetsEqualToKForAllKMod(const vector<T>& arr, long long mod) {
+vector<long long> countORSubsetsEqualToKForAllKMod(const vector<T>& arr, long long mod) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("countOrSubsetsEqualToKForAllKMod: value " + to_string((long long)x)
+            throw invalid_argument("countORSubsetsEqualToKForAllKMod: value " + to_string((long long)x)
                 + " is negative");
         }
         mx = max(mx, (long long)x);

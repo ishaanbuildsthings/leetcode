@@ -1,19 +1,19 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfSubarrayAnds.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfSubarrayANDs.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // sum over every non-empty subarray of the AND of all its values values must be >= 0; B = number of bits in max(arr)
 // Each bit is counted on its own: a subarray has bit b exactly when it sits inside a run of values that all have bit b
-// Exact: throws overflow_error if the answer doesn't fit in long long (then use sumOfSubarrayAndsMod)
-// sumOfSubarrayAnds(vector<int>{1, 2, 3}) -> 8   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 0 + 2 + 0
+// Exact: throws overflow_error if the answer doesn't fit in long long (then use sumOfSubarrayANDsMod)
+// sumOfSubarrayANDs(vector<int>{1, 2, 3}) -> 8   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 0 + 2 + 0
 // O(N * B)
 template <class T>
-long long sumOfSubarrayAnds(const vector<T>& arr) {
+long long sumOfSubarrayANDs(const vector<T>& arr) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("sumOfSubarrayAnds: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("sumOfSubarrayANDs: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }
@@ -27,7 +27,7 @@ long long sumOfSubarrayAnds(const vector<T>& arr) {
         total += (__int128)ways << b;
     }
     if (total > LLONG_MAX) {
-        throw overflow_error("sumOfSubarrayAnds: the answer doesn't fit in long long; use sumOfSubarrayAndsMod");
+        throw overflow_error("sumOfSubarrayANDs: the answer doesn't fit in long long; use sumOfSubarrayANDsMod");
     }
     return (long long)total;
 }

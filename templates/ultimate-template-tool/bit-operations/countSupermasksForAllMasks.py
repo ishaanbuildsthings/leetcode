@@ -4,7 +4,8 @@
 from operator import add
 
 # res[mask] = how many of arr's values are supermasks of mask (v & mask == mask), for every mask below 2^B
-# B = number of bits in max(arr), so res has 2^B entries (about 2 * max(arr)); values must be >= 0
+# B = number of bits in max(arr), so res has exactly 2^B entries, one per mask 0 .. 2^B - 1: the smallest power of 2
+# above max(arr) (max(arr) = 5 -> 8 entries; 1 entry if arr is empty or all 0); values must be >= 0
 # countSupermasksForAllMasks([1, 2, 3]) -> [3, 2, 2, 1]   # res[1] = 2: 1 and 3 contain bit 0
 # O(B * 2^B + N)
 def countSupermasksForAllMasks(arr):

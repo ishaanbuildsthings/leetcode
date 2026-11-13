@@ -1,20 +1,20 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/maxTwoGroupXorSum.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/maxTwoGroupXORSum.py
 
 # max of XOR(A) + XOR(B) over every split of arr into two non-empty groups A and B (each value in exactly one)
 # Why it works: with T = XOR of every value, XOR(B) = XOR(A) ^ T. A bit set in T is in exactly one of the two, so it
 # adds 2^bit whatever the split; a bit clear in T is in both or in neither. So clear T's bits in every value, take the
 # largest XOR M of a subset of what's left (a XOR basis), and the answer is T + 2 * M.
 # Values must be >= 0; needs at least 2 values.
-# maxTwoGroupXorSum([1, 2, 3]) -> 6   # {1, 2} and {3}: 3 + 3
+# maxTwoGroupXORSum([1, 2, 3]) -> 6   # {1, 2} and {3}: 3 + 3
 # O(N * B)
-def maxTwoGroupXorSum(arr):
+def maxTwoGroupXORSum(arr):
     if len(arr) < 2:
-        raise ValueError(f"maxTwoGroupXorSum: needs at least 2 values, got {len(arr)}")
+        raise ValueError(f"maxTwoGroupXORSum: needs at least 2 values, got {len(arr)}")
     total = 0
     for v in arr:
         if v < 0:
-            raise ValueError(f"maxTwoGroupXorSum: {v} is negative")
+            raise ValueError(f"maxTwoGroupXORSum: {v} is negative")
         total ^= v
     keep = ~total
     pivots = {}  # highest set bit -> basis value

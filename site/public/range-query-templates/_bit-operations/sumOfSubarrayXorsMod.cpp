@@ -1,20 +1,20 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfSubarrayXorsMod.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfSubarrayXORsMod.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // sum over every non-empty subarray of the XOR of all its values, mod mod (mod < 2^62) values must be >= 0; B = number
 // of bits in max(arr)
 // Each bit is counted on its own: a subarray has bit b exactly when the prefix XORs at its two ends differ in bit b
-// sumOfSubarrayXorsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 10   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 3
+// sumOfSubarrayXORsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 10   // [1] [2] [3] [1,2] [2,3] [1,2,3] -> 1 + 2 + 3 + 3
 // + 1 + 0
 // O(N * B)
 template <class T>
-long long sumOfSubarrayXorsMod(const vector<T>& arr, long long mod) {
+long long sumOfSubarrayXORsMod(const vector<T>& arr, long long mod) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("sumOfSubarrayXorsMod: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("sumOfSubarrayXORsMod: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }

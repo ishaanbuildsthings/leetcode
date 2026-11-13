@@ -1,19 +1,19 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairXors.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairXORs.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // sum over every pair i < j of the XOR of arr[i] and arr[j] values must be >= 0; B = number of bits in max(arr)
 // Each bit is counted on its own: a pair has bit b exactly when one of the two has it
-// Exact: throws overflow_error if the answer doesn't fit in long long (then use sumOfPairXorsMod)
-// sumOfPairXors(vector<int>{1, 2, 3}) -> 6   // 1^2 + 1^3 + 2^3 = 3 + 2 + 1
+// Exact: throws overflow_error if the answer doesn't fit in long long (then use sumOfPairXORsMod)
+// sumOfPairXORs(vector<int>{1, 2, 3}) -> 6   // 1^2 + 1^3 + 2^3 = 3 + 2 + 1
 // O(N * B)
 template <class T>
-long long sumOfPairXors(const vector<T>& arr) {
+long long sumOfPairXORs(const vector<T>& arr) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("sumOfPairXors: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("sumOfPairXORs: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }
@@ -28,7 +28,7 @@ long long sumOfPairXors(const vector<T>& arr) {
         total += (__int128)ways << b;
     }
     if (total > LLONG_MAX) {
-        throw overflow_error("sumOfPairXors: the answer doesn't fit in long long; use sumOfPairXorsMod");
+        throw overflow_error("sumOfPairXORs: the answer doesn't fit in long long; use sumOfPairXORsMod");
     }
     return (long long)total;
 }

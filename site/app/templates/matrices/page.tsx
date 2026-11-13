@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { LINEAR_ALGEBRA, MATRIX_MULTIPLICATION } from "@/lib/matrices";
+import { MATRICES } from "@/lib/matrices";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -30,10 +30,7 @@ export default async function MatrixTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Matrix templates" sections={[
-            { title: "Matrix multiplication", items: MATRIX_MULTIPLICATION },
-            { title: "Linear recurrences", items: LINEAR_ALGEBRA },
-          ]} publicBase="/range-query-templates" />
+        <MiscTemplates title="Matrix templates" sections={[{ title: "Matrices", items: MATRICES }]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

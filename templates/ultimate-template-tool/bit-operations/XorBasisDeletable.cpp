@@ -10,7 +10,7 @@ using namespace std;
 //
 // XorBasisDeletable basis(vector<long long>{3, 10, 5});
 // basis.remove(10);    // true: one copy of 10 was held
-// basis.maxXor();      // 6, from 3 ^ 5
+// basis.maxSubsetXor();      // 6, from 3 ^ 5
 //
 // How removes work (https://eolymp.com/posts/7u074ngkv127l3fl0m33bf5gck): the values are split into several bases,
 // each spanning a subspace of the one before, grouped by dimension; the biggest spans everything, so queries read it.
@@ -24,7 +24,7 @@ struct XorBasisDeletable {
         for (long long x : arr) insert(x);
     }
 
-    // inserts x; returns true if x couldn't be made before (the rank grew), else false
+    // inserts x; returns true if x couldn't be made before (the basis grew), else false
     // O(B^2)
     bool insert(long long x) {
         if (x < 0) throw invalid_argument("XorBasisDeletable::insert: x = " + to_string(x) + " is negative");
@@ -110,7 +110,7 @@ struct XorBasisDeletable {
 
     // true if some subset XORs to exactly x (x = 0 is always true: the empty subset)
     // O(B)
-    bool canMake(long long x) const {
+    bool doesSubsetXorEqualToXExist(long long x) const {
         if (x < 0) return false;
         int top = topBasis();
         return top < 0 ? x == 0 : reduce(pool[top], x) == 0;
@@ -118,12 +118,13 @@ struct XorBasisDeletable {
 
     // largest XOR of any subset (0 if nothing is held)
     // O(B)
-    long long maxXor() const { return maxXorWith(0); }
+    long long maxSubsetXor() const { return maxXorOfXAndSubsetXor(0); }
 
     // largest x ^ (XOR of some subset)
     // O(B)
-    long long maxXorWith(long long x) const {
-        if (x < 0) throw invalid_argument("XorBasisDeletable::maxXorWith: x = " + to_string(x) + " is negative");
+    long long maxXorOfXAndSubsetXor(long long x) const {
+        if (x < 0) throw invalid_argument("XorBasisDeletable::maxXorOfXAndSubsetXor: x = " + to_string(x)
+            + " is negative");
         int top = topBasis();
         if (top >= 0) {
             const Basis& b = pool[top];
@@ -135,25 +136,28 @@ struct XorBasisDeletable {
 
     // smallest x ^ (XOR of some subset)
     // O(B)
-    long long minXorWith(long long x) const {
-        if (x < 0) throw invalid_argument("XorBasisDeletable::minXorWith: x = " + to_string(x) + " is negative");
+    long long minXorOfXAndSubsetXor(long long x) const {
+        if (x < 0) throw invalid_argument("XorBasisDeletable::minXorOfXAndSubsetXor: x = " + to_string(x)
+            + " is negative");
         int top = topBasis();
         return top < 0 ? x : reduce(pool[top], x);
     }
 
     // smallest XOR of a non-empty subset: 0 if some non-empty subset XORs to 0, -1 if nothing is held
     // O(B)
-    long long minNonzeroXor() const {
+    long long minNonEmptySubsetXor() const {
         if (count == 0) return -1;
         int top = topBasis();
         if (top < 0 || count > (long long)pool[top].vec.size()) return 0;
         return *min_element(pool[top].vec.begin(), pool[top].vec.end());
     }
 
-    // the kth smallest distinct value some subset makes, k 0-indexed (k = 0 -> 0), or -1 if k >= countDistinctXors()
+    // the kth smallest distinct value some subset makes, k 0-indexed (k = 0 -> 0), or -1 if k >=
+    // countDistinctSubsetXors()
     // O(B log B)
-    long long kthSmallestXor(long long k) const {
-        if (k < 0) throw invalid_argument("XorBasisDeletable::kthSmallestXor: k = " + to_string(k) + " is negative");
+    long long kthSmallestDistinctSubsetXor(long long k) const {
+        if (k < 0) throw invalid_argument("XorBasisDeletable::kthSmallestDistinctSubsetXor: k = " + to_string(k)
+            + " is negative");
         vector<long long> rows = basis();
         reverse(rows.begin(), rows.end());
         int r = (int)rows.size();
@@ -164,17 +168,35 @@ struct XorBasisDeletable {
         return res;
     }
 
-    // number of distinct values the subsets make, counting 0 from the empty subset: 2^rank (rank must be <= 62)
+    // the kth smallest XOR over all 2^N subsets by position (the empty one included, repeats kept), k 0-indexed, or
+    // -1 if k >= 2^N. Each distinct value comes from 2^(N - basisSize()) subsets, so it is the distinct one at
+    // k >> (N - basisSize())
+    // XorBasisDeletable(vector<int>{1, 1}).kthSmallestSubsetXor(1) -> 0   // every subset XOR, sorted: 0, 0, 1, 1
+    // O(B log B)
+    long long kthSmallestSubsetXor(long long k) const {
+        if (k < 0) {
+            throw invalid_argument("XorBasisDeletable::kthSmallestSubsetXor: k = " + to_string(k) + " is negative");
+        }
+        long long n = size();
+        if (n < 63 && (k >> n)) {
+            return -1;
+        }
+        long long shift = n - basisSize();
+        return kthSmallestDistinctSubsetXor(shift >= 63 ? 0 : k >> shift);
+    }
+
+    // number of distinct values the subsets make, counting 0 from the empty subset: 2^basisSize() (basisSize() must be
+    // <= 62)
     // O(B)
-    long long countDistinctXors() const { return 1LL << rank(); }
+    long long countDistinctSubsetXors() const { return 1LL << basisSize(); }
 
     // number of subsets of the held values (by position, the empty one included) whose XOR is exactly x, mod mod:
-    // 2^(N - rank) if x can be made, else 0
+    // 2^(N - basisSize()) if x can be made, else 0
     // O(B + log(N))
-    long long countSubsetsMakingMod(long long x, long long mod) const {
-        if (!canMake(x)) return 0;
+    long long countSubsetsWithXorEqualToXMod(long long x, long long mod) const {
+        if (!doesSubsetXorEqualToXExist(x)) return 0;
         long long res = 1 % mod, base = 2 % mod;
-        for (long long e = count - rank(); e > 0; e >>= 1) {
+        for (long long e = count - basisSize(); e > 0; e >>= 1) {
             if (e & 1) res = (long long)((__int128)res * base % mod);
             base = (long long)((__int128)base * base % mod);
         }
@@ -183,13 +205,13 @@ struct XorBasisDeletable {
 
     // size of the basis of the held values
     // O(B)
-    int rank() const { return topLevel(); }
+    int basisSize() const { return topLevel(); }
 
     // how many values are held, copies and zeros included
     // O(1)
     long long size() const { return count; }
 
-    // a basis of the held values, largest first (rank of them, fully reduced)
+    // a basis of the held values, largest first (basisSize() of them, fully reduced)
     // O(B log B)
     vector<long long> basis() const {
         int top = topBasis();

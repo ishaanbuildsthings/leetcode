@@ -1,14 +1,14 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairOrs.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairORs.py
 
 # sum over every pair i < j of the OR of arr[i] and arr[j] (exact) values must be >= 0; B = number of bits in max(arr)
 # Each bit is counted on its own: a pair has bit b unless neither has it
-# sumOfPairOrs([1, 2, 3]) -> 9   # 1|2 + 1|3 + 2|3 = 3 + 3 + 3
+# sumOfPairORs([1, 2, 3]) -> 9   # 1|2 + 1|3 + 2|3 = 3 + 3 + 3
 # O(N * B)
-def sumOfPairOrs(arr):
+def sumOfPairORs(arr):
     for x in arr:
         if x < 0:
-            raise ValueError(f"sumOfPairOrs: value {x} is negative")
+            raise ValueError(f"sumOfPairORs: value {x} is negative")
     n = len(arr)
     total = 0
     for b in range(max(arr, default=0).bit_length()):

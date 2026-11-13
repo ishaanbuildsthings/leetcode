@@ -1,19 +1,19 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countAndSubsetsEqualToKForAllKMod.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countANDSubsetsEqualToKForAllKMod.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // res of size 2^B: res[v] = number of non-empty subsets (by position) whose AND is exactly v, mod mod values must be >=
 // 0; B = number of bits in max(arr), so the vector is about 2 * max(arr) long; mod < 2^62
-// countAndSubsetsEqualToKForAllKMod(vector<int>{1, 3}, 1'000'000'007) -> {0, 2, 0, 1}   // {1}, {1, 3} AND to 1; {3}
+// countANDSubsetsEqualToKForAllKMod(vector<int>{1, 3}, 1'000'000'007) -> {0, 2, 0, 1}   // {1}, {1, 3} AND to 1; {3}
 // ANDs to 3
 // O(B * 2^B + N)
 template <class T>
-vector<long long> countAndSubsetsEqualToKForAllKMod(const vector<T>& arr, long long mod) {
+vector<long long> countANDSubsetsEqualToKForAllKMod(const vector<T>& arr, long long mod) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("countAndSubsetsEqualToKForAllKMod: value " + to_string((long long)x)
+            throw invalid_argument("countANDSubsetsEqualToKForAllKMod: value " + to_string((long long)x)
                 + " is negative");
         }
         mx = max(mx, (long long)x);

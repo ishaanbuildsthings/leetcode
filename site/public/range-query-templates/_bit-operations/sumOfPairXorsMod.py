@@ -1,14 +1,14 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairXorsMod.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairXORsMod.py
 
 # sum over every pair i < j of the XOR of arr[i] and arr[j], mod mod values must be >= 0; B = number of bits in max(arr)
 # Each bit is counted on its own: a pair has bit b exactly when one of the two has it
-# sumOfPairXorsMod([1, 2, 3], 10**9 + 7) -> 6   # 1^2 + 1^3 + 2^3 = 3 + 2 + 1
+# sumOfPairXORsMod([1, 2, 3], 10**9 + 7) -> 6   # 1^2 + 1^3 + 2^3 = 3 + 2 + 1
 # O(N * B)
-def sumOfPairXorsMod(arr, mod):
+def sumOfPairXORsMod(arr, mod):
     for x in arr:
         if x < 0:
-            raise ValueError(f"sumOfPairXorsMod: value {x} is negative")
+            raise ValueError(f"sumOfPairXORsMod: value {x} is negative")
     n = len(arr)
     total = 0
     for b in range(max(arr, default=0).bit_length()):

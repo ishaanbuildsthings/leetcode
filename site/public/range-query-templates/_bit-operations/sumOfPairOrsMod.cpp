@@ -1,19 +1,19 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairOrsMod.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/sumOfPairORsMod.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // sum over every pair i < j of the OR of arr[i] and arr[j], mod mod (mod < 2^62) values must be >= 0; B = number of
 // bits in max(arr)
 // Each bit is counted on its own: a pair has bit b unless neither has it
-// sumOfPairOrsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 9   // 1|2 + 1|3 + 2|3 = 3 + 3 + 3
+// sumOfPairORsMod(vector<int>{1, 2, 3}, 1'000'000'007) -> 9   // 1|2 + 1|3 + 2|3 = 3 + 3 + 3
 // O(N * B)
 template <class T>
-long long sumOfPairOrsMod(const vector<T>& arr, long long mod) {
+long long sumOfPairORsMod(const vector<T>& arr, long long mod) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("sumOfPairOrsMod: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("sumOfPairORsMod: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }

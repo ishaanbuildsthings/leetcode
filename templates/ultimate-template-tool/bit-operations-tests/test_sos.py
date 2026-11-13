@@ -3,9 +3,9 @@ import os, random
 from itertools import combinations
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "bit-operations")
-NAMES = ["countAndSubsetsEqualToKForAllKMod", "countOrSubsetsEqualToKForAllKMod",
-         "countAndSubsetsEqualToKForAllK", "countOrSubsetsEqualToKForAllK", "countAndPairsEqualToKForAllK", "countOrPairsEqualToKForAllK",
-         "sumOfOrPairsEqualToKForAllK", "sumOfAndPairsEqualToKForAllK", "sumOfXorPairsEqualToKForAllK", "sumOfXorPairsEqualToKForAllKMod", "countXorPairsEqualToKForAllK"]
+NAMES = ["countANDSubsetsEqualToKForAllKMod", "countORSubsetsEqualToKForAllKMod",
+         "countANDSubsetsEqualToKForAllK", "countORSubsetsEqualToKForAllK", "countANDPairsEqualToKForAllK", "countORPairsEqualToKForAllK",
+         "sumOfORPairsEqualToKForAllK", "sumOfANDPairsEqualToKForAllK", "sumOfXORPairsEqualToKForAllK", "sumOfXORPairsEqualToKForAllKMod", "countXORPairsEqualToKForAllK"]
 fns = {}
 for name in NAMES:
     ns = {}
@@ -21,23 +21,23 @@ for it in range(600):
     n = 1 << B
     f = [rng.randrange(-50, 50) for _ in range(n)]
     g = [rng.randrange(-50, 50) for _ in range(n)]
-    for name, op in (("sumOfOrPairsEqualToKForAllK", int.__or__), ("sumOfAndPairsEqualToKForAllK", int.__and__), ("sumOfXorPairsEqualToKForAllK", int.__xor__)):
+    for name, op in (("sumOfORPairsEqualToKForAllK", int.__or__), ("sumOfANDPairsEqualToKForAllK", int.__and__), ("sumOfXORPairsEqualToKForAllK", int.__xor__)):
         want = [0] * n
         for i in range(n):
             for j in range(n):
                 want[op(i, j)] += f[i] * g[j]
         assert fns[name](f, g) == want, name
-        if name == "sumOfXorPairsEqualToKForAllK":
+        if name == "sumOfXORPairsEqualToKForAllK":
             for mod in (7, 10**9 + 7, 1):
-                assert fns["sumOfXorPairsEqualToKForAllKMod"](f, g, mod) == [x % mod for x in want]
+                assert fns["sumOfXORPairsEqualToKForAllKMod"](f, g, mod) == [x % mod for x in want]
     arr = [rng.randrange(rng.choice([1, 2, 5, 16, 40])) for _ in range(rng.randrange(0, 9))]
     m = size(arr)
-    for name, op in (("countAndPairsEqualToKForAllK", int.__and__), ("countOrPairsEqualToKForAllK", int.__or__), ("countXorPairsEqualToKForAllK", int.__xor__)):
+    for name, op in (("countANDPairsEqualToKForAllK", int.__and__), ("countORPairsEqualToKForAllK", int.__or__), ("countXORPairsEqualToKForAllK", int.__xor__)):
         want = [0] * m
         for i, j in combinations(range(len(arr)), 2):
             want[op(arr[i], arr[j])] += 1
         assert fns[name](arr) == want, (name, arr)
-    for name, op in (("countAndSubsetsEqualToKForAllKMod", int.__and__), ("countOrSubsetsEqualToKForAllKMod", int.__or__)):
+    for name, op in (("countANDSubsetsEqualToKForAllKMod", int.__and__), ("countORSubsetsEqualToKForAllKMod", int.__or__)):
         for mod in (10**9 + 7, 5):
             want = [0] * m
             for mask in range(1, 1 << len(arr)):
@@ -49,14 +49,14 @@ for it in range(600):
             assert fns[name](arr, mod) == [x % mod for x in want], (name, arr)
             assert fns[name[:-3]](arr) == want, (name[:-3], arr)
 try:
-    fns["sumOfXorPairsEqualToKForAllKMod"]([1, 2], [3, 4], 10)
+    fns["sumOfXORPairsEqualToKForAllKMod"]([1, 2], [3, 4], 10)
     assert False
 except ValueError:
     pass
 # docstring examples
-assert fns["sumOfAndPairsEqualToKForAllK"]([1, 2], [3, 4]) == [13, 8]
-assert fns["countOrSubsetsEqualToKForAllKMod"]([1, 2, 3], 10**9 + 7) == [0, 1, 1, 5]
-assert fns["countOrSubsetsEqualToKForAllK"]([1, 2, 3]) == [0, 1, 1, 5]
-assert fns["countAndSubsetsEqualToKForAllK"]([1, 3]) == [0, 2, 0, 1]
-assert fns["countAndSubsetsEqualToKForAllK"]([1] * 200)[1] == (1 << 200) - 1  # (exact, past what long long holds)
+assert fns["sumOfANDPairsEqualToKForAllK"]([1, 2], [3, 4]) == [13, 8]
+assert fns["countORSubsetsEqualToKForAllKMod"]([1, 2, 3], 10**9 + 7) == [0, 1, 1, 5]
+assert fns["countORSubsetsEqualToKForAllK"]([1, 2, 3]) == [0, 1, 1, 5]
+assert fns["countANDSubsetsEqualToKForAllK"]([1, 3]) == [0, 2, 0, 1]
+assert fns["countANDSubsetsEqualToKForAllK"]([1] * 200)[1] == (1 << 200) - 1  # (exact, past what long long holds)
 print("python sos tests passed")

@@ -1,16 +1,16 @@
 // Stress tests the SOS DP and convolution templates against brute force.
 // Run: g++ -O2 -std=c++17 test_sos.cpp -o /tmp/ts && /tmp/ts
-#include "../bit-operations/countAndSubsetsEqualToKForAllKMod.cpp"
-#include "../bit-operations/countOrSubsetsEqualToKForAllKMod.cpp"
-#include "../bit-operations/countAndSubsetsEqualToKForAllK.cpp"
-#include "../bit-operations/countOrSubsetsEqualToKForAllK.cpp"
-#include "../bit-operations/countAndPairsEqualToKForAllK.cpp"
-#include "../bit-operations/countOrPairsEqualToKForAllK.cpp"
-#include "../bit-operations/sumOfOrPairsEqualToKForAllK.cpp"
-#include "../bit-operations/sumOfAndPairsEqualToKForAllK.cpp"
-#include "../bit-operations/sumOfXorPairsEqualToKForAllK.cpp"
-#include "../bit-operations/sumOfXorPairsEqualToKForAllKMod.cpp"
-#include "../bit-operations/countXorPairsEqualToKForAllK.cpp"
+#include "../bit-operations/countANDSubsetsEqualToKForAllKMod.cpp"
+#include "../bit-operations/countORSubsetsEqualToKForAllKMod.cpp"
+#include "../bit-operations/countANDSubsetsEqualToKForAllK.cpp"
+#include "../bit-operations/countORSubsetsEqualToKForAllK.cpp"
+#include "../bit-operations/countANDPairsEqualToKForAllK.cpp"
+#include "../bit-operations/countORPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfORPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfANDPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfXORPairsEqualToKForAllK.cpp"
+#include "../bit-operations/sumOfXORPairsEqualToKForAllKMod.cpp"
+#include "../bit-operations/countXORPairsEqualToKForAllK.cpp"
 
 mt19937_64 rng(2);
 long long rnd(long long lo, long long hi) { return lo + (long long)(rng() % (unsigned long long)(hi - lo)); }
@@ -31,13 +31,13 @@ int main() {
                 xorC[i ^ j] += f[i] * g[j];
             }
         }
-        CHECK(sumOfOrPairsEqualToKForAllK(f, g) == orC);
-        CHECK(sumOfAndPairsEqualToKForAllK(f, g) == andC);
-        CHECK(sumOfXorPairsEqualToKForAllK(f, g) == xorC);
+        CHECK(sumOfORPairsEqualToKForAllK(f, g) == orC);
+        CHECK(sumOfANDPairsEqualToKForAllK(f, g) == andC);
+        CHECK(sumOfXORPairsEqualToKForAllK(f, g) == xorC);
         for (long long mod : {7LL, 1'000'000'007LL, 1LL, (1LL << 61) - 1}) {
             vl want(n);
             for (int i = 0; i < n; i++) want[i] = ((xorC[i] % mod) + mod) % mod;
-            CHECK(sumOfXorPairsEqualToKForAllKMod(f, g, mod) == want);
+            CHECK(sumOfXORPairsEqualToKForAllKMod(f, g, mod) == want);
         }
         vector<int> arr(rnd(0, 9));
         int hi = vector<int>{1, 2, 5, 16, 40}[rnd(0, 5)];
@@ -53,9 +53,9 @@ int main() {
                 px[arr[i] ^ arr[j]]++;
             }
         }
-        CHECK(countAndPairsEqualToKForAllK(arr) == pa);
-        CHECK(countOrPairsEqualToKForAllK(arr) == po);
-        CHECK(countXorPairsEqualToKForAllK(arr) == px);
+        CHECK(countANDPairsEqualToKForAllK(arr) == pa);
+        CHECK(countORPairsEqualToKForAllK(arr) == po);
+        CHECK(countXORPairsEqualToKForAllK(arr) == px);
         for (long long mod : {1'000'000'007LL, 5LL, 0LL}) {  // (0: the exact versions)
             vl sa(m, 0), so(m, 0);
             for (int mask = 1; mask < (1 << arr.size()); mask++) {
@@ -67,30 +67,30 @@ int main() {
                 so[o]++;
             }
             if (mod == 0) {
-                CHECK(countAndSubsetsEqualToKForAllK(arr) == sa);
-                CHECK(countOrSubsetsEqualToKForAllK(arr) == so);
+                CHECK(countANDSubsetsEqualToKForAllK(arr) == sa);
+                CHECK(countORSubsetsEqualToKForAllK(arr) == so);
                 continue;
             }
             for (auto& x : sa) x %= mod;
             for (auto& x : so) x %= mod;
-            CHECK(countAndSubsetsEqualToKForAllKMod(arr, mod) == sa);
-            CHECK(countOrSubsetsEqualToKForAllKMod(arr, mod) == so);
+            CHECK(countANDSubsetsEqualToKForAllKMod(arr, mod) == sa);
+            CHECK(countORSubsetsEqualToKForAllKMod(arr, mod) == so);
         }
     }
     bool threw = false;
-    try { countAndSubsetsEqualToKForAllK(vector<int>(63, 1)); } catch (const overflow_error&) { threw = true; }
+    try { countANDSubsetsEqualToKForAllK(vector<int>(63, 1)); } catch (const overflow_error&) { threw = true; }
     CHECK(threw);
-    CHECK(countAndSubsetsEqualToKForAllK(vector<int>(62, 1))[1] == (1LL << 62) - 1);
+    CHECK(countANDSubsetsEqualToKForAllK(vector<int>(62, 1))[1] == (1LL << 62) - 1);
     threw = false;
-    try { sumOfXorPairsEqualToKForAllKMod(vector<int>{1, 2}, vector<int>{3, 4}, 10); } catch (const invalid_argument&) { threw = true; }
+    try { sumOfXORPairsEqualToKForAllKMod(vector<int>{1, 2}, vector<int>{3, 4}, 10); } catch (const invalid_argument&) { threw = true; }
     CHECK(threw);
     // a big one: 2^20 entries runs fast and the convolution of counts stays exact
     vector<int> big(200000);
     for (auto& x : big) x = rnd(0, 1 << 20);
     auto t0 = chrono::steady_clock::now();
-    auto pairs = countXorPairsEqualToKForAllK(big);
+    auto pairs = countXORPairsEqualToKForAllK(big);
     long long total = accumulate(pairs.begin(), pairs.end(), 0LL);
     CHECK(total == 200000LL * 199999 / 2);
     auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t0).count();
-    cout << "c++ sos tests passed (countXorPairsEqualToKForAllK on 2e5 values < 2^20: " << ms << " ms)" << endl;
+    cout << "c++ sos tests passed (countXORPairsEqualToKForAllK on 2e5 values < 2^20: " << ms << " ms)" << endl;
 }

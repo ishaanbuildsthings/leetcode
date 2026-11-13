@@ -1,24 +1,24 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countAndSubsetsEqualToKForAllK.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countANDSubsetsEqualToKForAllK.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // res of size 2^B: res[v] = number of non-empty subsets (by position) whose AND is exactly v, exact values must be >=
 // 0; B = number of bits in max(arr), so the vector is about 2 * max(arr) long; the counts reach 2^N - 1, so more than
-// 62 values throws overflow_error (then use countAndSubsetsEqualToKForAllKMod)
-// countAndSubsetsEqualToKForAllK(vector<int>{1, 3}) -> {0, 2, 0, 1}   // {1}, {1, 3} AND to 1; {3} ANDs to 3
+// 62 values throws overflow_error (then use countANDSubsetsEqualToKForAllKMod)
+// countANDSubsetsEqualToKForAllK(vector<int>{1, 3}) -> {0, 2, 0, 1}   // {1}, {1, 3} AND to 1; {3} ANDs to 3
 // O(B * 2^B + N)
 template <class T>
-vector<long long> countAndSubsetsEqualToKForAllK(const vector<T>& arr) {
+vector<long long> countANDSubsetsEqualToKForAllK(const vector<T>& arr) {
     if (arr.size() > 62) {
         throw overflow_error(
-            "countAndSubsetsEqualToKForAllK: more than 62 values, so the counts don't fit in long long; "
-            "use countAndSubsetsEqualToKForAllKMod");
+            "countANDSubsetsEqualToKForAllK: more than 62 values, so the counts don't fit in long long; "
+            "use countANDSubsetsEqualToKForAllKMod");
     }
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("countAndSubsetsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("countANDSubsetsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }

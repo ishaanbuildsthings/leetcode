@@ -7,8 +7,8 @@
 # N = len(arr), B = number of bits in max(arr).
 #
 # rxb = RangeXorBasis([3, 10, 5, 6])
-# rxb.maxXorInRange(1, 3) -> 15   # 10 ^ 5
-# rxb.canMakeInRange(0, 1, 9) -> True   # 3 ^ 10
+# rxb.maxSubsetXorInRange(1, 3) -> 15   # 10 ^ 5
+# rxb.doesSubsetXorEqualToXExistInRange(0, 1, 9) -> True   # 3 ^ 10
 class RangeXorBasis:
     # O(N * B) time and space
     def __init__(self, arr):
@@ -47,15 +47,15 @@ class RangeXorBasis:
 
     # largest XOR of any subset of arr[l..r] (the empty subset gives 0)
     # O(B)
-    def maxXorInRange(self, l, r):
-        return self.maxXorWithInRange(l, r, 0)
+    def maxSubsetXorInRange(self, l, r):
+        return self.maxXorOfXAndSubsetXorInRange(l, r, 0)
 
     # largest x ^ (XOR of some subset of arr[l..r])
     # O(B)
-    def maxXorWithInRange(self, l, r, x):
+    def maxXorOfXAndSubsetXorInRange(self, l, r, x):
         self._check(l, r)
         if x < 0:
-            raise ValueError(f"RangeXorBasis.maxXorWithInRange: {x} is negative")
+            raise ValueError(f"RangeXorBasis.maxXorOfXAndSubsetXorInRange: {x} is negative")
         base = r * self.B
         vals, poss = self.vals, self.poss
         for b in range(self.B - 1, -1, -1):
@@ -65,7 +65,7 @@ class RangeXorBasis:
 
     # True if some subset of arr[l..r] XORs to exactly x (x = 0 is always True: the empty subset)
     # O(B)
-    def canMakeInRange(self, l, r, x):
+    def doesSubsetXorEqualToXExistInRange(self, l, r, x):
         self._check(l, r)
         if x < 0 or x.bit_length() > self.B:
             return False
@@ -80,12 +80,12 @@ class RangeXorBasis:
 
     # size of the basis of arr[l..r] (how many of its values are independent)
     # O(B)
-    def rankInRange(self, l, r):
+    def basisSizeInRange(self, l, r):
         self._check(l, r)
         base = r * self.B
         return sum(1 for b in range(self.B) if self.poss[base + b] >= l)
 
-    # number of distinct values the subsets of arr[l..r] make, counting 0 from the empty subset: 2^rank
+    # number of distinct values the subsets of arr[l..r] make, counting 0 from the empty subset: 2^basisSize()
     # O(B)
-    def countDistinctXorsInRange(self, l, r):
-        return 1 << self.rankInRange(l, r)
+    def countDistinctSubsetXorsInRange(self, l, r):
+        return 1 << self.basisSizeInRange(l, r)

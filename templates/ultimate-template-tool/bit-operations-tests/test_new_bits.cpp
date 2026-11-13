@@ -2,8 +2,8 @@
 // Run: g++ -O2 -std=c++17 test_new_bits.cpp && ./a.out
 #include "../bit-operations/XorBasisDeletable.cpp"
 #include "../bit-operations/XorBasis.cpp"
-#include "../bit-operations/maxTwoGroupXorSum.cpp"
-#include "../bit-operations/maxTwoGroupAndSum.cpp"
+#include "../bit-operations/maxTwoGroupXORSum.cpp"
+#include "../bit-operations/maxTwoGroupANDSum.cpp"
 #include "../bit-operations/countSubmasksForAllMasks.cpp"
 #include "../bit-operations/sumSubmasksForAllMasks.cpp"
 #include "../bit-operations/countSupermasksForAllMasks.cpp"
@@ -68,18 +68,29 @@ int main() {
             int rank = 0;
             while ((1LL << rank) < (long long)s.size()) rank++;
             vector<long long> bas = b.basis();
-            CHECK(b.size() == (long long)held.size() && b.rank() == rank && b.countDistinctXors() == (long long)s.size());
+            CHECK(b.size() == (long long)held.size() && b.basisSize() == rank && b.countDistinctSubsetXors() == (long long)s.size());
             CHECK((int)bas.size() == rank && spanOf(bas) == s && is_sorted(bas.rbegin(), bas.rend()));
-            CHECK(b.maxXor() == *s.rbegin());
+            CHECK(b.maxSubsetXor() == *s.rbegin());
             long long x = rnd(1LL << bits), mx = 0, mn = LLONG_MAX;
             for (long long y : s) mx = max(mx, x ^ y), mn = min(mn, x ^ y);
-            CHECK(b.canMake(x) == (s.count(x) > 0) && b.maxXorWith(x) == mx && b.minXorWith(x) == mn);
+            CHECK(b.doesSubsetXorEqualToXExist(x) == (s.count(x) > 0) && b.maxXorOfXAndSubsetXor(x) == mx && b.minXorOfXAndSubsetXor(x) == mn);
             long long wantMin = held.empty() ? -1 : (long long)held.size() > rank ? 0 : (s.size() > 1 ? *next(s.begin()) : -1);
-            CHECK(b.minNonzeroXor() == wantMin);
+            CHECK(b.minNonEmptySubsetXor() == wantMin);
             vector<long long> ordered(s.begin(), s.end());
             for (size_t k = 0; k < ordered.size() + 2; k++)
-                CHECK(b.kthSmallestXor(k) == (k < ordered.size() ? ordered[k] : -1));
-            CHECK(b.countSubsetsMakingMod(x, MOD) == (s.count(x) ? powMod(2, (long long)held.size() - rank, MOD) : 0));
+                CHECK(b.kthSmallestDistinctSubsetXor(k) == (k < ordered.size() ? ordered[k] : -1));
+            if (held.size() <= 12) {
+                vector<long long> every;
+                for (int m = 0; m < (1 << held.size()); m++) {
+                    long long v = 0;
+                    for (size_t i = 0; i < held.size(); i++) if (m >> i & 1) v ^= held[i];
+                    every.push_back(v);
+                }
+                sort(every.begin(), every.end());
+                for (size_t k = 0; k < every.size() + 2; k++)
+                    CHECK(b.kthSmallestSubsetXor(k) == (k < every.size() ? every[k] : -1));
+            }
+            CHECK(b.countSubsetsWithXorEqualToXMod(x, MOD) == (s.count(x) ? powMod(2, (long long)held.size() - rank, MOD) : 0));
         }
     }
     // big values, many operations: the rank, max XOR and basis against XorBasis rebuilt from what is held
@@ -98,7 +109,7 @@ int main() {
                 held.push_back(v);
             }
             XorBasis ref(held);
-            CHECK(b.rank() == ref.rank() && b.maxXor() == ref.maxXor() && b.basis() == ref.basis());
+            CHECK(b.basisSize() == ref.basisSize() && b.maxSubsetXor() == ref.maxSubsetXor() && b.basis() == ref.basis());
         }
     }
     // ---- two-group partitions: every split of small arrays
@@ -118,13 +129,28 @@ int main() {
             bestX = max(bestX, (unsigned long long)(xa + xb));
             bestA = max(bestA, aa + ab);
         }
-        CHECK(maxTwoGroupXorSum(arr) == bestX);
-        CHECK(maxTwoGroupAndSum(arr) == bestA);
+        CHECK(maxTwoGroupXORSum(arr) == bestX);
+        CHECK(maxTwoGroupANDSum(arr) == (unsigned long long)bestA);
     }
-    CHECK(maxTwoGroupAndSum(vector<int>{3, 3, 4, 4}) == 7 && maxTwoGroupXorSum(vector<long long>{1, 2, 3}) == 6);
-    CHECK(maxTwoGroupXorSum(vector<long long>{(1LL << 62) | 5, (1LL << 62) | 3}) == (1ULL << 63) + 8);  // (one each: past 2^63)
+    // AND split with big values (the old method only fit values up to about 2^20)
+    for (int trial = 0; trial < 3000; trial++) {
+        int n = 2 + (int)rnd(9);
+        vector<long long> pool(1 + rnd(4)), arr(n);
+        for (auto& p : pool) p = rnd(1LL << 62);
+        for (auto& v : arr) v = pool[rnd(pool.size())] & (rnd(3) ? pool[rnd(pool.size())] : (long long)rnd(1LL << 62));
+        unsigned long long best = 0;
+        for (int mask = 1; mask < (1 << n) - 1; mask++) {
+            long long aa = -1, ab = -1;
+            for (int i = 0; i < n; i++) (mask >> i & 1 ? aa : ab) &= arr[i];
+            best = max(best, (unsigned long long)aa + (unsigned long long)ab);
+        }
+        CHECK(maxTwoGroupANDSum(arr) == best);
+    }
+    CHECK(maxTwoGroupANDSum(vector<long long>{(1LL << 62) | 6, (1LL << 62) | 6}) == (1ULL << 63) + 12);  // (past 2^63)
+    CHECK(maxTwoGroupANDSum(vector<int>{3, 3, 4, 4}) == 7 && maxTwoGroupXORSum(vector<long long>{1, 2, 3}) == 6);
+    CHECK(maxTwoGroupXORSum(vector<long long>{(1LL << 62) | 5, (1LL << 62) | 3}) == (1ULL << 63) + 8);  // (one each: past 2^63)
     bool threw = false;
-    try { maxTwoGroupXorSum(vector<long long>{5}); } catch (const invalid_argument&) { threw = true; }
+    try { maxTwoGroupXORSum(vector<long long>{5}); } catch (const invalid_argument&) { threw = true; }
     CHECK(threw);
     // ---- submask / supermask counts and sums of arr's values, for every mask
     for (int trial = 0; trial < 1500; trial++) {

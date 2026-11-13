@@ -1,14 +1,14 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countAndSubsetsEqualToKForAllK.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countANDSubsetsEqualToKForAllK.py
 
 from operator import add, sub
 
 # res of size 2^B: res[v] = number of non-empty subsets (by position) whose AND is exactly v, exact (Python ints never
 # overflow, but they get as big as 2^N: tick With mod for a mod) values must be >= 0; B = number of bits in max(arr), so
 # the list is about 2 * max(arr) long
-# countAndSubsetsEqualToKForAllK([1, 3]) -> [0, 2, 0, 1]   # {1}, {1, 3} AND to 1; {3} ANDs to 3
+# countANDSubsetsEqualToKForAllK([1, 3]) -> [0, 2, 0, 1]   # {1}, {1, 3} AND to 1; {3} ANDs to 3
 # O(B * 2^B + N)
-def countAndSubsetsEqualToKForAllK(arr):
+def countANDSubsetsEqualToKForAllK(arr):
     def bitPairs(n):
         # bit by bit: slice pairs (indexes without the bit, the same indexes with it), C-speed adds on slices
         half = 1
@@ -23,7 +23,7 @@ def countAndSubsetsEqualToKForAllK(arr):
             half = step
     for x in arr:
         if x < 0:
-            raise ValueError(f"countAndSubsetsEqualToKForAllK: value {x} is negative")
+            raise ValueError(f"countANDSubsetsEqualToKForAllK: value {x} is negative")
     n = 1 << max(arr, default=0).bit_length()
     cnt = [0] * n
     for x in arr:

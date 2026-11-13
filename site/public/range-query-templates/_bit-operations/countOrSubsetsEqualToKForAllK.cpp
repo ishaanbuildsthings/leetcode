@@ -1,24 +1,24 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countOrSubsetsEqualToKForAllK.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countORSubsetsEqualToKForAllK.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // res of size 2^B: res[v] = number of non-empty subsets (by position) whose OR is exactly v, exact values must be >= 0;
 // B = number of bits in max(arr), so the vector is about 2 * max(arr) long; the counts reach 2^N - 1, so more than 62
-// values throws overflow_error (then use countOrSubsetsEqualToKForAllKMod)
-// countOrSubsetsEqualToKForAllK(vector<int>{1, 2, 3}) -> {0, 1, 1, 5}   // 5 of the 7 subsets OR to 3
+// values throws overflow_error (then use countORSubsetsEqualToKForAllKMod)
+// countORSubsetsEqualToKForAllK(vector<int>{1, 2, 3}) -> {0, 1, 1, 5}   // 5 of the 7 subsets OR to 3
 // O(B * 2^B + N)
 template <class T>
-vector<long long> countOrSubsetsEqualToKForAllK(const vector<T>& arr) {
+vector<long long> countORSubsetsEqualToKForAllK(const vector<T>& arr) {
     if (arr.size() > 62) {
         throw overflow_error(
-            "countOrSubsetsEqualToKForAllK: more than 62 values, so the counts don't fit in long long; "
-            "use countOrSubsetsEqualToKForAllKMod");
+            "countORSubsetsEqualToKForAllK: more than 62 values, so the counts don't fit in long long; "
+            "use countORSubsetsEqualToKForAllKMod");
     }
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("countOrSubsetsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("countORSubsetsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }

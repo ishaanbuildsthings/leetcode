@@ -9,8 +9,8 @@ using namespace std;
 // N = arr.size(), B = number of bits in max(arr). Invalid ranges and negative values throw.
 //
 // RangeXorBasis rxb(vector<int>{3, 10, 5, 6});
-// rxb.maxXorInRange(1, 3) -> 15   // 10 ^ 5
-// rxb.canMakeInRange(0, 1, 9) -> true   // 3 ^ 10
+// rxb.maxSubsetXorInRange(1, 3) -> 15   // 10 ^ 5
+// rxb.doesSubsetXorEqualToXExistInRange(0, 1, 9) -> true   // 3 ^ 10
 struct RangeXorBasis {
     int n = 0;
     int B = 0;
@@ -59,16 +59,16 @@ struct RangeXorBasis {
 
     // largest XOR of any subset of arr[l..r] (the empty subset gives 0)
     // O(B)
-    long long maxXorInRange(int l, int r) const {
-        return maxXorWithInRange(l, r, 0);
+    long long maxSubsetXorInRange(int l, int r) const {
+        return maxXorOfXAndSubsetXorInRange(l, r, 0);
     }
 
     // largest x ^ (XOR of some subset of arr[l..r])
     // O(B)
-    long long maxXorWithInRange(int l, int r, long long x) const {
+    long long maxXorOfXAndSubsetXorInRange(int l, int r, long long x) const {
         check(l, r);
         if (x < 0) {
-            throw invalid_argument("RangeXorBasis::maxXorWithInRange: " + to_string(x) + " is negative");
+            throw invalid_argument("RangeXorBasis::maxXorOfXAndSubsetXorInRange: " + to_string(x) + " is negative");
         }
         size_t base = (size_t)r * B;
         for (int b = B - 1; b >= 0; b--) {
@@ -81,7 +81,7 @@ struct RangeXorBasis {
 
     // true if some subset of arr[l..r] XORs to exactly x (x = 0 is always true: the empty subset)
     // O(B)
-    bool canMakeInRange(int l, int r, long long x) const {
+    bool doesSubsetXorEqualToXExistInRange(int l, int r, long long x) const {
         check(l, r);
         if (x < 0 || (B < 63 && (x >> B))) {
             return false;
@@ -100,7 +100,7 @@ struct RangeXorBasis {
 
     // size of the basis of arr[l..r] (how many of its values are independent)
     // O(B)
-    int rankInRange(int l, int r) const {
+    int basisSizeInRange(int l, int r) const {
         check(l, r);
         size_t base = (size_t)r * B;
         int res = 0;
@@ -112,10 +112,10 @@ struct RangeXorBasis {
         return res;
     }
 
-    // number of distinct values the subsets of arr[l..r] make, counting 0 from the empty subset: 2^rank
+    // number of distinct values the subsets of arr[l..r] make, counting 0 from the empty subset: 2^basisSize()
     // O(B)
-    unsigned long long countDistinctXorsInRange(int l, int r) const {
-        return 1ULL << rankInRange(l, r);
+    unsigned long long countDistinctSubsetXorsInRange(int l, int r) const {
+        return 1ULL << basisSizeInRange(l, r);
     }
 
 private:

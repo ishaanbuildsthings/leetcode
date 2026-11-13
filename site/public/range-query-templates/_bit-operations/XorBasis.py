@@ -8,14 +8,14 @@
 # basis = XorBasis()             # nothing inserted yet
 # basis = XorBasis([3, 10, 5])   # inserts 3, 10, 5
 #
-# Max subset XOR:                 XorBasis(arr).maxXor()
-# Number of distinct subset XORs: XorBasis(arr).countDistinctXors()
-# Subsets whose XOR is exactly k: XorBasis(arr).countSubsetsMakingMod(k, 10**9 + 7)
+# Max subset XOR:                 XorBasis(arr).maxSubsetXor()
+# Number of distinct subset XORs: XorBasis(arr).countDistinctSubsetXors()
+# Subsets whose XOR is exactly k: XorBasis(arr).countSubsetsWithXorEqualToXMod(k, 10**9 + 7)
 class XorBasis:
     # O(N * B)
     def __init__(self, arr=()):
         # pivots[b] = the basis value whose highest set bit is b, or 0 if none. Kept fully reduced: bit b is set in no
-        # other basis value, which is what makes kthSmallestXor work
+        # other basis value, which is what makes kthSmallestDistinctSubsetXor work
         self.pivots = []
         self.numInserted = 0
         self.numPivots = 0
@@ -46,21 +46,21 @@ class XorBasis:
 
     # True if some subset XORs to exactly x (x = 0 is always True: the empty subset)
     # O(B)
-    def canMake(self, x):
-        return x >= 0 and self.minXorWith(x) == 0
+    def doesSubsetXorEqualToXExist(self, x):
+        return x >= 0 and self.minXorOfXAndSubsetXor(x) == 0
 
     # largest XOR of any subset (0 if nothing inserted)
-    # XorBasis([3, 10, 5]).maxXor() -> 15   # 10 ^ 5
+    # XorBasis([3, 10, 5]).maxSubsetXor() -> 15   # 10 ^ 5
     # O(B)
-    def maxXor(self):
-        return self.maxXorWith(0)
+    def maxSubsetXor(self):
+        return self.maxXorOfXAndSubsetXor(0)
 
     # largest x ^ (XOR of some subset)
-    # XorBasis([3, 10, 5]).maxXorWith(4) -> 14   # 4 ^ 10
+    # XorBasis([3, 10, 5]).maxXorOfXAndSubsetXor(4) -> 14   # 4 ^ 10
     # O(B)
-    def maxXorWith(self, x):
+    def maxXorOfXAndSubsetXor(self, x):
         if x < 0:
-            raise ValueError(f"XorBasis.maxXorWith: {x} is negative")
+            raise ValueError(f"XorBasis.maxXorOfXAndSubsetXor: {x} is negative")
         pivots = self.pivots
         for b in range(len(pivots) - 1, -1, -1):
             if pivots[b] and not (x >> b) & 1:
@@ -68,11 +68,11 @@ class XorBasis:
         return x
 
     # smallest x ^ (XOR of some subset)
-    # XorBasis([3, 10, 5]).minXorWith(15) -> 0   # 15 = 10 ^ 5
+    # XorBasis([3, 10, 5]).minXorOfXAndSubsetXor(15) -> 0   # 15 = 10 ^ 5
     # O(B)
-    def minXorWith(self, x):
+    def minXorOfXAndSubsetXor(self, x):
         if x < 0:
-            raise ValueError(f"XorBasis.minXorWith: {x} is negative")
+            raise ValueError(f"XorBasis.minXorOfXAndSubsetXor: {x} is negative")
         pivots = self.pivots
         for b in range(len(pivots) - 1, -1, -1):
             if pivots[b] and (x >> b) & 1:
@@ -80,10 +80,10 @@ class XorBasis:
         return x
 
     # smallest XOR of a non-empty subset: 0 if some non-empty subset XORs to 0, None if nothing inserted
-    # XorBasis([3, 10, 5]).minNonzeroXor() -> 3
-    # XorBasis([3, 5, 6]).minNonzeroXor() -> 0   # 3 ^ 5 ^ 6 = 0
+    # XorBasis([3, 10, 5]).minNonEmptySubsetXor() -> 3
+    # XorBasis([3, 5, 6]).minNonEmptySubsetXor() -> 0   # 3 ^ 5 ^ 6 = 0
     # O(B)
-    def minNonzeroXor(self):
+    def minNonEmptySubsetXor(self):
         if self.numInserted > self.numPivots:
             return 0
         for p in self.pivots:
@@ -92,12 +92,12 @@ class XorBasis:
         return None
 
     # the kth smallest distinct value some subset makes, k 0-indexed (k = 0 -> 0, the empty subset), or None if
-    # k >= countDistinctXors()
-    # XorBasis([1, 2]).kthSmallestXor(3) -> 3   # the makeable values are 0, 1, 2, 3
+    # k >= countDistinctSubsetXors()
+    # XorBasis([1, 2]).kthSmallestDistinctSubsetXor(3) -> 3   # the makeable values are 0, 1, 2, 3
     # O(B)
-    def kthSmallestXor(self, k):
+    def kthSmallestDistinctSubsetXor(self, k):
         if k < 0:
-            raise ValueError(f"XorBasis.kthSmallestXor: k = {k} is negative")
+            raise ValueError(f"XorBasis.kthSmallestDistinctSubsetXor: k = {k} is negative")
         if k >> self.numPivots:
             return None
         res = 0
@@ -109,22 +109,35 @@ class XorBasis:
                 i += 1
         return res
 
-    # number of distinct values the subsets make, counting 0 from the empty subset: 2^rank
-    # XorBasis([3, 5, 6]).countDistinctXors() -> 4   # 0, 3, 5, 6
+    # the kth smallest XOR over all 2^N subsets by position (the empty one included, repeats kept), k 0-indexed, or
+    # None if k >= 2^N. Each distinct value comes from 2^(N - basisSize()) subsets, so it is the distinct one at
+    # k >> (N - basisSize())
+    # XorBasis([1, 1]).kthSmallestSubsetXor(1) -> 0   # every subset XOR, sorted: 0, 0, 1, 1
+    # O(B)
+    def kthSmallestSubsetXor(self, k):
+        if k < 0:
+            raise ValueError(f"XorBasis.kthSmallestSubsetXor: k = {k} is negative")
+        n = self.size()
+        if k >> n:
+            return None
+        return self.kthSmallestDistinctSubsetXor(k >> (n - self.basisSize()))
+
+    # number of distinct values the subsets make, counting 0 from the empty subset: 2^basisSize()
+    # XorBasis([3, 5, 6]).countDistinctSubsetXors() -> 4   # 0, 3, 5, 6
     # O(1)
-    def countDistinctXors(self):
+    def countDistinctSubsetXors(self):
         return 1 << self.numPivots
 
     # number of subsets of the inserted values (by position, the empty one included) whose XOR is exactly x, mod mod:
-    # 2^(N - rank) if x can be made, else 0
-    # XorBasis([3, 5, 6]).countSubsetsMakingMod(0, 10**9 + 7) -> 2   # {} and {3, 5, 6}
+    # 2^(N - basisSize()) if x can be made, else 0
+    # XorBasis([3, 5, 6]).countSubsetsWithXorEqualToXMod(0, 10**9 + 7) -> 2   # {} and {3, 5, 6}
     # O(B + log(N))
-    def countSubsetsMakingMod(self, x, mod):
-        return pow(2, self.numInserted - self.numPivots, mod) if self.canMake(x) else 0
+    def countSubsetsWithXorEqualToXMod(self, x, mod):
+        return pow(2, self.numInserted - self.numPivots, mod) if self.doesSubsetXorEqualToXExist(x) else 0
 
     # size of the basis (how many inserted values were independent)
     # O(1)
-    def rank(self):
+    def basisSize(self):
         return self.numPivots
 
     # how many values were inserted, including ones that didn't grow the basis
@@ -132,14 +145,7 @@ class XorBasis:
     def size(self):
         return self.numInserted
 
-    # the basis values, largest first (rank of them; their subset XORs make exactly the makeable values)
+    # the basis values, largest first (basisSize() of them; their subset XORs make exactly the makeable values)
     # O(B)
     def basis(self):
         return [p for p in reversed(self.pivots) if p]
-
-    # inserts everything other holds, as if other's values had been inserted here (size grows by other.size())
-    # O(B^2)
-    def merge(self, other):
-        for p in other.basis():
-            self.insert(p)
-        self.numInserted += other.numInserted - other.numPivots

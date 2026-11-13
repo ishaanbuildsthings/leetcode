@@ -1,13 +1,13 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countOrSubsetsEqualToKForAllKMod.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countORSubsetsEqualToKForAllKMod.py
 
 from operator import add, sub
 
 # res of size 2^B: res[v] = number of non-empty subsets (by position) whose OR is exactly v, mod mod values must be >=
 # 0; B = number of bits in max(arr), so the list is about 2 * max(arr) long
-# countOrSubsetsEqualToKForAllKMod([1, 2, 3], 10**9 + 7) -> [0, 1, 1, 5]   # 5 of the 7 subsets OR to 3
+# countORSubsetsEqualToKForAllKMod([1, 2, 3], 10**9 + 7) -> [0, 1, 1, 5]   # 5 of the 7 subsets OR to 3
 # O(B * 2^B + N)
-def countOrSubsetsEqualToKForAllKMod(arr, mod):
+def countORSubsetsEqualToKForAllKMod(arr, mod):
     def bitPairs(n):
         # bit by bit: slice pairs (indexes without the bit, the same indexes with it), C-speed adds on slices
         half = 1
@@ -22,7 +22,7 @@ def countOrSubsetsEqualToKForAllKMod(arr, mod):
             half = step
     for x in arr:
         if x < 0:
-            raise ValueError(f"countOrSubsetsEqualToKForAllKMod: value {x} is negative")
+            raise ValueError(f"countORSubsetsEqualToKForAllKMod: value {x} is negative")
     n = 1 << max(arr, default=0).bit_length()
     cnt = [0] * n
     for x in arr:

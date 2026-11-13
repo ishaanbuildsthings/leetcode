@@ -1,18 +1,18 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countOrPairsEqualToKForAllK.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bit-operations/countORPairsEqualToKForAllK.cpp
 #include <bits/stdc++.h>
 using namespace std;
 
 // res of size 2^B: res[v] = number of pairs i < j with arr[i] | arr[j] == v values must be >= 0; B = number of bits in
 // max(arr), so the vector is about 2 * max(arr) long
-// countOrPairsEqualToKForAllK(vector<int>{1, 3, 2}) -> {0, 0, 0, 3}
+// countORPairsEqualToKForAllK(vector<int>{1, 3, 2}) -> {0, 0, 0, 3}
 // O(B * 2^B + N)
 template <class T>
-vector<long long> countOrPairsEqualToKForAllK(const vector<T>& arr) {
+vector<long long> countORPairsEqualToKForAllK(const vector<T>& arr) {
     long long mx = 0;
     for (auto x : arr) {
         if (x < 0) {
-            throw invalid_argument("countOrPairsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
+            throw invalid_argument("countORPairsEqualToKForAllK: value " + to_string((long long)x) + " is negative");
         }
         mx = max(mx, (long long)x);
     }
