@@ -185,8 +185,31 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    with lazy PathAssign / PathAdd / SubtreeAssign / SubtreeAdd (an assign makes a node one run, an add moves its two
    end values) and get / assign / add / chmax / chmin on one node or edge. To mix it with other queries, keep a
    second Tree beside it. Measured in C++: 200,000 nodes, 200,000 mixed path updates and queries in 0.3 to 1 s.
-8. Still to do: SubtreeAddByDepth; by-rank on a path with updates; the static path templates (prefix from the root,
-   sparse table).
+8. SubtreeAddByDepth. NEXT, designed and not yet written (`tree-query-tests/gen_tree_depth.py`, folders
+   `subtree-depth-add-fenwick-{node,edge}` and `subtree-depth-add-mod-fenwick-{node,edge}`, type `euler-fenwick`; add
+   the `subtree-` prefix to the folder filter in `test_tree.py`, and a brute force for the new update in `Sim.run`).
+   Everything O(log n), on five Fenwick trees over the positions:
+   - An update adds `A + B * depth(u)` to every u in a stretch of positions `l..r` whose top is at depth `e`. Node
+     template: `l = pos[x]`, `e = depth(x)`; edge template: `l = pos[x] + 1`, `e = depth(x) + 1` (an edge is kept at
+     its lower end, so its k is `depth(lower end) - depth(x) - 1`). `SubtreeAddByDepth(x, start, step)` is
+     `A = start - step * e`, `B = step`; `SubtreeAdd(x, c)` is `A = c`, `B = 0`.
+   - `ca`, `cb`: difference trees, so a prefix sum is the A (the B) that applies at a position.
+   - `sa`, `sb`: their partners for sums over positions: `sa` gets `A * l` at `l` and `-A * (r + 1)` at `r + 1`; `sb`
+     gets `B * depSum[l]` and `-B * depSum[r + 1]` (`depSum[i]` = the depths at positions < i, summed). Then the
+     sum of the values at positions <= k is
+     `first[k + 1] + (k + 1) * ca(k) - sa(k) + depSum[k + 1] * cb(k) - sb(k)`. An add to one value alone goes into
+     `base[v]` and into `sa` as `-x` at its position.
+   - `up`: a difference tree for sums along the path from the root. With `tri(d) = d * (d + 1) / 2`, an update adds
+     `A * (1 - e) - B * tri(e - 1)` on `l..r`, and an add of x to one value adds x on that node's whole subtree. Then
+     `S(v) = rootSum[v] + up(p) + ca(p) * depth(v) + cb(p) * tri(depth(v))` is the sum on the path root..v, and a path
+     sum is `S(a) + S(b) - S(lca) - S(parent(lca))` (edges: `S(a) + S(b) - 2 * S(lca)`).
+   - One value: `base[v] + ca(p) + cb(p) * depth(v)`.
+   - C++: intermediate products can pass 64 bits though the answer fits (A is about `-step * depth`), so the plain
+     version computes in `unsigned long long` (wraps, exact mod 2^64) and the MOD version in `__int128` residues.
+   - Ops: get / assign / add on one node or edge, SubtreeAdd, SubtreeAddByDepth, SubtreeSum, PathSum (the MOD
+     folders: SubtreeAddMod, SubtreeAddByDepthMod, SubtreeSumMod, PathSumMod; values kept in [0, MOD)).
+9. Still to do after that: by-rank on a path with updates; the static path templates (prefix from the root, sparse
+   table).
 
 ## 10. Decided
 
