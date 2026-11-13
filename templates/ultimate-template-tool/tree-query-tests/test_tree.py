@@ -52,6 +52,8 @@ SHAPE_OPS = [op for op in TS.OPS if op != "pathNodes"]  # (a few per script: the
 
 BY_RANK = {"KthSmallest", "KthLargest", "SumSmallestK", "SumLargestK", "SumKthSmallestRange", "SumKthLargestRange",
            "SumAbsDiffToMedian"}
+# path ops the wrapped templates cannot give piece by piece, answered by templates with their own structure
+PATH_OWN = BY_RANK | {"AllEvenFrequency"}
 
 
 def op_table(target="node"):
@@ -67,7 +69,7 @@ def op_table(target="node"):
     for suffix, rop, args, fold, _ in G.QUERIES:
         t[f"{target}Subtree{suffix}"] = ("subtree", "query", rop, len(args))
         # (a path: what the wrapped templates combine piece by piece, and what path-rank-* answers by rank)
-        if (fold or suffix in BY_RANK) and suffix not in G.SUBTREE_ONLY:
+        if (fold or suffix in PATH_OWN) and suffix not in G.SUBTREE_ONLY:
             t[f"{target}Path{suffix}"] = ("path", "query", rop, len(args))
     for table in (G.SEARCHES, G.PREFIX_SEARCHES):
         prefix = table is G.PREFIX_SEARCHES
@@ -243,6 +245,8 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
     else:  # its own structure: any values (few distinct ones, so ranks tie), no constructor extras
         range_ops = []
         gen, delta, extra = (lambda r: r.randint(-12, 12)), (lambda r: r.randint(-10, 10)), []
+        if any("EvenFrequency" in op or "Distinct" in op for op in ops):  # (few values, so both answers come up)
+            gen, delta = (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1))
         ctx = {"mod": None, "full": None, "lcmCap": None}
     value_ops = [op for op in ops if op in TABLE]
     weights, node_vals = has_weights(ops), has_node_values(ops)  # (a both- template has the two)

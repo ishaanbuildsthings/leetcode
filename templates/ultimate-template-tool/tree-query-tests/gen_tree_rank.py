@@ -570,9 +570,7 @@ def sources():
     for edge in (False, True):
         folder, py, cpp = make(edge)
         for name, text in (("template.py", py), ("template.cpp", cpp)):
-            too_long = long_lines(text)
-            assert not too_long, f"{folder}/{name}: a line past 120 columns: line {too_long[0]}"
-            out[os.path.join(folder, name)] = check_finished(text, f"{folder}/{name}")
+            out[os.path.join(folder, name)] = shape.tidy(text, f"{folder}/{name}")
     return out
 
 

@@ -131,8 +131,8 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
      piece gives its hash, or its reversed hash when read backwards, and the pieces are joined the way the range
      structure joins two halves, hash(A then B) = hash(A) * base^len(B) + hash(B), with its own base and modulus, so a
      path's hash equals the range structure's hash of the same values).
-   - Not yet (they need more than the range template's public answers): on a path: longest equal run, AllEvenFrequency, CountDistinct / AllDistinct (the by-rank ops have their own templates: step
-     5); and
+   - Not yet (they need more than the range template's public answers): on a path: longest equal run, CountDistinct / AllDistinct (the by-rank ops and AllEvenFrequency have their own templates:
+     steps 4 and 5); and
      SubtreeAddByDepth. Range folders left out: those whose constructor takes something a Tree cannot pass through
      (brackets, an update list, a stride cutoff), that split their ops over two classes, or that only have updates
      (nothing would read a value back: the range versions rely on getAll, which the tree menu does not have).
@@ -155,6 +155,8 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    `tree-query-tests/gen_tree_fenwick.py`: each value sits at its node's position in a Fenwick tree and is taken back
    just past that node's subtree, so a prefix is a root path and a path is two prefixes minus the part above the lca.
    Get / assign / add / chmax / chmin on one node or edge, path sum (or xor), subtree sum (or xor), all O(log n).
+   The `path-even-fenwick-*` pair is the xor one over random keys (a key per distinct value, an even number of equal
+   values xors to 0): PathAllEvenFrequency and SubtreeAllEvenFrequency, with the same one-value updates.
    Not yet: the static prefix-from-root and sparse-table versions, and path add with one-node reads.
 5. By-rank on a path. DONE for fixed values: `tree-queries/path-rank-node` and `path-rank-edge`, written by
    `tree-query-tests/gen_tree_rank.py` (a persistent seg tree with a version per node: its path from the root; a path is

@@ -1326,11 +1326,9 @@ def main():
         folders = {f: v for f, v in folders.items() if any(w in f for w in want)}
     stale = []
     for folder, (rng, ops, target) in sorted(folders.items()):
-        texts = {"template.py": check_finished(make_py(folder, rng, ops, target), f"{folder}/template.py"),
-                 "template.cpp": check_finished(make_cpp(folder, rng, ops, target), f"{folder}/template.cpp")}
+        texts = {"template.py": shape.tidy(make_py(folder, rng, ops, target), f"{folder}/template.py"),
+                 "template.cpp": shape.tidy(make_cpp(folder, rng, ops, target), f"{folder}/template.cpp")}
         for name, text in texts.items():
-            too_long = long_lines(text)
-            assert not too_long, f"{folder}/{name}: a line past 120 columns: {too_long[0]}"
             path = os.path.join(DIR, folder, name)
             if os.path.exists(path) and open(path, encoding="utf-8").read() == text:
                 continue

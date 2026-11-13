@@ -360,7 +360,7 @@ export type TreeStructureType = (typeof TREE_STRUCTURE_TYPES)[number];
 const SHAPE_LABELS = {
   "heavy-light": "Heavy-light decomposition",
   "heavy-light-lca-table": "Heavy-light decomposition + O(1) lca table",
-  "euler-fenwick": "Fenwick tree on the Euler tour (single-log path sums)",
+  "euler-fenwick": "Fenwick tree on the Euler tour (single-log path queries)",
   "persistent-paths": "Persistent seg tree, a version per node (its path from the root)",
 } as const;
 

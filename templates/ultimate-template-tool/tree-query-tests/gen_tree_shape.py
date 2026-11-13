@@ -13,8 +13,20 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
+sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "set-tests", "generators"))
+from format_long_lines import long_lines, reflow_text  # noqa: E402
 from gen_sets import FAST_VECTOR_PRELUDE, check_finished, must_replace  # noqa: E402
+
+
+def tidy(text, where):
+    """A generated file as the repo's formatter would leave it: no line past 120 columns, and no comment it would
+    rewrap (format_long_lines.py runs over every template folder, and a file it changed would no longer match its
+    generator). Fails here, at generation, instead."""
+    too_long = long_lines(text)
+    assert not too_long, f"{where}: line {too_long[0]} is past 120 columns"
+    assert reflow_text(text, where.endswith(".py")) == text, f"{where}: format_long_lines.py would rewrap a comment"
+    return check_finished(text, where)
 
 # (one line of the shared prelude is past 120 columns: wrapped here the way format_long_lines.py wraps it)
 PRELUDE = must_replace(
@@ -837,8 +849,8 @@ def sources():
         py = header("#", folder, kind, table, "py") + "\n" + fill(PY, table, "#")
         cpp = (header("//", folder, kind, table, "cpp") + "#include <bits/stdc++.h>\nusing namespace std;\n"
                "using ll = long long;\n\n" + FAST_NOTE + PRELUDE + fill(CPP, table, "//"))
-        out[os.path.join(folder, "template.py")] = check_finished(py, f"{folder}/template.py")
-        out[os.path.join(folder, "template.cpp")] = check_finished(cpp, f"{folder}/template.cpp")
+        out[os.path.join(folder, "template.py")] = tidy(py, f"{folder}/template.py")
+        out[os.path.join(folder, "template.cpp")] = tidy(cpp, f"{folder}/template.cpp")
     return out
 
 
