@@ -60,8 +60,6 @@ from bisect import bisect_left
 # go in and come out with your labels, -1 means "none", and a label that is not in the tree raises IndexError. Nothing
 # recurses, so a 10^6-node chain is fine.
 #
-# distinctCap: not needed in Python (its ints grow): accepted so both languages are called the same way.
-#
 # How it works: one heavy-light pass gives every node a position, so that each heavy chain and each subtree is one
 # stretch of positions (pos[node] .. pos[node] + sz[node] - 1). A segment tree over the positions keeps a bitset per
 # node, one bit per distinct weight under it. A path a..b is O(log n) chain pieces, each O(log n) tree nodes: their
@@ -72,7 +70,7 @@ from bisect import bisect_left
 class Tree:
     # O(n * D / 64) -- builds the layout and the bitset tree; raises ValueError when the edges are not one tree on nodes
     # 0..n-1 or 1..n, or an edge has no weight
-    def __init__(self, edges, root, distinctCap=None):
+    def __init__(self, edges, root):
         n = len(edges) + 1
         lo = float("inf")
         for e in edges:

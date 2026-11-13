@@ -69,13 +69,20 @@ const CTOR_ARG_NOTES: Record<string, CtorNote> = {
   openChar: {
     py: 'which character opens: pass e.g. "[" for square brackets (every other character closes)',
     cpp: "which character opens: pass e.g. '[' for square brackets (every other character closes)",
+    example: { py: '"["', cpp: "'['" },
   },
   closeChar: {
     py: 'which character closes: pass e.g. "]" for square brackets (a character that isn\'t openChar counts as this one)',
     cpp: "which character closes: pass e.g. ']' for square brackets (a character that isn't openChar counts as this one)",
+    example: { py: '"]"', cpp: "']'" },
   },
-  mod: { py: "the modulus p", cpp: "the modulus p" },
-  bits: { py: "values live in [0, 2^bits)", cpp: "values live in [0, 2^bits)" },
+  mod: { py: "the modulus p", cpp: "the modulus p", example: { py: "998244353", cpp: "998244353" } },
+  bits: { py: "values live in [0, 2^bits)", cpp: "values live in [0, 2^bits)", example: { py: "30", cpp: "30" } },
+  cutoff: {
+    py: "seg trees are kept for steps up to it (more memory and slower updates, faster big-step queries); left out, it is a quarter of sqrt(n / log n)",
+    cpp: "seg trees are kept for steps up to it (more memory and slower updates, faster big-step queries); left out, it is sqrt(n / log n)",
+    example: { py: "64", cpp: "64" },
+  },
   allValuesThatWillEverBeInsertedForOfflineCompression: {
     py: "allValuesThatWillEverBeInsertedForOfflineCompression: every value append will ever get (a list; any order, duplicates fine). Only used to compress values: this does NOT add them. N = how many distinct",
     cpp: "allValuesThatWillEverBeInsertedForOfflineCompression: every value append will ever get (vector<long long>; any order, duplicates fine). Only used to compress values: this does NOT add them. N = how many distinct",

@@ -28,7 +28,7 @@ KIND = "bitset-seg-tree"
 PY = '''\
 class Tree:
 @CTOR_NOTE@
-    def __init__(self, @CTOR@, distinctCap=None):
+    def __init__(self, @CTOR@):
 @LAYOUT@@VALUES@
 @BITS_NOTE@
         ids, values = {}, []
@@ -428,9 +428,10 @@ def make(edge):
            "2 * n * D / 8 bytes). A value gets its bit the first time it appears, also later through an assign, and keeps "
            "it. An assign over a path or a subtree is kept at the O(log n) tree nodes that cover each stretch and handed "
            "down only when something below one of them is needed.")
-    cap_note = {"#": "distinctCap: not needed in Python (its ints grow): accepted so both languages are called the same way.",
-                "//": "distinctCap: how many distinct values can ever appear, the ones here now and every one assigned later "
-                      "(they size the bitsets). Leave it out when no new value will be assigned."}
+    # (C++ only: its bitsets have a fixed width. A Python int grows by itself, so its constructor takes no cap)
+    cap_note = ("distinctCap: how many distinct values can ever appear, the ones here now and every one assigned later "
+                f"(they size the bitsets), e.g. Tree<long long> tree({'edges, root' if edge else 'edges, root, vals'}, "
+                "5000). Leave it out when no new value will be assigned.")
     info = type("R", (), {"extra_names": [], "cls": ""})
     marks = {"@VALS@": vals, "@BAD_INPUT@": "an edge has no weight" if edge else "vals has the wrong length",
              "@FIRST@": "1" if edge else "0", "@START@": "above" if edge else "vals"}
@@ -493,7 +494,7 @@ def make(edge):
 
     def doc_with(doc, cm):
         cut = doc.index(f"{cm} How it works")
-        return doc[:cut] + G.wrap(cm, cap_note[cm]) + f"{cm}\n" + G.wrap(cm, how)
+        return doc[:cut] + (G.wrap(cm, cap_note) + f"{cm}\n" if cm == "//" else "") + G.wrap(cm, how)
 
     def fill(text, extra):
         for k, v in {**marks, **extra}.items():

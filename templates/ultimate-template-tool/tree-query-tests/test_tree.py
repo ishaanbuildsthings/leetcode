@@ -263,11 +263,11 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
     ranked = folder.startswith("path-rank-updates")
     if ranked:
         extra = [-10**9, 10**9]
-    # the bitset templates: C++ sizes its bitsets from distinctCap, the one constructor extra (more values than a trial
-    # can ever hold: at most 201 to start with, plus the ones its updates make)
+    # the bitset templates: C++ sizes its bitsets from distinctCap, a constructor extra only C++ has (more values than
+    # a trial can ever hold: at most 201 to start with, plus the ones its updates make). A Python int grows by itself
     bitset = folder.startswith("path-distinct-bitset")
     if bitset:
-        extra = [320]
+        ctx["cppExtra"] = [320]
     value_ops = [op for op in ops if op in TABLE]
     weights, node_vals = has_weights(ops), has_node_values(ops)  # (a both- template has the two)
     updates = [op for op in value_ops if TABLE[op][1] == "update"]
@@ -787,7 +787,7 @@ def test_folder(folder, langs, trials_n, stress=False):
                      + (f", never called: {missed}" if missed else ""))
     if "--cpp" in langs:
         try:
-            got, warnings = run_cpp(folder, ops, trials, extra)
+            got, warnings = run_cpp(folder, ops, trials, extra + ctx.get("cppExtra", []))
             bad = mismatch(got, exp, trials, wrap64=True)
             if not bad and warnings:
                 bad = "compiler warnings:\n" + warnings[:1500]

@@ -23,6 +23,7 @@ import {
   type TierKind,
   tierOps,
   type Usage,
+  type UsageParam,
 } from "@/lib/template-picker";
 import { readUsage } from "@/lib/template-usage";
 
@@ -212,8 +213,9 @@ type GenericVersion = (typeof GENERIC_VERSIONS)[number]["id"];
 
 // Everything a picker page decides for itself; the rest (op grid, matching, ranking, cards, code drawer with usage
 // and memory) is shared.
-// shown: false drops the generic "Optional: name (default ...)" line (the catalog explains the argument its own way)
-export type CtorNote = { py: string; cpp: string; inCall?: boolean; shown?: boolean };
+// shown: false drops the generic "Optional: name (default ...)" lines (the catalog explains the argument its own way).
+// example: the value written for it in the line showing how an optional argument is passed (without one, its name)
+export type CtorNote = { py: string; cpp: string; inCall?: boolean; shown?: boolean; example?: { py: string; cpp: string } };
 
 export interface PickerCatalog<V extends PickerTemplate> {
   title: string;
@@ -1027,6 +1029,15 @@ function UsagePanel<V extends PickerTemplate>({
     const deducible =
       requiredParams.some((p) => /vector<.*\bT\b/.test(p.type ?? "")) &&
       !requiredParams.some((p) => /^(const\s+)?T\s*&?$/.test(p.type ?? ""));
+    // the call with one optional argument given: by name in Python; by position in C++, so every argument before it is
+    // written too (an optional one as its default), and T is spelled out (a scalar argument could disagree with the
+    // vector it would be deduced from)
+    const callWith = (p: UsageParam, value: string) => {
+      const before = cls.ctor.slice(0, cls.ctor.indexOf(p)).map((q) => (requiredParams.includes(q) ? q.name : q.default ?? q.name));
+      return cpp
+        ? `${cls.className}${cls.plain ? "" : `<${elem}>`} ${varOf(k)}(${[...before, value].join(", ")});`
+        : `${varOf(k)} = ${cls.className}(${[...required, `${p.name}=${value}`].join(", ")})`;
+    };
     const extraComments = catalog.ctorComments?.(template, lang) ?? [];
     const afterArgs = catalog.ctorCommentsAfterArgs?.(template) ?? false;  // (example constructions read best after the argument notes)
     const comments = [
@@ -1038,7 +1049,11 @@ function UsagePanel<V extends PickerTemplate>({
       ),
       ...optional
         .filter((p) => notes[p.name]?.shown !== false)
-        .map((p) => `Optional: ${p.name} (default ${p.default})${notes[p.name] ? `, ${notes[p.name][lang]}` : ""}.`),
+        // what it is, then the call that passes it (an optional argument is not in the call below)
+        .flatMap((p) => [
+          `Optional: ${p.name} (default ${p.default})${notes[p.name]?.[lang] ? `, ${notes[p.name][lang]}` : ""}.`,
+          `  Pass it like this: ${callWith(p, notes[p.name]?.example?.[lang] ?? p.name)}`,
+        ]),
       ...(afterArgs ? extraComments : []),
       ...(cpp && !cls.plain
         ? [
@@ -1049,12 +1064,9 @@ function UsagePanel<V extends PickerTemplate>({
         : []),
       // an LCM capped by a "cap" argument: what -1 means, that removing values recovers, and the one line with a cap
       ...(() => {
-        const capAt = cls.ctor.findIndex((p) => p.name === "cap");
-        if (capAt < 0) return [];
-        const before = cls.ctor.slice(0, capAt).map((p) => (requiredParams.includes(p) ? p.name : p.default ?? p.name));
-        const example = cpp
-          ? `${cls.className}<${elem}> ${varOf(k)}(${[...before, "1000000000LL"].join(", ")});`
-          : `${varOf(k)} = ${cls.className}(${[...required, "cap=10**9"].join(", ")})`;
+        const cap = cls.ctor.find((p) => p.name === "cap");
+        if (!cap) return [];
+        const example = callWith(cap, cpp ? "1000000000LL" : "10**9");
         return [
           `The LCM answers -1 once it passes cap, so it never overflows (cap defaults to the largest ${cpp ? elem : "long long"}).`,
           "Removing values brings it back: once the values that pushed it past cap are gone, the LCM is exact again.",

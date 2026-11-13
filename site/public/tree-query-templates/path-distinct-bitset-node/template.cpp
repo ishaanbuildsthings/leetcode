@@ -96,7 +96,7 @@ struct HotVector : vector<U> {
 // out_of_range. A path a..b includes both a and b. Nothing recurses, so a 10^6-node chain is fine.
 //
 // distinctCap: how many distinct values can ever appear, the ones here now and every one assigned later (they size the
-// bitsets). Leave it out when no new value will be assigned.
+// bitsets), e.g. Tree<long long> tree(edges, root, vals, 5000). Leave it out when no new value will be assigned.
 //
 // How it works: one heavy-light pass gives every node a position, so that each heavy chain and each subtree is one
 // stretch of positions (pos[node] .. pos[node] + sz[node] - 1). A segment tree over the positions keeps a bitset per
