@@ -5,16 +5,16 @@
 // @complexities:
 //   countAtDepthInSubtree: log(N)
 //   depth: 1
-//   edgeAdd: log(N)*D/64
-//   edgeAssign: log(N)*D/64
-//   edgeChmax: log(N)*D/64
-//   edgeChmin: log(N)*D/64
+//   edgeAdd: log(N)*D/64 amortized
+//   edgeAssign: log(N)*D/64 amortized
+//   edgeChmax: log(N)*D/64 amortized
+//   edgeChmin: log(N)*D/64 amortized
 //   edgeGet: log(N)
 //   edgePathAllDistinct: log^2(N)*D/64
-//   edgePathAssign: log^2(N)*D/64
+//   edgePathAssign: log^2(N)*D/64 amortized
 //   edgePathCountDistinct: log^2(N)*D/64
 //   edgeSubtreeAllDistinct: log(N)*D/64
-//   edgeSubtreeAssign: log(N)*D/64
+//   edgeSubtreeAssign: log(N)*D/64 amortized
 //   edgeSubtreeCountDistinct: log(N)*D/64
 //   isAncestor: 1
 //   isOnPath: log(N)
@@ -39,7 +39,7 @@
 //   node: bits[2*N*D/64]
 //   tags: tag[2*N]
 //   other: par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
-//   note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that ever appeared; a bitset is D / 64 words
+//   note: D = how many distinct values ever appeared (a value keeps its bit once it has one); a bitset is D / 64 words. C++ widens every bitset by half when a new value finds all the bits taken (the amortized costs: one widening is N*D/64, all of them together less than five builds), so its bitsets can be up to 1.5x that wide, and 2.5x while one widening runs
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -95,16 +95,17 @@ struct HotVector : vector<U> {
 // Nodes go in and come out with your labels, -1 means "none", and a label that is not in the tree throws out_of_range.
 // Nothing recurses, so a 10^6-node chain is fine.
 //
-// distinctCap: how many distinct values can ever appear, the ones here now and every one assigned later (they size the
-// bitsets), e.g. Tree<long long> tree(edges, root, 5000). Leave it out when no new value will be assigned.
-//
 // How it works: one heavy-light pass gives every node a position, so that each heavy chain and each subtree is one
 // stretch of positions (pos[node] .. pos[node] + sz[node] - 1). A segment tree over the positions keeps a bitset per
 // node, one bit per distinct weight under it. A path a..b is O(log n) chain pieces, each O(log n) tree nodes: their
 // bitsets ORed together have one bit per distinct value on the path. With D distinct values a bitset is D / 64 words,
 // so this is for up to a few thousand distinct values (memory is 2 * n * D / 8 bytes). A value gets its bit the first
 // time it appears, also later through an assign, and keeps it. An assign over a path or a subtree is kept at the O(log
-// n) tree nodes that cover each stretch and handed down only when something below one of them is needed.
+// n) tree nodes that cover each stretch and handed down only when something below one of them is needed. The bitsets
+// start just wide enough for the values there at the start. When a value never seen before finds every bit taken, all
+// of them are made half as wide again: that one call costs O(n * D / 64), and all the widenings a tree ever does cost
+// less than five builds. While it widens, the old and the new bitsets exist side by side, so a tree whose values keep
+// coming peaks at up to 2.5 times the memory above; one whose values are all there at the start never widens.
 template <typename T>
 struct Tree {
     int n, lo, hi, root;  // nodes are lo..hi
@@ -115,7 +116,7 @@ struct Tree {
     HotVector<int> depthStart, depthPos;
     unordered_map<T, int> ids;  // each value's bit, handed out as values first appear
     HotVector<T> values;  // values[b]: the value whose bit is b
-    int cap, words;  // how many distinct values the bitsets have room for; how many 64-bit words that is
+    int words;  // how many 64-bit words a bitset is: room for 64 * words distinct values (widen makes more)
     // bits: a segment tree over the positions (its leaves n .. 2n - 1), `words` words a node: a bitset with one bit per
     // distinct value under the node; a parent is the OR of its two children
     HotVector<unsigned long long> bits;
@@ -125,8 +126,8 @@ struct Tree {
     HotVector<unsigned long long> acc;  // the bitset a query ORs its nodes into
 
     // O(n * D / 64) -- builds the layout and the bitset tree; throws invalid_argument when the edges are not one tree
-    // on nodes 0..n-1 or 1..n, an edge has no weight, or the values hold more than distinctCap distinct ones
-    template <typename E = int> Tree(const vector<vector<E>>& edges, int root, int distinctCap = 0) : root(root) {
+    // on nodes 0..n-1 or 1..n, or an edge has no weight
+    template <typename E = int> Tree(const vector<vector<E>>& edges, int root) : root(root) {
         n = (int)edges.size() + 1;
         long long least = root;
         if (!edges.empty()) {
@@ -217,12 +218,8 @@ struct Tree {
             above[par[a] == b ? a : b] = (T)e[2];
         }
         for (int i = 1; i < n; i++) ids.emplace(above[order[i]], (int)ids.size());
-        cap = distinctCap > 0 ? distinctCap : max(1, (int)ids.size());
-        if ((int)ids.size() > cap)
-            throw invalid_argument("Tree: the values hold " + to_string(ids.size()) +
-                                   " distinct ones, more than distinctCap = " + to_string(cap));
-        words = (cap + 63) / 64;
-        values.assign(cap, T());
+        words = max(1, ((int)ids.size() + 63) / 64);
+        values.assign(ids.size(), T());
         for (const auto& kept : ids) values[kept.second] = kept.first;
         bits.assign((size_t)2 * n * words, 0), tag.assign(2 * n, -1), acc.assign(words, 0);
         for (int i = 1; i < n; i++) apply(n + i, ids[above[order[i]]]);
@@ -260,17 +257,30 @@ struct Tree {
             if (tag[p] < 0) pull(p);
     }
 
-    // the bit of value x: a new one the first time x appears (throws length_error once distinctCap values have one)
+    // the bit of value x: a new one the first time x appears (widening the bitsets first when every bit is taken)
     int idOf(T x) {
         auto it = ids.find(x);
         if (it != ids.end()) return it->second;
-        if ((int)ids.size() >= cap)
-            throw length_error("Tree: more than distinctCap = " + to_string(cap) +
-                               " distinct values (pass a bigger distinctCap)");
         int b = (int)ids.size();
+        if (b == 64 * words) widen();
         ids.emplace(x, b);
-        values[b] = x;
+        values.push_back(x);
         return b;
+    }
+
+    // makes every bitset half as wide again (at least one word wider): each seg node's words move to their new place
+    // and the new words start empty. O(n * D / 64); all the widenings a tree ever does cost less than five builds
+    LEETCODE_NO_SANITIZE void widen() {
+        int wider = words + (words > 1 ? words / 2 : 1);
+        HotVector<unsigned long long> grown((size_t)2 * n * wider, 0);
+        for (int i = 1; i < 2 * n; i++) {
+            const unsigned long long* from = &bits[(size_t)i * words];
+            unsigned long long* to = &grown[(size_t)i * wider];
+            for (int w = 0; w < words; w++) to[w] = from[w];
+        }
+        bits.swap(grown);
+        acc.assign(wider, 0);
+        words = wider;
     }
 
     // the values at positions l..r all become x (nothing for an empty stretch, l > r)

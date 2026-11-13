@@ -64,12 +64,6 @@ const TREE_QUERY_CATALOG: PickerCatalog<TreeQueryTemplate> = {
     bits: { py: "values live in [0, 2^bits)", cpp: "values live in [0, 2^bits)", example: { py: "30", cpp: "30" } },
     valLo: { py: "valLo: every value ever held is >= valLo (negative is fine)", cpp: "valLo: every value ever held is >= valLo (negative is fine)" },
     valHi: { py: "valHi: every value ever held is <= valHi", cpp: "valHi: every value ever held is <= valHi" },
-    // (C++ only: its bitsets have a fixed width; the Python constructor has no such argument)
-    distinctCap: {
-      py: "",
-      cpp: "how many distinct values can ever appear: the ones there at the start plus every new one assigned later. Left out (0), there is only room for the ones there at the start, so assigning a value never seen before throws",
-      example: { py: "5000", cpp: "5000" },
-    },
     edges: {
       py: "edges: [(a, b)], or [(a, b, w)] for edge weights; nodes 0..n-1 or 1..n (found from the smallest label)",
       cpp: "edges: vector of {a, b}, or {a, b, w} for edge weights; nodes 0..n-1 or 1..n (found from the smallest label)",

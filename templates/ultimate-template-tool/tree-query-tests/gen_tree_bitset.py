@@ -6,8 +6,8 @@ positions whose nodes each hold a bitset, one bit per distinct value under the n
 children). A path is O(log n) chain pieces, each O(log n) nodes: OR their bitsets and count the bits. That is
 O(log^2 n * D / 64) for D distinct values, and 2 * n * D / 8 bytes: fine up to a few thousand distinct values.
 
-A value gets its bit the first time it appears (also later, through an assign), so nothing has to be known up front;
-C++ needs a cap on how many distinct values can ever appear (to size the bitsets), Python ints grow by themselves.
+A value gets its bit the first time it appears (also later, through an assign), so nothing has to be known up front:
+Python ints grow by themselves, and C++ makes every bitset half as wide again when a new value finds all the bits taken.
 Assigning one value to a whole path or subtree is lazy: the tag of a tree node is the bit everything under it became.
 
     python3 gen_tree_bitset.py           # write
@@ -150,7 +150,7 @@ struct Tree {
 @MEMBERS@
     unordered_map<T, int> ids;  // each value's bit, handed out as values first appear
     HotVector<T> values;  // values[b]: the value whose bit is b
-    int cap, words;  // how many distinct values the bitsets have room for; how many 64-bit words that is
+    int words;  // how many 64-bit words a bitset is: room for 64 * words distinct values (widen makes more)
 @BITS_NOTE@
     HotVector<unsigned long long> bits;
 @TAG_NOTE@
@@ -161,12 +161,8 @@ struct Tree {
 @CTOR@ {
 @LAYOUT@
 @VALUES@        for (int i = @FIRST@; i < n; i++) ids.emplace(@START@[order[i]], (int)ids.size());
-        cap = distinctCap > 0 ? distinctCap : max(1, (int)ids.size());
-        if ((int)ids.size() > cap)
-            throw invalid_argument("Tree: the values hold " + to_string(ids.size()) +
-                                   " distinct ones, more than distinctCap = " + to_string(cap));
-        words = (cap + 63) / 64;
-        values.assign(cap, T());
+        words = max(1, ((int)ids.size() + 63) / 64);
+        values.assign(ids.size(), T());
         for (const auto& kept : ids) values[kept.second] = kept.first;
         bits.assign((size_t)2 * n * words, 0), tag.assign(2 * n, -1), acc.assign(words, 0);
         for (int i = @FIRST@; i < n; i++) apply(n + i, ids[@START@[order[i]]]);
@@ -204,17 +200,30 @@ struct Tree {
             if (tag[p] < 0) pull(p);
     }
 
-    // the bit of value x: a new one the first time x appears (throws length_error once distinctCap values have one)
+    // the bit of value x: a new one the first time x appears (widening the bitsets first when every bit is taken)
     int idOf(T x) {
         auto it = ids.find(x);
         if (it != ids.end()) return it->second;
-        if ((int)ids.size() >= cap)
-            throw length_error("Tree: more than distinctCap = " + to_string(cap) +
-                               " distinct values (pass a bigger distinctCap)");
         int b = (int)ids.size();
+        if (b == 64 * words) widen();
         ids.emplace(x, b);
-        values[b] = x;
+        values.push_back(x);
         return b;
+    }
+
+    // makes every bitset half as wide again (at least one word wider): each seg node's words move to their new place
+    // and the new words start empty. O(n * D / 64); all the widenings a tree ever does cost less than five builds
+    LEETCODE_NO_SANITIZE void widen() {
+        int wider = words + (words > 1 ? words / 2 : 1);
+        HotVector<unsigned long long> grown((size_t)2 * n * wider, 0);
+        for (int i = 1; i < 2 * n; i++) {
+            const unsigned long long* from = &bits[(size_t)i * words];
+            unsigned long long* to = &grown[(size_t)i * wider];
+            for (int w = 0; w < words; w++) to[w] = from[w];
+        }
+        bits.swap(grown);
+        acc.assign(wider, 0);
+        words = wider;
     }
 
     // the values at positions l..r all become x (nothing for an empty stretch, l > r)
@@ -340,7 +349,8 @@ def make(edge):
             return f'        p = self.pos[self._edge("{t}{name}", a, b)]\n', f'        int p = pos[edgeAt("{t}{name}", a, b)];\n'
         return G.py_check(t + name, nodes) + "        p = self.pos[node]\n", G.cpp_check(t + name, nodes) + "        int p = pos[node];\n"
 
-    upd = "log(N)*D/64"
+    # (an op that can bring a value never seen before may widen the C++ bitsets: amortized)
+    upd = "log(N)*D/64 amortized"
     p, c = here("Get")
     add_op("Get", [], [], "T", "log(N)", f"{val_word}({at}){either}", p + "        return self.values[self._bitAt(p)]\n",
            c + "        return values[bitAt(p)];\n", const=True)
@@ -360,7 +370,7 @@ def make(edge):
     # ---- a path
     path_cost, sub_cost = "log^2(N)*D/64", "log(N)*D/64"
     every = f"{val_word} = {x} for every {t}"
-    add_op("PathAssign", [x], ["T"], "void", path_cost, f"{every} on the path a..b",
+    add_op("PathAssign", [x], ["T"], "void", path_cost + " amortized", f"{every} on the path a..b",
            G.py_check(f"{t}PathAssign", ("a", "b"))
            + f"        for l, r in self._pieces(a, b):\n            self._assign(l, r, {x})\n",
            G.cpp_check(f"{t}PathAssign", ("a", "b")) + "        int ls[64], rs[64], m = pieces(a, b, ls, rs);\n"
@@ -380,7 +390,7 @@ def make(edge):
     none0, none1 = ("; 0 when node is a leaf (no edges)", "; True when node is a leaf (no edges)") if edge else ("", "")
     skip, size_py, size_cpp = (" + 1", "self.sz[node] - 1", "sz[node] - 1") if edge else ("", "self.sz[node]", "sz[node]")
     why = "        # the edges below node: the positions after its own (none for a leaf: an empty stretch)\n" if edge else ""
-    add_op("SubtreeAssign", [x], ["T"], "void", sub_cost, f"{every} in node's subtree",
+    add_op("SubtreeAssign", [x], ["T"], "void", sub_cost + " amortized", f"{every} in node's subtree",
            G.py_check(f"{t}SubtreeAssign", ("node",)) + "        l = self.pos[node]\n" + why
            + f"        self._assign(l{skip}, l + self.sz[node] - 1, {x})\n",
            G.cpp_check(f"{t}SubtreeAssign", ("node",)) + why.replace("#", "//")
@@ -415,8 +425,10 @@ def make(edge):
             "  node: bits[2*N*D/64]",
             "  tags: tag[2*N]",
             f"  other: {G.LAYOUT_ARRAYS}",
-            "  note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that "
-            "ever appeared; a bitset is D / 64 words",
+            "  note: D = how many distinct values ever appeared (a value keeps its bit once it has one); a bitset is "
+            "D / 64 words. C++ widens every bitset by half when a new value finds all the bits taken (the amortized "
+            "costs: one widening is N*D/64, all of them together less than five builds), so its bitsets can be up to "
+            "1.5x that wide, and 2.5x while one widening runs",
         ]
         return "".join(f"{cm} {line}\n" for line in lines)
 
@@ -428,10 +440,12 @@ def make(edge):
            "2 * n * D / 8 bytes). A value gets its bit the first time it appears, also later through an assign, and keeps "
            "it. An assign over a path or a subtree is kept at the O(log n) tree nodes that cover each stretch and handed "
            "down only when something below one of them is needed.")
-    # (C++ only: its bitsets have a fixed width. A Python int grows by itself, so its constructor takes no cap)
-    cap_note = ("distinctCap: how many distinct values can ever appear, the ones here now and every one assigned later "
-                f"(they size the bitsets), e.g. Tree<long long> tree({'edges, root' if edge else 'edges, root, vals'}, "
-                "5000). Leave it out when no new value will be assigned.")
+    # (C++ only: a Python int grows by itself)
+    widen_note = (" The bitsets start just wide enough for the values there at the start. When a value never seen before "
+                  "finds every bit taken, all of them are made half as wide again: that one call costs O(n * D / 64), "
+                  "and all the widenings a tree ever does cost less than five builds. While it widens, the old and the "
+                  "new bitsets exist side by side, so a tree whose values keep coming peaks at up to 2.5 times the "
+                  "memory above; one whose values are all there at the start never widens.")
     info = type("R", (), {"extra_names": [], "cls": ""})
     marks = {"@VALS@": vals, "@BAD_INPUT@": "an edge has no weight" if edge else "vals has the wrong length",
              "@FIRST@": "1" if edge else "0", "@START@": "above" if edge else "vals"}
@@ -477,14 +491,12 @@ def make(edge):
                             "each value's bit, handed out as values first appear; values[b]: the value whose bit is b. "
                             + tag_note + ".", 8),
     }
-    sig = f"    template <typename E = int> Tree({cpp_ctor}, int distinctCap = 0) : root(root)"
+    sig = f"    template <typename E = int> Tree({cpp_ctor}) : root(root)"
     if len(sig) > 118:
-        sig = (f"    template <typename E = int> Tree({cpp_ctor},\n" + " " * 36 + "int distinctCap = 0)\n"
-               "        : root(root)")
+        sig = f"    template <typename E = int> Tree({cpp_ctor})\n        : root(root)"
     cpp_marks = {
         "@CTOR_NOTE@": note("//", "O(n * D / 64) -- builds the layout and the bitset tree; throws invalid_argument when the "
-                            f"edges are not one tree on nodes 0..n-1 or 1..n, {bad}, or the values hold more than "
-                            "distinctCap distinct ones", 4),
+                            f"edges are not one tree on nodes 0..n-1 or 1..n, or {bad}", 4),
         "@BITS_NOTE@": note("//", "bits: a segment tree over the positions (its leaves n .. 2n - 1), `words` words a node: a "
                             "bitset with one bit per distinct value under the node; a parent is the OR of its two children",
                             4),
@@ -494,7 +506,7 @@ def make(edge):
 
     def doc_with(doc, cm):
         cut = doc.index(f"{cm} How it works")
-        return doc[:cut] + (G.wrap(cm, cap_note) + f"{cm}\n" if cm == "//" else "") + G.wrap(cm, how)
+        return doc[:cut] + G.wrap(cm, how + (widen_note if cm == "//" else ""))
 
     def fill(text, extra):
         for k, v in {**marks, **extra}.items():

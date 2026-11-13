@@ -13,16 +13,16 @@
 #   lcaRootedAt: log(N)
 #   median: log(N)
 #   nextNodeOnPath: log(N)
-#   nodeAdd: log(N)*D/64
-#   nodeAssign: log(N)*D/64
-#   nodeChmax: log(N)*D/64
-#   nodeChmin: log(N)*D/64
+#   nodeAdd: log(N)*D/64 amortized
+#   nodeAssign: log(N)*D/64 amortized
+#   nodeChmax: log(N)*D/64 amortized
+#   nodeChmin: log(N)*D/64 amortized
 #   nodeGet: log(N)
 #   nodePathAllDistinct: log^2(N)*D/64
-#   nodePathAssign: log^2(N)*D/64
+#   nodePathAssign: log^2(N)*D/64 amortized
 #   nodePathCountDistinct: log^2(N)*D/64
 #   nodeSubtreeAllDistinct: log(N)*D/64
-#   nodeSubtreeAssign: log(N)*D/64
+#   nodeSubtreeAssign: log(N)*D/64 amortized
 #   nodeSubtreeCountDistinct: log(N)*D/64
 #   parent: 1
 #   parentRootedAt: log(N)
@@ -39,7 +39,7 @@
 #   node: bits[2*N*D/64]
 #   tags: tag[2*N]
 #   other: par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
-#   note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that ever appeared; a bitset is D / 64 words
+#   note: D = how many distinct values ever appeared (a value keeps its bit once it has one); a bitset is D / 64 words. C++ widens every bitset by half when a new value finds all the bits taken (the amortized costs: one widening is N*D/64, all of them together less than five builds), so its bitsets can be up to 1.5x that wide, and 2.5x while one widening runs
 
 from bisect import bisect_left
 

@@ -58,7 +58,7 @@ translates calls. Complexity: subtree and one-node ops cost what the range op co
 | Path KthSmallest / KthLargest, SumSmallestK, SumKth...Range, SumAbsDiffToMedian, and single-log counts / sums by value | persistent segment tree, one version per node (its root path); answer from versions a, b, lca, parent(lca) | log(U), or log(n) with values known up front | static |
 | The same with one-node updates | Fenwick tree of value trees over the Euler tour | log(n)*log(U) | one-node assign / add only |
 | Path MaxSubarraySum / MinSubarraySum, LongestEqualRun | heavy-light + segment tree whose merge knows direction | log^2(n) | with one-node or path assign / add |
-| Path CountDistinct, AllDistinct | heavy-light + segment tree of bitsets, one bit per distinct value; a node's bitset is the OR of its children | log^2(n) * D/64 per query (D = distinct values) | memory about 2 * n * D / 8 bytes, so for up to a few thousand distinct values. Updates: one-node assign, path / subtree assign (not add). Values need not be known up front: each new value gets the next free bit, so only a cap on how many distinct values can ever appear (C++: a constructor argument; Python ints grow by themselves) |
+| Path CountDistinct, AllDistinct | heavy-light + segment tree of bitsets, one bit per distinct value; a node's bitset is the OR of its children | log^2(n) * D/64 per query (D = distinct values) | memory about 2 * n * D / 8 bytes, so for up to a few thousand distinct values. Updates: one-node assign, path / subtree assign (not add). Values need not be known up front: each new value gets the next free bit, and the bitsets grow to fit (Python ints by themselves; C++ makes every bitset half as wide again when the bits run out, which copies them all: up to 2.5x the memory for a moment) |
 | SubtreeAddByDepth | two coefficient arrays (`A + B * depth`) | log(n) | reads: one node, subtree sum, path sum (not min / max) |
 | Subtree anything | none needed: one range op | the range op's cost | whatever the range template supports |
 
@@ -170,11 +170,15 @@ each): `template.cpp` 427 / 408 / 409 ms, `fast.cpp` 423 / 409 / 411 ms, same an
    for up to a few thousand distinct values. PathCountDistinct / PathAllDistinct, the same two on a subtree
    (O(log n * D / 64)), get / assign / add / chmax / chmin on one node or edge, and PathAssign / SubtreeAssign (lazy:
    a tree node's tag is the bit everything under it became; no path add, which would move every value to a new bit).
-   A value gets its bit the first time it appears; C++ takes `distinctCap` (how many distinct values can ever appear:
-   it sizes the bitsets, default the ones in the input) and throws `length_error` past it, Python ints grow by
-   themselves. A bit is never handed back, so D counts every value that ever appeared. The site ranks the new cost
-   factor `D/64` as 16 words. Measured in C++: 200,000 nodes, 1,000 distinct values, 100,000 mixed path assigns and
-   path counts in about 0.2 to 0.4 s.
+   A value gets its bit the first time it appears, and the bitsets grow to fit: Python ints by themselves, and C++
+   makes every bitset half as wide again (at least one word) when a new value finds every bit taken. There is no cap
+   argument (there was a C++ `distinctCap` until 2026-11-13; the user asked for bitsets that grow instead). One
+   widening copies every bitset, O(n * D / 64); all of them together cost less than five builds, so the ops that can
+   bring a new value are marked amortized. A bit is never handed back, so D counts every value that ever appeared.
+   The site ranks the new cost factor `D/64` as 16 words. Measured in C++: 200,000 nodes, 1,000 distinct values,
+   100,000 mixed path assigns and path counts in about 0.1 s when the values are all there at the start (75 MB), and
+   about the same when the tree starts as all zeros and the 1,000 values arrive through assigns (7 widenings), but
+   then the peak is 200 MB on this Mac: the old and the new bitsets exist side by side while one widening runs.
 7. Longest equal run on a path. DONE: `tree-queries/path-run-node` and `path-run-edge`, written by
    `tree-query-tests/gen_tree_run.py`. Wrapping cannot give it: a chain piece must also say how it starts and ends
    (its first and last value and how many equal values it starts and ends with), which `longestEqualRun` does not, and

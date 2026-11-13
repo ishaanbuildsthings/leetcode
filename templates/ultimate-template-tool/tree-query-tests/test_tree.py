@@ -263,11 +263,7 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
     ranked = folder.startswith("path-rank-updates")
     if ranked:
         extra = [-10**9, 10**9]
-    # the bitset templates: C++ sizes its bitsets from distinctCap, a constructor extra only C++ has (more values than
-    # a trial can ever hold: at most 201 to start with, plus the ones its updates make). A Python int grows by itself
     bitset = folder.startswith("path-distinct-bitset")
-    if bitset:
-        ctx["cppExtra"] = [320]
     value_ops = [op for op in ops if op in TABLE]
     weights, node_vals = has_weights(ops), has_node_values(ops)  # (a both- template has the two)
     updates = [op for op in value_ops if TABLE[op][1] == "update"]
@@ -580,44 +576,49 @@ def run_py(text, trials, extra):
 
 
 # ------------------------------------------------------------------------------------------------ C++
-def bitset_cap_checks(node_vals):
-    """C++ lines for the count-distinct templates: distinctCap left out makes room for the values there now (so one
-    of them can be assigned again, a new one throws length_error), and a cap below them throws invalid_argument."""
-    make = "vector<vector<int>>{{0, 1}, {1, 2}}, 0, vector<long long>{5, 7, 5}" if node_vals else \
-        "vector<vector<int>>{{0, 1, 5}, {1, 2, 7}, {2, 3, 5}}, 0"
-    t, at, far = ("node", "1", "2") if node_vals else ("edge", "1, 2", "3")
+def bitset_growth_checks(node_vals):
+    """C++ lines for the count-distinct templates: a 150-node chain that starts with one value and is handed 330 new
+    ones, so its bitsets widen four times (1 word, then 2, 3, 4, 6), some of them while an assign is still waiting
+    above the leaves. Every step is compared with plain sets."""
+    if node_vals:  # held[i]: node i's value. The chain is rooted at 0, so node l's subtree is nodes l .. m - 1
+        make, first, at = "chain, 0, own", "0", "i"
+        path = ["g.nodePathAssign(i, j, x); for (int p = i; p <= j; p++) held[p] = x;"]
+        checks = [
+            "if (g.nodePathCountDistinct(l, r) != distinct(l, r)) return 4;",
+            "if (g.nodePathCountDistinct(m - 1, 0) != distinct(0, m - 1)) return 5;",
+            "if (g.nodeSubtreeCountDistinct(l) != distinct(l, m - 1)) return 6;",
+            "if (g.nodePathAllDistinct(l, r) != (distinct(l, r) == r - l + 1)) return 7;",
+            "if (g.nodeGet(i) != held[i]) return 8;",
+        ]
+    else:  # held[i]: the weight of the edge above node i (i >= 1), so the path l..r holds held[l + 1 .. r]
+        make, first, at = "chain, 0", "1", "i - 1, i"
+        path = ["g.edgePathAssign(i - 1, j, x); for (int p = i; p <= j; p++) held[p] = x;"]
+        checks = [
+            "if (g.edgePathCountDistinct(l, r) != distinct(l + 1, r)) return 4;",
+            "if (g.edgePathCountDistinct(m - 1, 0) != distinct(1, m - 1)) return 5;",
+            "if (g.edgeSubtreeCountDistinct(l) != distinct(l + 1, m - 1)) return 6;",
+            "if (g.edgePathAllDistinct(l, r) != (distinct(l + 1, r) == r - l)) return 7;",
+            "if (g.edgeGet(i, i - 1) != held[i]) return 8;",
+        ]
+    t = "node" if node_vals else "edge"
     return [
         "  {",
-        f"    Tree<long long> s({make});",
-        f"    if (s.{t}PathCountDistinct(0, {far}) != 2 || s.{t}PathAllDistinct(0, {far})) return 4;",
-        f"    s.{t}Assign({at}, 5);  // (a value that has its bit already)",
-        f"    if (s.{t}PathCountDistinct(0, {far}) != 1) return 5;",
-        "    bool threw = false;",
-        f"    try {{ s.{t}Assign({at}, 9); }} catch (const length_error&) {{ threw = true; }}",
-        f"    if (!threw || s.{t}Get({at}) != 5 || s.{t}PathCountDistinct(0, {far}) != 1) return 6;",
-        "    threw = false;",
-        f"    try {{ Tree<long long> low({make}, 1); }} catch (const invalid_argument&) {{ threw = true; }}",
-        "    if (!threw) return 7;",
-        f"    Tree<long long> roomy({make}, 3);",
-        f"    roomy.{t}Assign({at}, 9);",
-        f"    if (roomy.{t}PathCountDistinct(0, {far}) != 2 || roomy.{t}SubtreeCountDistinct(0) != 2) return 8;",
-        "    // a cap that is not a multiple of 64: 70 distinct values on a 71-node chain need the second word",
-        "    vector<vector<int>> chain; vector<long long> own(71, 100);  // (node 70 holds 100 again, as node 0 does)",
-        f"    for (int i = 0; i < 70; i++) chain.push_back({{i, i + 1{'' if node_vals else ', 100 + i'}}}), own[i] = 100 + i;",
-        f"    Tree<long long> wide(chain, 0{', own' if node_vals else ''}, 71);",
-        *([
-            "    if (wide.nodePathCountDistinct(0, 69) != 70 || !wide.nodePathAllDistinct(0, 69)) return 9;",
-            "    if (wide.nodePathCountDistinct(0, 70) != 70 || wide.nodePathAllDistinct(0, 70)) return 10;",
-            "    if (wide.nodeSubtreeCountDistinct(1) != 70 || wide.nodeSubtreeAllDistinct(0)) return 11;",
-            "    wide.nodeAssign(5, 999);  // (the 71st value: its bit is in the second word)",
-            "    if (wide.nodePathCountDistinct(0, 69) != 70 || wide.nodePathCountDistinct(5, 6) != 2) return 12;",
-        ] if node_vals else [
-            "    if (wide.edgePathCountDistinct(0, 70) != 70 || !wide.edgePathAllDistinct(0, 70)) return 9;",
-            "    if (wide.edgePathCountDistinct(70, 1) != 69) return 10;",
-            "    if (wide.edgeSubtreeCountDistinct(1) != 69 || !wide.edgeSubtreeAllDistinct(0)) return 11;",
-            "    wide.edgeAssign(5, 6, 999);  // (the 71st value: its bit is in the second word)",
-            "    if (wide.edgePathCountDistinct(0, 70) != 70 || wide.edgePathCountDistinct(5, 7) != 2) return 12;",
-        ]),
+        "    const int m = 150;",
+        "    vector<vector<int>> chain; vector<long long> own(m, 7), held(m, 7);",
+        f"    for (int i = 0; i + 1 < m; i++) chain.push_back({{i, i + 1{'' if node_vals else ', 7'}}});",
+        f"    Tree<long long> g({make});",
+        "    auto distinct = [&](int l, int r) {  // how many distinct values held[l..r] has (0 for an empty stretch)",
+        "      return l > r ? 0 : (int)set<long long>(held.begin() + l, held.begin() + r + 1).size();",
+        "    };",
+        "    for (int k = 1; k <= 330; k++) {",
+        f"      int i = {first} + (k * 37) % (m - {first}), j = min(m - 1, i + 9);",
+        "      long long x = 1000 + k;  // (a value never seen before)",
+        "      if (k % 5 == 0) { " + path[0] + " }  // (a stretch at once: an assign left waiting above the leaves)",
+        f"      else {{ g.{t}Assign({at}, x); held[i] = x; }}",
+        "      int l = (k * 11) % m, r = (k * 29) % m;",
+        "      if (l > r) swap(l, r);",
+        *[f"      {line}" for line in checks],
+        "    }",
         "  }",
     ]
 
@@ -680,7 +681,7 @@ def cpp_driver(folder, ops, extra):
              # weights 1 and 2 are inside every range template's allowed values)
              *([f"  {{ vector<vector<int>> ints = {{{{0, 1, 1}}, {{1, 2, 2}}}}; Tree<long long> small(ints, 0{small_vals}{extra_text}); "
                 "if (small.subtreeSize(0) != 3) return 3; }"] if weights else []),
-             *(bitset_cap_checks(node_vals) if folder.startswith("path-distinct-bitset") else []),
+             *(bitset_growth_checks(node_vals) if folder.startswith("path-distinct-bitset") else []),
              *(depth_checks(node_vals, "-mod-" in folder) if folder.startswith("subtree-depth-add") else []),
              "  int cases; cin >> cases;",
              "  while (cases--) {",
@@ -787,7 +788,7 @@ def test_folder(folder, langs, trials_n, stress=False):
                      + (f", never called: {missed}" if missed else ""))
     if "--cpp" in langs:
         try:
-            got, warnings = run_cpp(folder, ops, trials, extra + ctx.get("cppExtra", []))
+            got, warnings = run_cpp(folder, ops, trials, extra)
             bad = mismatch(got, exp, trials, wrap64=True)
             if not bad and warnings:
                 bad = "compiler warnings:\n" + warnings[:1500]

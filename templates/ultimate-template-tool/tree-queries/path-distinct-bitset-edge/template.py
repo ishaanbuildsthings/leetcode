@@ -5,16 +5,16 @@
 # @complexities:
 #   countAtDepthInSubtree: log(N)
 #   depth: 1
-#   edgeAdd: log(N)*D/64
-#   edgeAssign: log(N)*D/64
-#   edgeChmax: log(N)*D/64
-#   edgeChmin: log(N)*D/64
+#   edgeAdd: log(N)*D/64 amortized
+#   edgeAssign: log(N)*D/64 amortized
+#   edgeChmax: log(N)*D/64 amortized
+#   edgeChmin: log(N)*D/64 amortized
 #   edgeGet: log(N)
 #   edgePathAllDistinct: log^2(N)*D/64
-#   edgePathAssign: log^2(N)*D/64
+#   edgePathAssign: log^2(N)*D/64 amortized
 #   edgePathCountDistinct: log^2(N)*D/64
 #   edgeSubtreeAllDistinct: log(N)*D/64
-#   edgeSubtreeAssign: log(N)*D/64
+#   edgeSubtreeAssign: log(N)*D/64 amortized
 #   edgeSubtreeCountDistinct: log(N)*D/64
 #   isAncestor: 1
 #   isOnPath: log(N)
@@ -39,7 +39,7 @@
 #   node: bits[2*N*D/64]
 #   tags: tag[2*N]
 #   other: par[1*N] dep[1*N] sz[1*N] head[1*N] pos[1*N] order[1*N] depthPos[1*N] depthStart[1*N]
-#   note: D = how many distinct values the bitsets have room for (C++: distinctCap), counting every value that ever appeared; a bitset is D / 64 words
+#   note: D = how many distinct values ever appeared (a value keeps its bit once it has one); a bitset is D / 64 words. C++ widens every bitset by half when a new value finds all the bits taken (the amortized costs: one widening is N*D/64, all of them together less than five builds), so its bitsets can be up to 1.5x that wide, and 2.5x while one widening runs
 
 from bisect import bisect_left
 
