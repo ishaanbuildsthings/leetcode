@@ -363,7 +363,7 @@ export type TreeStructureType = (typeof TREE_STRUCTURE_TYPES)[number];
 const SHAPE_LABELS = {
   "heavy-light": "Heavy-light decomposition",
   "heavy-light-lca-table": "Heavy-light decomposition + O(1) lca table",
-  "euler-fenwick": "Fenwick tree on the Euler tour (single-log path queries)",
+  "euler-fenwick": "Fenwick tree on the Euler tour (single-log path queries or path updates)",
   "persistent-paths": "Persistent seg tree, a version per node (its path from the root)",
   "bitset-seg-tree": "Seg tree of bitsets, a bit per distinct value (for few distinct values)",
   "run-seg-tree": "Seg tree of runs that knows which way a path piece is read",

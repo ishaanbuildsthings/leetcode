@@ -300,3 +300,30 @@ switches from the `.norev` file to the one with reverse. Deliberate bugs: 140 ca
 an answer: joining in the wrong order in a `.norev` file (its examples do not depend on order), composing two add tags
 in the wrong order (adds commute; the complex example, assign then shift, catches it), and not copying a slot whose
 right child is all padding (such a slot is never read).
+
+## 12. Single-log path updates (2026-11-13)
+
+The user's rule: no O(log^2 n) where O(log n) exists. An audit of every update / query pairing found three still at
+log^2: path add with one-value reads, path xor with one-value reads, path add with subtree sums. Built as
+`path-add-fenwick-{node,edge}`, `path-add-mod-fenwick-{node,edge}` and `path-xor-apply-fenwick-{node,edge}`
+(`tree-query-tests/gen_tree_path_add.py`), every op O(log n):
+
+- A path update leaves marks instead of touching the path: +x at both ends, -x at the lca and at the node above it
+  (edges, kept at their lower end: +x at both ends, -2x at the lca; xor: x at each of those, and for edges at the two
+  ends only). A value is its starting value plus every mark inside its subtree, one Fenwick range sum.
+- A subtree's sum counts a mark at y once per node between y and the top, so a second tree keeps mark * depth (xor:
+  the marks are kept by depth parity). Subtree adds are kept apart as "add over a stretch of positions" (two more
+  trees; xor: by position parity). One value changes through a mark at it, taken back at its parent.
+- Ops: Get, Assign, Add, Chmax, Chmin, PathAdd / PathXORApply, SubtreeAdd / SubtreeXORApply, SubtreeSum /
+  SubtreeXOR (the MOD folders: Get, Assign, Add, PathAddMod, SubtreeAddMod, SubtreeSumMod).
+- Not possible in one log, so not here: a path update together with a path query (path add + path sum), and path
+  queries that cannot be taken back (min / max / gcd) once there are updates. Those stay O(log^2 n) through the
+  wrapped heavy-light templates; only a link-cut tree would change that.
+
+Measured in C++ (200,000 nodes, 400,000 ops: path add, then a value and a subtree sum), against the wrapped BIT
+template that was the best before: 0.33 to 0.43 s against 1.0 to 1.1 s on a balanced binary tree, 0.31 s against
+0.57 to 0.64 s on a random tree, and 0.16 to 0.22 s against 0.12 s on a nearly straight chain (few chains to cross,
+so log^2 is not felt there and the eight Fenwick updates of a path add cost more).
+
+Deliberate bugs: 106 planted, all caught but "a Fenwick entry is not reduced" in the Python MOD files, which cannot
+change an answer there (Python ints do not overflow); in C++ it is caught by a fixed check with a modulus near 2^62.

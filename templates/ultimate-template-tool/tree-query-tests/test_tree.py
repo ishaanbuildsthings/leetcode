@@ -665,6 +665,28 @@ def depth_checks(node_vals, mod):
     return lines + ["  }"]
 
 
+def path_add_mod_checks(node_vals):
+    """C++ lines for the single-log path add templates with MOD: a modulus near 2^62 and the same path added to six
+    times, where a Fenwick entry that is not brought back under MOD after each add passes 64 bits."""
+    t = "node" if node_vals else "edge"
+    make = ("vector<vector<int>>{{0, 1}, {1, 2}}, 0, vector<long long>{M - 1, 5, M - 2}, M" if node_vals else
+            "vector<vector<long long>>{{0, 1, M - 1}, {1, 2, 5}, {2, 3, M - 2}}, 0, M")
+    far, first, mid, last = ("2", "0", "1", "2") if node_vals else ("3", "0, 1", "1, 2", "2, 3")
+    return [
+        "  {",
+        "    const long long M = 4000000000000000037LL;",
+        f"    Tree<long long> m({make});",
+        f"    for (int i = 0; i < 6; i++) m.{t}PathAddMod(0, {far}, M - 1);  // (the values become M - 7, M - 1, M - 8)",
+        f"    if (m.{t}Get({first}) != M - 7 || m.{t}Get({mid}) != M - 1 || m.{t}Get({last}) != M - 8) return 4;",
+        f"    if (m.{t}SubtreeSumMod(0) != M - 16) return 5;",
+        f"    m.{t}SubtreeAddMod(1, M - 2), m.{t}SubtreeAddMod(1, M - 2);  // (the last two become M - 5, M - 12)",
+        f"    if (m.{t}SubtreeSumMod(1) != M - 17 || m.{t}Get({last}) != M - 12) return 6;",
+        f"    m.{t}Assign({last}, -1);  // (an input below 0: M - 1)",
+        f"    if (m.{t}Get({last}) != M - 1 || m.{t}SubtreeSumMod(0) != M - 13) return 7;",
+        "  }",
+    ]
+
+
 def cpp_driver(folder, ops, extra):
     extra_text = "".join(f", {e}" for e in extra)
     weights, node_vals = has_weights(ops), has_node_values(ops)  # (weights ride in the edge list, values in vals)
@@ -683,6 +705,7 @@ def cpp_driver(folder, ops, extra):
                 "if (small.subtreeSize(0) != 3) return 3; }"] if weights else []),
              *(bitset_growth_checks(node_vals) if folder.startswith("path-distinct-bitset") else []),
              *(depth_checks(node_vals, "-mod-" in folder) if folder.startswith("subtree-depth-add") else []),
+             *(path_add_mod_checks(node_vals) if folder.startswith("path-add-mod-fenwick") else []),
              "  int cases; cin >> cases;",
              "  while (cases--) {",
              "    int m, root; cin >> m >> root;",

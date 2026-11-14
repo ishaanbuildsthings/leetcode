@@ -103,6 +103,7 @@ run tree-fresh-bitset python3 tree-query-tests/gen_tree_bitset.py --check
 run tree-fresh-run python3 tree-query-tests/gen_tree_run.py --check
 run tree-fresh-depth python3 tree-query-tests/gen_tree_depth.py --check
 run tree-fresh-static python3 tree-query-tests/gen_tree_static.py --check
+run tree-fresh-path-add python3 tree-query-tests/gen_tree_path_add.py --check
 # the generic tree templates (generic-trees/): every commented example switched on, against a plain fold
 run tree-fresh-generic python3 tree-query-tests/gen_tree_generic.py --check
 if [ "${#LANGS[@]}" -eq 2 ]; then run tree-generic python3 tree-query-tests/test_tree_generic.py
