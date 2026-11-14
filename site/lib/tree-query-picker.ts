@@ -418,5 +418,4 @@ export function decodeTreeQueryTemplates(m: TreeQueryManifest): TreeQueryTemplat
 // planned after these ops
 export const TREE_QUERY_PLANNED = [
   "rerooting for value queries: subtree of node when rooted at r",
-  "generic merge templates (node, edge, both; lazy; reverse for order-sensitive merges)",
 ];

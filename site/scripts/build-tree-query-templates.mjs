@@ -68,6 +68,10 @@ for (const { folder, langs } of entries) {
   fs.mkdirSync(path.join(publicDir, folder), { recursive: true });
   for (const l of langs) fs.copyFileSync(path.join(srcDir, folder, `template.${l}`), path.join(publicDir, folder, `template.${l}`));
 }
+// the generic tree templates you fill in yourself (the picker's "Generic tree templates" menu)
+const genericDir = path.resolve(srcDir, "../generic-trees");
+fs.mkdirSync(path.join(publicDir, "_generic"));
+for (const name of fs.readdirSync(genericDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(genericDir, name), path.join(publicDir, "_generic", name));
 
 // Hundreds of variants share a few op lists, cost strings and memory layouts: the manifest is those tables plus one
 // short row per template, expanded in the browser by decodeTreeQueryTemplates (lib/tree-query-picker.ts).

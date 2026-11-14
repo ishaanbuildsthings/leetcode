@@ -155,6 +155,11 @@ export type FillIn = {
   cppLevels?: boolean;
   // there's a version without rangeReverse (file[.level].norev.*): a checkbox, off by default, adds it back
   reverseToggle?: boolean;
+  // (optional) what that checkbox says and its hover text, when it is not about rangeReverse (the generic tree
+  // templates: "order matters on a path"), and its own stored flag
+  reverseLabel?: string;
+  reverseTitle?: string;
+  reverseKey?: string;
   // there's a recursive version that prints the tree after every operation (file[.level].debug.*): a version option
   debugToggle?: boolean;
   // there's a C++ fast version (file[.level][.norev].fast.cpp): a version option, and what its panel says
@@ -228,6 +233,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
   // in the toolbar: the file is at publicBase/<folder>/<file>.<lang>, and on GitHub at githubUrl + <file>.<lang>
   fillIns?: FillIn[];
+  // what the toolbar menu listing them is called ("Generic seg trees" if left out)
+  fillInsLabel?: string;
   // where the static copies live (fetched on click) and where the files are on GitHub
   publicBase: string;
   githubBase: string;
@@ -822,7 +829,7 @@ export function FillInDrawer({
   const langs = base.langs ?? (["py", "cpp"] as TemplateLang[]);
   const lang = langs.includes(preferred) ? preferred : langs[0];
   const [level, setLevel] = useState<CppLevel>("basic");
-  const [withReverse, chooseReverse] = useStoredFlag(REVERSE_STORAGE_KEY);
+  const [withReverse, chooseReverse] = useStoredFlag(base.reverseKey ?? REVERSE_STORAGE_KEY);
   const [version, setVersion] = useState<GenericVersion>("default");
   const [variantOn, chooseVariant] = usePageFlag(base.variant?.storageKey ?? "");
   const fillIn = withVariant(base, variantOn);
@@ -954,11 +961,11 @@ export function FillInDrawer({
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                 {fillIn.reverseToggle && (
                   <label
-                    title="With rangeReverse the template also needs reverse(node), the node of a segment read backwards"
+                    title={fillIn.reverseTitle ?? "With rangeReverse the template also needs reverse(node), the node of a segment read backwards"}
                     className="flex w-fit cursor-pointer items-center gap-1.5 text-foreground"
                   >
                     <input type="checkbox" checked={withReverse} onChange={(e) => chooseReverse(e.target.checked)} className="accent-primary" />
-                    <span className="font-mono">rangeReverse</span>
+                    {fillIn.reverseLabel ? <span>{fillIn.reverseLabel}</span> : <span className="font-mono">rangeReverse</span>}
                   </label>
                 )}
                 {base.variant && (
@@ -1674,7 +1681,7 @@ export function TemplatePicker<V extends PickerTemplate>({
                   onClick={() => setFillInMenu((o) => !o)}
                   className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
                 >
-                  Generic seg trees ▾
+                  {catalog.fillInsLabel ?? "Generic seg trees"} ▾
                 </button>
                 {fillInMenu && (
                   <>
@@ -1684,7 +1691,7 @@ export function TemplatePicker<V extends PickerTemplate>({
                       onClick={() => setFillInMenu(false)}
                       className="fixed inset-0 z-40 cursor-default"
                     />
-                    <ul className="absolute right-0 z-50 mt-1 w-56 overflow-hidden rounded-md border border-border bg-background py-1 shadow-lg">
+                    <ul className="absolute right-0 z-50 mt-1 w-60 overflow-hidden rounded-md border border-border bg-background py-1 shadow-lg">
                       {catalog.fillIns.map((f) => (
                         <li key={f.file}>
                           <button

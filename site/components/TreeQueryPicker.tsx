@@ -1,6 +1,7 @@
 "use client";
 
 import { TemplatePicker, type PickerCatalog } from "@/components/TemplatePicker";
+import { GENERIC_TREE_TEMPLATES } from "@/lib/generic-tree-templates";
 import { TREE_QUERY_MANIFEST } from "@/lib/generated/tree-query-templates";
 import {
   TREE_QUERY_OP_GROUPS,
@@ -29,6 +30,8 @@ const TREE_QUERY_CATALOG: PickerCatalog<TreeQueryTemplate> = {
     ],
   },
   planned: TREE_QUERY_PLANNED,
+  fillIns: GENERIC_TREE_TEMPLATES,
+  fillInsLabel: "Generic tree templates",
   publicBase: "/tree-query-templates",
   githubBase: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/",
   typeOrder: TREE_STRUCTURE_TYPES,

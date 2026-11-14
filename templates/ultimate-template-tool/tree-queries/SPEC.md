@@ -287,3 +287,12 @@ the user, who has not asked for it.
 
 Generator: `tree-query-tests/gen_tree_generic.py`; tests: `tree-query-tests/test_tree_generic.py` (every commented
 example switched on, against a plain fold over the path, in both languages).
+
+**Built (2026-11-13):** the six families, 48 files (per family: 2 Python, 6 C++), all passing; the tests also check
+what the leaf functions are handed (a node's own label; an edge's two ends, the upper one first). On the site they are
+the tree picker's "Generic tree templates" menu (`site/lib/generic-tree-templates.ts`), copied to
+`public/tree-query-templates/_generic/` by `npm run gen:tree-queries`; the drawer's "order matters on a path" checkbox
+switches from the `.norev` file to the one with reverse. Deliberate bugs: 140 caught. The ones not caught cannot change
+an answer: joining in the wrong order in a `.norev` file (its examples do not depend on order), composing two add tags
+in the wrong order (adds commute; the complex example, assign then shift, catches it), and not copying a slot whose
+right child is all padding (such a slot is never read).
