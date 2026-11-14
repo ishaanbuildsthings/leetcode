@@ -1,7 +1,8 @@
 "use client";
 
 import { TemplatePicker, type PickerCatalog } from "@/components/TemplatePicker";
-import { GENERIC_TREE_TEMPLATES } from "@/lib/generic-tree-templates";
+import { genericTreeTemplates } from "@/lib/generic-tree-templates";
+import { tierOps } from "@/lib/template-picker";
 import { TREE_QUERY_MANIFEST } from "@/lib/generated/tree-query-templates";
 import {
   TREE_QUERY_OP_GROUPS,
@@ -18,6 +19,16 @@ import {
 // shape templates exist; an op with no template yet reads "No template covers this selection yet."
 const TEMPLATES = decodeTreeQueryTemplates(TREE_QUERY_MANIFEST);
 
+// The shape ops a generic tree template also has, with what they cost there: it keeps the plain heavy-light layout
+// (no lca table), so the costs are the shape-heavy-light template's.
+const PLAIN_SHAPE = TEMPLATES.find((t) => t.folder === "shape-heavy-light");
+const GENERIC_SHAPE_OPS: [string, string][] = (TREE_QUERY_OP_GROUPS.find((g) => g.id === "shape")?.tiers ?? [])
+  .flatMap(tierOps)
+  .flatMap((op): [string, string][] => {
+    const cost = PLAIN_SHAPE?.complexities[op.id];
+    return cost ? [[op.signature, cost]] : [];
+  });
+
 const TREE_QUERY_CATALOG: PickerCatalog<TreeQueryTemplate> = {
   title: "Tree Query Picker",
   opGroups: TREE_QUERY_OP_GROUPS,
@@ -30,7 +41,7 @@ const TREE_QUERY_CATALOG: PickerCatalog<TreeQueryTemplate> = {
     ],
   },
   planned: TREE_QUERY_PLANNED,
-  fillIns: GENERIC_TREE_TEMPLATES,
+  fillIns: genericTreeTemplates(GENERIC_SHAPE_OPS),
   fillInsLabel: "Generic tree templates",
   publicBase: "/tree-query-templates",
   githubBase: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/tree-queries/",

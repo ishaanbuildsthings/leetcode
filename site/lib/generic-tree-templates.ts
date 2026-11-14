@@ -11,12 +11,11 @@ const REVERSE = {
     "Tick this when reading a path a -> b gives a different answer than b -> a (max subarray sum, hashing, ...): the template then also needs nodeReverse / edgeReverse, the data of a stretch read backwards",
   reverseKey: "treeQueryPicker.genericWithReverse",
 } as const;
-const SHAPE_NOTE = "Every tree shape op (lca, kthAncestor, unweightedDist, ...) is there too.";
 // (the C++ files are in fast mode, like every tree template, and that covers the functions filled in)
 const CPP_NOTE =
   "C++ is in fast mode: sanitizers are skipped in the tree and in the functions you fill in (each starts with LEETCODE_NO_SANITIZE), so a bad access in them goes unreported on LeetCode. To debug with sanitizers, put #define LEETCODE_NO_SANITIZE above the template. A helper your functions call, or a constructor of your data or tag struct, needs LEETCODE_NO_SANITIZE too to stay fast.";
 const EDGE_NOTE =
-  " An edge is named by its two ends in either order. An edge query with no edges (the path a..a, the edges below a leaf) raises, since there is no identity value to return; an edge update there does nothing.";
+  "An edge is named by its two ends in either order. An edge query with no edges (the path a..a, the edges below a leaf) raises, since there is no identity value to return; an edge update there does nothing.";
 
 const nodeOps = (lazy: boolean): [string, string][] => [
   ["nodeGet(node)", lazy ? "log(N)" : "1"],
@@ -38,7 +37,8 @@ const edgeOps = (lazy: boolean): [string, string][] => [
 ];
 const BUILD: [string, string] = ["build", "N"];
 
-const family = (kind: "Nodes" | "Edges" | "Both", lazy: boolean): FillIn => {
+// shapeOps: every tree shape op the Tree also has (lca, kthAncestor, ...), as [signature, cost], listed under the value ops
+const family = (kind: "Nodes" | "Edges" | "Both", lazy: boolean, shapeOps: [string, string][]): FillIn => {
   const what = { Nodes: "node values", Edges: "edge weights", Both: "node values + edge weights" }[kind];
   const fill = {
     Nodes: "NodeData, nodeLeaf(v, node) and nodeCombine",
@@ -55,23 +55,24 @@ const family = (kind: "Nodes" | "Edges" | "Both", lazy: boolean): FillIn => {
     file: `Generic${lazy ? "Lazy" : ""}Tree${kind}`,
     cppLevels: true,
     ...REVERSE,
-    ops:
-      kind === "Nodes"
-        ? [...nodeOps(lazy), BUILD]
-        : kind === "Edges"
-          ? [...edgeOps(lazy), BUILD]
-          : [["Node values", ""], ...nodeOps(lazy), ["Edge weights", ""], ...edgeOps(lazy), BUILD],
-    note: SHAPE_NOTE + (kind === "Nodes" ? "" : EDGE_NOTE),
+    ops: [
+      ...(kind === "Edges" ? [] : ([["Node values", ""], ...nodeOps(lazy)] as [string, string][])),
+      ...(kind === "Nodes" ? [] : ([["Edge weights", ""], ...edgeOps(lazy)] as [string, string][])),
+      BUILD,
+      ["Tree shape (no values)", ""],
+      ...shapeOps,
+    ],
+    note: kind === "Nodes" ? undefined : EDGE_NOTE,
     cppNote: CPP_NOTE,
     githubUrl: GITHUB,
   };
 };
 
-export const GENERIC_TREE_TEMPLATES: FillIn[] = [
-  family("Nodes", false),
-  family("Nodes", true),
-  family("Edges", false),
-  family("Edges", true),
-  family("Both", false),
-  family("Both", true),
+export const genericTreeTemplates = (shapeOps: [string, string][]): FillIn[] => [
+  family("Nodes", false, shapeOps),
+  family("Nodes", true, shapeOps),
+  family("Edges", false, shapeOps),
+  family("Edges", true, shapeOps),
+  family("Both", false, shapeOps),
+  family("Both", true, shapeOps),
 ];
