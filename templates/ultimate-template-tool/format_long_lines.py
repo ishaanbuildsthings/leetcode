@@ -18,7 +18,7 @@ LIMIT = 120
 HERE = os.path.dirname(os.path.abspath(__file__))
 FOLDERS = ("range-queries", "sets", "union-find", "strings", "next-permutation", "generic-seg-trees", "matrices",
            "combinatorics", "bit-operations", "trees", "reroot", "bitset", "bubble-sort", "golden-references",
-           "tree-queries")
+           "tree-queries", "generic-trees")
 TAG_FIELD = re.compile(r"^\s*(?://|#)\s+(?:layout|node|tags|other|note):")
 OPENERS, CLOSERS = "([{", ")]}"
 

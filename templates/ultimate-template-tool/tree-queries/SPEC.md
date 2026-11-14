@@ -251,3 +251,39 @@ Section 9 has nothing left to do.
 2. Not on the menu: path Mode and path Mex (offline only: Mo's algorithm on the tree, every query up front), and Kth
    match. Subtree Mode and Mex stay (one range query).
 3. Path CountDistinct / AllDistinct stay, on bitsets (section 4).
+
+## 11. Generic tree templates (fill-ins)
+
+Asked for on 2026-11-13: templates like the generic seg trees (`generic-seg-trees/`), where you write what a stretch of
+values is summed up as and how two stretches join, for node values, edge weights, or both, with lazy updates and
+order-sensitive paths as extras you only fill in when you pick them. No identity values anywhere.
+
+Decided with the user:
+
+1. **Three kinds, each plain or lazy** (six families, in `generic-trees/`): `GenericTreeNodes`, `GenericTreeEdges`,
+   `GenericTreeBoth`, and `GenericLazyTree...` for each. Both = node values and edge weights in one Tree with two
+   separate merges: `nodePathQuery` and `edgePathQuery` answer on their own and never see each other.
+2. **What you fill in**, named after what the user called them ("node data", "edge data"):
+   `NodeVal` (a node's raw value), `NodeData` (what a stretch of nodes is summed up as), `nodeLeaf(v, node)`,
+   `nodeCombine(left, right)`; lazy adds `NodeTag`, `nodeApply(data, tag)`, `nodeCompose(old, newer)`. Edges: the same
+   with `Edge...` / `edge...`, and `edgeLeaf(w, a, b)` gets the edge's two ends (a the upper one).
+3. **Order-sensitive paths: the user writes `nodeReverse(data)` / `edgeReverse(data)`** (as in the generic treaps),
+   only in the version for it. The default version has no reverse to fill in (`.norev` files, as the treaps name
+   them); a checkbox on the site switches to the one with reverse. The alternative (the template keeps both
+   directions itself, nothing to write, twice the memory) was offered and turned down.
+4. **No identity values**: the seg tree marks slots that cover nothing (as the generic seg trees do), a path's pieces
+   are joined starting from the first one, and a pending tag slot is marked empty. A node path or subtree always has a
+   node. **An edge query with no edges (the path a..a, a leaf's subtree) raises** IndexError / out_of_range (the
+   user's choice over returning None / nullopt); an edge update there does nothing.
+5. `Tree(edges, root, vals)` as everywhere: the functions are the ones written above the class, not constructor
+   arguments (the Python generic seg trees pass them in; here the agreed constructor wins).
+6. C++ comes in the three example levels of the generic seg trees (`.simple.cpp`, `.cpp`, `.complex.cpp`), one
+   version each, in fast mode like every tree template (the functions you fill in keep their sanitizers).
+
+Not decided: a seventh kind, **one merge that sees nodes and edges together** (`leaf(nodeVal)` and
+`combine(left, edgeWeight, right)`, so a path is folded node, edge, node, ... in order). It is what a DP along a path
+that uses both needs, it needs no identity (an edge never stands alone), and it would be path queries only. Offered to
+the user, who has not asked for it.
+
+Generator: `tree-query-tests/gen_tree_generic.py`; tests: `tree-query-tests/test_tree_generic.py` (every commented
+example switched on, against a plain fold over the path, in both languages).
