@@ -327,3 +327,10 @@ so log^2 is not felt there and the eight Fenwick updates of a path add cost more
 
 Deliberate bugs: 106 planted, all caught but "a Fenwick entry is not reduced" in the Python MOD files, which cannot
 change an answer there (Python ints do not overflow); in C++ it is caught by a fixed check with a modulus near 2^62.
+
+A second audit (every pairing of no / one-value / subtree / path updates with get, path and subtree sum, xor, min and
+max) found one more: subtree xor with a path xor query. Built as `subtree-xor-apply-fenwick-{node,edge}`
+(`gen_tree_subtree_xor.py`): a subtree xor shows in root..v when v's depth has the parity of the subtree's top, so the
+update goes to one of two trees by that parity. 32 deliberate bugs, all caught. What is left at O(log^2 n) after it:
+any path update with a path query; path min / max with any update; path assign with anything; and a sum under xor
+updates (or a min / max under them), which the range side only has per bit or by sqrt.
