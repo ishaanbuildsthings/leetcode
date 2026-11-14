@@ -36,8 +36,23 @@ export const GOLDEN_MOS_ON_TREE: FillIn[] = [
   },
 ];
 
+// Euler tour path queries: a full solution kept as a copy in golden-references/
+export const GOLDEN_EULER_PATHS: FillIn[] = [
+  {
+    label: "Euler tour path queries (CSES Path Queries)",
+    title:
+      "Worked example of the entry/exit Euler tour for path sums: +value at tin, -value at tout, so a range sum from the root's entry to a node's entry is the sum on the path root..node; a node update is two point sets",
+    folder: "_golden-references",
+    file: "EulerTourPathQueries",
+    langs: ["cpp"],
+    ops: [],
+    githubUrl: GITHUB,
+  },
+];
+
 // the Golden References page, section by section
 export const GOLDEN_SECTIONS: MiscSection[] = [
   { title: "Persistent Segment Tree", items: GOLDEN_REFERENCES },
   { title: "Mo's on Tree", items: GOLDEN_MOS_ON_TREE },
+  { title: "Euler Tour Path Queries", items: GOLDEN_EULER_PATHS },
 ];
