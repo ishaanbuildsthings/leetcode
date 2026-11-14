@@ -939,7 +939,8 @@ export function FillInDrawer({
         )}
         <div className="min-h-0 flex-1 overflow-y-auto">
           {activeVersion === "fast" && <FastPanel info={fillIn.fast!} />}
-          {/* every op is there whatever you need, so all of them are highlighted */}
+          {/* every op is there whatever you need, so all of them are highlighted (nothing to list: no box at all) */}
+          {(ops.length > 0 || fillIn.reverseToggle || fillIn.variant || fillIn.note || (lang === "cpp" && fillIn.cppNote)) && (
           <div className="border-b border-border px-4 py-3 text-xs">
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
               {ops.map(([op, cost], i) =>
@@ -981,6 +982,7 @@ export function FillInDrawer({
             {fillIn.note && <p className="mt-2 text-muted-foreground">{fillIn.note}</p>}
             {lang === "cpp" && fillIn.cppNote && <p className="mt-2 text-muted-foreground">{fillIn.cppNote}</p>}
           </div>
+          )}
           <pre className="overflow-x-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
             {code === null ? "Couldn't load this template." : (code ?? "Loading…")}
           </pre>

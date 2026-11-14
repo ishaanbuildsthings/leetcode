@@ -31,11 +31,7 @@ export const GOLDEN_MOS_ON_TREE: FillIn[] = [
     folder: "_golden-references",
     file: "MosOnTree",
     langs: ["cpp"],
-    ops: [
-      ["Euler tour (order, tin, tout) + lca", "N*log(N)"],
-      ["all Q path queries, offline", "N*sqrt(N)+Q*sqrt(N)"],
-    ],
-    note: "The part to read is main(), at the bottom of the file; the Tree struct above it is the heavy-light template, used only for lca.",
+    ops: [],
     githubUrl: GITHUB,
   },
 ];
