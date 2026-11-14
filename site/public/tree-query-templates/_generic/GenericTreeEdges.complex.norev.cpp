@@ -37,8 +37,10 @@ struct HotVector : vector<U> {
 #endif
 };
 
-// WHAT YOU FILL IN. The functions below keep their sanitizers; to skip those too, put LEETCODE_NO_SANITIZE in front of
-// each one (and of any helper or constructor they use).
+// WHAT YOU FILL IN. Fast mode covers these functions too (each one starts with LEETCODE_NO_SANITIZE): sanitizers are
+// skipped in them, so a bad access in one goes unreported. The #define in the FAST MODE note above turns that off for
+// them as well. Any helper they call needs LEETCODE_NO_SANITIZE too, and so does a constructor of your data or tag
+// struct.
 
 // an edge's raw weight, e.g. long long, char, pair, struct, ...
 using EdgeVal = char;
@@ -47,21 +49,23 @@ using EdgeVal = char;
 struct EdgeData {
     // int cnt[26];  // how many of each letter
     // int len;
-    // EdgeData() {  // can make an empty constructor which runs every time a EdgeData is made
+    // LEETCODE_NO_SANITIZE EdgeData() {  // can make an empty constructor which runs every time one is made
     //     for (int c = 0; c < 26; c++) cnt[c] = 0;  // (the other fields are always set before they're read)
     // }
 };
 
 // the data of one edge (a and b: its two ends, a the one nearer the root)
-EdgeData edgeLeaf(const EdgeVal& w, int a, int b) {
+LEETCODE_NO_SANITIZE EdgeData edgeLeaf(const EdgeVal& w, int a, int b) {
     // EdgeData res;
     // res.cnt[w - 'a'] = 1;
     // res.len = 1;
     // return res;
 }
 
-// two stretches joined: left's edges, then right's
-EdgeData edgeCombine(const EdgeData& left, const EdgeData& right) {
+// two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+// sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b
+// can give a different answer than reading it b -> a, use the version with edgeReverse ("order matters on a path")
+LEETCODE_NO_SANITIZE EdgeData edgeCombine(const EdgeData& left, const EdgeData& right) {
     // EdgeData res;
     // for (int c = 0; c < 26; c++) res.cnt[c] = left.cnt[c] + right.cnt[c];
     // res.len = left.len + right.len;

@@ -37,8 +37,10 @@ struct HotVector : vector<U> {
 #endif
 };
 
-// WHAT YOU FILL IN. The functions below keep their sanitizers; to skip those too, put LEETCODE_NO_SANITIZE in front of
-// each one (and of any helper or constructor they use).
+// WHAT YOU FILL IN. Fast mode covers these functions too (each one starts with LEETCODE_NO_SANITIZE): sanitizers are
+// skipped in them, so a bad access in one goes unreported. The #define in the FAST MODE note above turns that off for
+// them as well. Any helper they call needs LEETCODE_NO_SANITIZE too, and so does a constructor of your data or tag
+// struct.
 
 // a node's raw value, e.g. long long, char, ...
 using NodeVal = long long;
@@ -52,24 +54,27 @@ using NodeData = long long;
 using NodeTag = long long;
 
 // the data of one node (node: its label)
-NodeData nodeLeaf(const NodeVal& v, int node) {
+LEETCODE_NO_SANITIZE NodeData nodeLeaf(const NodeVal& v, int node) {
     // return v;
 }
 
-// two stretches joined: left's nodes, then right's
-NodeData nodeCombine(const NodeData& left, const NodeData& right) {
+// two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+// sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b
+// can give a different answer than reading it b -> a, use the version with nodeReverse ("order matters on a path")
+LEETCODE_NO_SANITIZE NodeData nodeCombine(const NodeData& left, const NodeData& right) {
     // return max(left, right);
 }
 
 // return new data: this data after tag is applied to it. This function is never called with a tag that never existed,
 // but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
 // still need to check for this and no-op (could just return the original data)
-NodeData nodeApply(NodeData data, const NodeTag& tag) {
+LEETCODE_NO_SANITIZE NodeData nodeApply(NodeData data, const NodeTag& tag) {
     // return data + tag;  // (adding to every node raises the max by as much)
 }
 
-// a tag that is the old tag, then the new tag
-NodeTag nodeCompose(NodeTag old, const NodeTag& newer) {
+// one tag that does what old does and then what newer does. Only ever called with two real tags: old is already waiting
+// at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)
+LEETCODE_NO_SANITIZE NodeTag nodeCompose(NodeTag old, const NodeTag& newer) {
     // return old + newer;
 }
 
@@ -85,24 +90,27 @@ using EdgeData = long long;
 using EdgeTag = long long;
 
 // the data of one edge (a and b: its two ends, a the one nearer the root)
-EdgeData edgeLeaf(const EdgeVal& w, int a, int b) {
+LEETCODE_NO_SANITIZE EdgeData edgeLeaf(const EdgeVal& w, int a, int b) {
     // return w;
 }
 
-// two stretches joined: left's edges, then right's
-EdgeData edgeCombine(const EdgeData& left, const EdgeData& right) {
+// two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+// sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b
+// can give a different answer than reading it b -> a, use the version with edgeReverse ("order matters on a path")
+LEETCODE_NO_SANITIZE EdgeData edgeCombine(const EdgeData& left, const EdgeData& right) {
     // return max(left, right);
 }
 
 // return new data: this data after tag is applied to it. This function is never called with a tag that never existed,
 // but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
 // still need to check for this and no-op (could just return the original data)
-EdgeData edgeApply(EdgeData data, const EdgeTag& tag) {
+LEETCODE_NO_SANITIZE EdgeData edgeApply(EdgeData data, const EdgeTag& tag) {
     // return data + tag;  // (adding to every edge raises the max by as much)
 }
 
-// a tag that is the old tag, then the new tag
-EdgeTag edgeCompose(EdgeTag old, const EdgeTag& newer) {
+// one tag that does what old does and then what newer does. Only ever called with two real tags: old is already waiting
+// at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)
+LEETCODE_NO_SANITIZE EdgeTag edgeCompose(EdgeTag old, const EdgeTag& newer) {
     // return old + newer;
 }
 

@@ -37,8 +37,10 @@ struct HotVector : vector<U> {
 #endif
 };
 
-// WHAT YOU FILL IN. The functions below keep their sanitizers; to skip those too, put LEETCODE_NO_SANITIZE in front of
-// each one (and of any helper or constructor they use).
+// WHAT YOU FILL IN. Fast mode covers these functions too (each one starts with LEETCODE_NO_SANITIZE): sanitizers are
+// skipped in them, so a bad access in one goes unreported. The #define in the FAST MODE note above turns that off for
+// them as well. Any helper they call needs LEETCODE_NO_SANITIZE too, and so does a constructor of your data or tag
+// struct.
 
 // a node's raw value, e.g. long long, char, pair, struct, ...
 using NodeVal = char;
@@ -47,7 +49,7 @@ using NodeVal = char;
 struct NodeData {
     // int cnt[26];  // how many of each letter
     // int len;
-    // NodeData() {  // can make an empty constructor which runs every time a NodeData is made
+    // LEETCODE_NO_SANITIZE NodeData() {  // can make an empty constructor which runs every time one is made
     //     for (int c = 0; c < 26; c++) cnt[c] = 0;  // (the other fields are always set before they're read)
     // }
 };
@@ -62,15 +64,17 @@ struct NodeTag {
 };
 
 // the data of one node (node: its label)
-NodeData nodeLeaf(const NodeVal& v, int node) {
+LEETCODE_NO_SANITIZE NodeData nodeLeaf(const NodeVal& v, int node) {
     // NodeData res;
     // res.cnt[v - 'a'] = 1;
     // res.len = 1;
     // return res;
 }
 
-// two stretches joined: left's nodes, then right's
-NodeData nodeCombine(const NodeData& left, const NodeData& right) {
+// two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+// sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b
+// can give a different answer than reading it b -> a, use the version with nodeReverse ("order matters on a path")
+LEETCODE_NO_SANITIZE NodeData nodeCombine(const NodeData& left, const NodeData& right) {
     // NodeData res;
     // for (int c = 0; c < 26; c++) res.cnt[c] = left.cnt[c] + right.cnt[c];
     // res.len = left.len + right.len;
@@ -80,7 +84,7 @@ NodeData nodeCombine(const NodeData& left, const NodeData& right) {
 // return new data: this data after tag is applied to it. This function is never called with a tag that never existed,
 // but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
 // still need to check for this and no-op (could just return the original data)
-NodeData nodeApply(NodeData data, const NodeTag& tag) {
+LEETCODE_NO_SANITIZE NodeData nodeApply(NodeData data, const NodeTag& tag) {
     // This is NOT mutating since data is taken by value in the arg, we can also just make a new one if needed
     // if (tag.assign) {
     //     for (int c = 0; c < 26; c++) data.cnt[c] = 0;
@@ -92,8 +96,9 @@ NodeData nodeApply(NodeData data, const NodeTag& tag) {
     // return data;
 }
 
-// a tag that is the old tag, then the new tag
-NodeTag nodeCompose(NodeTag old, const NodeTag& newer) {
+// one tag that does what old does and then what newer does. Only ever called with two real tags: old is already waiting
+// at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)
+LEETCODE_NO_SANITIZE NodeTag nodeCompose(NodeTag old, const NodeTag& newer) {
     // This is NOT mutating since old is taken by value in the arg, we can also just make a new tag if needed
     // if (newer.assign) return newer;  // (a later assign wipes out everything before it)
     // old.shift = (old.shift + newer.shift) % 26;  // (shifts add up, still after old's assign if it had one)

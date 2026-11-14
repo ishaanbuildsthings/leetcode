@@ -15,7 +15,9 @@ def edgeLeaf(w: EdgeVal, a: int, b: int) -> EdgeData:
     pass
 
 
-# two stretches joined: left's edges, then right's
+# two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+# sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b can
+# give a different answer than reading it b -> a, use the version with edgeReverse ("order matters on a path")
 def edgeCombine(left: EdgeData, right: EdgeData) -> EdgeData:
     # return (left[0] + right[0], min(left[1], right[1]))
     pass

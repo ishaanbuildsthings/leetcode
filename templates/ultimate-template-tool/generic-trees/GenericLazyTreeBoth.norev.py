@@ -20,7 +20,9 @@ def nodeLeaf(v: NodeVal, node: int) -> NodeData:
     pass
 
 
-# two stretches joined: left's nodes, then right's
+# two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+# sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b can
+# give a different answer than reading it b -> a, use the version with nodeReverse ("order matters on a path")
 def nodeCombine(left: NodeData, right: NodeData) -> NodeData:
     # return (left[0] + right[0], min(left[1], right[1]), left[2] + right[2])
     pass
@@ -34,7 +36,8 @@ def nodeApply(data: NodeData, tag: NodeTag) -> NodeData:
     pass
 
 
-# a tag that is the old tag, then the new tag
+# one tag that does what old does and then what newer does. Only ever called with two real tags: old is already waiting
+# at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)
 def nodeCompose(old: NodeTag, newer: NodeTag) -> NodeTag:
     # return old + newer
     pass
@@ -58,7 +61,9 @@ def edgeLeaf(w: EdgeVal, a: int, b: int) -> EdgeData:
     pass
 
 
-# two stretches joined: left's edges, then right's
+# two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+# sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b can
+# give a different answer than reading it b -> a, use the version with edgeReverse ("order matters on a path")
 def edgeCombine(left: EdgeData, right: EdgeData) -> EdgeData:
     # return (left[0] + right[0], min(left[1], right[1]), left[2] + right[2])
     pass
@@ -72,7 +77,8 @@ def edgeApply(data: EdgeData, tag: EdgeTag) -> EdgeData:
     pass
 
 
-# a tag that is the old tag, then the new tag
+# one tag that does what old does and then what newer does. Only ever called with two real tags: old is already waiting
+# at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)
 def edgeCompose(old: EdgeTag, newer: EdgeTag) -> EdgeTag:
     # return old + newer
     pass

@@ -15,7 +15,10 @@ def nodeLeaf(v: NodeVal, node: int) -> NodeData:
     pass
 
 
-# two stretches joined: left's nodes, then right's
+# two stretches that sit next to each other, joined into one: left is the one read first, right the one read straight
+# after it. Left and right are about reading order only, not about up or down in the tree. The template calls this on
+# any two neighbouring stretches (inside its segment tree, and when it puts the pieces of a path together), and where a
+# path walks up a stretch it has already turned that stretch around with nodeReverse
 def nodeCombine(left: NodeData, right: NodeData) -> NodeData:
     # return (left[0] + right[0], left[1], right[2], left[3] + right[3])
     pass
@@ -40,7 +43,10 @@ def edgeLeaf(w: EdgeVal, a: int, b: int) -> EdgeData:
     pass
 
 
-# two stretches joined: left's edges, then right's
+# two stretches that sit next to each other, joined into one: left is the one read first, right the one read straight
+# after it. Left and right are about reading order only, not about up or down in the tree. The template calls this on
+# any two neighbouring stretches (inside its segment tree, and when it puts the pieces of a path together), and where a
+# path walks up a stretch it has already turned that stretch around with edgeReverse
 def edgeCombine(left: EdgeData, right: EdgeData) -> EdgeData:
     # return (left[0] + right[0], left[1], right[2], left[3] + right[3])
     pass

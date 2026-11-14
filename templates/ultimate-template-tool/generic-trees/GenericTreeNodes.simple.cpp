@@ -37,8 +37,10 @@ struct HotVector : vector<U> {
 #endif
 };
 
-// WHAT YOU FILL IN. The functions below keep their sanitizers; to skip those too, put LEETCODE_NO_SANITIZE in front of
-// each one (and of any helper or constructor they use).
+// WHAT YOU FILL IN. Fast mode covers these functions too (each one starts with LEETCODE_NO_SANITIZE): sanitizers are
+// skipped in them, so a bad access in one goes unreported. The #define in the FAST MODE note above turns that off for
+// them as well. Any helper they call needs LEETCODE_NO_SANITIZE too, and so does a constructor of your data or tag
+// struct.
 
 // a node's raw value, e.g. long long, char, ...
 using NodeVal = long long;
@@ -47,17 +49,20 @@ using NodeVal = long long;
 using NodeData = pair<long long, long long>;
 
 // the data of one node (node: its label)
-NodeData nodeLeaf(const NodeVal& v, int node) {
+LEETCODE_NO_SANITIZE NodeData nodeLeaf(const NodeVal& v, int node) {
     // return {v, v};
 }
 
-// two stretches joined: left's nodes, then right's
-NodeData nodeCombine(const NodeData& left, const NodeData& right) {
+// two stretches that sit next to each other, joined into one: left is the one read first, right the one read straight
+// after it. Left and right are about reading order only, not about up or down in the tree. The template calls this on
+// any two neighbouring stretches (inside its segment tree, and when it puts the pieces of a path together), and where a
+// path walks up a stretch it has already turned that stretch around with nodeReverse
+LEETCODE_NO_SANITIZE NodeData nodeCombine(const NodeData& left, const NodeData& right) {
     // return {left.first, right.second};
 }
 
 // the data of the same stretch read backwards
-NodeData nodeReverse(NodeData data) {
+LEETCODE_NO_SANITIZE NodeData nodeReverse(NodeData data) {
     // return {data.second, data.first};  // (read backwards, the two ends trade places)
 }
 

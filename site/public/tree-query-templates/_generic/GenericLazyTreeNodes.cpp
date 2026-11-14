@@ -37,8 +37,10 @@ struct HotVector : vector<U> {
 #endif
 };
 
-// WHAT YOU FILL IN. The functions below keep their sanitizers; to skip those too, put LEETCODE_NO_SANITIZE in front of
-// each one (and of any helper or constructor they use).
+// WHAT YOU FILL IN. Fast mode covers these functions too (each one starts with LEETCODE_NO_SANITIZE): sanitizers are
+// skipped in them, so a bad access in one goes unreported. The #define in the FAST MODE note above turns that off for
+// them as well. Any helper they call needs LEETCODE_NO_SANITIZE too, and so does a constructor of your data or tag
+// struct.
 
 // a node's raw value, e.g. long long, char, pair, struct, ...
 using NodeVal = long long;
@@ -58,14 +60,17 @@ struct NodeTag {
 };
 
 // the data of one node (node: its label)
-NodeData nodeLeaf(const NodeVal& v, int node) {
+LEETCODE_NO_SANITIZE NodeData nodeLeaf(const NodeVal& v, int node) {
     // NodeData res;
     // res.tot = v, res.first = res.last = v, res.len = 1;
     // return res;
 }
 
-// two stretches joined: left's nodes, then right's
-NodeData nodeCombine(const NodeData& left, const NodeData& right) {
+// two stretches that sit next to each other, joined into one: left is the one read first, right the one read straight
+// after it. Left and right are about reading order only, not about up or down in the tree. The template calls this on
+// any two neighbouring stretches (inside its segment tree, and when it puts the pieces of a path together), and where a
+// path walks up a stretch it has already turned that stretch around with nodeReverse
+LEETCODE_NO_SANITIZE NodeData nodeCombine(const NodeData& left, const NodeData& right) {
     // NodeData res;
     // res.tot = left.tot + right.tot;
     // res.first = left.first, res.last = right.last;
@@ -74,7 +79,7 @@ NodeData nodeCombine(const NodeData& left, const NodeData& right) {
 }
 
 // the data of the same stretch read backwards
-NodeData nodeReverse(NodeData data) {
+LEETCODE_NO_SANITIZE NodeData nodeReverse(NodeData data) {
     // This is NOT mutating since data is taken by value in the arg, we can also just make a new one if needed
     // swap(data.first, data.last);  // (read backwards, the two ends trade places)
     // return data;
@@ -83,14 +88,15 @@ NodeData nodeReverse(NodeData data) {
 // return new data: this data after tag is applied to it. This function is never called with a tag that never existed,
 // but tags can have things like pending false values or pending no-ops (for instance two lazy bools canceling) and we
 // still need to check for this and no-op (could just return the original data)
-NodeData nodeApply(NodeData data, const NodeTag& tag) {
+LEETCODE_NO_SANITIZE NodeData nodeApply(NodeData data, const NodeTag& tag) {
     // This is NOT mutating since data is taken by value in the arg, we can also just make a new one if needed
     // data.tot += tag.add * data.len, data.first += tag.add, data.last += tag.add;
     // return data;
 }
 
-// a tag that is the old tag, then the new tag
-NodeTag nodeCompose(NodeTag old, const NodeTag& newer) {
+// one tag that does what old does and then what newer does. Only ever called with two real tags: old is already waiting
+// at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)
+LEETCODE_NO_SANITIZE NodeTag nodeCompose(NodeTag old, const NodeTag& newer) {
     // This is NOT mutating since old is taken by value in the arg, we can also just make a new tag if needed
     // old.add += newer.add;
     // return old;

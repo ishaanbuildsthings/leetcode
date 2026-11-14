@@ -12,6 +12,9 @@ const REVERSE = {
   reverseKey: "treeQueryPicker.genericWithReverse",
 } as const;
 const SHAPE_NOTE = "Every tree shape op (lca, kthAncestor, unweightedDist, ...) is there too.";
+// (the C++ files are in fast mode, like every tree template, and that covers the functions filled in)
+const CPP_NOTE =
+  "C++ is in fast mode: sanitizers are skipped in the tree and in the functions you fill in (each starts with LEETCODE_NO_SANITIZE), so a bad access in them goes unreported on LeetCode. To debug with sanitizers, put #define LEETCODE_NO_SANITIZE above the template. A helper your functions call, or a constructor of your data or tag struct, needs LEETCODE_NO_SANITIZE too to stay fast.";
 const EDGE_NOTE =
   " An edge is named by its two ends in either order. An edge query with no edges (the path a..a, the edges below a leaf) raises, since there is no identity value to return; an edge update there does nothing.";
 
@@ -59,6 +62,7 @@ const family = (kind: "Nodes" | "Edges" | "Both", lazy: boolean): FillIn => {
           ? [...edgeOps(lazy), BUILD]
           : [["Node values", ""], ...nodeOps(lazy), ["Edge weights", ""], ...edgeOps(lazy), BUILD],
     note: SHAPE_NOTE + (kind === "Nodes" ? "" : EDGE_NOTE),
+    cppNote: CPP_NOTE,
     githubUrl: GITHUB,
   };
 };

@@ -278,12 +278,16 @@ Decided with the user:
 5. `Tree(edges, root, vals)` as everywhere: the functions are the ones written above the class, not constructor
    arguments (the Python generic seg trees pass them in; here the agreed constructor wins).
 6. C++ comes in the three example levels of the generic seg trees (`.simple.cpp`, `.cpp`, `.complex.cpp`), one
-   version each, in fast mode like every tree template (the functions you fill in keep their sanitizers).
+   version each, in fast mode like every tree template. Fast mode covers the functions filled in: each starts with
+   `LEETCODE_NO_SANITIZE`, as in the generic seg trees' fast version (the file's fill-in note and the site drawer both
+   say so, with the one-line off switch). At first they kept their sanitizers; the user asked whether that was
+   documented and wants no hidden slowdown, and an unmarked function cannot be inlined into the marked tree code.
 
-Not decided: a seventh kind, **one merge that sees nodes and edges together** (`leaf(nodeVal)` and
-`combine(left, edgeWeight, right)`, so a path is folded node, edge, node, ... in order). It is what a DP along a path
-that uses both needs, it needs no identity (an edge never stands alone), and it would be path queries only. Offered to
-the user, who has not asked for it.
+Turned down (2026-11-13): a seventh kind, **one merge that sees nodes and edges together** (`leaf(nodeVal)` and
+`combine(left, edgeWeight, right)`, so a path is folded node, edge, node, ... in order). The user has no use for it:
+two separate merges are fine as long as they cost nothing extra. Measured in C++ (200,000 nodes, 300,000 mixed node
+path updates, assigns and path queries): 131 to 144 ms in the nodes-only template and the same in the both template,
+whose build takes 10 ms instead of 8 and whose memory is the two seg trees' together.
 
 Generator: `tree-query-tests/gen_tree_generic.py`; tests: `tree-query-tests/test_tree_generic.py` (every commented
 example switched on, against a plain fold over the path, in both languages).

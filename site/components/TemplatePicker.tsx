@@ -149,6 +149,8 @@ export type FillIn = {
   githubUrl: string;
   ops: [string, string][];
   note?: string;
+  // (optional) a second line under the ops, shown with the C++ file only (the generic tree templates: fast mode)
+  cppNote?: string;
   // the languages it comes in (both if left out): the drawer offers only these
   langs?: TemplateLang[];
   // the C++ file comes in three example levels (file.simple.cpp, file.cpp, file.complex.cpp): a selector picks one
@@ -977,6 +979,7 @@ export function FillInDrawer({
               </div>
             )}
             {fillIn.note && <p className="mt-2 text-muted-foreground">{fillIn.note}</p>}
+            {lang === "cpp" && fillIn.cppNote && <p className="mt-2 text-muted-foreground">{fillIn.cppNote}</p>}
           </div>
           <pre className="overflow-x-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
             {code === null ? "Couldn't load this template." : (code ?? "Loading…")}

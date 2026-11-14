@@ -20,7 +20,10 @@ def nodeLeaf(v: NodeVal, node: int) -> NodeData:
     pass
 
 
-# two stretches joined: left's nodes, then right's
+# two stretches that sit next to each other, joined into one: left is the one read first, right the one read straight
+# after it. Left and right are about reading order only, not about up or down in the tree. The template calls this on
+# any two neighbouring stretches (inside its segment tree, and when it puts the pieces of a path together), and where a
+# path walks up a stretch it has already turned that stretch around with nodeReverse
 def nodeCombine(left: NodeData, right: NodeData) -> NodeData:
     # return (left[0] + right[0], left[1], right[2], left[3] + right[3])
     pass
@@ -40,7 +43,8 @@ def nodeApply(data: NodeData, tag: NodeTag) -> NodeData:
     pass
 
 
-# a tag that is the old tag, then the new tag
+# one tag that does what old does and then what newer does. Only ever called with two real tags: old is already waiting
+# at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)
 def nodeCompose(old: NodeTag, newer: NodeTag) -> NodeTag:
     # return old + newer
     pass

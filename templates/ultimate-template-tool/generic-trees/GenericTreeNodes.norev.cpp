@@ -37,8 +37,10 @@ struct HotVector : vector<U> {
 #endif
 };
 
-// WHAT YOU FILL IN. The functions below keep their sanitizers; to skip those too, put LEETCODE_NO_SANITIZE in front of
-// each one (and of any helper or constructor they use).
+// WHAT YOU FILL IN. Fast mode covers these functions too (each one starts with LEETCODE_NO_SANITIZE): sanitizers are
+// skipped in them, so a bad access in one goes unreported. The #define in the FAST MODE note above turns that off for
+// them as well. Any helper they call needs LEETCODE_NO_SANITIZE too, and so does a constructor of your data or tag
+// struct.
 
 // a node's raw value, e.g. long long, char, pair, struct, ...
 using NodeVal = long long;
@@ -50,14 +52,16 @@ struct NodeData {
 };
 
 // the data of one node (node: its label)
-NodeData nodeLeaf(const NodeVal& v, int node) {
+LEETCODE_NO_SANITIZE NodeData nodeLeaf(const NodeVal& v, int node) {
     // NodeData res;
     // res.tot = v, res.mn = v;
     // return res;
 }
 
-// two stretches joined: left's nodes, then right's
-NodeData nodeCombine(const NodeData& left, const NodeData& right) {
+// two stretches joined into one. In this version the result must not depend on which one is left and which is right (a
+// sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading a path a -> b
+// can give a different answer than reading it b -> a, use the version with nodeReverse ("order matters on a path")
+LEETCODE_NO_SANITIZE NodeData nodeCombine(const NodeData& left, const NodeData& right) {
     // NodeData res;
     // res.tot = left.tot + right.tot, res.mn = min(left.mn, right.mn);
     // return res;

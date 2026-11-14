@@ -18,7 +18,10 @@ There are no identity values: a seg tree slot that covers nothing is marked as s
 starting from the first one, and an edge query with no edges (the path a..a, a leaf's subtree) raises.
 
 Python has one example level; C++ has the three of the generic seg trees (.simple.cpp, .cpp, .complex.cpp). The
-examples are comments: test_tree_generic.py switches every one on and checks it against a plain fold.
+examples are comments: test_tree_generic.py switches every one on and checks it against a plain fold. The C++ files
+are in fast mode like every tree template, and that covers the functions filled in: each starts with
+LEETCODE_NO_SANITIZE, as in the generic seg trees' fast version (unmarked, they could not be inlined into the marked
+tree code that calls them).
 
     python3 gen_tree_generic.py           # write
     python3 gen_tree_generic.py --check   # exit 1 if a file on disk differs from what this would write
@@ -45,8 +48,28 @@ BY_VALUE = "This is NOT mutating since {arg} is taken by value in the arg, we ca
 
 
 # (the line the C++ fill-in section starts after: test_tree_generic.py switches the examples on from here down)
-FILL_NOTE = G.wrap("//", "WHAT YOU FILL IN. The functions below keep their sanitizers; to skip those too, put "
-                   "LEETCODE_NO_SANITIZE in front of each one (and of any helper or constructor they use).")
+FILL_NOTE = G.wrap("//", "WHAT YOU FILL IN. Fast mode covers these functions too (each one starts with LEETCODE_NO_SANITIZE): "
+                   "sanitizers are skipped in them, so a bad access in one goes unreported. The #define in the FAST MODE "
+                   "note above turns that off for them as well. Any helper they call needs LEETCODE_NO_SANITIZE too, and "
+                   "so does a constructor of your data or tag struct.")
+
+
+def combine_note(t, rev):
+    """What the combine function is handed: about reading order only, never about up or down in the tree."""
+    if rev:
+        return ("two stretches that sit next to each other, joined into one: left is the one read first, right the one read "
+                "straight after it. Left and right are about reading order only, not about up or down in the tree. The "
+                "template calls this on any two neighbouring stretches (inside its segment tree, and when it puts the "
+                f"pieces of a path together), and where a path walks up a stretch it has already turned that stretch "
+                f"around with {t}Reverse")
+    return ("two stretches joined into one. In this version the result must not depend on which one is left and which is "
+            "right (a sum, a min, a gcd, ...): the template hands the two over in whatever order it meets them. If reading "
+            f"a path a -> b can give a different answer than reading it b -> a, use the version with {t}Reverse (\"order "
+            "matters on a path\")")
+
+
+COMPOSE_NOTE = ("one tag that does what old does and then what newer does. Only ever called with two real tags: old is "
+                "already waiting at a slot when newer arrives there (the first tag to reach a slot is just stored as it is)")
 
 
 def must(text, old, new):
@@ -79,7 +102,7 @@ def py_fill(t, rev, lazy):
     ends = "" if t == "node" else " (a and b: its two ends, a the one nearer the root)"
     funcs = [f"# the data of one {thing}{' (node: its label)' if t == 'node' else ends}\n"
              f"def {t}Leaf({raw}: {T}Val, {where}) -> {T}Data:\n    # return {leaf}\n    pass\n",
-             f"# two stretches joined: left's {things}, then right's\n"
+             G.wrap("#", combine_note(t, rev)) +
              f"def {t}Combine(left: {T}Data, right: {T}Data) -> {T}Data:\n    # return {comb}\n    pass\n"]
     if rev:
         funcs.append(f"# the data of the same stretch read backwards\n"
@@ -89,7 +112,7 @@ def py_fill(t, rev, lazy):
     if lazy:
         funcs.append(G.wrap("#", APPLY_NOTE) + f"def {t}Apply(data: {T}Data, tag: {T}Tag) -> {T}Data:\n"
                      f"    # return {appl}\n    pass\n")
-        funcs.append(f"# a tag that is the old tag, then the new tag\n"
+        funcs.append(G.wrap("#", COMPOSE_NOTE) +
                      f"def {t}Compose(old: {T}Tag, newer: {T}Tag) -> {T}Tag:\n    # return old + newer\n    pass\n")
     return "\n".join(types) + "\n\n" + "\n\n".join(funcs)
 
@@ -108,15 +131,17 @@ def cpp_fill(t, rev, lazy, level):
 
     def fn(comment, sig, body):
         lines = "".join(f"    // {line}\n" for line in body)
-        out.append("".join(f"// {c}\n" for c in comment) + f"{sig} {{\n{lines}}}\n")
+        out.append("".join(f"// {c}\n" for c in comment) + f"LEETCODE_NO_SANITIZE {sig} {{\n{lines}}}\n")
 
     leaf_sig = f"{D} {t}Leaf(const {T}Val& {raw}, {where})"
     comb_sig = f"{D} {t}Combine(const {D}& left, const {D}& right)"
     rev_sig, app_sig = f"{D} {t}Reverse({D} data)", f"{D} {t}Apply({D} data, const {G_}& tag)"
     com_sig = f"{G_} {t}Compose({G_} old, const {G_}& newer)"
     apply_comment = G.wrap("//", APPLY_NOTE).rstrip("\n").replace("// ", "", 1).split("\n// ")
-    leaf_comment, comb_comment = [f"the data of one {thing}{ends}"], [f"two stretches joined: left's {things}, then right's"]
-    rev_comment, com_comment = ["the data of the same stretch read backwards"], ["a tag that is the old tag, then the new tag"]
+    def lines(text):  # a comment's lines, wrapped
+        return G.wrap("//", text).rstrip("\n").replace("// ", "", 1).split("\n// ")
+    leaf_comment, comb_comment = [f"the data of one {thing}{ends}"], lines(combine_note(t, rev))
+    rev_comment, com_comment = ["the data of the same stretch read backwards"], lines(COMPOSE_NOTE)
     tag_comment = [f"a pending update to every {thing} of a stretch", *G.wrap("//", NO_TAG_NOTE).rstrip("\n")
                    .replace("// ", "", 1).split("\n// ")]
 
@@ -176,7 +201,7 @@ def cpp_fill(t, rev, lazy, level):
         out.append(f"// {a_thing}'s raw {raw_word}, e.g. long long, char, pair, struct, ...\nusing {T}Val = char;\n")
         fields = ["int cnt[26];  // how many of each letter",
                   *(["char first, last;  // the letters at the two ends"] if rev else []), "int len;",
-                  f"{D}() {{  // can make an empty constructor which runs every time a {D} is made",
+                  f"LEETCODE_NO_SANITIZE {D}() {{  // can make an empty constructor which runs every time one is made",
                   "    for (int c = 0; c < 26; c++) cnt[c] = 0;  // (the other fields are always set before they're read)",
                   "}"]
         out.append(f"// what a stretch of {things} is summed up as\nstruct {D} {{\n"
