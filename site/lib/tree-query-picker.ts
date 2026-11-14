@@ -194,6 +194,7 @@ function valueGroups(t: Target): PickerOpGroup[] {
       {
         kind: "topic",
         label: "Bit ops",
+        collapsible: true,
         ops: [
           q("XOR", "", `XOR of the ${vals} ${w}`),
           q("AND", "", `AND of the ${vals} ${w}`),
@@ -301,6 +302,7 @@ function valueGroups(t: Target): PickerOpGroup[] {
         {
           kind: "topic",
           label: "Prefix / suffix sums (path is a -> b)",
+          collapsible: true,
           ops: [
             op(p, "PathMaxPrefixSum", "a, b", `Max sum of a prefix of the path`),
             op(p, "PathMinPrefixSum", "a, b", `Min sum of a prefix of the path`),
@@ -312,6 +314,7 @@ function valueGroups(t: Target): PickerOpGroup[] {
         {
           kind: "topic",
           label: "Hashing",
+          collapsible: true,
           ops: [
             op(p, "PathHash", "a, b", `Hash of the ${vals} read a -> b (equal sequences hash equal)`),
             op(p, "PathHashReversed", "a, b", `Hash of the ${vals} read b -> a (equal to ${p}PathHash(b, a))`),

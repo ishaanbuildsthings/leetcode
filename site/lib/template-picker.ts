@@ -25,6 +25,9 @@ export interface PickerOpTier {
   // (optional) which section of its group the tier is in: sectioned tiers sit behind a small switch, one section at a
   // time, below the group's unsectioned tiers (tree queries: One node always shows; Path a..b / Subtree of v switch)
   section?: string;
+  // (optional) shown as just its header until clicked open: closed on every page load, open while searching, and
+  // saying how many of its ops are picked while closed (tree queries: Bit ops, Prefix / suffix sums, Hashing)
+  collapsible?: boolean;
   ops: PickerOp[];
 }
 

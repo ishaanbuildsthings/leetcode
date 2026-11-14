@@ -1583,12 +1583,45 @@ export function TemplatePicker<V extends PickerTemplate>({
           )}
           {!closed && (
             <div className="-mx-2 grid grid-cols-[auto_auto_minmax(0,1fr)]">
-              {shownTiers.flatMap((tier, tierIdx) => [
+              {shownTiers.flatMap((tier, tierIdx) => {
+                // a collapsible tier is just its header until clicked open (always open while searching)
+                const tierKey = `${group.id}/${tier.section ?? ""}/${tier.label ?? tier.kind}`;
+                const tierClosed = !q && !!tier.collapsible && !expanded.has(tierKey);
+                const tierPicked = tierClosed ? tierOps(tier).filter((op) => active.has(op.id)).length : 0;
+                return [
                 tierIdx === always.length ? sectionSwitch : null,
                 // a "topic" tier with no label is just the group's list: no header
                 // the "common" tier is just the top of the list (no header); a "topic" tier with no label too
                 tier.kind === "common" ||
-                (tier.kind === "topic" && !tier.label) ? null : (
+                (tier.kind === "topic" && !tier.label) ? null : tier.collapsible && !q ? (
+                  <h3 key={tier.label ?? tier.kind} className={`col-span-3 px-2 ${tierIdx === 0 ? "" : "mt-1.5"}`}>
+                    <button
+                      type="button"
+                      aria-expanded={!tierClosed}
+                      onClick={() =>
+                        setExpanded((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(tierKey)) next.delete(tierKey);
+                          else next.add(tierKey);
+                          return next;
+                        })
+                      }
+                      className="flex w-full items-center gap-2 text-left"
+                    >
+                      <span
+                        aria-hidden
+                        className={`inline-block text-[9px] text-muted-foreground transition-transform ${tierClosed ? "" : "rotate-90"}`}
+                      >
+                        ▶
+                      </span>
+                      <TierBadge kind={tier.kind} label={tier.label} />
+                      {tierPicked > 0 && (
+                        <span className="rounded bg-primary/15 px-1.5 text-[10px] font-medium text-primary">{tierPicked} selected</span>
+                      )}
+                      <span aria-hidden className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+                    </button>
+                  </h3>
+                ) : (
                   <h3
                     key={tier.label ?? tier.kind}
                     className={`col-span-3 flex items-center gap-2 px-2 ${tierIdx === 0 ? "" : "mt-1.5"}`}
@@ -1600,7 +1633,7 @@ export function TemplatePicker<V extends PickerTemplate>({
                     />
                   </h3>
                 ),
-                ...tier.ops.flatMap((base) => {
+                ...(tierClosed ? [] : tier.ops).flatMap((base) => {
                   // with a mod variant, the row stands for whichever of the two is picked (the checkbox says which)
                   const modOn = !!base.modVariant && selected.has(base.modVariant.id);
                   const op = modOn ? base.modVariant! : base;
@@ -1662,7 +1695,8 @@ export function TemplatePicker<V extends PickerTemplate>({
                     </label>,
                   ];
                 }),
-              ])}
+                ];
+              })}
             </div>
           )}
         </section>
