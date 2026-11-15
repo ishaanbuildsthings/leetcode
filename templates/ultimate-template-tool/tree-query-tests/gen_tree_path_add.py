@@ -1,5 +1,6 @@
 """Writes the single-log path update templates: tree-queries/path-add-fenwick-{node,edge},
-path-add-mod-fenwick-{node,edge} and path-xor-apply-fenwick-{node,edge}, each template.{py,cpp}.
+path-add-mod-fenwick-{node,edge}, path-xor-apply-fenwick-{node,edge}, and the two with an arithmetic-sequence add
+too, path-add-arith-fenwick-{node,edge} and path-add-arith-mod-fenwick-{node,edge}, each template.{py,cpp}.
 
 A wrapped range template (gen_tree.py) adds to a path in O(log^2 n): O(log n) chain pieces, a range add each. When the
 queries are one value or a subtree (not a path), an add can be marked instead, because it can be taken back: put +x at
@@ -18,6 +19,13 @@ Fenwick trees), and one value changes through a mark at it taken back at its par
 Xor works the same way (it is its own inverse): the marks are x at both ends, the lca and the node above it. What a
 subtree's xor sees of a mark depends on whether an odd number of nodes lie between it and the top, so the marks are
 kept by depth parity, and the stretch updates by position parity.
+
+An arithmetic sequence along a path (start, start + step, ... walking a -> b) is two straight lines in the depth: going
+up from a the term is (start + step * depth(a)) - step * depth, and going down to b it is a constant + step * depth.
+The constants are ordinary marks. The "times depth" parts are marks of a second kind, slopes: a slope of k at y gives
+every node from y up to the root k * (its own depth). A value reads the slopes inside its subtree times its depth; a
+subtree's sum needs each slope times depth(top) + ... + depth(y), a difference of two triangle numbers, so one more
+tree keeps slope * (1 + 2 + ... + depth).
 
 There is no single-log path sum here: a path update with a path query needs the O(log^2 n) templates.
 
@@ -49,7 +57,7 @@ class Tree:
             first[i + 1] = @RED(first[i] + base[v])@
         self.base, self.first = base, first
 @TREES_NOTE@
-        self.m1, self.m2, self.d1, self.d2 = ([0] * (n + 1) for _ in range(4))@KEEP_MOD@
+        self.m1, self.m2, self.d1, self.d2 = ([0] * (n + 1) for _ in range(4))@SLOPE_TREES@@KEEP_MOD@
 
     # tree[p] += x, tree a Fenwick tree over the positions (nothing when p is past the last position)
     def _add(self, tree, p, x):
@@ -73,7 +81,7 @@ class Tree:
         p = self.pos[v]
         self._add(self.m1, p, x)
         self._add(self.m2, p, x * self.dep[v])
-
+@SLOPE@
     # the value kept at node v grows by x (it alone): a mark at v, taken back at its parent
     def _bump(self, v, x):
         self._mark(v, x)
@@ -89,11 +97,7 @@ class Tree:
         self._add(self.d2, l, x * l)
         self._add(self.d2, r + 1, -x * (r + 1))
 
-    # the value kept at node v: its starting value, the marks inside its subtree, the stretch adds that cover it
-    def _value(self, v):
-        l, m1 = self.pos[v], self.m1
-        inside = self._sum(m1, l + self.sz[v] - 1) - self._sum(m1, l - 1)
-        return @RED(self.base[v] + inside + self._sum(self.d1, l))@
+@VALUE@
 
     # what the stretch adds gave the values at positions 0..k, in all (0 when k is -1)
     def _spreadUpTo(self, k):
@@ -107,14 +111,14 @@ struct Tree {
 @ARRAYS_NOTE@
     HotVector<C> base, first;
 @TREES_NOTE@
-    HotVector<C> m1, m2, d1, d2;
+    HotVector<C> m1, m2, d1, d2@SLOPE_NAMES@;
 
 @CTOR_NOTE@
 @CTOR@ {
 @LAYOUT@
 @VALUES@        first.assign(n + 1, 0);
         for (int i = 0; i < n; i++) first[i + 1] = fit((W)first[i] + (W)base[order[i]]);
-        m1.assign(n + 1, 0), m2 = d1 = d2 = m1;
+        m1.assign(n + 1, 0), m2 = d1 = d2 = @SLOPE_COPIES@m1;
     }
 
 @FIT@
@@ -137,7 +141,7 @@ struct Tree {
         add(m1, pos[v], x);
         add(m2, pos[v], x * (W)dep[v]);
     }
-
+@SLOPE@
     // the value kept at node v grows by x (it alone): a mark at v, taken back at its parent
     LEETCODE_NO_SANITIZE void bump(int v, W x) {
         mark(v, x);
@@ -151,14 +155,54 @@ struct Tree {
         add(d2, l, x * (W)l), add(d2, r + 1, 0 - x * (W)(r + 1));
     }
 
+@VALUE@
+
+    // what the stretch adds gave the values at positions 0..k, in all (0 when k is -1)
+    LEETCODE_NO_SANITIZE W spreadUpTo(int k) const { return (W)(long long)(k + 1) * sum(d1, k) - sum(d2, k); }
+'''
+PY_VALUE = '''\
+    # the value kept at node v: its starting value, the marks inside its subtree, the stretch adds that cover it
+    def _value(self, v):
+        l, m1 = self.pos[v], self.m1
+        inside = self._sum(m1, l + self.sz[v] - 1) - self._sum(m1, l - 1)
+        return @RED(self.base[v] + inside + self._sum(self.d1, l))@'''
+PY_VALUE_ARITH = '''\
+    # the value kept at node v: its starting value, the marks inside its subtree, the slopes inside it times v's
+    # depth, the stretch adds that cover it
+    def _value(self, v):
+        l, m1, s1 = self.pos[v], self.m1, self.s1
+        r = l + self.sz[v] - 1
+        inside = self._sum(m1, r) - self._sum(m1, l - 1)
+        slopes = self._sum(s1, r) - self._sum(s1, l - 1)
+        return @RED(self.base[v] + inside + slopes * self.dep[v] + self._sum(self.d1, l))@'''
+PY_SLOPE = '''
+    # a slope of k at node v: every @THING@ from v up to the root gains k * (its own depth)
+    def _slope(self, v, k):
+        p, d = self.pos[v], self.dep[v]
+        self._add(self.s1, p, k)
+        self._add(self.s2, p, k * (d * (d + 1) // 2))
+'''
+CPP_VALUE = '''\
     // the value kept at node v: its starting value, the marks inside its subtree, the stretch adds that cover it
     LEETCODE_NO_SANITIZE C valueOf(int v) const {
         int l = pos[v];
         return fit((W)base[v] + sum(m1, l + sz[v] - 1) - sum(m1, l - 1) + sum(d1, l));
+    }'''
+CPP_VALUE_ARITH = '''\
+    // the value kept at node v: its starting value, the marks inside its subtree, the slopes inside it times v's
+    // depth, the stretch adds that cover it
+    LEETCODE_NO_SANITIZE C valueOf(int v) const {
+        int l = pos[v], r = l + sz[v] - 1;
+        W slopes = sum(s1, r) - sum(s1, l - 1);
+        return fit((W)base[v] + sum(m1, r) - sum(m1, l - 1) + slopes * (W)dep[v] + sum(d1, l));
+    }'''
+CPP_SLOPE = '''
+    // a slope of k at node v: every @THING@ from v up to the root gains k * (its own depth)
+    LEETCODE_NO_SANITIZE void slope(int v, W k) {
+        long long d = dep[v];
+        add(s1, pos[v], k);
+        add(s2, pos[v], k * (W)(d * (d + 1) / 2));
     }
-
-    // what the stretch adds gave the values at positions 0..k, in all (0 when k is -1)
-    LEETCODE_NO_SANITIZE W spreadUpTo(int k) const { return (W)(long long)(k + 1) * sum(d1, k) - sum(d2, k); }
 '''
 PY_XOR = '''\
 class Tree:
@@ -281,10 +325,12 @@ struct Tree {
 
 
 def make(edge, mode):
-    """mode: "add", "mod" (add with a fixed MOD) or "xor"."""
+    """mode: "add", "mod" (add with a fixed MOD), "xor", or "arith" / "arithmod" (add, with an arithmetic-sequence add
+    along a path too)."""
     t = "edge" if edge else "node"
-    mod, xor = mode == "mod", mode == "xor"
-    folder = {"add": "path-add-fenwick-", "mod": "path-add-mod-fenwick-", "xor": "path-xor-apply-fenwick-"}[mode] + t
+    mod, xor, arith = mode in ("mod", "arithmod"), mode == "xor", mode.startswith("arith")
+    folder = {"add": "path-add-fenwick-", "mod": "path-add-mod-fenwick-", "xor": "path-xor-apply-fenwick-",
+              "arith": "path-add-arith-fenwick-", "arithmod": "path-add-arith-mod-fenwick-"}[mode] + t
     vals, val_word, x = ("edge weights", "weight", "w") if edge else ("node values", "val", "x")
     at = "a - b" if edge else "node"
     nodes = ("a", "b") if edge else ("node",)
@@ -376,6 +422,41 @@ def make(edge, mode):
            G.cpp_check(t + name, ("a", "b")) + f"        {how_cpp}\n" + lca_cpp + "        mark(a, d), mark(b, d);\n" + back_cpp,
            where=("a", "b"))
 
+    # ---- an arithmetic sequence along a path: two straight lines in the depth, one per side of the lca
+    if arith:
+        name = f"PathAddArithSeq{M}"
+        up_why = "a's side, going up: (start + step * depth(a)) - step * depth"
+        down_why = ("b's side, going down: the " + ("edge" if edge else "node") + " at depth d is number depth(a) - depth(lca) + "
+                    + ("d - depth(lca) - 1" if edge else "d - depth(lca)") + " of the walk")
+        off = "dep[a] - 2 * dep[c] - 1" if edge else "dep[a] - 2 * dep[c]"
+        if edge:
+            back_py = ("        self._mark(b, down)\n        self._slope(b, step)\n"
+                       "        self._mark(c, -up - down)  # (both sides stop below the lca; their slopes cancel there)\n")
+            back_cpp = ("        mark(b, down), slope(b, k);\n"
+                        "        mark(c, 0 - up - down);  // (both sides stop below the lca; their slopes cancel there)\n")
+            mid_py = mid_cpp = ""
+        else:
+            mid_py = ("        if c != self.root:  # (a's side has the lca on it: it stops above the lca)\n"
+                      "            self._mark(self.par[c], -up)\n            self._slope(self.par[c], step)\n")
+            mid_cpp = "        if (c != root) mark(par[c], 0 - up), slope(par[c], k);  // (a's side has the lca on it)\n"
+            back_py = ("        self._mark(b, down)\n        self._slope(b, step)\n"
+                       "        self._mark(c, -down)\n        self._slope(c, -step)\n")
+            back_cpp = "        mark(b, down), slope(b, k);\n        mark(c, 0 - down), slope(c, 0 - k);\n"
+        nothing_arith = " (nothing when a == b)" if edge else ""
+        add_op(name, ["start", "step"], ["T", "T"], "void",
+               f"walking a -> b, the {t}s get start, start + step, start + 2 * step, ... added"
+               + (" (mod MOD)" if mod else "") + nothing_arith,
+               G.py_check(t + name, ("a", "b")) + "        c, dep = self._lca(a, b), self.dep\n"
+               + f"        # {up_why}\n        up = start + step * dep[a]\n"
+               + "        self._mark(a, up)\n        self._slope(a, -step)\n" + mid_py
+               + note("#", down_why, 8) + f"\n        down = start + step * ({off})\n" + back_py,
+               G.cpp_check(t + name, ("a", "b")) + "        int c = lcaOf(a, b);\n"
+               + "        W k = (W)fit(wide(step));\n"
+               + f"        // {up_why}\n        W up = (W)fit(wide(start) + k * (W)dep[a]);\n"
+               + "        mark(a, up), slope(a, 0 - k);\n" + mid_cpp
+               + note("//", down_why, 8) + f"\n        W down = (W)fit(wide(start) + k * (W)(long long)({off}));\n" + back_cpp,
+               where=("a", "b"))
+
     # ---- a subtree: one stretch of positions (an edge template leaves out the edge above node: one position later)
     skip = " + 1" if edge else ""
     if xor:
@@ -411,16 +492,24 @@ def make(edge, mode):
         top_cpp = "dep[node]" if edge else "dep[node] - 1"
         why = ("a mark at y counts once for every " + ("edge between y and node" if edge else "node from y up to node")
                + ": depth(y) - " + ("depth(node)" if edge else "(depth(node) - 1)") + " times")
+        tri, tri_cpp = ("d * (d + 1) // 2", "d * (d + 1) / 2") if edge else ("d * (d - 1) // 2", "d * (d - 1) / 2")
+        slope_why = ("a slope at y counts the depths of the " + ("edges between y and node: depth(node) + 1" if edge else
+                     "nodes from y up to node: depth(node)") + " up to depth(y), and s2 holds 1 + ... + depth(y)")
         add_op(f"SubtreeSum{M}", [], [], "T", f"sum of the {vals} in node's subtree{tail}{none}",
                G.py_check(f"{t}SubtreeSum{M}", ("node",)) + "        l = self.pos[node]\n        r = l + self.sz[node] - 1\n"
                + note("#", why, 8) + "\n"
                + "        count = self._sum(self.m1, r) - self._sum(self.m1, l - 1)\n"
                + "        weighed = self._sum(self.m2, r) - self._sum(self.m2, l - 1)\n"
+               + ((note("#", slope_why, 8) + "\n        d = self.dep[node]\n"
+                   "        slopes = self._sum(self.s1, r) - self._sum(self.s1, l - 1)\n"
+                   f"        weighed += self._sum(self.s2, r) - self._sum(self.s2, l - 1) - ({tri}) * slopes\n") if arith else "")
                + f"        return (self.first[r + 1] - self.first[{lo_first}] + weighed - {top} * count\n"
                + f"                + self._spreadUpTo(r) - self._spreadUpTo({lo_spread})){' % self.mod' if mod else ''}\n",
                G.cpp_check(f"{t}SubtreeSum{M}", ("node",)) + "        int l = pos[node], r = l + sz[node] - 1;\n"
                + note("//", why, 8) + "\n"
                + "        W count = sum(m1, r) - sum(m1, l - 1), weighed = sum(m2, r) - sum(m2, l - 1);\n"
+               + ((note("//", slope_why, 8) + "\n        long long d = dep[node];\n"
+                   f"        weighed += sum(s2, r) - sum(s2, l - 1) - (W)({tri_cpp}) * (sum(s1, r) - sum(s1, l - 1));\n") if arith else "")
                + f"        return (T)(long long)fit((W)first[r + 1] - (W)first[{lo_first}] + weighed - (W)(long long)({top_cpp}) * count +\n"
                + f"                                 spreadUpTo(r) - spreadUpTo({lo_spread}));\n", where=("node",))
 
@@ -438,7 +527,7 @@ def make(edge, mode):
             "  build: N",
             "@memory:",
             "  layout: none",
-            "  node: " + ("marks[2*N] diffs[2*N]" if xor else "m1[1*N] m2[1*N] d1[1*N] d2[1*N]"),
+            "  node: " + ("marks[2*N] diffs[2*N]" if xor else "m1[1*N] m2[1*N] d1[1*N] d2[1*N]" + (" s1[1*N] s2[1*N]" if arith else "")),
             "  tags: none",
             f"  other: base[1*N] first[1*N] {G.LAYOUT_ARRAYS}",
         ]
@@ -464,6 +553,11 @@ def make(edge, mode):
               "For a subtree's sum a mark at y counts once per " + one + " between y and the subtree's top, so a second "
               "tree keeps each mark times its depth. Subtree adds are kept apart as \"add over a stretch of positions\" "
               "(two more trees).")
+           + (" An arithmetic sequence along a path is two straight lines in the depth, one going up from a and one going "
+              "down to b: the constant parts are marks like any other, and the \"times depth\" parts are marks of a second "
+              "kind, slopes, where a slope of k at y gives every " + one + " from y up to the root k times its own depth "
+              "(two more trees: the slopes, and each slope times 1 + 2 + ... + its depth, which is what a subtree's sum "
+              "needs)." if arith else "")
            + " One value changes through a mark at it, taken back at its parent. There is no single-log path "
            + ("xor" if xor else "sum") + " here: a path update together with a path query needs the O(log^2 n) templates.")
     wrap_note = {"#": "", "//": "" if xor else (
@@ -510,9 +604,10 @@ def make(edge, mode):
         trees = ("Fenwick trees over the positions (1-based), kept with xor. marks[0], marks[1]: the marks at nodes of even "
                  "and of odd depth. diffs[0], diffs[1]: where a stretch xor starts and stops, at even and at odd positions.")
     else:
-        trees = ("Four Fenwick trees over the positions (1-based). m1: the marks. m2: each mark times its node's depth. d1, "
-                 "d2: the stretch adds as differences (d1) and differences times their position (d2), which together give "
-                 "the sum over a stretch.")
+        trees = (("Six" if arith else "Four") + " Fenwick trees over the positions (1-based). m1: the marks. m2: each mark times "
+                 "its node's depth. d1, d2: the stretch adds as differences (d1) and differences times their position (d2), "
+                 "which together give the sum over a stretch."
+                 + (" s1: the slopes. s2: each slope times 1 + 2 + ... + its node's depth." if arith else ""))
     thing = "edge" if edge else "node"
     py_marks = {
         "@CTOR_NOTE@": note("#", "O(n) -- builds the layout and the sums of the starting values; raises ValueError when the "
@@ -520,6 +615,9 @@ def make(edge, mode):
         "@ARRAYS_NOTE@": note("#", arrays, 8), "@TREES_NOTE@": note("#", trees, 8), "@THING@": thing,
         "@CTOR@": py_ctor + (", mod=10**9 + 7" if mod else ""), "@LAYOUT@": shape.py_layout_body(), "@VALUES@": py_values,
         "@KEEP_MOD@": "\n        self.mod = mod" if mod else "", "@GET_MOD@": "\n        mod = self.mod" if mod else "",
+        "@SLOPE_TREES@": "\n        self.s1, self.s2 = [0] * (n + 1), [0] * (n + 1)" if arith else "",
+        "@SLOPE@": PY_SLOPE.rstrip("\n").replace("@THING@", thing) if arith else "",
+        "@VALUE@": PY_VALUE_ARITH if arith else PY_VALUE,
     }
     sig = f"    template <typename E = int> Tree({cpp_ctor}{', long long mod = 1000000007' if mod else ''})"
     init = " : root(root)" + (", modulus(mod)" if mod else "")
@@ -552,6 +650,9 @@ def make(edge, mode):
         "@ARRAYS_NOTE@": note("//", arrays, 4), "@TREES_NOTE@": note("//", trees, 4), "@THING@": thing,
         "@CTOR@": sig + init, "@LAYOUT@": shape.cpp_layout_body(), "@VALUES@": cpp_values,
         "@MEMBERS@": shape.cpp_members().rstrip("\n"), "@TYPES@": types, "@FIT@": fit, "@PUT@": put, "@CONST@": const,
+        "@SLOPE_NAMES@": ", s1, s2" if arith else "", "@SLOPE_COPIES@": "s1 = s2 = " if arith else "",
+        "@SLOPE@": CPP_SLOPE.replace("@THING@", thing) if arith else "",
+        "@VALUE@": CPP_VALUE_ARITH if arith else CPP_VALUE,
     }
 
     def doc_with(doc, cm):
@@ -583,7 +684,7 @@ def make(edge, mode):
 
 def sources():
     out = {}
-    for mode in ("add", "mod", "xor"):
+    for mode in ("add", "mod", "xor", "arith", "arithmod"):
         for edge in (False, True):
             folder, py, cpp = make(edge, mode)
             for name, text in (("template.py", py), ("template.cpp", cpp)):

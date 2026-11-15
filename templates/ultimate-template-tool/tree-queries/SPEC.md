@@ -350,5 +350,21 @@ hash) found path hashing: with one-value updates it went through the wrapped tem
   an answer: a term at the root is in every sum and drops out of every hash. Not benchmarked against the wrapped
   template.
 
-Still open from that audit: a path add of an arithmetic sequence with one-value reads or subtree sums (marks weighed
-by depth and depth squared), and multiplying mod a prime (turned down, 2026-11-13).
+The path add of an arithmetic sequence with one-value reads or subtree sums, left open by that audit, was built
+2026-11-14 as `path-add-arith-fenwick-{node,edge}` and `path-add-arith-mod-fenwick-{node,edge}` (the "arith" modes of
+`gen_tree_path_add.py`): the plain path-add templates plus `PathAddArithSeq` / `PathAddArithSeqMod`, every op
+O(log n). The plain folders stay as they are (four trees, not six), and the picker still prefers them when no
+arithmetic sequence is asked for.
+
+- Walking a -> b, the term is a straight line in the depth on each side of the lca: going up from a it is
+  (start + step * depth(a)) - step * depth, going down to b it is start + step * (depth(a) - 2 * depth(lca)) +
+  step * depth (edges: one less in the bracket). The constants are ordinary marks.
+- The "times depth" parts are slopes: a slope of k at y gives every node from y up to the root k * (its own depth).
+  Tree s1 keeps the slopes (a value reads the slopes inside its subtree times its depth), s2 keeps slope *
+  (1 + ... + depth), since a subtree's sum sees depth(top) + ... + depth(y) of a slope at y.
+- 23 deliberate bugs, 21 caught; the two left drop a "reduce mod MOD" in the C++ MOD files where the Fenwick add
+  reduces anyway and nothing can pass 128 bits. A fixed check with a modulus near 2^62 is in `test_tree.py`. Not
+  benchmarked against the wrapped template.
+
+Still open: multiplying mod a prime (turned down, 2026-11-13), and a link-cut tree (the only way to one log for a
+path update with a path query, or path min / max under updates; amortized, large constant).

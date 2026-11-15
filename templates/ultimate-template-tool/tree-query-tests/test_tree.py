@@ -665,7 +665,7 @@ def depth_checks(node_vals, mod):
     return lines + ["  }"]
 
 
-def path_add_mod_checks(node_vals):
+def path_add_mod_checks(node_vals, arith=False):
     """C++ lines for the single-log path add templates with MOD: a modulus near 2^62 and the same path added to six
     times, where a Fenwick entry that is not brought back under MOD after each add passes 64 bits."""
     t = "node" if node_vals else "edge"
@@ -684,7 +684,15 @@ def path_add_mod_checks(node_vals):
         f"    m.{t}Assign({last}, -1);  // (an input below 0: M - 1)",
         f"    if (m.{t}Get({last}) != M - 1 || m.{t}SubtreeSumMod(0) != M - 13) return 7;",
         "  }",
-    ]
+    ] + ([
+        "  {",  # (start and step are both -1 mod M: six times -1, -2, -3 along the path)
+        "    const long long M = 4000000000000000037LL;",
+        f"    Tree<long long> m({make});",
+        f"    for (int i = 0; i < 6; i++) m.{t}PathAddArithSeqMod(0, {far}, M - 1, M - 1);",
+        f"    if (m.{t}Get({first}) != M - 7 || m.{t}Get({mid}) != M - 7 || m.{t}Get({last}) != M - 20) return 8;",
+        f"    if (m.{t}SubtreeSumMod(0) != M - 34 || m.{t}SubtreeSumMod(1) != M - 27) return 9;",
+        "  }",
+    ] if arith else [])
 
 
 def cpp_driver(folder, ops, extra):
@@ -705,7 +713,8 @@ def cpp_driver(folder, ops, extra):
                 "if (small.subtreeSize(0) != 3) return 3; }"] if weights else []),
              *(bitset_growth_checks(node_vals) if folder.startswith("path-distinct-bitset") else []),
              *(depth_checks(node_vals, "-mod-" in folder) if folder.startswith("subtree-depth-add") else []),
-             *(path_add_mod_checks(node_vals) if folder.startswith("path-add-mod-fenwick") else []),
+             *(path_add_mod_checks(node_vals, "-arith-" in folder)
+               if folder.startswith(("path-add-mod-fenwick", "path-add-arith-mod-fenwick")) else []),
              "  int cases; cin >> cases;",
              "  while (cases--) {",
              "    int m, root; cin >> m >> root;",
