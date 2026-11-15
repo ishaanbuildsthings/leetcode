@@ -334,3 +334,21 @@ max) found one more: subtree xor with a path xor query. Built as `subtree-xor-ap
 update goes to one of two trees by that parity. 32 deliberate bugs, all caught. What is left at O(log^2 n) after it:
 any path update with a path query; path min / max with any update; path assign with anything; and a sum under xor
 updates (or a min / max under them), which the range side only has per bit or by sqrt.
+
+A third audit (2026-11-14, every node update against every query that can be taken back: sum, xor, even frequency,
+hash) found path hashing: with one-value updates it went through the wrapped templates at O(log^2 n). Built as
+`path-hash-fenwick-{node,edge}` (`tree-query-tests/gen_tree_hash_fenwick.py`), every op O(log n):
+
+- `path-static-*`'s two sums along root..v (hash * base^depth, and hash / base^depth), kept in two Fenwick trees read
+  by prefixes instead of prefix arrays: a term sits at its node's position and is taken back just past the subtree.
+- SubtreeAdd too: each sum grows by a geometric sum of powers of the base. The part that depends on the subtree's top
+  goes into the trees like a value; the part that depends on the node's own depth is (the total added to that node,
+  a third Fenwick tree) * 1 / (B - 1) * a power, worked out at read time.
+- Ops: Get, Assign, Add, Chmax, Chmin, SubtreeAdd, PathHash, PathHashReversed, PathIsPalindrome, PathsEqual. No path
+  sum beside them, no subtree assign, no path updates.
+- 18 deliberate bugs, 17 caught; the one left ("an edge template does not skip the root in the build") cannot change
+  an answer: a term at the root is in every sum and drops out of every hash. Not benchmarked against the wrapped
+  template.
+
+Still open from that audit: a path add of an arithmetic sequence with one-value reads or subtree sums (marks weighed
+by depth and depth squared), and multiplying mod a prime (turned down, 2026-11-13).

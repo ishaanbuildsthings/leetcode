@@ -284,7 +284,7 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
         if signed_ok and t % 2:
             gen = lambda r: r.randint(-6, 6)  # noqa: E731
             queries = [op for op in base_queries if TABLE[op][2] not in NONNEG_SEARCHES]
-        if folder.startswith("path-static"):  # fixed values: few of them (so two paths can read the same), or any
+        if folder.startswith(("path-static", "path-hash-fenwick")):  # few values (so two paths can read the same), or any
             gen = (lambda r: r.randint(0, 2)) if t % 2 else (lambda r: r.randint(-10**9, 10**9))
         big = 0
         if bitset:  # few values (so equal ones meet on a path), or many: then mostly on a tree big enough to hold
@@ -344,7 +344,7 @@ def make_trials(folder, ops, range_folder, trials, stress=False):
                 c, d = path_ends()
                 # fixed values, 1 time in 4: a path of any length, since a shorter path must not hash like a longer
                 # one that only has zeros in front of it (what a value's random offset is for)
-                any_length = folder.startswith("path-static") and rng.random() < 0.25
+                any_length = folder.startswith(("path-static", "path-hash-fenwick")) and rng.random() < 0.25
                 for _ in range(0 if any_length else 40):
                     if len(sim.reach(op, [c, d])[0]) == len(keys):
                         break
