@@ -39,16 +39,6 @@ export const GOLDEN_MOS_ON_TREE: FillIn[] = [
 // Euler tour path queries: a full solution kept as a copy in golden-references/
 export const GOLDEN_EULER_PATHS: FillIn[] = [
   {
-    label: "Euler tour path queries (CSES Path Queries)",
-    title:
-      "Worked example of the entry/exit Euler tour for path sums: +value at tin, -value at tout, so a range sum from the root's entry to a node's entry is the sum on the path root..node; a node update is two point sets",
-    folder: "_golden-references",
-    file: "EulerTourPathQueries",
-    langs: ["cpp"],
-    ops: [],
-    githubUrl: GITHUB,
-  },
-  {
     label: "Euler tour point add + path sum (Library Checker Vertex Add Path Sum)",
     title:
       "Worked example of path sums between any two nodes with the entry/exit Euler tour: path sum = rootSum(a) + rootSum(b) - rootSum(lca) - rootSum(parent of lca), where rootSum(node) is the range sum up to tin[node]; a node add is two point writes",
