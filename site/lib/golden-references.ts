@@ -48,6 +48,16 @@ export const GOLDEN_EULER_PATHS: FillIn[] = [
     ops: [],
     githubUrl: GITHUB,
   },
+  {
+    label: "Euler tour point add + path sum (Library Checker Vertex Add Path Sum)",
+    title:
+      "Worked example of path sums between any two nodes with the entry/exit Euler tour: path sum = rootSum(a) + rootSum(b) - rootSum(lca) - rootSum(parent of lca), where rootSum(node) is the range sum up to tin[node]; a node add is two point writes",
+    folder: "_golden-references",
+    file: "EulerTourPointAddPathSum",
+    langs: ["cpp"],
+    ops: [],
+    githubUrl: GITHUB,
+  },
 ];
 
 // the Golden References page, section by section
