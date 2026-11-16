@@ -11,8 +11,8 @@
 #   layout: none
 #   node: bit[1*N]
 #   tags: none
-#   other: events[5*N] ys[1*N] answers[1*N]
-#   note: N = how many calls were recorded; a rectSum is stored as its four corners
+#   other: events[1*N] items[4*N] merged[4*N] ys[1*N] answers[1*N]
+#   note: N = how many calls were recorded; in solve a rectSum becomes four items (its corners), and merged is the merge buffer
 
 from bisect import bisect_right
 from operator import itemgetter

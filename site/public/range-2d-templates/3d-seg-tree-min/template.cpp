@@ -24,6 +24,42 @@ using namespace std;
 //   other: none
 //   note: one flat array per aggregate, 2X x-nodes by 2Y y-nodes by 2Z z-nodes
 
+// Sanitizers are skipped inside this template (its methods start with LEETCODE_NO_SANITIZE): where they run, like on
+// LeetCode, that is most of its speed. The drawback: a bad memory access inside the template goes unreported. Arguments
+// are still checked and still throw. Constructors are left alone. It needs GCC or Clang and C++17.
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
+// min / max that still inline with sanitizers skipped (std::min and std::max do not)
+template <typename A>
+LEETCODE_NO_SANITIZE_INLINE A hotMin(A a, A b) { return b < a ? b : a; }
+
 // 3D segment tree (min): point updates and any-box queries on an X x Y x Z grid, O(log X * log Y * log Z) each. A
 // bottom-up tree over x whose every node is a tree over y whose every node is a tree over z, in one flat array per
 // aggregate (8 * X * Y * Z entries each, so the three sides have to be small: compress coordinates first).
@@ -34,7 +70,7 @@ template <typename T>
 struct SegTree3D {
     static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set cell gives
     int X, Y, Z, SY, SZ;  // SY = 2Y y-nodes per x-node, SZ = 2Z z-nodes per y-node
-    vector<T> mn;
+    HotVector<T> mn;
 
     // O(X*Y*Z) -- X by Y by Z, every cell empty; needs X >= 1, Y >= 1 and Z >= 1, else throws invalid_argument
     SegTree3D(int X, int Y, int Z) : X(X), Y(Y), Z(Z), SY(2 * Y), SZ(2 * Z) {
@@ -42,24 +78,24 @@ struct SegTree3D {
         mn.assign((size_t)8 * X * Y * Z, NO_MIN);
     }
 
-    size_t at(int px, int py, int pz) const { return ((size_t)px * SY + py) * SZ + pz; }
+    LEETCODE_NO_SANITIZE size_t at(int px, int py, int pz) const { return ((size_t)px * SY + py) * SZ + pz; }
 
     // cell (x, y, z) = v, then every node above it
-    void setCell(int x, int y, int z, T v) {
+    LEETCODE_NO_SANITIZE void setCell(int x, int y, int z, T v) {
         for (int px = x + X; px >= 1; px >>= 1)
             for (int py = y + Y; py >= 1; py >>= 1)
                 for (int pz = z + Z; pz >= 1; pz >>= 1) {
                     size_t i = at(px, py, pz);
-                    if (px < X) mn[i] = min(mn[at(2 * px, py, pz)], mn[at(2 * px + 1, py, pz)]);
-                    else if (py < Y) mn[i] = min(mn[at(px, 2 * py, pz)], mn[at(px, 2 * py + 1, pz)]);
-                    else if (pz < Z) mn[i] = min(mn[at(px, py, 2 * pz)], mn[at(px, py, 2 * pz + 1)]);
+                    if (px < X) mn[i] = hotMin(mn[at(2 * px, py, pz)], mn[at(2 * px + 1, py, pz)]);
+                    else if (py < Y) mn[i] = hotMin(mn[at(px, 2 * py, pz)], mn[at(px, 2 * py + 1, pz)]);
+                    else if (pz < Z) mn[i] = hotMin(mn[at(px, py, 2 * pz)], mn[at(px, py, 2 * pz + 1)]);
                     else mn[i] = v;
                 }
     }
 
     // O(1) -- the value at (x, y, z), NO_MIN if the cell is empty; needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else
     // throws out_of_range
-    T pointGet(int x, int y, int z) const {
+    LEETCODE_NO_SANITIZE T pointGet(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("pointGet: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
         return T(mn[at(x + X, y + Y, z + Z)]);
@@ -68,7 +104,7 @@ struct SegTree3D {
     // O(log X * log Y * log Z) -- the cell at (x, y, z) becomes v (it may go down as well as up); needs 0 <= x < X, 0
     // <=
     // y < Y and 0 <= z < Z, else throws out_of_range
-    void pointAssign(int x, int y, int z, T v) {
+    LEETCODE_NO_SANITIZE void pointAssign(int x, int y, int z, T v) {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("pointAssign: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
         setCell(x, y, z, v);
@@ -77,7 +113,7 @@ struct SegTree3D {
     // O(log X * log Y * log Z) -- adds v to the cell at (x, y, z); an empty cell becomes v; needs 0 <= x < X, 0 <= y
     // < Y
     // and 0 <= z < Z, else throws out_of_range
-    void pointAdd(int x, int y, int z, T v) {
+    LEETCODE_NO_SANITIZE void pointAdd(int x, int y, int z, T v) {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("pointAdd: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
         T cur = T(mn[at(x + X, y + Y, z + Z)]);
@@ -86,7 +122,7 @@ struct SegTree3D {
 
     // O(log X * log Y * log Z) -- the cell at (x, y, z) becomes max(itself, v); an empty cell becomes v; needs 0 <= x <
     // X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
-    void pointChmax(int x, int y, int z, T v) {
+    LEETCODE_NO_SANITIZE void pointChmax(int x, int y, int z, T v) {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("pointChmax: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
         T cur = T(mn[at(x + X, y + Y, z + Z)]);
@@ -95,57 +131,57 @@ struct SegTree3D {
 
     // O(log X * log Y * log Z) -- the cell at (x, y, z) becomes min(itself, v); an empty cell becomes v; needs 0 <= x <
     // X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
-    void pointChmin(int x, int y, int z, T v) {
+    LEETCODE_NO_SANITIZE void pointChmin(int x, int y, int z, T v) {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("pointChmin: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
         T cur = T(mn[at(x + X, y + Y, z + Z)]);
         if (cur == NO_MIN || v < cur) setCell(x, y, z, v);
     }
 
-    T minOverZ(int px, int py, int z1, int z2) const {
+    LEETCODE_NO_SANITIZE T minOverZ(int px, int py, int z1, int z2) const {
         T res = NO_MIN;
         for (int lz = z1 + Z, rz = z2 + Z + 1; lz < rz; lz >>= 1, rz >>= 1) {
-            if (lz & 1) res = min(res, mn[at(px, py, lz++)]);
-            if (rz & 1) res = min(res, mn[at(px, py, --rz)]);
+            if (lz & 1) res = hotMin(res, mn[at(px, py, lz++)]);
+            if (rz & 1) res = hotMin(res, mn[at(px, py, --rz)]);
         }
         return res;
     }
 
-    T minOverYZ(int px, int y1, int z1, int y2, int z2) const {
+    LEETCODE_NO_SANITIZE T minOverYZ(int px, int y1, int z1, int y2, int z2) const {
         T res = NO_MIN;
         for (int ly = y1 + Y, ry = y2 + Y + 1; ly < ry; ly >>= 1, ry >>= 1) {
-            if (ly & 1) res = min(res, minOverZ(px, ly++, z1, z2));
-            if (ry & 1) res = min(res, minOverZ(px, --ry, z1, z2));
+            if (ly & 1) res = hotMin(res, minOverZ(px, ly++, z1, z2));
+            if (ry & 1) res = hotMin(res, minOverZ(px, --ry, z1, z2));
         }
         return res;
     }
 
-    T minOf(int x1, int y1, int z1, int x2, int y2, int z2) const {
+    LEETCODE_NO_SANITIZE T minOf(int x1, int y1, int z1, int x2, int y2, int z2) const {
         T res = NO_MIN;
         for (int lx = x1 + X, rx = x2 + X + 1; lx < rx; lx >>= 1, rx >>= 1) {
-            if (lx & 1) res = min(res, minOverYZ(lx++, y1, z1, y2, z2));
-            if (rx & 1) res = min(res, minOverYZ(--rx, y1, z1, y2, z2));
+            if (lx & 1) res = hotMin(res, minOverYZ(lx++, y1, z1, y2, z2));
+            if (rx & 1) res = hotMin(res, minOverYZ(--rx, y1, z1, y2, z2));
         }
         return res;
     }
 
     // O(log X * log Y * log Z) -- min of the set cells in the box x1..x2, y1..y2, z1..z2 (NO_MIN if there are none);
     // needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z, else throws out_of_range
-    T boxMin(int x1, int y1, int z1, int x2, int y2, int z2) const {
+    LEETCODE_NO_SANITIZE T boxMin(int x1, int y1, int z1, int x2, int y2, int z2) const {
         if (x1 < 0 || x1 > x2 || x2 >= X || y1 < 0 || y1 > y2 || y2 >= Y || z1 < 0 || z1 > z2 || z2 >= Z)
             throw out_of_range("boxMin: needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z");
         return minOf(x1, y1, z1, x2, y2, z2);
     }
 
     // O(1) -- min of every set cell (NO_MIN if there are none)
-    T minAll() const {
+    LEETCODE_NO_SANITIZE T minAll() const {
         return mn[at(1, 1, 1)];
     }
 
     // O(log X * log Y * log Z) -- min of the set cells with all three coordinates <= x, y, z (NO_MIN if there are
     // none);
     // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
-    T minLteLteLte(int x, int y, int z) const {
+    LEETCODE_NO_SANITIZE T minLteLteLte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("minLteLteLte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
         return minOf(0, 0, 0, x, y, z);
@@ -154,7 +190,7 @@ struct SegTree3D {
     // O(log X * log Y * log Z) -- min of the set cells with all three coordinates >= x, y, z (NO_MIN if there are
     // none);
     // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
-    T minGteGteGte(int x, int y, int z) const {
+    LEETCODE_NO_SANITIZE T minGteGteGte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("minGteGteGte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
         return minOf(x, y, z, X - 1, Y - 1, Z - 1);

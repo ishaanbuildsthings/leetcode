@@ -7,7 +7,9 @@ ops, what is built, and what is left. Every folder here is written by a generato
 ```
 cd ../range-query-2d-tests/generators && python3 gen_all.py     # (re)write every folder     (--check: only compare)
 cd .. && python3 test_templates_2d.py                           # brute-force test, Python then C++
+python3 test_templates_2d.py --as-shipped                       # C++ again, built exactly as the files are served
 python3 test_generic_2d.py                                      # the generic rectangle / square sparse tables
+python3 bench_2d.py                                             # timings, built like LeetCode (-O2, sanitizers on)
 cd ../../../site && npm run gen:range-queries-2d                # the picker's manifest + the copies it serves
 ```
 
@@ -37,7 +39,39 @@ Rectangles are inclusive and given as the low corner then the high corner: `rect
 
 The tester reads this from the tag, not from the op list.
 
-## 3. Ops
+## 3. C++ is fast by default
+
+There is no slower twin: every `template.cpp` skips sanitizers inside itself, the same way the range query tab's fast
+mode does (`lib2d.make_fast`, with that tab's own `LEETCODE_NO_SANITIZE` and `HotVector` text).
+
+- Every method except the constructors starts with `LEETCODE_NO_SANITIZE`; vector members are `HotVector`.
+- A function that skips sanitizers can't inline a standard-library call that doesn't, so inside the templates `min` /
+  `max` are `hotMin` / `hotMax`, binary searches are `hotLowerBound` / `hotUpperBound`, and hot loops read raw pointers.
+  Work a constructor would do on plain vectors is moved into a marked method (`fillLists`, `buildLevels`, `buildNode`).
+- The drawback: a bad memory access inside a template goes unreported. Arguments are still checked and still throw.
+- The tester would be blind with the skip on, so it builds with `-DLEETCODE_NO_SANITIZE=` (the templates only define the
+  marker when nobody else has): sanitizers then look inside everything. `--as-shipped` builds the files as they are and
+  must give the same answers.
+
+`bench_2d.py`, g++ 13 at -O2 with address and undefined sanitizers on, milliseconds (before = fully sanitized):
+
+| Case | Updates before → now | Queries before → now | Build before → now |
+|---|---|---|---|
+| grid seg tree, sum + max, 1000 x 1000, 200k assigns, 100k (max + sum) | 968 → 218 | 297 → 131 | 38 → 36 |
+| grid Fenwick sum, 300k adds, 300k sums | 171 → 46 | 192 → 57 | 10 → 12 |
+| grid rect chmax / rect max, 100k each | 2605 → 630 | 1159 → 407 | 102 → 104 |
+| grid sparse table min, 400 x 400, 1M queries | | 157 → 65 | 179 → 67 |
+| points seg tree max, 100k points, 100k assigns, 100k queries | 1361 → about 700 | 857 → about 480 | 533 → 125 |
+| points Fenwick sum, 200k adds, 200k sums | 723 → about 490 | 1679 → about 980 | 377 → 104 |
+| k-d tree sum + max, 100k points, 20k rect adds, 20k rect sums | 2744 → about 670 | 1259 → about 440 | 509 → 80 |
+| online seg tree max, +-10^9, 50k assigns, 50k queries | 9664 → about 3700 | 1490 → about 1050 | |
+| 3D seg tree max, 60^3, 200k assigns, 200k queries | 1590 → 343 | 319 → 156 | |
+| batch sum, 200k adds + 100k sums | | 1446 → 579 (solve) | |
+
+With no sanitizers at all the ops take about the same time as "now" (the skip leaves nothing to gain there), except the
+online tree's updates (2400) and the batch solve (460), which still pay for sanitized vector growth.
+
+## 4. Ops
 
 | Group | Ops |
 |---|---|
@@ -52,7 +86,7 @@ The tester reads this from the tag, not from the op list.
 Corner ops exist as their own ops so that a Fenwick tree or a plain table can win when a corner is all that's asked;
 every segment tree with min / max lists them too (same cost as a rectangle).
 
-## 4. What is built
+## 5. What is built
 
 Aggregate subsets: a segment tree family has one folder per non-empty subset of sum, min, max, gcd, xor, and, or (127),
 each aggregate its own flat array, so asking for less costs less memory.
@@ -115,7 +149,7 @@ Point lookups are binary searches on sorted arrays (no hash maps: nothing to att
 `GenericRectSparseTable` (any rectangle, R·C·log R·log C) and `GenericSquareSparseTable` (squares only, a single log).
 They are in the "Generic seg trees" menu of the range query tab and the "Generic sparse tables" menu of the 2D tab.
 
-## 5. Why rectangle updates split four ways
+## 6. Why rectangle updates split four ways
 
 A tree of trees cannot push a tag down its outer tree: a row-node's tag would have to be merged into two whole column
 trees. So:
@@ -129,7 +163,7 @@ trees. So:
 
 Rect add with rect max has no log² structure here: only the last two rows cover it.
 
-## 6. Still to add
+## 7. Still to add
 
 | What | How | Notes |
 |---|---|---|
@@ -140,9 +174,8 @@ Rect add with rect max has no log² structure here: only the last two rows cover
 | Fenwick of hash maps (`online`, sum and corner max) | outer / inner Fenwick indices as keys of one seeded hash map | lighter constant than the dynamic tree of trees; needs an unhackable hash in C++ |
 | `batch`: corner max, point assign | sweep by x with a 1D Fenwick max; assign as an add of the difference | |
 | `points`: starting values | `(points, values)` | today every point starts empty / 0 |
-| C++ fast versions (`fast.cpp`) | the range query tab's fast mode | not started |
 
-## 7. Adding a family
+## 8. Adding a family
 
 1. A generator `gen_<family>.py` using `lib2d.py`: `header(...)` writes the tags, `write(folder, py, cpp)` the two files
    (it wraps long comments and refuses any other line over 120 columns). Add it to `gen_all.py`.
@@ -152,4 +185,6 @@ Rect add with rect max has no log² structure here: only the last two rows cover
    `site/lib/range-2d-picker.ts`. A new structure type: `RANGE_2D_TYPES` there and `TYPES` in
    `site/scripts/build-range-2d-templates.mjs`.
 4. Python and C++ must have the same ops and the same costs: the header is shared and the build compares them.
-5. Every public method checks its arguments first (`IndexError` / `out_of_range`), and says so in its comment.
+5. C++: write plain `vector` members and plain `min` / `max`; `write()` makes the file fast (section 3). Keep standard
+   library calls and plain local vectors out of hot loops, and name a method `build` or `getAll` to leave it unmarked.
+6. Every public method checks its arguments first (`IndexError` / `out_of_range`), and says so in its comment.

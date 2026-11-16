@@ -24,6 +24,42 @@ using namespace std;
 //   other: none
 //   note: per row-node two column trees (updates covering all of its rows; updates touching any of its rows), each a tag array and a best-below array, 2R row-nodes by 2C column-nodes, flat
 
+// Sanitizers are skipped inside this template (its methods start with LEETCODE_NO_SANITIZE): where they run, like on
+// LeetCode, that is most of its speed. The drawback: a bad memory access inside the template goes unreported. Arguments
+// are still checked and still throw. Constructors are left alone. It needs GCC or Clang and C++17.
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
+// min / max that still inline with sanitizers skipped (std::min and std::max do not)
+template <typename A>
+LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
+
 // Rectangle chmax and rectangle max on an R x C grid, O(log R * log C) each: a 2D segment tree whose tags stay where
 // they are put (no push-down, which a tree of trees can't do). rectChmax(r1, c1, r2, c2, v) makes every cell of the
 // rectangle max(itself, v). Every row-node keeps two column trees: one for the updates that cover all of its rows,
@@ -39,7 +75,7 @@ struct RectChmaxRectMax2D {
     static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives
     int R, C, W;
     T best = NO_MAX;
-    vector<T> fullTag, fullBest, partTag, partBest;
+    HotVector<T> fullTag, fullBest, partTag, partBest;
 
     // O(R*C) -- R rows by C columns, every cell empty; needs R >= 1 and C >= 1, else throws invalid_argument
     RectChmaxRectMax2D(int rows, int cols) : R(rows), C(cols), W(2 * cols) {
@@ -57,54 +93,54 @@ struct RectChmaxRectMax2D {
             int base = (r + R) * W;
             for (int c = 0; c < C; c++) {
                 fullBest[base + C + c] = grid[r][c];
-                best = max(best, grid[r][c]);
+                best = hotMax(best, grid[r][c]);
             }
             for (int pc = C - 1; pc >= 1; pc--)
-                fullBest[base + pc] = max(fullBest[base + 2 * pc], fullBest[base + 2 * pc + 1]);
+                fullBest[base + pc] = hotMax(fullBest[base + 2 * pc], fullBest[base + 2 * pc + 1]);
         }
         partBest = fullBest;  // a single row: the two trees agree
         for (int pr = R - 1; pr >= 1; pr--) {
             int base = pr * W, lo = 2 * base, hi = lo + W;
-            for (int pc = 1; pc < W; pc++) partBest[base + pc] = max(partBest[lo + pc], partBest[hi + pc]);
+            for (int pc = 1; pc < W; pc++) partBest[base + pc] = hotMax(partBest[lo + pc], partBest[hi + pc]);
         }
     }
 
     // one column tree (the one starting at `base`): columns c1..c2 become max(themselves, v)
-    void colsUpdate(vector<T>& tag, vector<T>& bst, int base, int c1, int c2, T v) {
+    LEETCODE_NO_SANITIZE void colsUpdate(HotVector<T>& tag, HotVector<T>& bst, int base, int c1, int c2, T v) {
         int lc = c1 + C, rc = c2 + C + 1;
         // every node above the two ends has v somewhere below it now
-        for (int a = lc >> 1; a >= 1; a >>= 1) bst[base + a] = max(bst[base + a], v);
-        for (int b = (rc - 1) >> 1; b >= 1; b >>= 1) bst[base + b] = max(bst[base + b], v);
+        for (int a = lc >> 1; a >= 1; a >>= 1) bst[base + a] = hotMax(bst[base + a], v);
+        for (int b = (rc - 1) >> 1; b >= 1; b >>= 1) bst[base + b] = hotMax(bst[base + b], v);
         for (; lc < rc; lc >>= 1, rc >>= 1) {
             if (lc & 1) {
-                tag[base + lc] = max(tag[base + lc], v);
-                bst[base + lc] = max(bst[base + lc], v);
+                tag[base + lc] = hotMax(tag[base + lc], v);
+                bst[base + lc] = hotMax(bst[base + lc], v);
                 lc++;
             }
             if (rc & 1) {
                 --rc;
-                tag[base + rc] = max(tag[base + rc], v);
-                bst[base + rc] = max(bst[base + rc], v);
+                tag[base + rc] = hotMax(tag[base + rc], v);
+                bst[base + rc] = hotMax(bst[base + rc], v);
             }
         }
     }
 
     // one column tree: the max over columns c1..c2
-    T colsQuery(const vector<T>& tag, const vector<T>& bst, int base, int c1, int c2) const {
+    LEETCODE_NO_SANITIZE T colsQuery(const HotVector<T>& tag, const HotVector<T>& bst, int base, int c1, int c2) const {
         int lc = c1 + C, rc = c2 + C + 1;
         T res = NO_MAX;
         // a tag on a node above either end covers that end, which is inside c1..c2
-        for (int a = lc >> 1; a >= 1; a >>= 1) res = max(res, tag[base + a]);
-        for (int b = (rc - 1) >> 1; b >= 1; b >>= 1) res = max(res, tag[base + b]);
+        for (int a = lc >> 1; a >= 1; a >>= 1) res = hotMax(res, tag[base + a]);
+        for (int b = (rc - 1) >> 1; b >= 1; b >>= 1) res = hotMax(res, tag[base + b]);
         for (; lc < rc; lc >>= 1, rc >>= 1) {
-            if (lc & 1) res = max(res, bst[base + lc++]);
-            if (rc & 1) res = max(res, bst[base + --rc]);
+            if (lc & 1) res = hotMax(res, bst[base + lc++]);
+            if (rc & 1) res = hotMax(res, bst[base + --rc]);
         }
         return res;
     }
 
-    void update(int r1, int c1, int r2, int c2, T v) {
-        best = max(best, v);
+    LEETCODE_NO_SANITIZE void update(int r1, int c1, int r2, int c2, T v) {
+        best = hotMax(best, v);
         int lr = r1 + R, rr = r2 + R + 1;
         // every row-node above the two ends is touched
         for (int a = lr >> 1; a >= 1; a >>= 1) colsUpdate(partTag, partBest, a * W, c1, c2, v);
@@ -123,22 +159,22 @@ struct RectChmaxRectMax2D {
         }
     }
 
-    T query(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE T query(int r1, int c1, int r2, int c2) const {
         T res = NO_MAX;
         int lr = r1 + R, rr = r2 + R + 1;
         // an update covering a whole row-node above either end covers that end's row
-        for (int a = lr >> 1; a >= 1; a >>= 1) res = max(res, colsQuery(fullTag, fullBest, a * W, c1, c2));
-        for (int b = (rr - 1) >> 1; b >= 1; b >>= 1) res = max(res, colsQuery(fullTag, fullBest, b * W, c1, c2));
+        for (int a = lr >> 1; a >= 1; a >>= 1) res = hotMax(res, colsQuery(fullTag, fullBest, a * W, c1, c2));
+        for (int b = (rr - 1) >> 1; b >= 1; b >>= 1) res = hotMax(res, colsQuery(fullTag, fullBest, b * W, c1, c2));
         for (; lr < rr; lr >>= 1, rr >>= 1) {
-            if (lr & 1) res = max(res, colsQuery(partTag, partBest, lr++ * W, c1, c2));
-            if (rr & 1) res = max(res, colsQuery(partTag, partBest, --rr * W, c1, c2));
+            if (lr & 1) res = hotMax(res, colsQuery(partTag, partBest, lr++ * W, c1, c2));
+            if (rr & 1) res = hotMax(res, colsQuery(partTag, partBest, --rr * W, c1, c2));
         }
         return res;
     }
 
     // O(log R * log C) -- every cell of rows r1..r2, columns c1..c2 becomes max(itself, v); an empty cell becomes v;
     // needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
-    void rectChmax(int r1, int c1, int r2, int c2, T v) {
+    LEETCODE_NO_SANITIZE void rectChmax(int r1, int c1, int r2, int c2, T v) {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectChmax: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         update(r1, c1, r2, c2, v);
@@ -147,7 +183,7 @@ struct RectChmaxRectMax2D {
     // O(log R * log C) -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
     // <= c
     // < C, else throws out_of_range
-    void pointChmax(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointChmax(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmax: needs 0 <= r < R and 0 <= c < C");
         update(r, c, r, c, v);
     }
@@ -155,14 +191,14 @@ struct RectChmaxRectMax2D {
     // O(log R * log C) -- the value at (r, c), NO_MAX if the cell is empty; needs 0 <= r < R and 0 <= c < C, else
     // throws
     // out_of_range
-    T pointGet(int r, int c) const {
+    LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         return query(r, c, r, c);
     }
 
     // O(log R * log C) -- max of the set cells in rows r1..r2, columns c1..c2 (NO_MAX if there are none); needs 0 <= r1
     // <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
-    T rectMax(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE T rectMax(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectMax: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return query(r1, c1, r2, c2);
@@ -171,7 +207,7 @@ struct RectChmaxRectMax2D {
     // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX if there are none); needs 0 <= r
     // < R
     // and 0 <= c < C, else throws out_of_range
-    T maxLteLte(int r, int c) const {
+    LEETCODE_NO_SANITIZE T maxLteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteLte: needs 0 <= r < R and 0 <= c < C");
         return query(0, 0, r, c);
     }
@@ -179,7 +215,7 @@ struct RectChmaxRectMax2D {
     // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX if there are none); needs 0 <= r
     // < R
     // and 0 <= c < C, else throws out_of_range
-    T maxLteGte(int r, int c) const {
+    LEETCODE_NO_SANITIZE T maxLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteGte: needs 0 <= r < R and 0 <= c < C");
         return query(0, c, r, C - 1);
     }
@@ -187,7 +223,7 @@ struct RectChmaxRectMax2D {
     // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX if there are none); needs 0 <= r
     // < R
     // and 0 <= c < C, else throws out_of_range
-    T maxGteLte(int r, int c) const {
+    LEETCODE_NO_SANITIZE T maxGteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteLte: needs 0 <= r < R and 0 <= c < C");
         return query(r, 0, R - 1, c);
     }
@@ -195,13 +231,13 @@ struct RectChmaxRectMax2D {
     // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX if there are none); needs 0 <= r
     // < R
     // and 0 <= c < C, else throws out_of_range
-    T maxGteGte(int r, int c) const {
+    LEETCODE_NO_SANITIZE T maxGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteGte: needs 0 <= r < R and 0 <= c < C");
         return query(r, c, R - 1, C - 1);
     }
 
     // O(1) -- max of every set cell (NO_MAX if there are none)
-    T maxAll() const {
+    LEETCODE_NO_SANITIZE T maxAll() const {
         return best;
     }
 };

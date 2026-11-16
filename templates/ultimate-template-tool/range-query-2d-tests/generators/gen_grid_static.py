@@ -200,7 +200,8 @@ def bit_counts(aggs):
     py += indent(py_point_check("pointGet") + ["return self.vals[r * self.C + c]"], 2)
 
     cpp = wrap_comment(doc, "//") + ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{",
-                                      "    int R, C, W, bits;", "    vector<vector<int>> cnt;  // cnt[b]: the prefix counts of bit b",
+                                      "    int R, C, W, bits;", "    size_t plane;  // one table's size, (R + 1) * (C + 1)",
+                                      "    vector<int> cnt;  // the prefix counts of bit b are the plane starting at b * plane",
                                       "    vector<T> vals;", "",
                                       "    // O(R*C*bits) -- grid: R rows of C numbers each, all >= 0; needs R >= 1 and C >= 1, else throws "
                                       "invalid_argument",
@@ -215,9 +216,10 @@ def bit_counts(aggs):
         "        top = max(top, v);",
         "    }",
         "while (bits < 63 && (top >> bits) > 0) bits++;",
-        "cnt.assign(bits, vector<int>((size_t)(R + 1) * W, 0));",
+        "plane = (size_t)(R + 1) * W;",
+        "cnt.assign(bits * plane, 0);",
         "for (int b = 0; b < bits; b++) {",
-        "    auto& t = cnt[b];",
+        "    int* t = &cnt[b * plane];",
         "    for (int r = 0; r < R; r++) {",
         "        int up = r * W, at = up + W, run = 0;",
         "        for (int c = 0; c < C; c++) {",
@@ -228,7 +230,7 @@ def bit_counts(aggs):
         "}",
     ], 2) + ["    }", ""]
     cpp += ["    // how many cells of the rectangle have bit b", "    int countOf(int b, int r1, int c1, int r2, int c2) const {",
-            "        const auto& t = cnt[b];",
+            "        const int* t = &cnt[b * plane];",
             "        return t[(r2 + 1) * W + c2 + 1] - t[r1 * W + c2 + 1] - t[(r2 + 1) * W + c1] + t[r1 * W + c1];", "    }", ""]
     for a in A:
         for name, rule, sig, check in ((a.rect, f"rows r1..r2, columns c1..c2; {RECT_RULE_CPP}", "int r1, int c1, int r2, int c2", True),
@@ -368,34 +370,38 @@ def sparse_rect(aggs):
     py.append("    def pointGet(self, r, c):")
     py += indent(py_point_check("pointGet") + [f"return self.{A[0].arr}[0][0][r * self.C + c]"], 2)
 
-    cpp = wrap_comment(doc, "//") + ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{", "    int R, C;"]
+    cpp = wrap_comment(doc, "//") + ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{", "    int R, C, levelsR, levelsC;",
+                                      "    vector<size_t> at;  // at[kr * levelsC + kc]: where the table of 2^kr rows by 2^kc columns starts in each array"]
     for a in A:
-        cpp.append(f"    vector<vector<vector<T>>> {a.arr};  // [kr][kc]: windows of 2^kr rows by 2^kc columns, flat")
+        cpp.append(f"    vector<T> {a.arr};  // every table back to back, each flat: (R - 2^kr + 1) rows of (C - 2^kc + 1)")
     cpp += ["", f"    // O(R*C*logR*logC{'*logU' if g else ''}) -- grid: R rows of C numbers each; needs R >= 1 and C >= 1, else throws "
             "invalid_argument", f"    explicit {cls}(const vector<vector<T>>& grid)",
             "        : R((int)grid.size()), C(grid.empty() ? 0 : (int)grid[0].size()) {"]
-    b = cpp_grid_check(cls) + ["int levelsR = 32 - __builtin_clz(R), levelsC = 32 - __builtin_clz(C);", "vector<T> flat;",
-                               "flat.reserve((size_t)R * C);", "for (auto& row : grid) flat.insert(flat.end(), row.begin(), row.end());"]
+    b = cpp_grid_check(cls) + ["levelsR = 32 - __builtin_clz(R), levelsC = 32 - __builtin_clz(C);", "at.assign((size_t)levelsR * levelsC + 1, 0);",
+                               "for (int kr = 0; kr < levelsR; kr++)", "    for (int kc = 0; kc < levelsC; kc++)",
+                               "        at[kr * levelsC + kc + 1] = at[kr * levelsC + kc] + (size_t)(R - (1 << kr) + 1) * (C - (1 << kc) + 1);"]
+    for a in A:
+        b += [f"{a.arr}.assign(at.back(), T(0));", "for (int r = 0; r < R; r++)", f"    for (int c = 0; c < C; c++) {a.arr}[(size_t)r * C + c] = grid[r][c];"]
+    b.append("buildLevels();")
+    cpp += indent(b, 2) + ["    }", "", "    // every table from the ones half its size: first the wider ones of single rows, then the taller ones",
+                           "    void buildLevels() {"]
+    b = []
     for a in A:
         b += [
-            f"{a.arr}.assign(levelsR, vector<vector<T>>(levelsC));",
-            f"{a.arr}[0][0] = flat;",
             "for (int kc = 1; kc < levelsC; kc++) {",
             "    int half = 1 << (kc - 1), prevW = C - half + 1, w = C - (1 << kc) + 1;",
-            f"    const auto& prev = {a.arr}[0][kc - 1];",
-            f"    auto& cur = {a.arr}[0][kc];",
-            "    cur.resize((size_t)R * w);",
+            f"    const T* prev = &{a.arr}[at[kc - 1]];",
+            f"    T* cur = &{a.arr}[at[kc]];",
             "    for (int r = 0; r < R; r++)",
-            f"        for (int c = 0; c < w; c++) cur[r * w + c] = {cpp_two(a, 'prev[r * prevW + c]', 'prev[r * prevW + c + half]')};",
+            f"        for (int c = 0; c < w; c++) cur[(size_t)r * w + c] = {cpp_two(a, 'prev[(size_t)r * prevW + c]', 'prev[(size_t)r * prevW + c + half]')};",
             "}",
             "for (int kr = 1; kr < levelsR; kr++) {",
             "    int half = 1 << (kr - 1), h = R - (1 << kr) + 1;",
             "    for (int kc = 0; kc < levelsC; kc++) {",
-            "        int w = C - (1 << kc) + 1, off = half * w;",
-            f"        const auto& prev = {a.arr}[kr - 1][kc];",
-            f"        auto& cur = {a.arr}[kr][kc];",
-            "        cur.resize((size_t)h * w);",
-            f"        for (int i = 0; i < h * w; i++) cur[i] = {cpp_two(a, 'prev[i]', 'prev[i + off]')};",
+            "        size_t w = C - (1 << kc) + 1, off = half * w, count = h * w;",
+            f"        const T* prev = &{a.arr}[at[(kr - 1) * levelsC + kc]];",
+            f"        T* cur = &{a.arr}[at[kr * levelsC + kc]];",
+            f"        for (size_t i = 0; i < count; i++) cur[i] = {cpp_two(a, 'prev[i]', 'prev[i + off]')};",
             "    }",
             "}",
         ]
@@ -404,8 +410,9 @@ def sparse_rect(aggs):
         cpp.append(f"    T {a.key}Of(int r1, int c1, int r2, int c2) const {{")
         cpp += indent([
             "int kr = 31 - __builtin_clz(r2 - r1 + 1), kc = 31 - __builtin_clz(c2 - c1 + 1);",
-            f"const auto& t = {a.arr}[kr][kc];",
-            "int w = C - (1 << kc) + 1, i = r1 * w + c1, j = (r2 - (1 << kr) + 1) * w + c1, d = c2 - (1 << kc) + 1 - c1;",
+            f"const T* t = &{a.arr}[at[kr * levelsC + kc]];",
+            "int w = C - (1 << kc) + 1, d = c2 - (1 << kc) + 1 - c1;",
+            "size_t i = (size_t)r1 * w + c1, j = (size_t)(r2 - (1 << kr) + 1) * w + c1;",
             f"return {cpp_two(a, cpp_two(a, 't[i]', 't[i + d]'), cpp_two(a, 't[j]', 't[j + d]'))};"
             if a.key in ("min", "max", "gcd") else f"return {cpp_two(a, 't[i]', 't[i + d]')} {'&' if a.key == 'and' else '|'} "
                                                     f"{cpp_two(a, 't[j]', 't[j + d]')};",
@@ -431,7 +438,7 @@ def sparse_rect(aggs):
                 cpp += indent(cpp_point_check(f"{a.key}{name}") + [f"return {a.key}Of({r_lo}, {c_lo}, {r_hi}, {c_hi});"], 2) + ["    }", ""]
     cpp.append(f"    // O(1) -- the value at (r, c); {POINT_RULE_CPP}")
     cpp.append("    T pointGet(int r, int c) const {")
-    cpp += indent(cpp_point_check("pointGet") + [f"return {A[0].arr}[0][0][(size_t)r * C + c];"], 2) + ["    }", "};"]
+    cpp += indent(cpp_point_check("pointGet") + [f"return {A[0].arr}[(size_t)r * C + c];"], 2) + ["    }", "};"]
     build = "R*C*log(R)*log(C)*log(U) ?" if g else "R*C*log(R)*log(C)"
     emit("grid-sparse-table-" + "-".join(aggs), ops, "sparse-table", costs, build, memory, py, cpp)
 
@@ -490,31 +497,34 @@ def sparse_square(aggs):
     py.append("    def pointGet(self, r, c):")
     py += indent(py_point_check("pointGet") + [f"return self.{A[0].arr}[0][r * self.C + c]"], 2)
 
-    cpp = wrap_comment(doc, "//") + ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{", "    int R, C;"]
+    cpp = wrap_comment(doc, "//") + ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{", "    int R, C, levels;",
+                                      "    vector<size_t> at;  // at[k]: where the table of 2^k by 2^k windows starts in each array"]
     for a in A:
-        cpp.append(f"    vector<vector<T>> {a.arr};  // [k]: windows of 2^k by 2^k, flat")
+        cpp.append(f"    vector<T> {a.arr};  // every table back to back, each flat: (R - 2^k + 1) rows of (C - 2^k + 1)")
     cpp += ["", f"    // O(R*C*log(min(R, C)){'*logU' if g else ''}) -- grid: R rows of C numbers each; needs R >= 1 and C >= 1, else throws "
             "invalid_argument", f"    explicit {cls}(const vector<vector<T>>& grid)",
             "        : R((int)grid.size()), C(grid.empty() ? 0 : (int)grid[0].size()) {"]
-    b = cpp_grid_check(cls) + ["int levels = 32 - __builtin_clz(min(R, C));", "vector<T> flat;", "flat.reserve((size_t)R * C);",
-                               "for (auto& row : grid) flat.insert(flat.end(), row.begin(), row.end());"]
+    b = cpp_grid_check(cls) + ["levels = 32 - __builtin_clz(min(R, C));", "at.assign(levels + 1, 0);",
+                               "for (int k = 0; k < levels; k++) at[k + 1] = at[k] + (size_t)(R - (1 << k) + 1) * (C - (1 << k) + 1);"]
+    for a in A:
+        b += [f"{a.arr}.assign(at.back(), T(0));", "for (int r = 0; r < R; r++)", f"    for (int c = 0; c < C; c++) {a.arr}[(size_t)r * C + c] = grid[r][c];"]
+    b.append("buildLevels();")
+    cpp += indent(b, 2) + ["    }", "", "    // every table from the one of half its side", "    void buildLevels() {"]
+    b = []
     for a in A:
         four = cpp_two(a, cpp_two(a, "top[j]", "top[j + half]"), cpp_two(a, "bot[j]", "bot[j + half]"))
         if a.key in ("and", "or"):
-            s = "&" if a.key == "and" else "|"
-            four = f"top[j] {s} top[j + half] {s} bot[j] {s} bot[j + half]"
+            sym = "&" if a.key == "and" else "|"
+            four = f"top[j] {sym} top[j + half] {sym} bot[j] {sym} bot[j + half]"
         b += [
-            f"{a.arr}.assign(levels, vector<T>());",
-            f"{a.arr}[0] = flat;",
             "for (int k = 1; k < levels; k++) {",
             "    int half = 1 << (k - 1), prevW = C - half + 1, h = R - (1 << k) + 1, w = C - (1 << k) + 1;",
-            f"    const auto& prev = {a.arr}[k - 1];",
-            f"    auto& cur = {a.arr}[k];",
-            "    cur.resize((size_t)h * w);",
+            f"    const T* prev = &{a.arr}[at[k - 1]];",
+            f"    T* cur = &{a.arr}[at[k]];",
             "    for (int i = 0; i < h; i++) {",
-            "        const T* top = prev.data() + (size_t)i * prevW;",
+            "        const T* top = prev + (size_t)i * prevW;",
             "        const T* bot = top + (size_t)half * prevW;",
-            "        T* out = cur.data() + (size_t)i * w;",
+            "        T* out = cur + (size_t)i * w;",
             "        for (int j = 0; j < w; j++)",
             f"            out[j] = {four};",
             "    }",
@@ -525,19 +535,19 @@ def sparse_square(aggs):
         cost = "O(log U)" if a.key == "gcd" else "O(1)"
         four = cpp_two(a, cpp_two(a, "t[i]", "t[i + d]"), cpp_two(a, "t[j]", "t[j + d]"))
         if a.key in ("and", "or"):
-            s = "&" if a.key == "and" else "|"
-            four = f"t[i] {s} t[i + d] {s} t[j] {s} t[j + d]"
+            sym = "&" if a.key == "and" else "|"
+            four = f"t[i] {sym} t[i + d] {sym} t[j] {sym} t[j + d]"
         cpp += indent(wrap_comment(
             f"{cost} -- {a.word} of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 "
             f"and the square inside the grid, else throws out_of_range", "//"))
         cpp.append(f"    T square{a.cap}(int r, int c, int side) const {{")
         cpp += indent(cpp_throw("side < 1 || r < 0 || r + side > R || c < 0 || c + side > C", "out_of_range",
                                 f"square{a.cap}: needs side >= 1 and the square inside the grid", 2)
-                      + ["int k = 31 - __builtin_clz(side), w = C - (1 << k) + 1, d = side - (1 << k), i = r * w + c, j = i + d * w;",
-                         f"const auto& t = {a.arr}[k];", f"return {four};"], 2) + ["    }", ""]
+                      + ["int k = 31 - __builtin_clz(side), w = C - (1 << k) + 1, d = side - (1 << k);", "size_t i = (size_t)r * w + c, j = i + (size_t)d * w;",
+                         f"const T* t = &{a.arr}[at[k]];", f"return {four};"], 2) + ["    }", ""]
     cpp.append(f"    // O(1) -- the value at (r, c); {POINT_RULE_CPP}")
     cpp.append("    T pointGet(int r, int c) const {")
-    cpp += indent(cpp_point_check("pointGet") + [f"return {A[0].arr}[0][(size_t)r * C + c];"], 2) + ["    }", "};"]
+    cpp += indent(cpp_point_check("pointGet") + [f"return {A[0].arr}[(size_t)r * C + c];"], 2) + ["    }", "};"]
     build = "R*C*log(min(R,C))*log(U) ?" if g else "R*C*log(min(R,C))"
     emit("grid-square-sparse-table-" + "-".join(aggs), ops, "square-sparse-table", costs, build, memory, py, cpp)
 

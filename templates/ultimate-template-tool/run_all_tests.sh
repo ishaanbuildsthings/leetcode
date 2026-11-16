@@ -73,6 +73,12 @@ for lang in "${LANGS[@]}"; do
     done
     wait
 done
+if [[ " ${LANGS[*]} " == *" --cpp "* ]]; then  # the C++ files exactly as served: sanitizers skipped inside them, same answers
+    for ((k = 0; k < JOBS; k++)); do
+        run "range2d-shipped-$k" python3 range-query-2d-tests/test_templates_2d.py --as-shipped --jobs 1 --shard "$k/$JOBS" &
+    done
+    wait
+fi
 # every 2D file matches what its generator writes now; the generic rectangle / square sparse tables
 run range2d-fresh bash -c "cd range-query-2d-tests/generators && python3 gen_all.py --check"
 if [ "${#LANGS[@]}" -eq 2 ]; then run range2d-generic python3 range-query-2d-tests/test_generic_2d.py

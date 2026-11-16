@@ -13,8 +13,13 @@ per-template: a new folder is covered as soon as its ops are in OPS.
     python3 test_templates_2d.py --shard 2/4     # every 4th folder from the third (shards 0/4 .. 3/4 side by side)
     python3 test_templates_2d.py --jobs 4        # C++ builds side by side (default: the CPU count)
 
+    python3 test_templates_2d.py --as-shipped    # C++ built exactly as the file is (see below)
+
 C++ needs a GCC with bits/stdc++.h (see ../find_compiler.py); each template.cpp is built with sanitizers when the
-compiler has them, with T = long long, and also instantiated with T = int.
+compiler has them, with T = long long, and also instantiated with T = int. The templates skip sanitizers inside
+themselves (LEETCODE_NO_SANITIZE), which would blind this test, so by default it switches the skip off
+(-DLEETCODE_NO_SANITIZE=: the templates only define it when nobody else has). --as-shipped leaves it on: the same
+answers must come out of the file exactly as it is served.
 """
 import concurrent.futures
 import math
@@ -547,7 +552,8 @@ def run_cpp(folder, tags, trials, tmp):
     trials = [t for t in trials if t.get("start") != "holes"]
     src, exe = os.path.join(tmp, folder + ".cpp"), os.path.join(tmp, folder + ".bin")
     open(src, "w").write(cpp_driver(folder, tags, struct_name(path, tags["operations"])))
-    comp = subprocess.run([cxx(), "-std=c++17", "-O1", "-Wall", "-Wextra", "-Wno-unused-result", *sanitize_flags(), "-o", exe, src],
+    skip_off = [] if AS_SHIPPED else ["-DLEETCODE_NO_SANITIZE="]
+    comp = subprocess.run([cxx(), "-std=c++17", "-O1", "-Wall", "-Wextra", "-Wno-unused-result", *sanitize_flags(), *skip_off, "-o", exe, src],
                           capture_output=True, text=True)
     if comp.returncode != 0:
         return "does not compile:\n" + comp.stderr[:3000]
@@ -607,9 +613,14 @@ def test_folder(folder, trials_n, do_py, do_cpp, tmp):
     return fails
 
 
+AS_SHIPPED = False
+
+
 def main():
+    global AS_SHIPPED
     argv = sys.argv[1:]
-    do_py, do_cpp = "--cpp" not in argv, "--py" not in argv
+    AS_SHIPPED = "--as-shipped" in argv
+    do_py, do_cpp = "--cpp" not in argv and not AS_SHIPPED, "--py" not in argv
     trials_n, shard, jobs = 40, None, os.cpu_count() or 2
     names = []
     i = 0

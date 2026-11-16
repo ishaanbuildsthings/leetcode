@@ -12,8 +12,8 @@ def batch_sum():
     cls = "OfflineRectSum"
     ops = ["pointAdd", "rectSum"]
     costs = {"pointAdd": "log^2(N) amortized", "rectSum": "log^2(N) amortized"}
-    memory = {"layout": "none", "node": "bit[1*N]", "other": "events[5*N] ys[1*N] answers[1*N]",
-              "note": "N = how many calls were recorded; a rectSum is stored as its four corners"}
+    memory = {"layout": "none", "node": "bit[1*N]", "other": "events[1*N] items[4*N] merged[4*N] ys[1*N] answers[1*N]",
+              "note": "N = how many calls were recorded; in solve a rectSum becomes four items (its corners), and merged is the merge buffer"}
     doc = ("Point add and rectangle sum over any coordinates, answered all at once: linear memory, O(N log^2 N) in total. Call "
            "pointAdd and rectSum in the order they happen (they are only recorded: rectSum returns which query it is, 0, 1, "
            "2, ...), then solve() returns every answer, answers[i] for query i. Use it only when no call depends on an "
@@ -97,12 +97,13 @@ def batch_sum():
     cpp += ["        events.push_back({x1, y1, x2, y2, T(0), queries});", "        return queries++;", "    }", "",
             "    // O(N log^2 N) -- every rectSum's answer, in the order they were asked (can be called again after more calls)", "    vector<S> solve() const {"]
     cpp += indent([
-        "vector<ll> ys;",
+        "HotVector<ll> ys;",
         "for (auto& e : events)",
         "    if (e.query < 0) ys.push_back(e.y1);",
         "sort(ys.begin(), ys.end());",
         "ys.erase(unique(ys.begin(), ys.end()), ys.end());",
-        "auto upTo = [&](ll y) { return (int)(upper_bound(ys.begin(), ys.end(), y) - ys.begin()); };  // distinct add-y's <= y",
+        "int m = (int)ys.size();",
+        "auto upTo = [&](ll y) LEETCODE_NO_SANITIZE { return m ? hotUpperBound(&ys[0], m, y) : 0; };  // distinct add-y's <= y",
         "// one item per add, four per sum (its corners)",
         "struct Item {",
         "    ll x;",
@@ -110,20 +111,19 @@ def batch_sum():
         "    S amount;  // what an add adds; +1 / -1 for a corner",
         "    int query;",
         "};",
-        "vector<Item> items;",
-        "for (auto& e : events) {",
-        "    if (e.query < 0) {",
-        "        items.push_back({e.x1, upTo(e.y1), S(e.v), -1});",
+        "int n = (int)events.size() + 3 * queries, filled = 0;",
+        "HotVector<Item> items(n), merged(n);",
+        "for (int e = 0; e < (int)events.size(); e++) {",
+        "    const Event& ev = events[e];",
+        "    if (ev.query < 0) {",
+        "        items[filled++] = {ev.x1, upTo(ev.y1), S(ev.v), -1};",
         "    } else {",
-        "        int top = upTo(e.y2), bot = upTo(e.y1 - 1);",
-        "        items.push_back({e.x2, top, 1, e.query}), items.push_back({e.x1 - 1, top, -1, e.query});",
-        "        items.push_back({e.x2, bot, -1, e.query}), items.push_back({e.x1 - 1, bot, 1, e.query});",
+        "        int top = upTo(ev.y2), bot = upTo(ev.y1 - 1);",
+        "        items[filled++] = {ev.x2, top, 1, ev.query}, items[filled++] = {ev.x1 - 1, top, -1, ev.query};",
+        "        items[filled++] = {ev.x2, bot, -1, ev.query}, items[filled++] = {ev.x1 - 1, bot, 1, ev.query};",
         "    }",
         "}",
-        "vector<S> answers(queries, 0);",
-        "int m = (int)ys.size(), n = (int)items.size();",
-        "vector<S> bit(m + 1, 0);",
-        "auto byX = [](const Item& a, const Item& b) { return a.x < b.x; };",
+        "HotVector<S> answers(queries, 0), bit(m + 1, 0);",
         "// blocks of `width` items, each already sorted by x; neighbors are an earlier and a later stretch of time",
         "for (int width = 1; width < n; width *= 2) {",
         "    for (int l = 0; l + width < n; l += 2 * width) {",
@@ -140,10 +140,14 @@ def batch_sum():
         "        for (int t = l; t < i; t++)  // take them back out",
         "            if (items[t].query < 0)",
         "                for (int k = items[t].y; k <= m; k += k & -k) bit[k] -= items[t].amount;",
-        "        inplace_merge(items.begin() + l, items.begin() + mid, items.begin() + r, byX);",
+        "        int a = l, b = mid, t = l;  // merge the two halves by x (the earlier one first on a tie)",
+        "        while (a < mid && b < r) merged[t++] = items[b].x < items[a].x ? items[b++] : items[a++];",
+        "        while (a < mid) merged[t++] = items[a++];",
+        "        while (b < r) merged[t++] = items[b++];",
+        "        for (t = l; t < r; t++) items[t] = merged[t];",
         "    }",
         "}",
-        "return answers;",
+        "return vector<S>(std::move(answers));",
     ], 2) + ["    }", "};"]
     args = (ops, "offline-sweep", costs, "1", memory, "batch", [])
     write("batch-sum", header("batch-sum", "py", *args) + py, header("batch-sum", "cpp", *args) + cpp)

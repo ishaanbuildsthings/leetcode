@@ -249,7 +249,7 @@ def kept_tags(kind):
         "}",
     ], 2) + ["    }", ""]
     cpp += [f"    // one column tree (the one starting at `base`): columns c1..c2 become {kind}(themselves, v)",
-            "    void colsUpdate(vector<T>& tag, vector<T>& bst, int base, int c1, int c2, T v) {"]
+            "    void colsUpdate(HotVector<T>& tag, HotVector<T>& bst, int base, int c1, int c2, T v) {"]
     cpp += indent([
         "int lc = c1 + C, rc = c2 + C + 1;",
         "// every node above the two ends has v somewhere below it now",
@@ -268,7 +268,7 @@ def kept_tags(kind):
         "    }",
         "}",
     ], 2) + ["    }", ""]
-    cpp += [f"    // one column tree: the {kind} over columns c1..c2", "    T colsQuery(const vector<T>& tag, const vector<T>& bst, int base, int c1, int c2) const {"]
+    cpp += [f"    // one column tree: the {kind} over columns c1..c2", "    T colsQuery(const HotVector<T>& tag, const HotVector<T>& bst, int base, int c1, int c2) const {"]
     cpp += indent([
         "int lc = c1 + C, rc = c2 + C + 1;",
         f"T res = {none};",

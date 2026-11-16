@@ -293,7 +293,7 @@ export function range2dKindLabel(t: Range2dTemplate): string {
   return label.startsWith("2D") ? label : `2D ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
 }
 
-// still to add: SPEC.md, section 6, says how each is meant to work
+// still to add: SPEC.md, section 7, says how each is meant to work
 export const RANGE_2D_PLANNED = [
   "rectangle add / assign with any query on a small grid: one lazy seg tree per row",
   "k-d tree over a small grid's cells",

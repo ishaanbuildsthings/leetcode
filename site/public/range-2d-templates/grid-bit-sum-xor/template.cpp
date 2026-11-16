@@ -23,6 +23,38 @@ using namespace std;
 //   other: vals[1*R*C]
 //   note: each Fenwick tree is (R + 1) by (C + 1), flat, 1-based; vals keeps the cells themselves for O(1) reads
 
+// Sanitizers are skipped inside this template (its methods start with LEETCODE_NO_SANITIZE): where they run, like on
+// LeetCode, that is most of its speed. The drawback: a bad memory access inside the template goes unreported. Arguments
+// are still checked and still throw. Constructors are left alone. It needs GCC or Clang and C++17.
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
 // 2D Fenwick tree (sum and xor): point updates and any-rectangle sum and xor on an R x C grid, O(log R * log C) each,
 // with a quarter of a 2D segment tree's memory and a smaller constant. A rectangle is four prefix queries (the big
 // corner, minus the strip above, minus the strip to the left, plus the corner both took off). Rows and columns are
@@ -32,10 +64,10 @@ template <typename T>
 struct Fenwick2D {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int R, C, W;
-    vector<T> vals;
-    vector<S> sm;
+    HotVector<T> vals;
+    HotVector<S> sm;
     S totalSum = 0;
-    vector<T> xr;
+    HotVector<T> xr;
     T totalXor = 0;
 
     // O(R*C) -- R rows by C columns, every cell 0; needs R >= 1 and C >= 1, else throws invalid_argument
@@ -86,7 +118,7 @@ struct Fenwick2D {
     }
 
     // cell (r, c) becomes v
-    void setCell(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void setCell(int r, int c, T v) {
         T old = vals[(size_t)r * C + c];
         vals[(size_t)r * C + c] = v;
         S dSum = S(v) - old;
@@ -100,7 +132,7 @@ struct Fenwick2D {
     }
 
     // sum of the first r rows and first c columns
-    S prefixSum(int r, int c) const {
+    LEETCODE_NO_SANITIZE S prefixSum(int r, int c) const {
         S res = 0;
         for (int i = r; i > 0; i &= i - 1)
             for (int j = c; j > 0; j &= j - 1) res += sm[i * W + j];
@@ -108,7 +140,7 @@ struct Fenwick2D {
     }
 
     // xor of the first r rows and first c columns
-    T prefixXor(int r, int c) const {
+    LEETCODE_NO_SANITIZE T prefixXor(int r, int c) const {
         T res = 0;
         for (int i = r; i > 0; i &= i - 1)
             for (int j = c; j > 0; j &= j - 1) res ^= xr[i * W + j];
@@ -116,33 +148,33 @@ struct Fenwick2D {
     }
 
     // O(1) -- the value at (r, c); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
-    T pointGet(int r, int c) const {
+    LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         return vals[(size_t)r * C + c];
     }
 
     // O(log R * log C) -- the cell at (r, c) becomes v; needs 0 <= r < R and 0 <= c < C, else throws out_of_range
-    void pointAssign(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointAssign(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAssign: needs 0 <= r < R and 0 <= c < C");
         setCell(r, c, v);
     }
 
     // O(log R * log C) -- adds v to the cell at (r, c); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
-    void pointAdd(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointAdd(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAdd: needs 0 <= r < R and 0 <= c < C");
         setCell(r, c, T(vals[(size_t)r * C + c] + v));
     }
 
     // O(log R * log C) -- the cell at (r, c) becomes max(itself, v); needs 0 <= r < R and 0 <= c < C, else throws
     // out_of_range
-    void pointChmax(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointChmax(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmax: needs 0 <= r < R and 0 <= c < C");
         if (v > vals[(size_t)r * C + c]) setCell(r, c, v);
     }
 
     // O(log R * log C) -- the cell at (r, c) becomes min(itself, v); needs 0 <= r < R and 0 <= c < C, else throws
     // out_of_range
-    void pointChmin(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointChmin(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
         if (v < vals[(size_t)r * C + c]) setCell(r, c, v);
     }
@@ -150,28 +182,28 @@ struct Fenwick2D {
     // O(log R * log C) -- sum of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else
     // throws
     // out_of_range
-    S rectSum(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE S rectSum(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectSum: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return prefixSum(r2 + 1, c2 + 1) - prefixSum(r1, c2 + 1) - prefixSum(r2 + 1, c1) + prefixSum(r1, c1);
     }
 
     // O(1) -- sum of the whole grid
-    S sumAll() const {
+    LEETCODE_NO_SANITIZE S sumAll() const {
         return totalSum;
     }
 
     // O(log R * log C) -- xor of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else
     // throws
     // out_of_range
-    T rectXor(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE T rectXor(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectXor: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return prefixXor(r2 + 1, c2 + 1) ^ prefixXor(r1, c2 + 1) ^ prefixXor(r2 + 1, c1) ^ prefixXor(r1, c1);
     }
 
     // O(1) -- xor of the whole grid
-    T xorAll() const {
+    LEETCODE_NO_SANITIZE T xorAll() const {
         return totalXor;
     }
 };

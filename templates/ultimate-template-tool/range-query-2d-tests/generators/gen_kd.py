@@ -215,7 +215,8 @@ def kd_tree(aggs):
     if has["min"]:
         cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no point gives")
     cpp += ["    static constexpr ll LOW = numeric_limits<ll>::min(), HIGH = numeric_limits<ll>::max();  // no bound on a coordinate", "    int n;", "    vector<pair<ll, ll>> pts;",
-            "    vector<int> pos;  // pos[i]: where point i (in sorted order) sits in k-d order", "    vector<ll> xMin, xMax, yMin, yMax;", "    vector<T> addTag, setTag;", "    vector<char> hasSet;"]
+            "    vector<int> pos;  // pos[i]: where point i (in sorted order) sits in k-d order", "    vector<ll> xMin, xMax, yMin, yMax;", "    vector<T> addTag, setTag;", "    vector<char> hasSet;",
+            "    unsigned long long seed = 1;  // for the random pivots of the build"]
     for a in A:
         cpp.append(f"    vector<{a.cpp_type}> {a.arr};")
     cpp += [""] + indent(wrap_comment("O(N log N) -- points: every (x, y) that will ever be used (negative is fine, repeats are fine); needs at least one, else throws "
@@ -226,29 +227,57 @@ def kd_tree(aggs):
          "addTag.assign(size, T(0)), setTag.assign(size, T(0)), hasSet.assign(size, 0);"]
     for a in A:
         b.append(f"{a.arr}.assign(size, 0);")
-    b += ["vector<int> order(n);", "iota(order.begin(), order.end(), 0);", "build(order, 0, n - 1, 0);"]
+    b += ["seed = chrono::steady_clock::now().time_since_epoch().count() | 1;", "vector<int> order(n);", "iota(order.begin(), order.end(), 0);",
+          "buildNode(order.data(), 0, n - 1, 0);"]
     cpp += indent(b, 2) + ["    }", "", "    static int id(int l, int r) { return (l + r) | (l != r); }  // the number of the node for the stretch l..r of the k-d order", "",
+                           "    // is point a before point b, by x then y (axis 0) or by y then x (axis 1)",
+                           "    bool before(int a, int b, int axis) const {",
+                           "        ll ka = axis ? pts[a].second : pts[a].first, kb = axis ? pts[b].second : pts[b].first;",
+                           "        if (ka != kb) return ka < kb;",
+                           "        return axis ? pts[a].first < pts[b].first : pts[a].second < pts[b].second;",
+                           "    }",
+                           "",
+                           "    // rearranges order[l..r] so the point that belongs at position mid is there, with everything before it in front:",
+                           "    // quickselect around random pivots (random so that no input can make it slow), expected O(r - l)",
+                           "    void splitAt(int* order, int l, int r, int mid, int axis) {",
+                           "        while (l < r) {",
+                           "            seed ^= seed << 13, seed ^= seed >> 7, seed ^= seed << 17;",
+                           "            int pivot = order[l + (int)(seed % (unsigned long long)(r - l + 1))], i = l, j = r;",
+                           "            while (i <= j) {",
+                           "                while (before(order[i], pivot, axis)) i++;",
+                           "                while (before(pivot, order[j], axis)) j--;",
+                           "                if (i <= j) {",
+                           "                    int held = order[i];",
+                           "                    order[i++] = order[j], order[j--] = held;",
+                           "                }",
+                           "            }",
+                           "            if (mid <= j) r = j;",
+                           "            else if (mid >= i) l = i;",
+                           "            else return;",
+                           "        }",
+                           "    }",
+                           "",
                            "    // order[l..r] holds this node's points: split them in half by x (axis 0) or by y, ties by the other coordinate",
-                           "    void build(vector<int>& order, int l, int r, int axis) {"]
+                           "    void buildNode(int* order, int l, int r, int axis) {"]
     cpp += indent([
         "int node = id(l, r);",
-        "xMin[node] = yMin[node] = HIGH, xMax[node] = yMax[node] = LOW;",
+        "ll loX = HIGH, hiX = LOW, loY = HIGH, hiY = LOW;",
         "for (int i = l; i <= r; i++) {",
-        "    auto [x, y] = pts[order[i]];",
-        "    xMin[node] = min(xMin[node], x), xMax[node] = max(xMax[node], x);",
-        "    yMin[node] = min(yMin[node], y), yMax[node] = max(yMax[node], y);",
+        "    ll x = pts[order[i]].first, y = pts[order[i]].second;",
+        "    if (x < loX) loX = x;",
+        "    if (x > hiX) hiX = x;",
+        "    if (y < loY) loY = y;",
+        "    if (y > hiY) hiY = y;",
         "}",
+        "xMin[node] = loX, xMax[node] = hiX, yMin[node] = loY, yMax[node] = hiY;",
         "if (l == r) {",
         "    pos[order[l]] = l;",
         "    return;",
         "}",
         "int mid = (l + r) >> 1;",
-        "nth_element(order.begin() + l, order.begin() + mid, order.begin() + r + 1, [&](int a, int b) {",
-        "    if (axis == 0) return pts[a] < pts[b];",
-        "    return make_pair(pts[a].second, pts[a].first) < make_pair(pts[b].second, pts[b].first);",
-        "});",
-        "build(order, l, mid, axis ^ 1);",
-        "build(order, mid + 1, r, axis ^ 1);",
+        "splitAt(order, l, r, mid, axis);",
+        "buildNode(order, l, mid, axis ^ 1);",
+        "buildNode(order, mid + 1, r, axis ^ 1);",
     ], 2) + ["    }", ""]
     cnt_param = "int cnt" if has["sum"] else "int"  # (how many points the node has: only a sum needs it)
     cpp += [f"    void applyAssign(int node, {cnt_param}, T v) {{", "        hasSet[node] = 1, setTag[node] = v, addTag[node] = 0;"]

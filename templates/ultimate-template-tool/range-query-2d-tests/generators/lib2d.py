@@ -18,6 +18,94 @@ OUT = os.path.join(os.path.dirname(os.path.dirname(HERE)), "range-queries-2d")
 URL = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d"
 
 INPUTS = ("grid", "points", "online", "batch", "grid-3d")
+
+# ---- C++ is fast by default: sanitizers are skipped inside every template (the range query tab's "fast mode", here
+# with no slower twin). The marker and HotVector are the range query generators' own, so the text stays the same.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "range-query-tests"))
+from gen_fast import PRELUDE as HOT_VECTOR_PRELUDE  # noqa: E402
+
+# (nothing here uses the SSE header; and one accessor is past 120 columns as it comes)
+HOT_VECTOR_PRELUDE = HOT_VECTOR_PRELUDE.replace("#ifdef __SSE2__\n#include <immintrin.h>\n#endif\n\n", "")
+_LONG = "operator[](size_t i) const { return this->_M_impl._M_start[i]; }"
+assert _LONG in HOT_VECTOR_PRELUDE, "the range query generators' HotVector changed: update this"
+HOT_VECTOR_PRELUDE = HOT_VECTOR_PRELUDE.replace(_LONG, "operator[](size_t i) const {\n        return this->_M_impl._M_start[i];\n    }")
+
+FAST_NOTE = """// Sanitizers are skipped inside this template (its methods start with LEETCODE_NO_SANITIZE): where they run, like on
+// LeetCode, that is most of its speed. The drawback: a bad memory access inside the template goes unreported. Arguments
+// are still checked and still throw. Constructors are left alone. It needs GCC or Clang and C++17.
+"""
+HOT_HELPERS = {
+    "hotMin(": """template <typename A>
+LEETCODE_NO_SANITIZE_INLINE A hotMin(A a, A b) { return b < a ? b : a; }
+""",
+    "hotMax(": """template <typename A>
+LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
+""",
+    "hotLowerBound(": """// how many of the n sorted values at `first` are < x (std::lower_bound as a count, inlined with sanitizers skipped)
+template <typename A>
+LEETCODE_NO_SANITIZE_INLINE int hotLowerBound(const A* first, int n, A x) {
+    int lo = 0;
+    while (n > 0) {
+        int half = n >> 1;
+        if (first[lo + half] < x) lo += half + 1, n -= half + 1;
+        else n = half;
+    }
+    return lo;
+}
+""",
+    "hotUpperBound(": """// how many of the n sorted values at `first` are <= x (std::upper_bound as a count)
+template <typename A>
+LEETCODE_NO_SANITIZE_INLINE int hotUpperBound(const A* first, int n, A x) {
+    int lo = 0;
+    while (n > 0) {
+        int half = n >> 1;
+        if (!(x < first[lo + half])) lo += half + 1, n -= half + 1;
+        else n = half;
+    }
+    return lo;
+}
+""",
+}
+# methods that keep sanitizers: they run once, on plain vectors (constructors are never marked either)
+UNMARKED = {"build", "getAll"}
+_NOT_A_METHOD = ("//", "using ", "struct ", "template ", "explicit ", "return ", "if ", "for ", "while ", "else", "throw ", "static constexpr ",
+                 "typedef ", "LEETCODE_")
+
+
+def make_fast(lines):
+    """A finished C++ template with sanitizers skipped: vector members become HotVector, every method but the
+    constructors starts with LEETCODE_NO_SANITIZE, min / max become the helpers that still inline."""
+    cut = lines.index("") + 1  # (the tagged header ends at its first blank line)
+    head, body = lines[:cut], lines[cut:]
+    out, nested, fields, methods = [], False, 0, 0
+    for line in body:
+        if re.match(r"^    struct \w+ \{\s*(//.*)?$", line):
+            nested = True
+        elif line == "    };":
+            nested = False
+        pad = "        " if nested else "    "
+        rest = line[len(pad):] if line.startswith(pad) and not line.startswith(pad + " ") else None
+        if rest is not None and not rest.startswith(_NOT_A_METHOD):
+            m = re.match(r"^(static inline |mutable )?vector<([^()\n]*)> ([\w, ]+)(;|\{)", rest)
+            if m:
+                line = pad + f"{m.group(1) or ''}HotVector<{m.group(2)}> {m.group(3)}{m.group(4)}" + rest[m.end():]
+                fields += 1
+            else:
+                m = re.match(r"^((?:static )?[\w:<>,&* ]+? )(\w+)\(([^;{}]*)\)( const)? \{", rest)
+                if m and m.group(2) not in UNMARKED:
+                    line = pad + "LEETCODE_NO_SANITIZE " + rest
+                    methods += 1
+        if not line.lstrip().startswith("//"):
+            line = re.sub(r"(?<![\w:.>])(max|min)\(", lambda g: "hotMax(" if g.group(1) == "max" else "hotMin(", line)
+        out.append(line)
+    assert methods, "no method was marked"
+    text = "\n".join(out)
+    helpers = "".join(code for name, code in HOT_HELPERS.items() if name in text)
+    if "hotMin(" in text or "hotMax(" in text:
+        helpers = "// min / max that still inline with sanitizers skipped (std::min and std::max do not)\n" + helpers
+    prelude = FAST_NOTE + "\n" + HOT_VECTOR_PRELUDE + helpers
+    return head + prelude.rstrip("\n").split("\n") + [""] + out
+
 WRITTEN = set()  # folders written by this run
 CHECK = "--check" in sys.argv  # write nothing: list in STALE every file that differs from what the generators make now
 STALE = []
@@ -208,6 +296,8 @@ def write(folder, py_lines, cpp_lines):
     for name, lines in (("template.py", py_lines), ("template.cpp", cpp_lines)):
         if lines is None:
             continue
+        if name.endswith(".cpp"):
+            lines = make_fast(lines)
         text = "\n".join(_wrap_long_comments(lines, "#" if name.endswith(".py") else "//")).rstrip("\n") + "\n"
         long = [line for line in text.split("\n") if len(line) > 120 and "http" not in line and " @" not in line[:6]
                 and not line.lstrip("#/ ").startswith(("node:", "tags:", "other:", "note:"))]

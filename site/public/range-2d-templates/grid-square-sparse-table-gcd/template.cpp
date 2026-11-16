@@ -16,6 +16,42 @@ using namespace std;
 //   other: none
 //   note: per aggregate, one table per power-of-two side (side 1 is the grid itself, shared)
 
+// Sanitizers are skipped inside this template (its methods start with LEETCODE_NO_SANITIZE): where they run, like on
+// LeetCode, that is most of its speed. The drawback: a bad memory access inside the template goes unreported. Arguments
+// are still checked and still throw. Constructors are left alone. It needs GCC or Clang and C++17.
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
+// min / max that still inline with sanitizers skipped (std::min and std::max do not)
+template <typename A>
+LEETCODE_NO_SANITIZE_INLINE A hotMin(A a, A b) { return b < a ? b : a; }
+
 // Static sparse table for square queries only (gcd): O(1) per square (one gcd run, O(log U)), with a single log of
 // memory and build, R * C * log(min(R, C)), where the any-rectangle sparse table needs log R * log C. Level k holds
 // the aggregate of every 2^k by 2^k window; a square is covered by four such windows, one in each corner (they
@@ -24,8 +60,9 @@ using namespace std;
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct SquareSparseTable2D {
-    int R, C;
-    vector<vector<T>> gc;  // [k]: windows of 2^k by 2^k, flat
+    int R, C, levels;
+    HotVector<size_t> at;  // at[k]: where the table of 2^k by 2^k windows starts in each array
+    HotVector<T> gc;  // every table back to back, each flat: (R - 2^k + 1) rows of (C - 2^k + 1)
 
     // O(R*C*log(min(R, C))*logU) -- grid: R rows of C numbers each; needs R >= 1 and C >= 1, else throws
     // invalid_argument
@@ -34,21 +71,25 @@ struct SquareSparseTable2D {
         if (R < 1 || C < 1) throw invalid_argument("SquareSparseTable2D: needs R >= 1 and C >= 1");
         for (auto& row : grid)
             if ((int)row.size() != C) throw invalid_argument("SquareSparseTable2D: every row needs the same C values");
-        int levels = 32 - __builtin_clz(min(R, C));
-        vector<T> flat;
-        flat.reserve((size_t)R * C);
-        for (auto& row : grid) flat.insert(flat.end(), row.begin(), row.end());
-        gc.assign(levels, vector<T>());
-        gc[0] = flat;
+        levels = 32 - __builtin_clz(hotMin(R, C));
+        at.assign(levels + 1, 0);
+        for (int k = 0; k < levels; k++) at[k + 1] = at[k] + (size_t)(R - (1 << k) + 1) * (C - (1 << k) + 1);
+        gc.assign(at.back(), T(0));
+        for (int r = 0; r < R; r++)
+            for (int c = 0; c < C; c++) gc[(size_t)r * C + c] = grid[r][c];
+        buildLevels();
+    }
+
+    // every table from the one of half its side
+    LEETCODE_NO_SANITIZE void buildLevels() {
         for (int k = 1; k < levels; k++) {
             int half = 1 << (k - 1), prevW = C - half + 1, h = R - (1 << k) + 1, w = C - (1 << k) + 1;
-            const auto& prev = gc[k - 1];
-            auto& cur = gc[k];
-            cur.resize((size_t)h * w);
+            const T* prev = &gc[at[k - 1]];
+            T* cur = &gc[at[k]];
             for (int i = 0; i < h; i++) {
-                const T* top = prev.data() + (size_t)i * prevW;
+                const T* top = prev + (size_t)i * prevW;
                 const T* bot = top + (size_t)half * prevW;
-                T* out = cur.data() + (size_t)i * w;
+                T* out = cur + (size_t)i * w;
                 for (int j = 0; j < w; j++)
                     out[j] = std::gcd(std::gcd(top[j], top[j + half]), std::gcd(bot[j], bot[j + half]));
             }
@@ -57,17 +98,18 @@ struct SquareSparseTable2D {
 
     // O(log U) -- gcd of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
     // square inside the grid, else throws out_of_range
-    T squareGcd(int r, int c, int side) const {
+    LEETCODE_NO_SANITIZE T squareGcd(int r, int c, int side) const {
         if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
             throw out_of_range("squareGcd: needs side >= 1 and the square inside the grid");
-        int k = 31 - __builtin_clz(side), w = C - (1 << k) + 1, d = side - (1 << k), i = r * w + c, j = i + d * w;
-        const auto& t = gc[k];
+        int k = 31 - __builtin_clz(side), w = C - (1 << k) + 1, d = side - (1 << k);
+        size_t i = (size_t)r * w + c, j = i + (size_t)d * w;
+        const T* t = &gc[at[k]];
         return std::gcd(std::gcd(t[i], t[i + d]), std::gcd(t[j], t[j + d]));
     }
 
     // O(1) -- the value at (r, c); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
-    T pointGet(int r, int c) const {
+    LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
-        return gc[0][(size_t)r * C + c];
+        return gc[(size_t)r * C + c];
     }
 };

@@ -57,6 +57,45 @@ CPP_INDEX = [
 ]
 
 
+def cpp_lists(walk, size, first_node, pad=""):
+    """C++ for building every x-node's sorted distinct y's. Returns (constructor lines, the fillLists method's lines).
+    walk: the for-loop header visiting the x-nodes above leaf `leaf` as `p`; size: how many x-node slots; first_node: the
+    lowest x-node number. The constructor lines expect `pts` sorted and deduplicated."""
+    ctor = [
+        "for (auto& p : pts)",
+        "    if (xs.empty() || xs.back() != p.first) xs.push_back(p.first);",
+        "n = (int)xs.size();",
+        "vector<pair<ll, int>> byY(pts.size());  // (y, which x): the points in y order",
+        "for (int i = 0, xi = -1; i < (int)pts.size(); i++) {",
+        "    if (i == 0 || pts[i].first != pts[i - 1].first) xi++;",
+        "    byY[i] = {pts[i].second, xi};",
+        "}",
+        "sort(byY.begin(), byY.end());",
+        f"off.assign({size} + 1, 0);",
+        f"cnt.assign({size}, 0);",
+        "fillLists(byY.data(), (int)byY.size(), true);  // how long each list is",
+        f"for (int p = {first_node}; p < {size}; p++) off[p + 1] = off[p] + cnt[p];",
+        f"ys.assign(off[{size}], 0);",
+        f"fill(cnt.begin(), cnt.end(), 0);",
+        "fillLists(byY.data(), (int)byY.size(), false);  // the lists themselves",
+    ]
+    method = [
+        "// every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count, then to write",
+        "void fillLists(const pair<ll, int>* byY, int m, bool countOnly) {",
+        f"    HotVector<ll> last({size}, 0);  // the y most recently added to each x-node",
+        "    for (int i = 0; i < m; i++) {",
+        "        ll y = byY[i].first;",
+        f"        {walk} {{",
+        "            if (cnt[p] && last[p] == y) continue;",
+        "            if (!countOnly) ys[off[p] + cnt[p]] = y;",
+        "            cnt[p]++, last[p] = y;",
+        "        }",
+        "    }",
+        "}",
+    ]
+    return ctor, method
+
+
 # ------------------------------------------------------------------------------------------------ seg tree of seg trees
 def seg_ops(aggs):
     ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"]
@@ -261,42 +300,23 @@ def seg_tree(aggs):
     ]
     if mm:
         b.append("isSet.assign(pts.size(), 0);")
-    b += [
-        "for (auto& p : pts)",
-        "    if (xs.empty() || xs.back() != p.first) xs.push_back(p.first);",
-        "n = (int)xs.size();",
-        "vector<int> byY(pts.size());",
-        "iota(byY.begin(), byY.end(), 0);",
-        "sort(byY.begin(), byY.end(), [&](int a, int b) { return pts[a].second < pts[b].second; });",
-        "vector<vector<ll>> lists(2 * n);  // per x-node: the distinct y's under it, ascending",
-        "for (int i : byY) {",
-        "    ll y = pts[i].second;",
-        "    for (int p = (int)(lower_bound(xs.begin(), xs.end(), pts[i].first) - xs.begin()) + n; p >= 1; p >>= 1)",
-        "        if (lists[p].empty() || lists[p].back() != y) lists[p].push_back(y);",
-        "}",
-        "off.assign(2 * n, 0);",
-        "cnt.assign(2 * n, 0);",
-        "for (int p = 1; p < 2 * n; p++) {",
-        "    off[p] = (int)ys.size();",
-        "    cnt[p] = (int)lists[p].size();",
-        "    ys.insert(ys.end(), lists[p].begin(), lists[p].end());",
-        "}",
-    ]
+    seg_ctor, seg_method = cpp_lists("for (int p = byY[i].second + n; p >= 1; p >>= 1)", "2 * n", "1")
+    b += seg_ctor
     for a in A:
         b.append(f"{a.arr}.assign(2 * ys.size(), {a.cpp_id if mm else a.cpp_type + '(0)'});")
-    cpp += indent(b, 2) + ["    }", ""] + CPP_INDEX
+    cpp += indent(b, 2) + ["    }", ""] + indent(seg_method) + [""] + CPP_INDEX
     cpp += ["    // point (x, y) = v, then every node above it", "    void setPoint(ll x, ll y, T v) {"]
-    b = ["int p = (int)(lower_bound(xs.begin(), xs.end(), x) - xs.begin()) + n;"]
+    b = ["int p = hotLowerBound(&xs[0], n, x) + n;"]
     for a in A:
         b.append(f"{a.cpp_type} v{a.cap} = v;  // this aggregate over the points with this y under x-node p")
-    b += ["while (true) {", "    const ll* first = ys.data() + off[p];", "    int base = 2 * off[p], k = (int)(lower_bound(first, first + cnt[p], y) - first) + cnt[p];"]
+    b += ["while (true) {", "    const ll* first = &ys[off[p]];", "    int base = 2 * off[p], k = hotLowerBound(first, cnt[p], y) + cnt[p];"]
     for a in A:
         b.append(f"    {a.arr}[base + k] = v{a.cap};")
     b.append("    for (k >>= 1; k >= 1; k >>= 1) {")
     for a in A:
         b.append(f"        {a.arr}[base + k] = {a.cpp_comb(f'{a.arr}[base + 2 * k]', f'{a.arr}[base + 2 * k + 1]')};")
     b += ["    }", "    if (p == 1) break;", "    int s = p ^ 1;  // the other half of the parent: does it have this y too?",
-          "    first = ys.data() + off[s];", "    int j = (int)(lower_bound(first, first + cnt[s], y) - first);", "    if (j < cnt[s] && first[j] == y) {",
+          "    first = &ys[off[s]];", "    int j = hotLowerBound(first, cnt[s], y);", "    if (j < cnt[s] && first[j] == y) {",
           "        j += 2 * off[s] + cnt[s];"]
     for a in A:
         b.append("        " + a.cpp_take(f"v{a.cap}", f"{a.arr}[j]"))
@@ -329,10 +349,9 @@ def seg_tree(aggs):
 
     def cpp_inner(a, node):
         return [
-            f"const ll* first = ys.data() + off[{node}];",
+            f"const ll* first = &ys[off[{node}]];",
             f"int base = 2 * off[{node}], c = cnt[{node}];",
-            "int lo = (int)(lower_bound(first, first + c, y1) - first) + c;",
-            "int hi = (int)(upper_bound(first, first + c, y2) - first) + c;",
+            "int lo = hotLowerBound(first, c, y1) + c, hi = hotUpperBound(first, c, y2) + c;",
             "for (; lo < hi; lo >>= 1, hi >>= 1) {",
             f"    if (lo & 1) {a.cpp_take('res', f'{a.arr}[base + lo++]')}",
             f"    if (hi & 1) {a.cpp_take('res', f'{a.arr}[base + --hi]')}",
@@ -341,8 +360,8 @@ def seg_tree(aggs):
 
     for a in A:
         cpp.append(f"    {a.cpp_type} {a.key}Of(ll x1, ll y1, ll x2, ll y2) const {{")
-        b = [f"{a.cpp_type} res = {a.cpp_id};", "int l = (int)(lower_bound(xs.begin(), xs.end(), x1) - xs.begin()) + n;",
-             "int r = (int)(upper_bound(xs.begin(), xs.end(), x2) - xs.begin()) + n;", "for (; l < r; l >>= 1, r >>= 1) {", "    if (l & 1) {"]
+        b = [f"{a.cpp_type} res = {a.cpp_id};", "int l = hotLowerBound(&xs[0], n, x1) + n, r = hotUpperBound(&xs[0], n, x2) + n;",
+             "for (; l < r; l >>= 1, r >>= 1) {", "    if (l & 1) {"]
         b += indent(cpp_inner(a, "l"), 2) + ["        l++;", "    }", "    if (r & 1) {", "        --r;"] + indent(cpp_inner(a, "r"), 2) + ["    }", "}", "return res;"]
         cpp += indent(b, 2) + ["    }", ""]
         cost = "O(log^2 N + log U)" if a.key == "gcd" else "O(log^2 N)"
@@ -388,28 +407,7 @@ PY_BIT_BUILD = [
     "    cnt[i] = len(lists[i])",
     "    ys += lists[i]",
 ]
-CPP_BIT_BUILD = [
-    "for (auto& p : pts)",
-    "    if (xs.empty() || xs.back() != p.first) xs.push_back(p.first);",
-    "n = (int)xs.size();",
-    "vector<int> byY(pts.size());",
-    "iota(byY.begin(), byY.end(), 0);",
-    "sort(byY.begin(), byY.end(), [&](int a, int b) { return pts[a].second < pts[b].second; });",
-    "vector<vector<ll>> lists(n + 1);  // per Fenwick x-node: the distinct y's it covers, ascending",
-    "for (int i : byY) {",
-    "    ll y = pts[i].second;",
-    "    int k = (int)(lower_bound(xs.begin(), xs.end(), pts[i].first) - xs.begin()) + 1;",
-    "    for (; k <= n; k += k & -k)",
-    "        if (lists[k].empty() || lists[k].back() != y) lists[k].push_back(y);",
-    "}",
-    "off.assign(n + 1, 0);",
-    "cnt.assign(n + 1, 0);",
-    "for (int i = 1; i <= n; i++) {",
-    "    off[i] = (int)ys.size();",
-    "    cnt[i] = (int)lists[i].size();",
-    "    ys.insert(ys.end(), lists[i].begin(), lists[i].end());",
-    "}",
-]
+CPP_BIT_BUILD, CPP_BIT_LISTS = cpp_lists("for (int p = byY[i].second + 1; p <= n; p += p & -p)", "(n + 1)", "1")
 
 
 def bit_sum(aggs):
@@ -486,22 +484,21 @@ def bit_sum(aggs):
          "pts.erase(unique(pts.begin(), pts.end()), pts.end());", "vals.assign(pts.size(), T(0));"] + CPP_BIT_BUILD
     for a in A:
         b.append(f"{a.arr}.assign(ys.size(), 0);")
-    cpp += indent(b, 2) + ["    }", ""] + CPP_INDEX
+    cpp += indent(b, 2) + ["    }", ""] + indent(CPP_BIT_LISTS) + [""] + CPP_INDEX
     cpp += ["    // point number i, at (x, y), becomes v", "    void setPoint(int i, ll x, ll y, T v) {"]
-    b = ["T old = vals[i];", "vals[i] = v;", "int xi = (int)(lower_bound(xs.begin(), xs.end(), x) - xs.begin()) + 1;"]
+    b = ["T old = vals[i];", "vals[i] = v;", "int xi = hotLowerBound(&xs[0], n, x) + 1;"]
     for a in A:
         s = sym[a.key]
         b += [f"{a.cpp_type} d{a.cap} = {f'{a.cpp_type}(v) - old' if a.key == 'sum' else 'v ^ old'};", f"total{a.cap} {s}= d{a.cap};",
-              "for (int k = xi; k <= n; k += k & -k) {", "    const ll* first = ys.data() + off[k];",
-              f"    {a.cpp_type}* t = {a.arr}.data() + off[k] - 1;",
-              f"    for (int j = (int)(lower_bound(first, first + cnt[k], y) - first) + 1; j <= cnt[k]; j += j & -j) t[j] {s}= d{a.cap};", "}"]
+              "for (int k = xi; k <= n; k += k & -k) {", f"    {a.cpp_type}* t = &{a.arr}[off[k]];  // (entry j of this node's tree is t[j - 1])",
+              f"    for (int j = hotLowerBound(&ys[off[k]], cnt[k], y) + 1; j <= cnt[k]; j += j & -j) t[j - 1] {s}= d{a.cap};", "}"]
     cpp += indent(b, 2) + ["    }", ""]
     for a in A:
         s = sym[a.key]
         cpp += [f"    // {a.word} of the points with x <= the given x and y <= the given y", f"    {a.cpp_type} prefix{a.cap}(ll x, ll y) const {{"]
-        cpp += indent([f"{a.cpp_type} res = 0;", "for (int k = (int)(upper_bound(xs.begin(), xs.end(), x) - xs.begin()); k > 0; k &= k - 1) {",
-                       "    const ll* first = ys.data() + off[k];", f"    const {a.cpp_type}* t = {a.arr}.data() + off[k] - 1;",
-                       f"    for (int j = (int)(upper_bound(first, first + cnt[k], y) - first); j > 0; j &= j - 1) res {s}= t[j];", "}", "return res;"], 2)
+        cpp += indent([f"{a.cpp_type} res = 0;", "for (int k = hotUpperBound(&xs[0], n, x); k > 0; k &= k - 1) {",
+                       f"    const {a.cpp_type}* t = &{a.arr}[off[k]];  // (entry j of this node's tree is t[j - 1])",
+                       f"    for (int j = hotUpperBound(&ys[off[k]], cnt[k], y); j > 0; j &= j - 1) res {s}= t[j - 1];", "}", "return res;"], 2)
         cpp += ["    }", ""]
     cpp.append(f"    // O(log N) -- the value at (x, y); {POINT_RULE_CPP}")
     cpp += ["    T pointGet(ll x, ll y) const {", '        return vals[indexOf(x, y, "pointGet")];', "    }", ""]
@@ -589,14 +586,14 @@ def corner_bit(kind, corners):
             "    struct Prefix {", "        int n = 0;", "        vector<ll> xs, ys;", "        vector<int> off, cnt;", "        vector<T> tree;", "",
             "        void build(vector<pair<ll, ll>> pts) {", "            sort(pts.begin(), pts.end());"]
     cpp += indent(CPP_BIT_BUILD + [f"tree.assign(ys.size(), {none});"], 3)
-    cpp += ["        }", "", "        void improve(ll x, ll y, T v) {",
-            "            for (int k = (int)(lower_bound(xs.begin(), xs.end(), x) - xs.begin()) + 1; k <= n; k += k & -k) {",
-            "                const ll* first = ys.data() + off[k];", "                T* t = tree.data() + off[k] - 1;",
-            "                for (int j = (int)(lower_bound(first, first + cnt[k], y) - first) + 1; j <= cnt[k]; j += j & -j)",
-            f"                    t[j] = {kind}(t[j], v);", "            }", "        }", "", "        T best(ll x, ll y) const {", f"            T res = {none};",
-            "            for (int k = (int)(upper_bound(xs.begin(), xs.end(), x) - xs.begin()); k > 0; k &= k - 1) {",
-            "                const ll* first = ys.data() + off[k];", "                const T* t = tree.data() + off[k] - 1;",
-            f"                for (int j = (int)(upper_bound(first, first + cnt[k], y) - first); j > 0; j &= j - 1) res = {kind}(res, t[j]);",
+    cpp += ["        }", ""] + indent(CPP_BIT_LISTS, 2) + ["", "        void improve(ll x, ll y, T v) {",
+            "            for (int k = hotLowerBound(&xs[0], n, x) + 1; k <= n; k += k & -k) {",
+            "                T* t = &tree[off[k]];  // (entry j of this node's tree is t[j - 1])",
+            f"                for (int j = hotLowerBound(&ys[off[k]], cnt[k], y) + 1; j <= cnt[k]; j += j & -j) t[j - 1] = {kind}(t[j - 1], v);",
+            "            }", "        }", "", "        T best(ll x, ll y) const {", f"            T res = {none};",
+            "            for (int k = hotUpperBound(&xs[0], n, x); k > 0; k &= k - 1) {",
+            "                const T* t = &tree[off[k]];  // (entry j of this node's tree is t[j - 1])",
+            f"                for (int j = hotUpperBound(&ys[off[k]], cnt[k], y); j > 0; j &= j - 1) res = {kind}(res, t[j - 1]);",
             "            }", "            return res;", "        }", "    };", "", "    vector<pair<ll, ll>> pts;", f"    T top = {none};",
             f"    Prefix {', '.join('t' + n for n in names)};", ""]
     cpp += indent(wrap_comment(CTOR_CPP, "//")) + [f"    explicit {cls}(vector<pair<ll, ll>> points) : pts(std::move(points)) {{"]

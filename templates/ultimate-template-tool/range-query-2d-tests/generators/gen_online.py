@@ -205,7 +205,8 @@ def seg_tree(aggs):
         cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives")
     if "min" in aggs:
         cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set cell gives")
-    cpp += ["    ll xLo, xHi, yLo, yHi;", "    vector<int> xLeft, xRight, xTree;  // x-node 0 = nothing there, 1 = the root; xTree = an x-node's own y-tree (its root)",
+    cpp += ["    ll xLo, xHi, yLo, yHi;", "    int xUsed = 2, yUsed = 1;  // how many x-nodes / y-nodes exist (the arrays are longer: they double when full)",
+            "    vector<int> xLeft, xRight, xTree;  // x-node 0 = nothing there, 1 = the root; xTree = an x-node's own y-tree (its root)",
             "    vector<int> yLeft, yRight;  // y-node 0 = nothing there: its aggregates are what an untouched range gives"]
     for a in A:
         cpp.append(f"    vector<{a.cpp_type}> {a.arr};")
@@ -214,15 +215,17 @@ def seg_tree(aggs):
         cpp += ["    static T gcdOf(T a, T b) { return std::gcd(a, b); }", ""]
     cblank = {a.key: (a.cpp_id if mm else a.cpp_type + "(0)") for a in A}
     cpp += [f"    // O(1) -- every cell of [xLo, xHi] by [yLo, yHi] {'empty' if mm else '0'}; needs xLo <= xHi and yLo <= yHi, else throws invalid_argument",
-            f"    {cls}(ll xLo, ll xHi, ll yLo, ll yHi)", "        : xLo(xLo), xHi(xHi), yLo(yLo), yHi(yHi), xLeft(2, 0), xRight(2, 0), xTree(2, 0), yLeft(1, 0), yRight(1, 0) {",
+            f"    {cls}(ll xLo, ll xHi, ll yLo, ll yHi)", "        : xLo(xLo), xHi(xHi), yLo(yLo), yHi(yHi), xLeft(64, 0), xRight(64, 0), xTree(64, 0) {",
             f'        if (xLo > xHi || yLo > yHi) throw invalid_argument("{cls}: needs xLo <= xHi and yLo <= yHi");']
     for a in A:
-        cpp.append(f"        {a.arr}.assign(1, {cblank[a.key]});")
-    cpp += ["    }", "", "    int newX() {", "        xLeft.push_back(0), xRight.push_back(0), xTree.push_back(0);", "        return (int)xLeft.size() - 1;", "    }", "", "    int newY() {",
-            "        yLeft.push_back(0), yRight.push_back(0);"]
+        cpp.append(f"        {a.arr}.assign(64, {cblank[a.key]});")
+    cpp.append("        yLeft.assign(64, 0), yRight.assign(64, 0);")
+    cpp += ["    }", "", "    // a new node is the next unused slot (already blank); a full array doubles",
+            "    int newX() {", "        if (xUsed == (int)xLeft.size()) xLeft.resize(2 * xUsed, 0), xRight.resize(2 * xUsed, 0), xTree.resize(2 * xUsed, 0);",
+            "        return xUsed++;", "    }", "", "    int newY() {", "        if (yUsed == (int)yLeft.size()) {", "            yLeft.resize(2 * (size_t)yUsed, 0), yRight.resize(2 * (size_t)yUsed, 0);"]
     for a in A:
-        cpp.append(f"        {a.arr}.push_back({cblank[a.key]});")
-    cpp += ["        return (int)yLeft.size() - 1;", "    }", "", "    // the y-node of the tree rooted at q that holds exactly y (0 if nothing was set there)", "    int findY(int q, ll y) const {",
+        cpp.append(f"            {a.arr}.resize(2 * (size_t)yUsed, {cblank[a.key]});")
+    cpp += ["        }", "        return yUsed++;", "    }", "", "    // the y-node of the tree rooted at q that holds exactly y (0 if nothing was set there)", "    int findY(int q, ll y) const {",
             "        ll lo = yLo, hi = yHi;", "        while (q && lo < hi) {", "            ll mid = lo + (hi - lo) / 2;", "            if (y <= mid) q = yLeft[q], hi = mid;",
             "            else q = yRight[q], lo = mid + 1;", "        }", "        return q;", "    }", "", "    // the y-node holding exactly (x, y) (0 if nothing was set there)", "    int findCell(ll x, ll y) const {",
             "        int p = 1;", "        ll lo = xLo, hi = xHi;", "        while (p && lo < hi) {", "            ll mid = lo + (hi - lo) / 2;", "            if (x <= mid) p = xLeft[p], hi = mid;",

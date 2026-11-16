@@ -23,6 +23,38 @@ using namespace std;
 //   other: none
 //   note: one flat array per aggregate, 2R row-nodes by 2C column-nodes; the cells are the last R row-nodes' last C entries
 
+// Sanitizers are skipped inside this template (its methods start with LEETCODE_NO_SANITIZE): where they run, like on
+// LeetCode, that is most of its speed. The drawback: a bad memory access inside the template goes unreported. Arguments
+// are still checked and still throw. Constructors are left alone. It needs GCC or Clang and C++17.
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const {
+        return this->_M_impl._M_start[i];
+    }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
 // 2D segment tree (gcd, xor): point updates and any-rectangle queries on an R x C grid, O(log R * log C) each. A tree
 // over the rows whose every node is a tree over the columns, bottom-up, in one flat array per aggregate. Rows and
 // columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2. The (R, C) constructor starts with
@@ -31,10 +63,10 @@ using namespace std;
 template <typename T>
 struct SegTree2D {
     int R, C, W;
-    vector<T> gc;
-    vector<T> xr;
+    HotVector<T> gc;
+    HotVector<T> xr;
 
-    static T gcdOf(T a, T b) { return std::gcd(a, b); }
+    LEETCODE_NO_SANITIZE static T gcdOf(T a, T b) { return std::gcd(a, b); }
 
     // O(R*C) -- R rows by C columns, every cell 0; needs R >= 1 and C >= 1, else throws invalid_argument
     SegTree2D(int rows, int cols) : R(rows), C(cols), W(2 * cols) {
@@ -68,7 +100,7 @@ struct SegTree2D {
     }
 
     // cell (r, c) = v, then every node above it
-    void setCell(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void setCell(int r, int c, T v) {
         int base = (r + R) * W;
         gc[base + c + C] = v;
         xr[base + c + C] = v;
@@ -87,20 +119,20 @@ struct SegTree2D {
     }
 
     // O(1) -- the value at (r, c); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
-    T pointGet(int r, int c) const {
+    LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         return T(xr[(r + R) * W + c + C]);
     }
 
     // O(log R * log C) gcds -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <=
     // c < C, else throws out_of_range
-    void pointAssign(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointAssign(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAssign: needs 0 <= r < R and 0 <= c < C");
         setCell(r, c, v);
     }
 
     // O(log R * log C) gcds -- adds v to the cell at (r, c); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
-    void pointAdd(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointAdd(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAdd: needs 0 <= r < R and 0 <= c < C");
         T cur = T(xr[(r + R) * W + c + C]);
         setCell(r, c, T(cur + v));
@@ -108,7 +140,7 @@ struct SegTree2D {
 
     // O(log R * log C) gcds -- the cell at (r, c) becomes max(itself, v); needs 0 <= r < R and 0 <= c < C, else
     // throws out_of_range
-    void pointChmax(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointChmax(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmax: needs 0 <= r < R and 0 <= c < C");
         T cur = T(xr[(r + R) * W + c + C]);
         if (v > cur) setCell(r, c, v);
@@ -116,13 +148,13 @@ struct SegTree2D {
 
     // O(log R * log C) gcds -- the cell at (r, c) becomes min(itself, v); needs 0 <= r < R and 0 <= c < C, else
     // throws out_of_range
-    void pointChmin(int r, int c, T v) {
+    LEETCODE_NO_SANITIZE void pointChmin(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
         T cur = T(xr[(r + R) * W + c + C]);
         if (v < cur) setCell(r, c, v);
     }
 
-    T gcdOf(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE T gcdOf(int r1, int c1, int r2, int c2) const {
         T res = T(0);
         int cl = c1 + C, cr = c2 + C + 1;
         for (int lr = r1 + R, rr = r2 + R + 1; lr < rr; lr >>= 1, rr >>= 1) {
@@ -147,18 +179,18 @@ struct SegTree2D {
     // O(log R * log C + log U) -- gcd of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C,
     // else
     // throws out_of_range
-    T rectGcd(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE T rectGcd(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectGcd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return gcdOf(r1, c1, r2, c2);
     }
 
     // O(1) -- gcd of the whole grid
-    T gcdAll() const {
+    LEETCODE_NO_SANITIZE T gcdAll() const {
         return gcdOf(gc[W + 1], T(0));
     }
 
-    T xorOf(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE T xorOf(int r1, int c1, int r2, int c2) const {
         T res = T(0);
         int cl = c1 + C, cr = c2 + C + 1;
         for (int lr = r1 + R, rr = r2 + R + 1; lr < rr; lr >>= 1, rr >>= 1) {
@@ -183,14 +215,14 @@ struct SegTree2D {
     // O(log R * log C) -- xor of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else
     // throws
     // out_of_range
-    T rectXor(int r1, int c1, int r2, int c2) const {
+    LEETCODE_NO_SANITIZE T rectXor(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectXor: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return xorOf(r1, c1, r2, c2);
     }
 
     // O(1) -- xor of the whole grid
-    T xorAll() const {
+    LEETCODE_NO_SANITIZE T xorAll() const {
         return xr[W + 1];
     }
 };
