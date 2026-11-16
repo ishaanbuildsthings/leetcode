@@ -126,7 +126,8 @@ export interface MemoryBreakdown {
 }
 
 // Typical contest sizes (N elements, values up to U, Q updates), used to turn a cost string into a number for ranking.
-const SIZES = { N: 2e5, U: 1e9, Q: 2e5 };
+// (the 2D range query templates: a grid of R rows by C columns, a 3D grid of X by Y by Z)
+const SIZES = { N: 2e5, U: 1e9, Q: 2e5, R: 1000, C: 1000, X: 100, Y: 100, Z: 100 };
 const FACTOR_VALUES: Record<string, number> = {
   "1": 1,
   // union find: α(N) is at most about 4; K = the size of the group a call lists (ranked as a typical small group)
@@ -153,6 +154,19 @@ const FACTOR_VALUES: Record<string, number> = {
   B: 30,
   "B^2": 900,
   "2^B": 2 ** 20,
+  // the 2D / 3D range query templates
+  R: SIZES.R,
+  C: SIZES.C,
+  "log(R)": Math.log2(SIZES.R),
+  "log(C)": Math.log2(SIZES.C),
+  "log(min(R,C))": Math.log2(Math.min(SIZES.R, SIZES.C)),
+  X: SIZES.X,
+  Y: SIZES.Y,
+  Z: SIZES.Z,
+  "log(X)": Math.log2(SIZES.X),
+  "log(Y)": Math.log2(SIZES.Y),
+  "log(Z)": Math.log2(SIZES.Z),
+  "log^2(U)": Math.log2(SIZES.U) ** 2,
 };
 
 export function costValue(cost: string): number {
@@ -211,7 +225,7 @@ export function memoryValue(memory: MemoryBreakdown): number {
 // other factors are written without spaces ("logU", "√N") and joined to it by "*"; terms are joined by " + ".
 export function formatMemory(memory: string): string {
   if (memory === "0") return "0";
-  const LETTERS = ["N", "Q", "U"];
+  const LETTERS = ["N", "Q", "U", "R", "C", "X", "Y", "Z"];
   return memory
     .split("+")
     .map((term) => {
@@ -283,6 +297,19 @@ const PRETTY_FACTORS: Record<string, string> = {
   B: "B",
   "B^2": "B²",
   "2^B": "2ᴮ",
+  // the 2D / 3D range query templates
+  R: "R",
+  C: "C",
+  "log(R)": "logR",
+  "log(C)": "logC",
+  "log(min(R,C))": "log(min(R, C))",
+  X: "X",
+  Y: "Y",
+  Z: "Z",
+  "log(X)": "logX",
+  "log(Y)": "logY",
+  "log(Z)": "logZ",
+  "log^2(U)": "log²U",
 };
 
 export function formatCost(cost: string): string {

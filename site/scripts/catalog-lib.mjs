@@ -15,7 +15,9 @@ const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 // U/64 = U 64-bit words (a bitset over U values).
 // D/64 = D 64-bit words, D = how many distinct values there are (a bitset with a bit per distinct value).
 // U^(1/4) = Pollard rho's expected steps on a value too big for the sieve.
-const FACTORS = new Set(["1", "α(N)", "K", "N", "log(N)", "log^2(N)", "log^3(N)", "sqrt(N)", "sqrt(NlogN)", "sqrt(N/logN)", "U", "U/64", "D/64", "log(U)", "log64(U)", "log(log(U))", "U^(1/4)"]);
+// R, C = a grid's rows and columns; X, Y, Z = a 3D grid's sides (the 2D / 3D range query templates).
+const FACTORS = new Set(["1", "α(N)", "K", "N", "log(N)", "log^2(N)", "log^3(N)", "sqrt(N)", "sqrt(NlogN)", "sqrt(N/logN)", "U", "U/64", "D/64", "log(U)", "log64(U)", "log(log(U))", "U^(1/4)",
+  "R", "C", "log(R)", "log(C)", "log(min(R,C))", "X", "Y", "Z", "log(X)", "log(Y)", "log(Z)", "log^2(U)"]);
 
 // A cost is terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
 // constant, e.g. 36*N), optionally followed by " amortized", " expected" or " amortized expected", then optionally " ?" (a bound we are
@@ -66,7 +68,7 @@ export function parseArrays(value) {
 }
 
 // Sums sizes like 4*N + 4*N + 1*N*log(N) into "8*N+1*N*log(N)", largest terms first.
-const TERM_ORDER = ["N*sqrt(N)", "N*sqrt(N/logN)", "N*log(N)", "N", "sqrt(N)", ""];
+const TERM_ORDER = ["N*sqrt(N)", "N*sqrt(N/logN)", "N*log(N)", "N", "sqrt(N)", "R*C*log(R)*log(C)", "R*C*log(U)", "R*C*log(min(R,C))", "R*C", "X*Y*Z", "R", "C", ""];
 export function sumSizes(sizes) {
   const byShape = new Map();
   for (const size of sizes) {

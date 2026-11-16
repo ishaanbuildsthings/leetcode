@@ -1,6 +1,28 @@
 import type { FillIn } from "@/components/TemplatePicker";
 import { GENERIC_FAST } from "@/lib/fast-mode";
 
+// The generic 2D sparse tables (templates/ultimate-template-tool/generic-2d/): listed here and on the 2D range queries tab.
+export const GENERIC_SPARSE_TABLES_2D: FillIn[] = [
+  {
+    label: "Generic rectangle sparse table",
+    title: "Static R x C grid, fill in Node, baseFn(v, r, c) and an idempotent combine: O(1) rectQuery for any rectangle",
+    folder: "_generic",
+    file: "GenericRectSparseTable",
+    ops: [["pointGet(r, c)", "1"], ["rectQuery(r1, c1, r2, c2)", "1"], ["rectQueryAll()", "1"], ["build", "R*C*log(R)*log(C)"]],
+    note: "No updates. combine must give the same answer when a cell is counted twice (combine(x, x) == x) and in either argument order, so no sums or counts. A query is at most 3 combine calls. Memory: R * C * log R * log C Nodes; when only squares are asked, the square sparse table needs a single log",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-2d/",
+  },
+  {
+    label: "Generic square sparse table",
+    title: "Static R x C grid, square queries only: a single log of build and memory, O(1) squareQuery",
+    folder: "_generic",
+    file: "GenericSquareSparseTable",
+    ops: [["pointGet(r, c)", "1"], ["squareQuery(r, c, side)", "1"], ["build", "R*C*log(min(R,C))"]],
+    note: "No updates, squares only (top-left cell and side). combine must give the same answer when a cell is counted twice (combine(x, x) == x) and in either argument order. A query is at most 3 combine calls. Memory: R * C * log(min(R, C)) Nodes",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-2d/",
+  },
+];
+
 // The generic seg trees you fill in yourself (templates/ultimate-template-tool/generic-seg-trees/): the range query picker's
 // "Generic seg trees" menu lists them.
 export const GENERIC_SEG_TREES: FillIn[] = [
@@ -105,4 +127,5 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     note: "No updates. combine must give the same answer when a range is counted twice (combine(x, x) == x), so no sums or counts. baseFn runs once per element; a query is one combine call. Memory: N log N Nodes",
     githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
+  ...GENERIC_SPARSE_TABLES_2D,
 ];

@@ -1,0 +1,279 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-seg-tree-max-xor-and/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+// @operations: andAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectMax rectXor xorAll
+// @data-structure-type: seg-tree
+// @input: grid
+// @empty-cells: yes
+// @complexities:
+//   andAll: 1
+//   maxAll: 1
+//   maxGteGte: log(R)*log(C)
+//   maxGteLte: log(R)*log(C)
+//   maxLteGte: log(R)*log(C)
+//   maxLteLte: log(R)*log(C)
+//   pointAdd: log(R)*log(C)
+//   pointAssign: log(R)*log(C)
+//   pointChmax: log(R)*log(C)
+//   pointChmin: log(R)*log(C)
+//   pointGet: 1
+//   rectAnd: log(R)*log(C)
+//   rectMax: log(R)*log(C)
+//   rectXor: log(R)*log(C)
+//   xorAll: 1
+//   build: R*C
+// @memory:
+//   layout: 2n-iterative
+//   node: mx[4*R*C] xr[4*R*C] an[4*R*C]
+//   tags: none
+//   other: none
+//   note: one flat array per aggregate, 2R row-nodes by 2C column-nodes; the cells are the last R row-nodes' last C entries
+
+// 2D segment tree (max, xor, AND): point updates and any-rectangle queries on an R x C grid, O(log R * log C) each. A
+// tree over the rows whose every node is a tree over the columns, bottom-up, in one flat array per aggregate. Rows
+// and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2. A cell can be empty (the (R, C)
+// constructor starts with every cell empty) and queries only see set cells: a min / max over no set cell is NO_MAX; a
+// xor over none is 0; an AND over none is -1 (every bit set).
+// T is any integer type (int, long long, ...).
+template <typename T>
+struct SegTree2D {
+    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives
+    int R, C, W;
+    vector<T> mx;
+    vector<T> xr;
+    vector<T> an;
+
+    // O(R*C) -- R rows by C columns, every cell empty; needs R >= 1 and C >= 1, else throws invalid_argument
+    SegTree2D(int rows, int cols) : R(rows), C(cols), W(2 * cols) {
+        if (R < 1 || C < 1) throw invalid_argument("SegTree2D: needs R >= 1 and C >= 1");
+        mx.assign((size_t)2 * R * W, NO_MAX);
+        xr.assign((size_t)2 * R * W, T(0));
+        an.assign((size_t)2 * R * W, T(-1));
+    }
+
+    // O(R*C) -- grid: R rows of C values each; needs R >= 1 and C >= 1, else throws invalid_argument
+    explicit SegTree2D(const vector<vector<T>>& grid)
+        : SegTree2D((int)grid.size(), grid.empty() ? 0 : (int)grid[0].size()) {
+        for (int r = 0; r < R; r++) {
+            if ((int)grid[r].size() != C) throw invalid_argument("SegTree2D: every row needs the same C values");
+            int base = (r + R) * W;
+            for (int c = 0; c < C; c++) {
+                mx[base + C + c] = grid[r][c];
+                xr[base + C + c] = grid[r][c];
+                an[base + C + c] = grid[r][c];
+            }
+            for (int pc = C - 1; pc >= 1; pc--) {
+                mx[base + pc] = max(mx[base + 2 * pc], mx[base + 2 * pc + 1]);
+                xr[base + pc] = xr[base + 2 * pc] ^ xr[base + 2 * pc + 1];
+                an[base + pc] = an[base + 2 * pc] & an[base + 2 * pc + 1];
+            }
+        }
+        for (int pr = R - 1; pr >= 1; pr--) {
+            int base = pr * W, lo = 2 * base, hi = lo + W;
+            for (int pc = 1; pc < W; pc++) {
+                mx[base + pc] = max(mx[lo + pc], mx[hi + pc]);
+                xr[base + pc] = xr[lo + pc] ^ xr[hi + pc];
+                an[base + pc] = an[lo + pc] & an[hi + pc];
+            }
+        }
+    }
+
+    // cell (r, c) = v, then every node above it
+    void setCell(int r, int c, T v) {
+        int base = (r + R) * W;
+        mx[base + c + C] = v;
+        xr[base + c + C] = v;
+        an[base + c + C] = v;
+        for (int pc = (c + C) >> 1; pc >= 1; pc >>= 1) {
+            mx[base + pc] = max(mx[base + 2 * pc], mx[base + 2 * pc + 1]);
+            xr[base + pc] = xr[base + 2 * pc] ^ xr[base + 2 * pc + 1];
+            an[base + pc] = an[base + 2 * pc] & an[base + 2 * pc + 1];
+        }
+        for (int pr = (r + R) >> 1; pr >= 1; pr >>= 1) {
+            base = pr * W;
+            int lo = 2 * base, hi = lo + W;
+            for (int pc = c + C; pc >= 1; pc >>= 1) {
+                mx[base + pc] = max(mx[lo + pc], mx[hi + pc]);
+                xr[base + pc] = xr[lo + pc] ^ xr[hi + pc];
+                an[base + pc] = an[lo + pc] & an[hi + pc];
+            }
+        }
+    }
+
+    // O(1) -- the value at (r, c), NO_MAX if the cell is empty; needs 0 <= r < R and 0 <= c < C, else throws
+    // out_of_range
+    T pointGet(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
+        return T(mx[(r + R) * W + c + C]);
+    }
+
+    // O(log R * log C) -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c <
+    // C, else throws out_of_range
+    void pointAssign(int r, int c, T v) {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAssign: needs 0 <= r < R and 0 <= c < C");
+        setCell(r, c, v);
+    }
+
+    // O(log R * log C) -- adds v to the cell at (r, c); an empty cell becomes v; needs 0 <= r < R and 0 <= c < C,
+    // else throws out_of_range
+    void pointAdd(int r, int c, T v) {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAdd: needs 0 <= r < R and 0 <= c < C");
+        T cur = T(mx[(r + R) * W + c + C]);
+        setCell(r, c, cur == NO_MAX ? v : T(cur + v));
+    }
+
+    // O(log R * log C) -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
+    // <= c < C, else throws out_of_range
+    void pointChmax(int r, int c, T v) {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmax: needs 0 <= r < R and 0 <= c < C");
+        T cur = T(mx[(r + R) * W + c + C]);
+        if (cur == NO_MAX || v > cur) setCell(r, c, v);
+    }
+
+    // O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
+    // <= c < C, else throws out_of_range
+    void pointChmin(int r, int c, T v) {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
+        T cur = T(mx[(r + R) * W + c + C]);
+        if (cur == NO_MAX || v < cur) setCell(r, c, v);
+    }
+
+    T maxOf(int r1, int c1, int r2, int c2) const {
+        T res = NO_MAX;
+        int cl = c1 + C, cr = c2 + C + 1;
+        for (int lr = r1 + R, rr = r2 + R + 1; lr < rr; lr >>= 1, rr >>= 1) {
+            if (lr & 1) {
+                int base = lr++ * W;
+                for (int lc = cl, rc = cr; lc < rc; lc >>= 1, rc >>= 1) {
+                    if (lc & 1) res = max(res, mx[base + lc++]);
+                    if (rc & 1) res = max(res, mx[base + --rc]);
+                }
+            }
+            if (rr & 1) {
+                int base = --rr * W;
+                for (int lc = cl, rc = cr; lc < rc; lc >>= 1, rc >>= 1) {
+                    if (lc & 1) res = max(res, mx[base + lc++]);
+                    if (rc & 1) res = max(res, mx[base + --rc]);
+                }
+            }
+        }
+        return res;
+    }
+
+    // O(log R * log C) -- max of the set cells in rows r1..r2, columns c1..c2 (NO_MAX if there are none); needs 0 <= r1
+    // <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    T rectMax(int r1, int c1, int r2, int c2) const {
+        if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
+            throw out_of_range("rectMax: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
+        return maxOf(r1, c1, r2, c2);
+    }
+
+    // O(1) -- max of every set cell (NO_MAX if there are none)
+    T maxAll() const {
+        return mx[W + 1];
+    }
+
+    // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX if there are none); needs 0 <= r
+    // < R
+    // and 0 <= c < C, else throws out_of_range
+    T maxLteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteLte: needs 0 <= r < R and 0 <= c < C");
+        return maxOf(0, 0, r, c);
+    }
+
+    // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX if there are none); needs 0 <= r
+    // < R
+    // and 0 <= c < C, else throws out_of_range
+    T maxLteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteGte: needs 0 <= r < R and 0 <= c < C");
+        return maxOf(0, c, r, C - 1);
+    }
+
+    // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX if there are none); needs 0 <= r
+    // < R
+    // and 0 <= c < C, else throws out_of_range
+    T maxGteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteLte: needs 0 <= r < R and 0 <= c < C");
+        return maxOf(r, 0, R - 1, c);
+    }
+
+    // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX if there are none); needs 0 <= r
+    // < R
+    // and 0 <= c < C, else throws out_of_range
+    T maxGteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteGte: needs 0 <= r < R and 0 <= c < C");
+        return maxOf(r, c, R - 1, C - 1);
+    }
+
+    T xorOf(int r1, int c1, int r2, int c2) const {
+        T res = T(0);
+        int cl = c1 + C, cr = c2 + C + 1;
+        for (int lr = r1 + R, rr = r2 + R + 1; lr < rr; lr >>= 1, rr >>= 1) {
+            if (lr & 1) {
+                int base = lr++ * W;
+                for (int lc = cl, rc = cr; lc < rc; lc >>= 1, rc >>= 1) {
+                    if (lc & 1) res ^= xr[base + lc++];
+                    if (rc & 1) res ^= xr[base + --rc];
+                }
+            }
+            if (rr & 1) {
+                int base = --rr * W;
+                for (int lc = cl, rc = cr; lc < rc; lc >>= 1, rc >>= 1) {
+                    if (lc & 1) res ^= xr[base + lc++];
+                    if (rc & 1) res ^= xr[base + --rc];
+                }
+            }
+        }
+        return res;
+    }
+
+    // O(log R * log C) -- xor of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0 <= r1 <=
+    // r2
+    // < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    T rectXor(int r1, int c1, int r2, int c2) const {
+        if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
+            throw out_of_range("rectXor: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
+        return xorOf(r1, c1, r2, c2);
+    }
+
+    // O(1) -- xor of every set cell (0 if there are none)
+    T xorAll() const {
+        return xr[W + 1];
+    }
+
+    T andOf(int r1, int c1, int r2, int c2) const {
+        T res = T(-1);
+        int cl = c1 + C, cr = c2 + C + 1;
+        for (int lr = r1 + R, rr = r2 + R + 1; lr < rr; lr >>= 1, rr >>= 1) {
+            if (lr & 1) {
+                int base = lr++ * W;
+                for (int lc = cl, rc = cr; lc < rc; lc >>= 1, rc >>= 1) {
+                    if (lc & 1) res &= an[base + lc++];
+                    if (rc & 1) res &= an[base + --rc];
+                }
+            }
+            if (rr & 1) {
+                int base = --rr * W;
+                for (int lc = cl, rc = cr; lc < rc; lc >>= 1, rc >>= 1) {
+                    if (lc & 1) res &= an[base + lc++];
+                    if (rc & 1) res &= an[base + --rc];
+                }
+            }
+        }
+        return res;
+    }
+
+    // O(log R * log C) -- AND of the set cells in rows r1..r2, columns c1..c2 (-1 (every bit set) if there are none);
+    // needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    T rectAnd(int r1, int c1, int r2, int c2) const {
+        if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
+            throw out_of_range("rectAnd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
+        return andOf(r1, c1, r2, c2);
+    }
+
+    // O(1) -- AND of every set cell (-1 (every bit set) if there are none)
+    T andAll() const {
+        return an[W + 1];
+    }
+};

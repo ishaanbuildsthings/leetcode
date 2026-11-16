@@ -30,6 +30,7 @@ import { readUsage } from "@/lib/template-usage";
 // The picker pages, shown as tabs above each one.
 const PICKER_PAGES = [
   { href: "/templates/range-queries", label: "Range queries" },
+  { href: "/templates/range-queries-2d", label: "2D range queries" },
   { href: "/templates/sets", label: "Sets" },
   { href: "/templates/union-find", label: "Union find" },
   { href: "/templates/strings", label: "Strings" },

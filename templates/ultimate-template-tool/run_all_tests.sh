@@ -27,7 +27,8 @@ echo "== syntax: every Python template must parse"
 python3 - <<'PY' > "$LOGS/syntax.log" 2>&1
 import ast, os, sys
 bad = 0
-for sub in ("range-queries", "sets", "union-find", "strings", "next-permutation", "tree-queries", "generic-trees"):
+for sub in ("range-queries", "range-queries-2d", "generic-2d", "sets", "union-find", "strings", "next-permutation", "tree-queries",
+            "generic-trees"):
     if not os.path.isdir(sub): continue
     for root, _, files in os.walk(sub):
         for f in files:
@@ -64,6 +65,18 @@ if [[ " ${LANGS[*]} " == *" --cpp "* ]]; then  # every fast.cpp matches what gen
 fi
 run range-generic python3 range-query-tests/test_generic_fast.py
 run range-catalog python3 range-query-tests/check_catalog.py
+
+echo "== 2D / 3D range queries: brute-force tests, $JOBS shards per language ($(ls range-queries-2d | wc -l | tr -d ' ') folders)"
+for lang in "${LANGS[@]}"; do
+    for ((k = 0; k < JOBS; k++)); do
+        run "range2d${lang}-$k" python3 range-query-2d-tests/test_templates_2d.py "$lang" --jobs 1 --shard "$k/$JOBS" &
+    done
+    wait
+done
+# every 2D file matches what its generator writes now; the generic rectangle / square sparse tables
+run range2d-fresh bash -c "cd range-query-2d-tests/generators && python3 gen_all.py --check"
+if [ "${#LANGS[@]}" -eq 2 ]; then run range2d-generic python3 range-query-2d-tests/test_generic_2d.py
+else run range2d-generic python3 range-query-2d-tests/test_generic_2d.py "${LANGS[0]}"; fi
 
 echo "== sets: brute-force tests, $JOBS shards per language ($(ls sets | wc -l | tr -d ' ') folders)"
 for lang in "${LANGS[@]}"; do

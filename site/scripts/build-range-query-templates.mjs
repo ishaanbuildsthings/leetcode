@@ -179,6 +179,9 @@ for (const { folder, langs, sparse, letters } of entries) {
 const genericDir = path.resolve(siteDir, "../templates/ultimate-template-tool/generic-seg-trees");
 fs.mkdirSync(path.join(publicDir, "_generic"));
 for (const name of fs.readdirSync(genericDir)) fs.copyFileSync(path.join(genericDir, name), path.join(publicDir, "_generic", name));
+// (the generic rectangle / square sparse tables are in the same menu: lib/generic-seg-trees.ts)
+const generic2dDir = path.resolve(siteDir, "../templates/ultimate-template-tool/generic-2d");
+for (const name of fs.readdirSync(generic2dDir)) fs.copyFileSync(path.join(generic2dDir, name), path.join(publicDir, "_generic", name));
 // the bubble sort functions (the Misc tab): copied as they are
 const bubbleDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bubble-sort");
 fs.mkdirSync(path.join(publicDir, "_bubble-sort"));
