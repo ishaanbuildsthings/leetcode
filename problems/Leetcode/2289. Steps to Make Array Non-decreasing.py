@@ -3,7 +3,7 @@ class Solution:
         n = len(nums)
         onLeft = [inf] * n
         
-        stack = [] # mono-decreasing
+        stack = [] # mono-increasing
         dp = [0] * n
         for i in range(len(nums) -1, -1, -1):
             v = nums[i]
@@ -22,7 +22,7 @@ class Solution:
         # n = len(nums)
         # onLeft = [inf] * n
         
-        # stack = [] # mono-decreasing
+        # stack = [] # mono-increasing
         # for i in range(len(nums) -1, -1, -1):
         #     v = nums[i]
         #     if not stack:
