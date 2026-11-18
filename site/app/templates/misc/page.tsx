@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
 import { BUBBLE_SORT } from "@/lib/bubble-sort";
+import { CHESS } from "@/lib/chess";
 import { NEXT_PERMUTATION } from "@/lib/next-permutation";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -34,6 +35,7 @@ export default async function MiscTemplatesPage() {
         <MiscTemplates title="Misc. templates" sections={[
             { title: "Bubble Sort", items: BUBBLE_SORT },
             { title: "Next Permutation", items: NEXT_PERMUTATION },
+            { title: "Chess", items: CHESS },
           ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>

@@ -219,7 +219,6 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "DnC DP golden",
     "alien trick golden",
     "LIS things",
-    "geometry",
   ],
 };
 

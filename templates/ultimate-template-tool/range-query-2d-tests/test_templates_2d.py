@@ -189,7 +189,7 @@ class Brute:
             if self.universe is None and op == "pointAssign" and "rectAssign" in self.ops:
                 self.rects.append((p, p, v, op))
             elif self.universe is None and op in ("pointChmax", "pointChmin") and any(
-                    o in self.ops for o in ("rectMax", "rectMin")):
+                    o in self.ops for o in ("rectChmax", "rectChmin")):
                 self.rects.append((p, p, v, op))
             elif op == "pointAssign":
                 cells[p] = v

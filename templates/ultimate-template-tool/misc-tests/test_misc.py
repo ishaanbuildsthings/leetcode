@@ -1,4 +1,4 @@
-"""Tests the small hand-written folders (combinatorics, next-permutation, trees, reroot, bitset) against brute force.
+"""Tests the small hand-written folders (combinatorics, next-permutation, trees, reroot, bitset, chess) against brute force.
 
     python3 test_misc.py          # Python and C++
     python3 test_misc.py --py     # Python only
@@ -429,8 +429,49 @@ def test_bitset():
     run_cpp("bitset/DynamicBitset", "bitset/DynamicBitset.cpp", body, "\n".join(stdin) + "\n", want)
 
 
+# ---- chess ----
+
+def knight_bfs(lo, hi):
+    """knight distances from (0, 0) to every square of [lo, hi] by [lo, hi]"""
+    from collections import deque
+    dist, todo = {(0, 0): 0}, deque([(0, 0)])
+    while todo:
+        x, y = todo.popleft()
+        for dx, dy in ((1, 2), (2, 1), (-1, 2), (-2, 1), (1, -2), (2, -1), (-1, -2), (-2, -1)):
+            nxt = (x + dx, y + dy)
+            if nxt not in dist and lo <= nxt[0] <= hi and lo <= nxt[1] <= hi:
+                dist[nxt] = dist[(x, y)] + 1
+                todo.append(nxt)
+    return dist
+
+
+def test_chess():
+    mod = load("chess/KnightDistance.py")
+    plane, quarter = knight_bfs(-60, 60), knight_bfs(0, 60)  # (60 is far enough that the walls don't matter below 25)
+    rng = random.Random(7)
+    asks, want = [], []
+    for x in range(-25, 26):
+        for y in range(-25, 26):
+            for ox, oy in ((0, 0), (rng.randrange(-10**9, 10**9), rng.randrange(-10**9, 10**9))):
+                got = mod.knightDistanceFullyInfiniteChessboard(ox, oy, ox + x, oy + y)
+                same(f"chess/KnightDistance.py infinite ({x}, {y})", got, plane[(x, y)])
+                asks.append(f"I {ox} {oy} {ox + x} {oy + y}")
+                want.append(str(plane[(x, y)]))
+    for x in range(26):
+        for y in range(26):
+            same(f"chess/KnightDistance.py corner ({x}, {y})", mod.knightDistanceFromCorner(x, y), quarter[(x, y)])
+            asks.append(f"C {x} {y}")
+            want.append(str(quarter[(x, y)]))
+    body = """    char kind; long long a, b, c, d;
+    while (cin >> kind) {
+        if (kind == 'I') { cin >> a >> b >> c >> d; cout << knightDistanceFullyInfiniteChessboard(a, b, c, d) << '\\n'; }
+        else { cin >> a >> b; cout << knightDistanceFromCorner(a, b) << '\\n'; }
+    }"""
+    run_cpp("chess/KnightDistance", "chess/KnightDistance.cpp", body, "\n".join(asks) + "\n", want)
+
+
 if __name__ == "__main__":
-    for test in (test_modcalc, test_fibonacci, test_next_permutation, test_trees_and_reroot, test_bitset):
+    for test in (test_modcalc, test_fibonacci, test_next_permutation, test_trees_and_reroot, test_bitset, test_chess):
         before = len(failures)
         test()
         print(f"{'FAIL' if len(failures) > before else 'PASS'}  {test.__name__}", flush=True)

@@ -178,18 +178,18 @@ for (const { folder, langs, sparse, letters } of entries) {
 // the generic seg trees you fill in yourself (the picker's buttons above the op grid): copied as they are
 const genericDir = path.resolve(siteDir, "../templates/ultimate-template-tool/generic-seg-trees");
 fs.mkdirSync(path.join(publicDir, "_generic"));
-for (const name of fs.readdirSync(genericDir)) fs.copyFileSync(path.join(genericDir, name), path.join(publicDir, "_generic", name));
+for (const name of fs.readdirSync(genericDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(genericDir, name), path.join(publicDir, "_generic", name));
 // (the generic rectangle / square sparse tables are in the same menu: lib/generic-seg-trees.ts)
 const generic2dDir = path.resolve(siteDir, "../templates/ultimate-template-tool/generic-2d");
-for (const name of fs.readdirSync(generic2dDir)) fs.copyFileSync(path.join(generic2dDir, name), path.join(publicDir, "_generic", name));
+for (const name of fs.readdirSync(generic2dDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(generic2dDir, name), path.join(publicDir, "_generic", name));
 // the bubble sort functions (the Misc tab): copied as they are
 const bubbleDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bubble-sort");
 fs.mkdirSync(path.join(publicDir, "_bubble-sort"));
-for (const name of fs.readdirSync(bubbleDir)) fs.copyFileSync(path.join(bubbleDir, name), path.join(publicDir, "_bubble-sort", name));
+for (const name of fs.readdirSync(bubbleDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(bubbleDir, name), path.join(publicDir, "_bubble-sort", name));
 // the next permutation functions (the Misc tab): copied as they are
 const nextPermDir = path.resolve(siteDir, "../templates/ultimate-template-tool/next-permutation");
 fs.mkdirSync(path.join(publicDir, "_next-permutation"));
-for (const name of fs.readdirSync(nextPermDir)) fs.copyFileSync(path.join(nextPermDir, name), path.join(publicDir, "_next-permutation", name));
+for (const name of fs.readdirSync(nextPermDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(nextPermDir, name), path.join(publicDir, "_next-permutation", name));
 // the reroot DP functions (the Misc tab): only the current ones, not the older files sharing the folder
 const rerootDir = path.resolve(siteDir, "../templates/ultimate-template-tool/reroot");
 fs.mkdirSync(path.join(publicDir, "_reroot"));
@@ -206,6 +206,9 @@ for (const name of fs.readdirSync(matricesDir).filter((name) => /^(matMul|vecMat
 const geometryDir = path.resolve(siteDir, "../templates/ultimate-template-tool/geometry");
 fs.mkdirSync(path.join(publicDir, "_geometry"));
 for (const name of ["polygonArea.py", "polygonArea.cpp"]) fs.copyFileSync(path.join(geometryDir, name), path.join(publicDir, "_geometry", name));
+const chessDir = path.resolve(siteDir, "../templates/ultimate-template-tool/chess");
+fs.mkdirSync(path.join(publicDir, "_chess"));
+for (const name of ["KnightDistance.py", "KnightDistance.cpp"]) fs.copyFileSync(path.join(chessDir, name), path.join(publicDir, "_chess", name));
 
 // the combinatorics templates (the Combinatorics tab)
 const combinatoricsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/combinatorics");
@@ -214,7 +217,7 @@ for (const name of fs.readdirSync(combinatoricsDir).filter((name) => /^(ModCalc|
 
 const goldenDir = path.resolve(siteDir, "../templates/ultimate-template-tool/golden-references");
 fs.mkdirSync(path.join(publicDir, "_golden-references"));
-for (const name of fs.readdirSync(goldenDir)) fs.copyFileSync(path.join(goldenDir, name), path.join(publicDir, "_golden-references", name));
+for (const name of fs.readdirSync(goldenDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(goldenDir, name), path.join(publicDir, "_golden-references", name));
 
 // the tree templates (the Trees tab)
 const treesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/trees");
