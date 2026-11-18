@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeMax rangeMin
+// @operations: maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeMax rangeMin
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   pointAdd: log(U)
@@ -15,6 +15,8 @@ using ll = long long;
 //   rangeChmin: log(U)
 //   rangeMax: log(U)
 //   rangeMin: log(U)
+//   minAll: log(U)
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -180,4 +182,11 @@ struct SparseChminMinMaxTree {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(lo, hi); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(lo, hi); }
+
 };

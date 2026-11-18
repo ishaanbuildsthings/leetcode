@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeSum-rangeXorQuery/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeSum rangeXorQuery
+# @operations: andAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeSum rangeXorQuery sumAll xorAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)
@@ -12,6 +12,9 @@
 #   rangeAssign: log(U)
 #   rangeSum: log(U)
 #   rangeXorQuery: log(U)
+#   sumAll: log(U)
+#   xorAll: log(U)
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -113,6 +116,18 @@ class SparseLazySegTree:
         for t, _ in self._nodes(l, r):
             res ^= xr[t]
         return res
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    def xorAll(self):
+        return self.rangeXorQuery(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

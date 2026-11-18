@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
+// @operations: andAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   pointAdd: log(U)*log(U)
@@ -18,6 +18,9 @@ using ll = long long;
 //   rangeOrQuery: log(U)*log(U)
 //   rangeSum: log(U)*log(U)
 //   rangeXorApply: log(U)*log(U)
+//   sumAll: log(U)*log(U)
+//   andAll: log(U)*log(U)
+//   orAll: log(U)*log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -206,4 +209,14 @@ struct SparseBitCountTree {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(U)*log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(lo, hi); }
+
+    // O(log(U)*log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    auto andAll() { return rangeAndQuery(lo, hi); }
+
+    // O(log(U)*log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    auto orAll() { return rangeOrQuery(lo, hi); }
+
 };

@@ -4,11 +4,12 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointGet rangeMin
+// @operations: minAll pointGet rangeMin
 // @data-structure-type: sparse-table
 // @complexities:
 //   pointGet: log(N)
 //   rangeMin: log(N)
+//   minAll: log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: sparse
@@ -140,4 +141,8 @@ struct SparseStaticMin {
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }
+
+    // O(log(N)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); indices not given in values count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(lo, hi); }
+
 };

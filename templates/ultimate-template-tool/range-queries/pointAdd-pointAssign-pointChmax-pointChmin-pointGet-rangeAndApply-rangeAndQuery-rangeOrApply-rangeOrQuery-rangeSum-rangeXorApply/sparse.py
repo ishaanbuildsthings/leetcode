@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
+# @operations: andAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)*log(U)
@@ -14,6 +14,9 @@
 #   rangeOrQuery: log(U)*log(U)
 #   rangeSum: log(U)*log(U)
 #   rangeXorApply: log(U)*log(U)
+#   sumAll: log(U)*log(U)
+#   andAll: log(U)*log(U)
+#   orAll: log(U)*log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -207,3 +210,15 @@ class SparseBitCountTree:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
+
+    # O(log(U)*log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)
+
+    # O(log(U)*log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.lo, self.hi)
+
+    # O(log(U)*log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.lo, self.hi)

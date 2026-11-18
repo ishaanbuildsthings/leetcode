@@ -1,7 +1,7 @@
 // How to call a template, read from its source (Python or C++). Shared by the catalog builds (scripts/catalog-lib.mjs
 // re-exports it; Node strips the types) and the set picker's drawer, which runs it on the code it just fetched. No
 // imports but types, so Node can load this file directly.
-import type { TemplateLang, Usage, UsageParam } from "./template-picker";
+import type { TemplateLang, Usage, UsageClass, UsageParam } from "./template-picker";
 
 interface ParsedClass {
   name: string;
@@ -212,7 +212,8 @@ function cppClasses(text: string): ParsedClass[] {
         const whole = joinedSignature(lines, j, "//");
         // (a constructor may be a template itself, e.g. the trees' "template <typename E = int> Tree(edges, root)")
         const ctor = whole.match(
-          new RegExp(`^\\s{4}(?:template\\s*<[^>]*>\\s*)?(?:explicit\\s+)?${cls.name}\\(`),
+          // (a fast version marks its constructor LEETCODE_NO_SANITIZE too)
+          new RegExp(`^\\s{4}(?:LEETCODE_NO_SANITIZE(?:_INLINE)?\\s+)?(?:template\\s*<[^>]*>\\s*)?(?:explicit\\s+)?${cls.name}\\(`),
         );
         const m = whole.match(
           /^\s{4}(?:(?:static|inline|constexpr|virtual|LEETCODE_NO_SANITIZE(?:_INLINE)?)\s+)*([\w:<>, *&]+?)\s+(\w+)\((.*)\)\s*(?:const\s*)?(?:\{|$)/,
@@ -242,6 +243,21 @@ function cppClasses(text: string): ParsedClass[] {
     classes.push(cls);
   }
   return classes;
+}
+
+// A fill-in template's class to construct: the one with the most of the given method names (ties: the one defined
+// last, as a wrapper follows the class it wraps); null when no class has any of them (a file of plain functions).
+export function readMainClass(text: string, lang: TemplateLang, methodNames: string[]): UsageClass | null {
+  let best: ParsedClass | null = null;
+  let bestCount = 0;
+  for (const cls of lang === "py" ? pyClasses(text) : cppClasses(text)) {
+    const n = methodNames.filter((name) => name in cls.methods).length;
+    if (n > 0 && n >= bestCount) {
+      best = cls;
+      bestCount = n;
+    }
+  }
+  return best && { className: best.name, doc: best.doc, ctor: best.ctor, ctorDoc: best.ctorDoc, ...(best.plain ? { plain: true } : {}) };
 }
 
 // Each operation goes to the class implementing the most of the folder's operations (ties: the one defined last).

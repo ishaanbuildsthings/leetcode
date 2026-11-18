@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-sum-max-suf-or-updates-div-mod-sqrt/sparse.py
-# @operations: leftmostGtX leftmostGteX maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeOrQuery rangeSum rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: leftmostGtX leftmostGteX maxAll maxSuffixSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeOrQuery rangeSum rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 # @data-structure-type: beats
 # @complexities:
 #   leftmostGtX: log(U)
@@ -21,6 +21,9 @@
 #   rightmostGteX: log(U)
 #   rightmostSuffixSumGtX: log(U)
 #   rightmostSuffixSumGteX: log(U)
+#   sumAll: log(U)
+#   maxAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -274,6 +277,18 @@ class SparseShrinkSegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

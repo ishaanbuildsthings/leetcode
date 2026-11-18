@@ -26,6 +26,8 @@ const BY_INPUT = Object.fromEntries(RANGE_2D_MODES.map((input) => [input, TEMPLA
 
 const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   title: "2D Range Query Picker",
+  intro:
+    "(r, c) and (x, y) are fully interchangeable: both mean (first coordinate, second coordinate), so use whichever you think in. The one exception is a template built from a grid, which reads it as grid[r][c].",
   opGroups: RANGE_2D_OP_GROUPS,
   planned: RANGE_2D_PLANNED,
   fillIns: GENERIC_SPARSE_TABLES_2D,

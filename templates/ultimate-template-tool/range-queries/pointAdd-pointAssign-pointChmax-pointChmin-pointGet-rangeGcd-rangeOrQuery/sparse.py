@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd-rangeOrQuery/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeOrQuery
+# @operations: gcdAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeOrQuery
 # @data-structure-type: seg-tree
 # @complexities:
 #   pointAdd: log(U)*log(U) ?
@@ -10,6 +10,8 @@
 #   pointGet: log(U)
 #   rangeGcd: log(U) ?
 #   rangeOrQuery: log(U)
+#   gcdAll: log(U) ?
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -95,6 +97,14 @@ class SparseSegTree:
         for t, _ in self._nodes(l, r):
             res |= orr[t]
         return res
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-min-max-hash-npre-gcd/sparse.py
-# @operations: isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeMax rangeMin rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+# @operations: gcdAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll minAll minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeMax rangeMin rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -27,6 +27,10 @@
 #   rightmostGteX: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   sumAll: log(U)
+#   minAll: log(U)
+#   maxAll: log(U)
+#   gcdAll: log(U) ?
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -394,6 +398,22 @@ class SparseSegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.first, self.last)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
 
     # ---- internals ----
 

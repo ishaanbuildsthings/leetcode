@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeSum rangeXorQuery rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeSum rangeXorQuery rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll xorAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -24,6 +24,8 @@ using ll = long long;
 //   rangesEqual: log(U)
 //   rightmostSuffixSumGtX: log(U)
 //   rightmostSuffixSumGteX: log(U)
+//   sumAll: log(U)
+//   xorAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -345,6 +347,12 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto xorAll() { return rangeXorQuery(first, last); }
 
     // ---- internals ----
 

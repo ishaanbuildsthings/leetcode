@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeSum rangesEqual
+// @operations: andAll isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeSum rangesEqual sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -19,6 +19,8 @@ using ll = long long;
 //   rangeHashReversed: log(U)
 //   rangeSum: log(U)
 //   rangesEqual: log(U)
+//   sumAll: log(U)
+//   andAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -190,6 +192,12 @@ struct SparseLazySegTree {
             throw out_of_range("rangesEqual: needs lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi");
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    auto andAll() { return rangeAndQuery(first, last); }
 
     // ---- internals ----
 

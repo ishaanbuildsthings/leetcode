@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+// @operations: isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -30,6 +30,7 @@ using ll = long long;
 //   rightmostSuffixSumGteX: log(U)
 //   rightmostSuffixSumLtX: log(U)
 //   rightmostSuffixSumLteX: log(U)
+//   sumAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -440,6 +441,9 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(first, last); }
 
     // ---- internals ----
 

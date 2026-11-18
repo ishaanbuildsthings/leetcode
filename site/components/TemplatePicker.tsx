@@ -25,7 +25,7 @@ import {
   type Usage,
   type UsageParam,
 } from "@/lib/template-picker";
-import { readUsage } from "@/lib/template-usage";
+import { readMainClass, readUsage } from "@/lib/template-usage";
 
 // The picker pages, shown as tabs above each one.
 const PICKER_PAGES = [
@@ -232,6 +232,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // (optional) instead of one grid: the `fixed` groups in a frozen left column, and the rest in tabs to its right
   // (tree queries: shape ops on the left, node / edge ops in tabs). Picks stay when you switch tabs
   pane?: { fixed: string[]; tabs: { id: string; label: string; groups: string[] }[] };
+  // a line shown above the op columns (2D range queries: (r, c) and (x, y) are the same thing)
+  intro?: string;
   // a short "still to add" list shown under the op columns
   planned?: string[];
   // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
@@ -855,6 +857,8 @@ export function FillInDrawer({
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const raw = loaded?.url === url ? loaded.code : undefined;
   const code = raw && fillIn.transform ? fillIn.transform(raw) : raw;
+  // how to construct it, read from the code on show (so every example level and version gets its own line)
+  const construct = code ? fillInConstruct(code, lang, fillIn.ops) : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -985,6 +989,17 @@ export function FillInDrawer({
             {lang === "cpp" && fillIn.cppNote && <p className="mt-2 text-muted-foreground">{fillIn.cppNote}</p>}
           </div>
           )}
+          {construct && (
+            <div className="border-b border-border px-4 py-3 text-xs">
+              <p className="mb-1.5 font-semibold text-foreground">Usage</p>
+              <pre className="overflow-x-auto rounded-md bg-card p-3 font-mono text-[11px] leading-relaxed text-foreground">
+                {construct.comments.map((c) => (
+                  <span key={c} className="text-muted-foreground">{`${lang === "cpp" ? "//" : "#"} ${c}\n`}</span>
+                ))}
+                {`${construct.code}\n`}
+              </pre>
+            </div>
+          )}
           <pre className="overflow-x-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
             {code === null ? "Couldn't load this template." : (code ?? "Loading…")}
           </pre>
@@ -992,6 +1007,44 @@ export function FillInDrawer({
       </div>
     </div>
   );
+}
+
+// constructor arguments that hold the starting values
+const STARTING_VALUES = ["a", "arr", "grid", "values"];
+
+// A fill-in template's "Usage": the line that constructs its class (the class with the listed ops), with the comment
+// above its constructor. null for a file with no such class (plain functions).
+function fillInConstruct(code: string, lang: TemplateLang, ops: [string, string][]): { comments: string[]; code: string } | null {
+  const cls = readMainClass(code, lang, ops.map(([op]) => op.split("(")[0]));
+  if (!cls) return null;
+  const cpp = lang === "cpp";
+  const name = cls.className;
+  const variable = /Seg/.test(name) ? "seg" : /Treap/.test(name) ? "treap" : /Table/.test(name) ? "table" : "ds";
+  // the starting values are written in the call even when they can be left out
+  const startsEmpty = (p: UsageParam) => p.default !== undefined && STARTING_VALUES.includes(p.name);
+  const inCall = cls.ctor.filter((p) => p.default === undefined || startsEmpty(p));
+  const args = inCall.map((p) => p.name);
+  // Python passes the functions you filled in; C++ finds them by name
+  const filled = cpp ? [] : args.filter((a) => new RegExp(`^def ${a}\\(`, "m").test(code));
+  const comments = [
+    ...(cls.ctorDoc ? [cls.ctorDoc] : []),
+    ...inCall
+      .filter((p) => STARTING_VALUES.includes(p.name))
+      .map(
+        (p) =>
+          `${p.name}: ${cpp ? `${(p.type ?? "").replace(/^const\s+|\s*&$/g, "")}, ` : ""}the starting values` +
+          (startsEmpty(p) ? " (optional: leave it out to start empty)" : ""),
+      ),
+    ...(filled.length ? [`${filled.join(", ")}: the functions you fill in above`] : []),
+    ...cls.ctor
+      .filter((p) => p.default !== undefined && !startsEmpty(p))
+      .map((p) => `Optional: ${cpp ? "" : `${p.name}=`}${p.default}${cpp ? ` for ${p.name}` : ""} by default`),
+  ];
+  const type = `${name}${cls.plain || !cpp ? "" : "<long long>"}`;
+  return {
+    comments,
+    code: cpp ? `${type} ${variable}${args.length ? `(${args.join(", ")})` : ""};` : `${variable} = ${name}(${args.join(", ")})`,
+  };
 }
 
 // "Usage": construct, then one block per selected op. Every statement has its comment on the lines above it.
@@ -1813,6 +1866,8 @@ export function TemplatePicker<V extends PickerTemplate>({
           </>
         </PickerTabs>
       </div>
+
+      {catalog.intro && <p className="mb-3 text-sm text-foreground">{catalog.intro}</p>}
 
       {catalog.pane ? (
         <OpPane pane={catalog.pane} opGroups={catalog.opGroups} renderGroup={renderGroup} active={active} query={query} />

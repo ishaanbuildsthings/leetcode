@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostLtX-leftmostLteX-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd-rangeMin-rangeSum-rightmostLtX-rightmostLteX/sparse.py
-# @operations: leftmostLtX leftmostLteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeSum rightmostLtX rightmostLteX
+# @operations: gcdAll leftmostLtX leftmostLteX maxAltSubseqSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeSum rightmostLtX rightmostLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   leftmostLtX: log(U)
@@ -16,6 +16,9 @@
 #   rangeSum: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   sumAll: log(U)
+#   minAll: log(U)
+#   gcdAll: log(U) ?
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -212,6 +215,18 @@ class SparseSegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.first, self.last)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
 
     # ---- internals ----
 

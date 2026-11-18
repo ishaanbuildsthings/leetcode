@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery
+# @operations: andAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)
@@ -10,6 +10,7 @@
 #   pointGet: log(U)
 #   rangeAndApply: log(U)
 #   rangeAndQuery: log(U)
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -90,6 +91,10 @@ class SparseLazySegTree:
         for t, _ in self._nodes(l, r):
             res &= an[t]
         return res
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

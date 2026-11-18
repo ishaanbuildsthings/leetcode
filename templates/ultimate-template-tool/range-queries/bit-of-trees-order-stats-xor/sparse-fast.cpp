@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: bit-of-trees
 // @complexities:
 //   countGtX: log(U)*log(U)
@@ -30,6 +30,8 @@ using ll = long long;
 //   xorInValRange: log(U)*log(U)
 //   xorLtX: log(U)*log(U)
 //   xorLteX: log(U)*log(U)
+//   minAll: log(U)*log(U)
+//   maxAll: log(U)*log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -242,6 +244,12 @@ struct SparseDynamicOrderStats {
         if (c == 0) return nullopt;
         return kth(l, r, c);
     }
+
+    // O(log(U)*log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(lo, hi); }
+
+    // O(log(U)*log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(lo, hi); }
 
     // ---- internals ----
 

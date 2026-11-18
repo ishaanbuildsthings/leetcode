@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostLtX-leftmostLteX-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeMin-rightmostLtX-rightmostLteX/sparse.py
-# @operations: leftmostLtX leftmostLteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rightmostLtX rightmostLteX
+# @operations: andAll leftmostLtX leftmostLteX longestEqualRun minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rightmostLtX rightmostLteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   leftmostLtX: log(U)
@@ -16,6 +16,8 @@
 #   rangeMin: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   minAll: log(U)
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -215,6 +217,14 @@ class SparseLazySegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

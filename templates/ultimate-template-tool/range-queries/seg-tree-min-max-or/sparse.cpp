@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeOrQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+// @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeOrQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 // @data-structure-type: seg-tree
 // @complexities:
 //   leftmostGtX: log(U)
@@ -23,6 +23,9 @@ using ll = long long;
 //   rightmostGteX: log(U)
 //   rightmostLtX: log(U)
 //   rightmostLteX: log(U)
+//   minAll: log(U)
+//   maxAll: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -294,6 +297,15 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    auto orAll() { return rangeOrQuery(first, last); }
 
     // ---- internals ----
 

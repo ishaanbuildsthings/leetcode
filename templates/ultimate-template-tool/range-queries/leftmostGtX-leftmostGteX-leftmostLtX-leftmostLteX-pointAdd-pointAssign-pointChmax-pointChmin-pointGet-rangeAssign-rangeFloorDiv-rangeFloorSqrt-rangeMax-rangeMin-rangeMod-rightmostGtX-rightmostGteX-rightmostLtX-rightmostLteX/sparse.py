@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod
+# @operations: maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod
 # @data-structure-type: beats
 # @letters: same
 # @complexities:
@@ -15,6 +15,8 @@
 #   rangeMax: log(U)
 #   rangeMin: log(U)
 #   rangeMod: log(U)*log(U) amortized
+#   minAll: log(U)
+#   maxAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -298,3 +300,11 @@ class SparseShrinkSeg:
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)

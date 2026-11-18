@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMax rightmostGtX rightmostGteX
+// @operations: gcdAll leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMax rightmostGtX rightmostGteX
 // @data-structure-type: seg-tree
 // @complexities:
 //   leftmostGtX: log(U)
@@ -18,6 +18,8 @@ using ll = long long;
 //   rangeMax: log(U)
 //   rightmostGtX: log(U)
 //   rightmostGteX: log(U)
+//   maxAll: log(U)
+//   gcdAll: log(U) ?
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -191,6 +193,12 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    auto gcdAll() { return rangeGcd(first, last); }
 
     // ---- internals ----
 

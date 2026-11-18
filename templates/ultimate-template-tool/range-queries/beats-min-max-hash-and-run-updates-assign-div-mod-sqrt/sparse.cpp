@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+// @operations: andAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 // @data-structure-type: beats
 // @complexities:
 //   isPalindrome: log(U)
@@ -32,6 +32,9 @@ using ll = long long;
 //   rightmostGteX: log(U)
 //   rightmostLtX: log(U)
 //   rightmostLteX: log(U)
+//   minAll: log(U)
+//   maxAll: log(U)
+//   andAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -443,6 +446,15 @@ struct SparseShrinkSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    auto andAll() { return rangeAndQuery(first, last); }
 
     // ---- internals ----
 

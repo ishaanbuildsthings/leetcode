@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 // @data-structure-type: BIT
 // @complexities:
 //   leftmostPrefixSumGtX: log(U)
@@ -17,6 +17,7 @@ using ll = long long;
 //   rangeSum: log(U)
 //   rightmostSuffixSumGtX: log(U)
 //   rightmostSuffixSumGteX: log(U)
+//   sumAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -217,4 +218,8 @@ struct SparseBIT {
         long long i = min(r, lo + lowerBound(t, false));
         return i >= l ? i : lo - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(lo, hi); }
+
 };

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeOrQuery rangeSum
+// @operations: andAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeOrQuery rangeSum sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   pointAdd: log(U)
@@ -16,6 +16,9 @@ using ll = long long;
 //   rangeAssign: log(U)
 //   rangeOrQuery: log(U)
 //   rangeSum: log(U)
+//   sumAll: log(U)
+//   andAll: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -158,6 +161,15 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) res += nd[ns[i]].sm;
         return res;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto andAll() { return rangeAndQuery(first, last); }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto orAll() { return rangeOrQuery(first, last); }
 
     // ---- internals ----
 

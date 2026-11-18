@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-max-hash-and-or/sparse.py
-# @operations: isPalindrome leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMax rangeOrQuery rangesEqual rightmostGtX rightmostGteX
+# @operations: andAll isPalindrome leftmostGtX leftmostGteX maxAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMax rangeOrQuery rangesEqual rightmostGtX rightmostGteX
 # @data-structure-type: seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -19,6 +19,9 @@
 #   rangesEqual: log(U)
 #   rightmostGtX: log(U)
 #   rightmostGteX: log(U)
+#   maxAll: log(U)
+#   andAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -243,6 +246,18 @@ class SparseSegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

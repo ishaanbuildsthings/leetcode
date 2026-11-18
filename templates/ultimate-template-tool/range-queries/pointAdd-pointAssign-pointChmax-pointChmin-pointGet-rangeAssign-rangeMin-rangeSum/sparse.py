@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMin-rangeSum/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum
+# @operations: minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)
@@ -11,6 +11,8 @@
 #   rangeAssign: log(U)
 #   rangeMin: log(U)
 #   rangeSum: log(U)
+#   sumAll: log(U)
+#   minAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -207,3 +209,11 @@ class SparseAssignSumMinTree:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)

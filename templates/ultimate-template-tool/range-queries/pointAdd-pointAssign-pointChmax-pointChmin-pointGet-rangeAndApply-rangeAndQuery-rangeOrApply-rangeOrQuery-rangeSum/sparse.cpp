@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum
+// @operations: andAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum sumAll
 // @data-structure-type: beats
 // @complexities:
 //   pointAdd: log(U) amortized
@@ -17,6 +17,9 @@ using ll = long long;
 //   rangeOrApply: log(U)*log(U) amortized
 //   rangeOrQuery: log(U)
 //   rangeSum: log(U)
+//   sumAll: log(U)
+//   andAll: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -232,5 +235,14 @@ struct SparseBitBeats {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(lo, hi); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    auto andAll() { return rangeAndQuery(lo, hi); }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    auto orAll() { return rangeOrQuery(lo, hi); }
 
 };

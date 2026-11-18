@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd-rangeSum/sparse.py
-# @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeSum
+# @operations: gcdAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   longestEqualRun: log(U)
@@ -12,6 +12,8 @@
 #   rangeAdd: log(U)*log(U) ?
 #   rangeGcd: log(U) ?
 #   rangeSum: log(U)
+#   sumAll: log(U)
+#   gcdAll: log(U) ?
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -137,6 +139,14 @@ class SparseLazySegTree:
         for t, _ in self._nodes(l, r):
             res += sm[t]
         return res
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
 
     # ---- internals ----
 

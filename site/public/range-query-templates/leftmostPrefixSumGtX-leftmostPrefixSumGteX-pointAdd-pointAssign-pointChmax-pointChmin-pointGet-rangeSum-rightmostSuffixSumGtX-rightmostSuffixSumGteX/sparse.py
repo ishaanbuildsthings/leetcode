@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/sparse.py
-# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 # @data-structure-type: BIT
 # @complexities:
 #   leftmostPrefixSumGtX: log(U)
@@ -13,6 +13,7 @@
 #   rangeSum: log(U)
 #   rightmostSuffixSumGtX: log(U)
 #   rightmostSuffixSumGteX: log(U)
+#   sumAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -153,3 +154,7 @@ class SparseBIT:
             return self.lo - 1
         i = min(r, self.lo + self._lowerBound(t, False))
         return i if i >= l else self.lo - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)

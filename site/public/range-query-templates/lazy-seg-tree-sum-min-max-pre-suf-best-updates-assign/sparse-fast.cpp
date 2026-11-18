@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxAll maxPrefixSum maxSubarraySum maxSuffixSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   leftmostGtX: log(U)
@@ -31,6 +31,9 @@ using ll = long long;
 //   rightmostLteX: log(U)
 //   rightmostSuffixSumGtX: log(U)
 //   rightmostSuffixSumGteX: log(U)
+//   sumAll: log(U)
+//   minAll: log(U)
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -484,6 +487,15 @@ struct SparseLazySegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(first, last); }
 
     // ---- internals ----
 

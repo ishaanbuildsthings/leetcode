@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
+// @operations: andAll gcdAll isPalindrome leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
 // @data-structure-type: seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -23,6 +23,9 @@ using ll = long long;
 //   rangesEqual: log(U)
 //   rightmostGtX: log(U)
 //   rightmostGteX: log(U)
+//   maxAll: log(U)
+//   gcdAll: log(U) ?
+//   andAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -319,6 +322,15 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto gcdAll() { return rangeGcd(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto andAll() { return rangeAndQuery(first, last); }
 
     // ---- internals ----
 

@@ -6,11 +6,13 @@ other's. write_template applies it to a file's note line (# -> Python, // -> C++
 
 Every file also starts with two attribution lines (template by <GitHub user>, then the file's own GitHub link).
 
-    python3 note_lang.py    # rewrite the notes, attribution and bounds checks of every template.* / sparse.* /
-                            # letters.* in range-queries/
+    python3 note_lang.py           # rewrite the notes, attribution and bounds checks of every template.* / sparse.* /
+                                   # letters.* in range-queries/
+    python3 note_lang.py sparse    # the same, on the named kinds of file only (template, sparse, letters)
 """
 import os
 import re
+import sys
 import textwrap
 
 from bounds import add_bounds
@@ -264,7 +266,7 @@ def write_template(path, text):
 if __name__ == "__main__":
     changed = 0
     for folder in sorted(os.listdir(DIR)):
-        for stem in ("template", "sparse", "letters"):
+        for stem in sys.argv[1:] or ("template", "sparse", "letters"):
             for ext, lang in ((".py", "py"), (".cpp", "cpp")):
                 path = os.path.join(DIR, folder, stem + ext)
                 if os.path.exists(path):

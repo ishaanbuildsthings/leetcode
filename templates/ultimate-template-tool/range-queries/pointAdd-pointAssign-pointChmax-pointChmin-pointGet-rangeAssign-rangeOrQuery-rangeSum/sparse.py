@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeOrQuery-rangeSum/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSum
+# @operations: orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)
@@ -11,6 +11,8 @@
 #   rangeAssign: log(U)
 #   rangeOrQuery: log(U)
 #   rangeSum: log(U)
+#   sumAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -102,6 +104,14 @@ class SparseLazySegTree:
         for t, _ in self._nodes(l, r):
             res += sm[t]
         return res
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

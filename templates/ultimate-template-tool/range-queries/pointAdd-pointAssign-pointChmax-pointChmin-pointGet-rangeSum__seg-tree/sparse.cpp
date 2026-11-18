@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeSum sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   pointAdd: log(U)
@@ -13,6 +13,7 @@ using ll = long long;
 //   pointChmin: log(U)
 //   pointGet: log(U)
 //   rangeSum: log(U)
+//   sumAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -130,4 +131,8 @@ struct SparseSumTree {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(lo, hi); }
+
 };

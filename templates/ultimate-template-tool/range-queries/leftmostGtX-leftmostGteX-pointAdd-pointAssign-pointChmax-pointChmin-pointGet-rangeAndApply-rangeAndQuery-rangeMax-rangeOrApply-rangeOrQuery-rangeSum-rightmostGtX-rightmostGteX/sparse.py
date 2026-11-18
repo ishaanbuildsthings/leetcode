@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeOrApply-rangeOrQuery-rangeSum-rightmostGtX-rightmostGteX/sparse.py
-# @operations: leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMax rangeOrApply rangeOrQuery rangeSum rightmostGtX rightmostGteX
+# @operations: andAll leftmostGtX leftmostGteX maxAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMax rangeOrApply rangeOrQuery rangeSum rightmostGtX rightmostGteX sumAll
 # @data-structure-type: beats
 # @complexities:
 #   leftmostGtX: log(U)
@@ -18,6 +18,10 @@
 #   rangeSum: log(U)
 #   rightmostGtX: log(U)
 #   rightmostGteX: log(U)
+#   sumAll: log(U)
+#   maxAll: log(U)
+#   andAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -379,3 +383,19 @@ class SparseBitBeats:
         tm = (tl + tr) // 2
         res = self._lastPass(self.R[i], tm + 1, tr, l, r, ok)
         return res if res is not None else self._lastPass(self.L[i], tl, tm, l, r, ok)
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.lo, self.hi)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.lo, self.hi)

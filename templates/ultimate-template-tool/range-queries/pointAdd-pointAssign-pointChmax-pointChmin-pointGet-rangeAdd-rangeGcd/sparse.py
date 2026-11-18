@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
+# @operations: gcdAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 # @data-structure-type: seg-tree
 # @complexities:
 #   pointAdd: log(U)*log(U) ?
@@ -10,6 +10,7 @@
 #   pointGet: log(U)
 #   rangeAdd: log(U)*log(U) ?
 #   rangeGcd: log(U) ?
+#   gcdAll: log(U) ?
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -129,3 +130,7 @@ class SparseRangeAddRangeGcd:
         cur = self._prefix(i)
         if val < cur:
             self.rangeAdd(i, i, val - cur)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.lo, self.hi)

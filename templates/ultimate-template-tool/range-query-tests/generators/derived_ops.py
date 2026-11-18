@@ -4,8 +4,9 @@ written (note_lang.write_template) and by the rewrite pass (python3 note_lang.py
   pop(), popLeft()                       on everything with cut, pointGet and size: read the end value, cut it out
   hashAll()                              on everything with rangeHash (dense files): rangeHash of the whole array
   hashAllReversed()                      on everything with rangeHashReversed (dense files): the same, reversed
-  sumAll(), minAll(), maxAll(), gcdAll(), xorAll(), andAll(), orAll()   on everything with the range op (dense files):
-                                         O(1) off the root where a treap keeps it, else the range op over everything
+  sumAll(), minAll(), maxAll(), gcdAll(), xorAll(), andAll(), orAll()   on everything with the range op: O(1) off the
+                                         root where a treap keeps it, else the range op over everything (a sparse
+                                         file: over all of a[lo..hi], untouched indices counting as 0)
   longestPalCenteredAtI(i)               on everything with isPalindrome (dense files): (l, r) by a binary search on the
   longestPalCenteredAtIPlusOne(i)        radius, log N calls of isPalindrome
 
@@ -14,6 +15,9 @@ They are left out of folder names (note_lang.FREE_OPS), like getAll and size.
 import math
 import re
 import textwrap
+
+from bounds import _bounds
+from empty_note import RANGE
 
 FACTORS = {"1": 1, "N": 2e5, "log(N)": math.log2(2e5), "log^2(N)": math.log2(2e5) ** 2, "sqrt(N)": math.sqrt(2e5),
            "sqrt(NlogN)": math.sqrt(2e5 * math.log2(2e5)), "sqrt(N/logN)": math.sqrt(2e5 / math.log2(2e5)),
@@ -222,6 +226,18 @@ def _aggregate_block(lang, op, name, word, cost, length, root=None):
 '''
 
 
+def _sparse_aggregate_block(lang, op, name, word, cost, lo, hi, note):
+    """the whole-array version of op in a sparse class: op over all of a[lo..hi] (lo, hi: how the class spells them)"""
+    if lang == "py":
+        return f'''    # O({cost}) -- {word} of the whole array a[lo..hi] ({op}(lo, hi)); {note}
+    def {name}(self):
+        return self.{op}({lo}, {hi})
+'''
+    return f'''    // O({cost}) -- {word} of the whole array a[lo..hi] ({op}(lo, hi)); {note}
+    auto {name}() {{ return {op}({lo}, {hi}); }}
+'''
+
+
 def _hash_all_block(lang, cost, length, root=None):
     if root:
         if lang == "py":
@@ -374,7 +390,7 @@ def add_derived_ops(text, lang):
     if "rangeHashReversed" in ops and "hashAllReversed" not in ops and not sparse:
         wanted.append((("hashAllReversed",), costs["rangeHashReversed"], "hashrev", ("rangeHashReversed",)))
     for op, (name, word) in AGGREGATES.items():
-        if op in ops and name not in ops and not sparse:
+        if op in ops and name not in ops:
             wanted.append(((name,), costs[op], ("agg", op, word), (op,)))
     if "isPalindrome" in ops and "longestPalCenteredAtI" not in ops and not sparse:
         wanted.append((("longestPalCenteredAtI", "longestPalCenteredAtIPlusOne"), _times_log(costs["isPalindrome"]), "pal", ("isPalindrome",)))
@@ -387,6 +403,17 @@ def add_derived_ops(text, lang):
         cls = text[s:e]
         for names, cost, kind, needs in wanted:
             if not all(_has(cls, lang, x) for x in needs):
+                continue
+            if sparse and isinstance(kind, tuple):  # only the class over [lo, hi], not a dense helper next to it
+                b = _bounds(cls, lang, True)
+                if b is None or b[0] != "sparse":
+                    continue
+                ctor = re.search(r"def __init__\(self, ([^)]*)\)" if lang == "py" else r"^    (?:explicit )?\w+\(([^)]*)\)", cls,
+                                 re.M)
+                built = bool(ctor and re.search(r"\bvalues\b", ctor.group(1)))
+                cls = _insert(cls, lang, _sparse_aggregate_block(lang, kind[1], names[0], kind[2], cost, b[1], b[2], RANGE[built]))
+                added.update(names)
+                final_cost[names] = cost
                 continue
             length = _length(cls, lang)
             if kind == "pop":

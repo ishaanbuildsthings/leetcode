@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-pre-suf-best-npre-nsuf-nbest/sparse.py
-# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   leftmostPrefixSumGtX: log(U)
@@ -23,6 +23,7 @@
 #   rightmostSuffixSumGteX: log(U)
 #   rightmostSuffixSumLtX: log(U)
 #   rightmostSuffixSumLteX: log(U)
+#   sumAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -358,6 +359,10 @@ class SparseSegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
 
     # ---- internals ----
 

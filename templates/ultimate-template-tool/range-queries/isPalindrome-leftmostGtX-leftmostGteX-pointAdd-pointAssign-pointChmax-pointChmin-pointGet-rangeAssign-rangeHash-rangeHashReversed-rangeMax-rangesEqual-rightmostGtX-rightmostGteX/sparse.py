@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeHash-rangeHashReversed-rangeMax-rangesEqual-rightmostGtX-rightmostGteX/sparse.py
-# @operations: isPalindrome leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
+# @operations: isPalindrome leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -18,6 +18,7 @@
 #   rangesEqual: log(U)
 #   rightmostGtX: log(U)
 #   rightmostGteX: log(U)
+#   maxAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -234,6 +235,10 @@ class SparseLazySegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
 
     # ---- internals ----
 

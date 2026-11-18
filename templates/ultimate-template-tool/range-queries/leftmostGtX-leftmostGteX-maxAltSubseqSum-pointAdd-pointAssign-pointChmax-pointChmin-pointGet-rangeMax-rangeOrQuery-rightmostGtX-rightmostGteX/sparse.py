@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeOrQuery-rightmostGtX-rightmostGteX/sparse.py
-# @operations: leftmostGtX leftmostGteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeOrQuery rightmostGtX rightmostGteX
+# @operations: leftmostGtX leftmostGteX maxAll maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeOrQuery rightmostGtX rightmostGteX
 # @data-structure-type: seg-tree
 # @complexities:
 #   leftmostGtX: log(U)
@@ -15,6 +15,8 @@
 #   rangeOrQuery: log(U)
 #   rightmostGtX: log(U)
 #   rightmostGteX: log(U)
+#   maxAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -198,6 +200,14 @@ class SparseSegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

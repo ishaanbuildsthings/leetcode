@@ -136,6 +136,7 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
         kind: "common",
         ops: [
           { id: "pointGet", signature: "pointGet(r, c)", description: "Read one cell" },
+          { id: "getAll", signature: "getAll()", description: "Read the whole grid (e.g. after many rectangle adds)" },
           { id: "pointAssign", signature: "pointAssign(r, c, v)", description: "cell = v (can go down as well as up)" },
           { id: "pointAdd", signature: "pointAdd(r, c, v)", description: "cell += v" },
           { id: "pointChmax", signature: "pointChmax(r, c, v)", description: "cell = max(cell, v)" },
@@ -178,7 +179,7 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "corners",
     title: "Corner queries",
-    note: "one bound per axis: when this is all you ask, Fenwick trees and plain tables compete",
+    note: "one bound per axis: when this is all you ask, Fenwick trees and plain tables compete. For a corner sum use rectSum from the corner",
     tiers: [
       {
         kind: "topic",
@@ -203,7 +204,6 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
           { id: "rectAssign", signature: "rectAssign(r1, c1, r2, c2, v)", description: "Every cell of the rectangle = v" },
           { id: "rectChmax", signature: "rectChmax(r1, c1, r2, c2, v)", description: "Every cell = max(cell, v)" },
           { id: "rectChmin", signature: "rectChmin(r1, c1, r2, c2, v)", description: "Every cell = min(cell, v)" },
-          { id: "getAll", signature: "getAll()", description: "The whole grid (for the final answer)" },
         ],
       },
     ],

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeHash rangeHashReversed rangesEqual
+// @operations: gcdAll isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeHash rangeHashReversed rangesEqual
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -18,6 +18,7 @@ using ll = long long;
 //   rangeHash: log(U)
 //   rangeHashReversed: log(U)
 //   rangesEqual: log(U)
+//   gcdAll: log(U) ?
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -214,6 +215,9 @@ struct SparseLazySegTree {
             throw out_of_range("rangesEqual: needs lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi");
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
     }
+
+    // O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto gcdAll() { return rangeGcd(first, last); }
 
     // ---- internals ----
 

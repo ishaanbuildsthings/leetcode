@@ -1,10 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointGet-rangeGcd/sparse.py
-# @operations: pointGet rangeGcd
+# @operations: gcdAll pointGet rangeGcd
 # @data-structure-type: sparse-table
 # @complexities:
 #   pointGet: log(N)
 #   rangeGcd: log(N)+log(U) ?
+#   gcdAll: log(N)+log(U) ?
 #   build: N*log(N)*log(U) ?
 # @memory:
 #   layout: sparse
@@ -101,3 +102,7 @@ class SparseStaticGcd:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0
+
+    # O(log(N)+log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); indices not given in values count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.lo, self.hi)

@@ -1,10 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointGet-rangeMax/sparse.py
-# @operations: pointGet rangeMax
+# @operations: maxAll pointGet rangeMax
 # @data-structure-type: sparse-table
 # @complexities:
 #   pointGet: log(N)
 #   rangeMax: log(N)
+#   maxAll: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: sparse
@@ -103,3 +104,7 @@ class SparseStaticMax:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0
+
+    # O(log(N)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); indices not given in values count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)

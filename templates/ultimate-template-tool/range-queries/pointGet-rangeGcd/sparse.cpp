@@ -4,11 +4,12 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointGet rangeGcd
+// @operations: gcdAll pointGet rangeGcd
 // @data-structure-type: sparse-table
 // @complexities:
 //   pointGet: log(N)
 //   rangeGcd: log(N)+log(U) ?
+//   gcdAll: log(N)+log(U) ?
 //   build: N*log(N)*log(U) ?
 // @memory:
 //   layout: sparse
@@ -103,4 +104,8 @@ struct SparseStaticGcd {
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }
+
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); indices not given in values count as 0
+    auto gcdAll() { return rangeGcd(lo, hi); }
+
 };

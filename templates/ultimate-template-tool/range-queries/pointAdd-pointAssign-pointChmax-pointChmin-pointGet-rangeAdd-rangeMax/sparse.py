@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMax/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMax
+# @operations: maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMax
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)
@@ -10,6 +10,7 @@
 #   pointGet: log(U)
 #   rangeAdd: log(U)
 #   rangeMax: log(U)
+#   maxAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -174,3 +175,7 @@ class SparseAddMaxTree:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)

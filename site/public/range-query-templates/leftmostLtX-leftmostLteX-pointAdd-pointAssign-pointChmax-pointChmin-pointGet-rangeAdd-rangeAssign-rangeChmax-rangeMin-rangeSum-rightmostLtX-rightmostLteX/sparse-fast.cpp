@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeMin rangeSum rightmostLtX rightmostLteX
+// @operations: leftmostLtX leftmostLteX minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeMin rangeSum rightmostLtX rightmostLteX sumAll
 // @data-structure-type: beats
 // @complexities:
 //   leftmostLtX: log(U)
@@ -21,6 +21,8 @@ using ll = long long;
 //   rangeSum: log(U)
 //   rightmostLtX: log(U)
 //   rightmostLteX: log(U)
+//   sumAll: log(U)
+//   minAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -327,4 +329,11 @@ struct SparseChminChmaxBeats {
         long long tm = tl + (tr - tl) / 2, res = lastPass(nd[i].Rc, tm + 1, tr, l, r, ok);
         return res != NONE ? res : lastPass(nd[i].Lc, tl, tm, l, r, ok);
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(lo, hi); }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(lo, hi); }
+
 };

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/wavelet-order-stats-xor-or-tree-mex/sparse.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX orGtX orGteX orInValRange orLtX orLteX pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll orGtX orGteX orInValRange orLtX orLteX pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: wavelet
 # @complexities:
 #   countGtX: log(N)
@@ -28,6 +28,8 @@
 #   xorInValRange: log(N)
 #   xorLtX: log(N)
 #   xorLteX: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: sparse
@@ -645,3 +647,11 @@ class SparseWaveletMatrix:
         if k <= neg + zeros:
             return 0
         return self.inner.kthSmallest(i0, i1, k - zeros)
+
+    # O(log(N)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); indices not given in values count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)
+
+    # O(log(N)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); indices not given in values count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)

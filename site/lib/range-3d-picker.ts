@@ -50,7 +50,7 @@ export const RANGE_3D_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "corners",
     title: "3D corner queries",
-    note: "one bound per axis: when this is all you ask, a Fenwick tree is enough",
+    note: "one bound per axis: when this is all you ask, a Fenwick tree is enough. For a corner sum use boxSum from the corner, e.g. boxSum(0, 0, 0, x, y, z)",
     tiers: [
       { kind: "topic", label: "max", ops: [corner("max", "Lte"), corner("max", "Gte")] },
       { kind: "topic", label: "min", ops: [corner("min", "Lte"), corner("min", "Gte")] },

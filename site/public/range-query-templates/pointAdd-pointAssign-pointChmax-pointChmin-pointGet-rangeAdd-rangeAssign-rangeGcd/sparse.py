@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeGcd/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeGcd
+# @operations: gcdAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeGcd
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)*log(U) ?
@@ -11,6 +11,7 @@
 #   rangeAdd: log(U)*log(U) ?
 #   rangeAssign: log(U)*log(U) ?
 #   rangeGcd: log(U) ?
+#   gcdAll: log(U) ?
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -108,6 +109,10 @@ class SparseLazySegTree:
             res = gcd(gcd(res, fv[t] - last), g[t])
             last = lv[t]
         return res
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
 
     # ---- internals ----
 

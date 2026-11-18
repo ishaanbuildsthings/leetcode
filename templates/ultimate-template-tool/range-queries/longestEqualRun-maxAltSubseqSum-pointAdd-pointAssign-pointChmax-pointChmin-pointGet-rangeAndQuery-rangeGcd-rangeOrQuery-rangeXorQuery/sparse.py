@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/longestEqualRun-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeGcd-rangeOrQuery-rangeXorQuery/sparse.py
-# @operations: longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeXorQuery
+# @operations: andAll gcdAll longestEqualRun maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeXorQuery xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   longestEqualRun: log(U)
@@ -14,6 +14,10 @@
 #   rangeGcd: log(U) ?
 #   rangeOrQuery: log(U)
 #   rangeXorQuery: log(U)
+#   gcdAll: log(U) ?
+#   xorAll: log(U)
+#   andAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -176,6 +180,22 @@ class SparseSegTree:
         for t, _ in self._nodes(l, r):
             res ^= xr[t]
         return res
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
+
+    # O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    def xorAll(self):
+        return self.rangeXorQuery(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

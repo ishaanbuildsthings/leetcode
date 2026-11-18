@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum
+// @operations: maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   pointAdd: log(U)
@@ -16,6 +16,9 @@ using ll = long long;
 //   rangeMax: log(U)
 //   rangeMin: log(U)
 //   rangeSum: log(U)
+//   sumAll: log(U)
+//   minAll: log(U)
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -185,4 +188,14 @@ struct SparseAssignSumMinMaxTree {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(lo, hi); }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(lo, hi); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(lo, hi); }
+
 };

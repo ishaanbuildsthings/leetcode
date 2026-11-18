@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeSum/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
+# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum sumAll
 # @data-structure-type: BIT
 # @complexities:
 #   pointAdd: log(U)
@@ -10,6 +10,7 @@
 #   pointGet: log(U)
 #   rangeAdd: log(U)
 #   rangeSum: log(U)
+#   sumAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -124,3 +125,7 @@ class SparseRangeAddSumBIT:
         cur = self.pointGet(i)
         if val < cur:
             self.rangeAdd(i, i, val - cur)
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)

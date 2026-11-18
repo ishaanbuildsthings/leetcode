@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeXorQuery
+// @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeXorQuery xorAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   longestEqualRun: log(U)
@@ -14,6 +14,7 @@ using ll = long long;
 //   pointChmin: log(U)
 //   pointGet: log(U)
 //   rangeXorQuery: log(U)
+//   xorAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -151,6 +152,9 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) res ^= nd[ns[i]].xr;
         return res;
     }
+
+    // O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto xorAll() { return rangeXorQuery(first, last); }
 
     // ---- internals ----
 

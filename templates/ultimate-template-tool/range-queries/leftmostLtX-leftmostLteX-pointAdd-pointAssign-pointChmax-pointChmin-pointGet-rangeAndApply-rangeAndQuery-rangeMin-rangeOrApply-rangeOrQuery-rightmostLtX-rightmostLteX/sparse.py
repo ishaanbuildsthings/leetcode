@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMin-rangeOrApply-rangeOrQuery-rightmostLtX-rightmostLteX/sparse.py
-# @operations: leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMin rangeOrApply rangeOrQuery rightmostLtX rightmostLteX
+# @operations: andAll leftmostLtX leftmostLteX minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMin rangeOrApply rangeOrQuery rightmostLtX rightmostLteX
 # @data-structure-type: beats
 # @complexities:
 #   leftmostLtX: log(U)
@@ -17,6 +17,9 @@
 #   rangeOrQuery: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   minAll: log(U)
+#   andAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -365,3 +368,15 @@ class SparseBitBeats:
         tm = (tl + tr) // 2
         res = self._lastPass(self.R[i], tm + 1, tr, l, r, ok)
         return res if res is not None else self._lastPass(self.L[i], tl, tm, l, r, ok)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.lo, self.hi)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.lo, self.hi)

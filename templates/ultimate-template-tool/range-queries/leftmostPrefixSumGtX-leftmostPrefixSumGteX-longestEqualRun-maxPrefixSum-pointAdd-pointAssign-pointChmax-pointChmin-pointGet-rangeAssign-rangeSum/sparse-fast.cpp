@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
+// @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   leftmostPrefixSumGtX: log(U)
@@ -18,6 +18,7 @@ using ll = long long;
 //   pointGet: log(U)
 //   rangeAssign: log(U)
 //   rangeSum: log(U)
+//   sumAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -226,6 +227,9 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) res += nd[ns[i]].sm;
         return res;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
 
     // ---- internals ----
 

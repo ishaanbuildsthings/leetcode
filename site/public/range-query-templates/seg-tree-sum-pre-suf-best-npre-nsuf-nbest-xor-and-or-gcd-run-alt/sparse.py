@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-pre-suf-best-npre-nsuf-nbest-xor-and-or-gcd-run-alt/sparse.py
-# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: andAll gcdAll leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSubarraySum minSuffixSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   leftmostPrefixSumGtX: log(U)
@@ -29,6 +29,11 @@
 #   rightmostSuffixSumGteX: log(U)
 #   rightmostSuffixSumLtX: log(U)
 #   rightmostSuffixSumLteX: log(U)
+#   sumAll: log(U)
+#   gcdAll: log(U) ?
+#   xorAll: log(U)
+#   andAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -464,6 +469,26 @@ class SparseSegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
+
+    # O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    def xorAll(self):
+        return self.rangeXorQuery(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

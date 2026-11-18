@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod
+// @operations: maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod
 // @data-structure-type: beats
 // @letters: same
 // @complexities:
@@ -19,6 +19,8 @@ using ll = long long;
 //   rangeMax: log(U)
 //   rangeMin: log(U)
 //   rangeMod: log(U)*log(U) amortized
+//   minAll: log(U)
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -202,4 +204,11 @@ struct SparseShrinkSeg {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);
     }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(lo, hi); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(lo, hi); }
+
 };

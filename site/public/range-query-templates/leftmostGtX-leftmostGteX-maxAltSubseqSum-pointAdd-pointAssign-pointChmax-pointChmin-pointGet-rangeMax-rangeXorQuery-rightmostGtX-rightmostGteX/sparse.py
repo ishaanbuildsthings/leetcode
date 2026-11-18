@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeXorQuery-rightmostGtX-rightmostGteX/sparse.py
-# @operations: leftmostGtX leftmostGteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeXorQuery rightmostGtX rightmostGteX
+# @operations: leftmostGtX leftmostGteX maxAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeXorQuery rightmostGtX rightmostGteX xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   leftmostGtX: log(U)
@@ -15,6 +15,8 @@
 #   rangeXorQuery: log(U)
 #   rightmostGtX: log(U)
 #   rightmostGteX: log(U)
+#   maxAll: log(U)
+#   xorAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -198,6 +200,14 @@ class SparseSegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    def xorAll(self):
+        return self.rangeXorQuery(self.first, self.last)
 
     # ---- internals ----
 

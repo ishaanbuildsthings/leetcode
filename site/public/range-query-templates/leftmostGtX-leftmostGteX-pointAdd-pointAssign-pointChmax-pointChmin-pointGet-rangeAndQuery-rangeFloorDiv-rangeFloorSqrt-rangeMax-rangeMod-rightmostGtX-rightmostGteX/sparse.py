@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rightmostGtX-rightmostGteX/sparse.py
-# @operations: leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rightmostGtX rightmostGteX
+# @operations: andAll leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rightmostGtX rightmostGteX
 # @data-structure-type: beats
 # @complexities:
 #   leftmostGtX: log(U)
@@ -17,6 +17,8 @@
 #   rangeMod: log(U)*log(U) amortized
 #   rightmostGtX: log(U)
 #   rightmostGteX: log(U)
+#   maxAll: log(U)
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -201,6 +203,14 @@ class SparseShrinkSegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

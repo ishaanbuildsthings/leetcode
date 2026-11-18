@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMax rangeMin rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+// @operations: andAll gcdAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAll maxAltSubseqSum minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMax rangeMin rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX xorAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   leftmostGtX: log(U)
@@ -28,6 +28,12 @@ using ll = long long;
 //   rightmostGteX: log(U)
 //   rightmostLtX: log(U)
 //   rightmostLteX: log(U)
+//   minAll: log(U)
+//   maxAll: log(U)
+//   gcdAll: log(U) ?
+//   xorAll: log(U)
+//   andAll: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -411,6 +417,24 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto gcdAll() { return rangeGcd(first, last); }
+
+    // O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto xorAll() { return rangeXorQuery(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto andAll() { return rangeAndQuery(first, last); }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto orAll() { return rangeOrQuery(first, last); }
 
     // ---- internals ----
 

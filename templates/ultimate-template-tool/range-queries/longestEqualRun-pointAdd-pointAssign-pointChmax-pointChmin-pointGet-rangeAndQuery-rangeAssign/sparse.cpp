@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign
+// @operations: andAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   longestEqualRun: log(U)
@@ -15,6 +15,7 @@ using ll = long long;
 //   pointGet: log(U)
 //   rangeAndQuery: log(U)
 //   rangeAssign: log(U)
+//   andAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -126,6 +127,9 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
         update(1, D, first, l, r, [&](int t, int s, long long) { applyAssign(t, s, v); });
     }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    auto andAll() { return rangeAndQuery(first, last); }
 
     // ---- internals ----
 

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: wavelet
 // @complexities:
 //   andGtX: log^2(N)
@@ -32,6 +32,8 @@ using ll = long long;
 //   xorInValRange: log(N)
 //   xorLtX: log(N)
 //   xorLteX: log(N)
+//   minAll: log(N)
+//   maxAll: log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: sparse
@@ -652,4 +654,11 @@ struct SparseWaveletMatrix {
         if (k <= neg + zeros) return T(0);
         return inner.kthSmallest(i0, i1, int(k - zeros));
     }
+
+    // O(log(N)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); indices not given in values count as 0
+    auto minAll() { return rangeMin(lo, hi); }
+
+    // O(log(N)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); indices not given in values count as 0
+    auto maxAll() { return rangeMax(lo, hi); }
+
 };

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostGtX leftmostGteX maxAltSubseqSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+// @operations: isPalindrome leftmostGtX leftmostGteX maxAll maxAltSubseqSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -26,6 +26,8 @@ using ll = long long;
 //   rightmostGteX: log(U)
 //   rightmostSuffixSumLtX: log(U)
 //   rightmostSuffixSumLteX: log(U)
+//   sumAll: log(U)
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -351,6 +353,12 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(first, last); }
 
     // ---- internals ----
 

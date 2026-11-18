@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod
+// @operations: maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod
 // @data-structure-type: beats
 // @complexities:
 //   pointAdd: log(U)
@@ -16,6 +16,7 @@ using ll = long long;
 //   rangeFloorSqrt: log(U)*log(log(U)) amortized
 //   rangeMax: log(U)
 //   rangeMod: log(U)*log(U) amortized
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -196,4 +197,8 @@ struct SparseShrinkTree {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);
     }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(lo, hi); }
+
 };

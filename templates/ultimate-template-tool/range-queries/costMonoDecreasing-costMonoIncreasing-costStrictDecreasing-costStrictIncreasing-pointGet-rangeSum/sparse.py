@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncreasing-pointGet-rangeSum/sparse.py
-# @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum
+# @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum sumAll
 # @data-structure-type: sparse-table
 # @complexities:
 #   costMonoDecreasing: log(N)
@@ -9,6 +9,7 @@
 #   costStrictIncreasing: log(N)
 #   pointGet: log(N)
 #   rangeSum: log(N)
+#   sumAll: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: sparse
@@ -176,3 +177,7 @@ class SparseMonoCosts:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0
+
+    # O(log(N)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); indices not given in values count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)

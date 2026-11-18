@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeSum rightmostGtX rightmostGteX
+// @operations: leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxAll maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeSum rightmostGtX rightmostGteX sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   leftmostGtX: log(U)
@@ -22,6 +22,8 @@ using ll = long long;
 //   rangeSum: log(U)
 //   rightmostGtX: log(U)
 //   rightmostGteX: log(U)
+//   sumAll: log(U)
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -284,6 +286,12 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(first, last); }
 
     // ---- internals ----
 

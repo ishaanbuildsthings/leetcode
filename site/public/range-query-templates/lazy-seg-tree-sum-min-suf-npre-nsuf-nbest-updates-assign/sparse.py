@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-min-suf-npre-nsuf-nbest-updates-assign/sparse.py
-# @operations: leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum minAll minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   leftmostLtX: log(U)
@@ -25,6 +25,8 @@
 #   rightmostSuffixSumGteX: log(U)
 #   rightmostSuffixSumLtX: log(U)
 #   rightmostSuffixSumLteX: log(U)
+#   sumAll: log(U)
+#   minAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -392,6 +394,14 @@ class SparseLazySegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.first, self.last)
 
     # ---- internals ----
 

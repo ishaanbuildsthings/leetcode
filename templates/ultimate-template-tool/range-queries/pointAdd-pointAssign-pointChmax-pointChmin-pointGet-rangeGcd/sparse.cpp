@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
+// @operations: gcdAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
 // @data-structure-type: seg-tree
 // @complexities:
 //   pointAdd: log(U)*log(U) ?
@@ -13,6 +13,7 @@ using ll = long long;
 //   pointChmin: log(U)*log(U) ?
 //   pointGet: log(U)
 //   rangeGcd: 2*log(U) ?
+//   gcdAll: 2*log(U) ?
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -129,4 +130,8 @@ struct SparseGcdTree {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(2*log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    auto gcdAll() { return rangeGcd(lo, hi); }
+
 };

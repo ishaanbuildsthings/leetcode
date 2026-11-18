@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-max-pre-suf-best-xor-updates-assign/sparse.py
-# @operations: leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxAll maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll xorAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   leftmostGtX: log(U)
@@ -23,6 +23,9 @@
 #   rightmostGteX: log(U)
 #   rightmostSuffixSumGtX: log(U)
 #   rightmostSuffixSumGteX: log(U)
+#   sumAll: log(U)
+#   maxAll: log(U)
+#   xorAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -340,6 +343,18 @@ class SparseLazySegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    def xorAll(self):
+        return self.rangeXorQuery(self.first, self.last)
 
     # ---- internals ----
 

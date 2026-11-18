@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX
+// @operations: leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   leftmostPrefixSumLtX: log(U)
@@ -21,6 +21,7 @@ using ll = long long;
 //   rangeSum: log(U)
 //   rightmostSuffixSumLtX: log(U)
 //   rightmostSuffixSumLteX: log(U)
+//   sumAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -260,6 +261,9 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(first, last); }
 
     // ---- internals ----
 

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointGet rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: wavelet
 // @complexities:
 //   andGtX: log(N)
@@ -43,6 +43,9 @@ using ll = long long;
 //   xorInValRange: log(N)
 //   xorLtX: log(N)
 //   xorLteX: log(N)
+//   sumAll: log(N)
+//   minAll: log(N)
+//   maxAll: log(N)
 //   build: N*log^2(N)
 // @memory:
 //   layout: sparse
@@ -922,4 +925,14 @@ struct SparseWaveletMatrix {
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? S(inner.sumSmallestK(i0, i1, int(given(i0, i1, zeros, k)))) : S(0);
     }
+
+    // O(log(N)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); indices not given in values count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(lo, hi); }
+
+    // O(log(N)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); indices not given in values count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(lo, hi); }
+
+    // O(log(N)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); indices not given in values count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(lo, hi); }
+
 };

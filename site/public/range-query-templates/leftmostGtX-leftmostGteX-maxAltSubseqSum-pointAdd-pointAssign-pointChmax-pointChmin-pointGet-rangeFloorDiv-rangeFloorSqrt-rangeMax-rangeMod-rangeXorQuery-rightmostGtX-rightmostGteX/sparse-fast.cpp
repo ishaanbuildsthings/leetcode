@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostGtX leftmostGteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeXorQuery rightmostGtX rightmostGteX
+// @operations: leftmostGtX leftmostGteX maxAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeXorQuery rightmostGtX rightmostGteX xorAll
 // @data-structure-type: beats
 // @complexities:
 //   leftmostGtX: log(U)
@@ -22,6 +22,8 @@ using ll = long long;
 //   rangeXorQuery: log(U)
 //   rightmostGtX: log(U)
 //   rightmostGteX: log(U)
+//   maxAll: log(U)
+//   xorAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -277,6 +279,12 @@ struct SparseShrinkSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto xorAll() { return rangeXorQuery(first, last); }
 
     // ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeMin-rangeSum-rightmostLtX-rightmostLteX/sparse.py
-# @operations: leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeMin rangeSum rightmostLtX rightmostLteX
+# @operations: leftmostLtX leftmostLteX minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeMin rangeSum rightmostLtX rightmostLteX sumAll
 # @data-structure-type: beats
 # @complexities:
 #   leftmostLtX: log(U)
@@ -17,6 +17,8 @@
 #   rangeSum: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   sumAll: log(U)
+#   minAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -308,3 +310,11 @@ class SparseChminChmaxBeats:
         tm = (tl + tr) // 2
         res = self._lastPass(self.R[i], tm + 1, tr, l, r, ok)
         return res if res is not None else self._lastPass(self.L[i], tl, tm, l, r, ok)
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)

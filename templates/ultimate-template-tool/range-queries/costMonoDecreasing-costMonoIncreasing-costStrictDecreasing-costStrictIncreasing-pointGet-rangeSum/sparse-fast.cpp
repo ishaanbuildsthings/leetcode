@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum
+// @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum sumAll
 // @data-structure-type: sparse-table
 // @complexities:
 //   costMonoDecreasing: log(N)
@@ -13,6 +13,7 @@ using ll = long long;
 //   costStrictIncreasing: log(N)
 //   pointGet: log(N)
 //   rangeSum: log(N)
+//   sumAll: log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: sparse
@@ -234,4 +235,8 @@ struct SparseMonoCosts {
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }
+
+    // O(log(N)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); indices not given in values count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(lo, hi); }
+
 };

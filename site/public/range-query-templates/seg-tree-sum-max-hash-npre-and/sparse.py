@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-max-hash-npre-and/sparse.py
-# @operations: isPalindrome leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMax rangeSum rangesEqual rightmostGtX rightmostGteX
+# @operations: andAll isPalindrome leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMax rangeSum rangesEqual rightmostGtX rightmostGteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -22,6 +22,9 @@
 #   rangesEqual: log(U)
 #   rightmostGtX: log(U)
 #   rightmostGteX: log(U)
+#   sumAll: log(U)
+#   maxAll: log(U)
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -304,6 +307,18 @@ class SparseSegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

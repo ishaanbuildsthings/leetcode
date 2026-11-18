@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeChmin-rangeMax-rangeMin/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeChmin rangeMax rangeMin
+# @operations: maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeChmin rangeMax rangeMin
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   pointAdd: log(U)
@@ -12,6 +12,8 @@
 #   rangeChmin: log(U)
 #   rangeMax: log(U)
 #   rangeMin: log(U)
+#   minAll: log(U)
+#   maxAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -215,3 +217,11 @@ class SparseAddChminMinMaxTree:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)
+
+    # O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostGtX leftmostGteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangesEqual rightmostGtX rightmostGteX
+// @operations: isPalindrome leftmostGtX leftmostGteX maxAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangesEqual rightmostGtX rightmostGteX
 // @data-structure-type: beats
 // @complexities:
 //   isPalindrome: log(U)
@@ -25,6 +25,7 @@ using ll = long long;
 //   rangesEqual: log(U)
 //   rightmostGtX: log(U)
 //   rightmostGteX: log(U)
+//   maxAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -345,6 +346,9 @@ struct SparseShrinkSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(first, last); }
 
     // ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/sparse.py
-# @operations: maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+# @operations: maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   maxSuffixSum: log(U)
@@ -10,6 +10,7 @@
 #   pointChmin: log(U)
 #   pointGet: log(U)
 #   rangeSum: log(U)
+#   sumAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -126,3 +127,7 @@ class SparseMaxSuffixSumTree:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)

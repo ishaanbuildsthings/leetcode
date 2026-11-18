@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeOrQuery rangesEqual
+// @operations: isPalindrome orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeOrQuery rangesEqual
 // @data-structure-type: seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -17,6 +17,7 @@ using ll = long long;
 //   rangeHashReversed: log(U)
 //   rangeOrQuery: log(U)
 //   rangesEqual: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -204,6 +205,9 @@ struct SparseSegTree {
             throw out_of_range("rangesEqual: needs lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi");
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
     }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto orAll() { return rangeOrQuery(first, last); }
 
     // ---- internals ----
 

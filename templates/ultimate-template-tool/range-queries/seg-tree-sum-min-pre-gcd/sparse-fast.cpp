@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeSum rightmostLtX rightmostLteX
+// @operations: gcdAll leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeSum rightmostLtX rightmostLteX sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   leftmostLtX: log(U)
@@ -22,6 +22,9 @@ using ll = long long;
 //   rangeSum: log(U)
 //   rightmostLtX: log(U)
 //   rightmostLteX: log(U)
+//   sumAll: log(U)
+//   minAll: log(U)
+//   gcdAll: log(U) ?
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -304,6 +307,15 @@ struct SparseSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(first, last); }
+
+    // O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto gcdAll() { return rangeGcd(first, last); }
 
     // ---- internals ----
 

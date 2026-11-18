@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-maxPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeSum/sparse.py
-# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeSum
+# @operations: andAll leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   leftmostPrefixSumGtX: log(U)
@@ -14,6 +14,8 @@
 #   rangeAndQuery: log(U)
 #   rangeAssign: log(U)
 #   rangeSum: log(U)
+#   sumAll: log(U)
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -165,6 +167,14 @@ class SparseLazySegTree:
         for t, _ in self._nodes(l, r):
             res += sm[t]
         return res
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

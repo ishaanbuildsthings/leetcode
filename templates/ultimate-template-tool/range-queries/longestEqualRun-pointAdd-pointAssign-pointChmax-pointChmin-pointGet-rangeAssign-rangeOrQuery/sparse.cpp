@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery
+// @operations: longestEqualRun orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   longestEqualRun: log(U)
@@ -15,6 +15,7 @@ using ll = long long;
 //   pointGet: log(U)
 //   rangeAssign: log(U)
 //   rangeOrQuery: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -126,6 +127,9 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) res |= nd[ns[i]].orr;
         return res;
     }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    auto orAll() { return rangeOrQuery(first, last); }
 
     // ---- internals ----
 

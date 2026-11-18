@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-pre-suf-gcd/sparse.py
-# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: gcdAll leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   leftmostPrefixSumGtX: log(U)
@@ -16,6 +16,8 @@
 #   rangeSum: log(U)
 #   rightmostSuffixSumGtX: log(U)
 #   rightmostSuffixSumGteX: log(U)
+#   sumAll: log(U)
+#   gcdAll: log(U) ?
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -217,6 +219,14 @@ class SparseSegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
 
     # ---- internals ----
 

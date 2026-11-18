@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeXorQuery
+// @operations: andAll gcdAll longestEqualRun maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeXorQuery xorAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   longestEqualRun: log(U)
@@ -18,6 +18,10 @@ using ll = long long;
 //   rangeGcd: log(U) ?
 //   rangeOrQuery: log(U)
 //   rangeXorQuery: log(U)
+//   gcdAll: log(U) ?
+//   xorAll: log(U)
+//   andAll: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -170,6 +174,18 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) res ^= nd[ns[i]].xr;
         return res;
     }
+
+    // O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    auto gcdAll() { return rangeGcd(first, last); }
+
+    // O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    auto xorAll() { return rangeXorQuery(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    auto andAll() { return rangeAndQuery(first, last); }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    auto orAll() { return rangeOrQuery(first, last); }
 
     // ---- internals ----
 

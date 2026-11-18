@@ -13,6 +13,7 @@ soon as its ops are in BRUTE_UPDATES / BRUTE_QUERIES.
     python3 test_templates.py --trials 300    # more random sequences per template (default 120)
     python3 test_templates.py --shard 3/16    # every 16th folder from the 3rd (run 16 of these side by side)
     python3 test_templates.py --from f.txt    # exactly the folders listed in f.txt (one per line)
+    python3 test_templates.py --sparse-only   # just the sparse.* files (folders without one are skipped)
 
 A folder's sparse.py / sparse.cpp (dynamic trees over any index range [lo, hi], all positions starting at 0) are
 tested too, as an extra "<folder> [sparse]" line: indices are huge (around +-1e12), and the brute force keeps the
@@ -1099,6 +1100,11 @@ class Linear:
         return tot
 
 
+# a sparse version's whole-array queries: the range op over all of a[lo..hi] (untouched indices are 0)
+SPARSE_ALL = {"sumAll": "rangeSum", "minAll": "rangeMin", "maxAll": "rangeMax", "gcdAll": "rangeGcd",
+              "xorAll": "rangeXorQuery", "andAll": "rangeAndQuery", "orAll": "rangeOrQuery"}
+
+
 def sparse_expected(trials, ctx, ops):
     linear = bool(AP_OPS & set(ops))
     mod, full = ctx["mod"], ctx["full"]
@@ -1110,6 +1116,8 @@ def sparse_expected(trials, ctx, ops):
             R.update(i, i, lambda _v, v=v: v)
         get = (lambda i: R.get(i) % mod) if (linear and mod) else R.get
         for op, args in seq:
+            if op in SPARSE_ALL:
+                op, args = SPARSE_ALL[op], [lo, hi]
             if op.startswith("!"):
                 exp.append("OOR")
             elif op == "pointGet":
@@ -1168,7 +1176,9 @@ def make_sparse_trials(folder, ops, trials):
         seq = []
         for _ in range(OPS_PER_TRIAL):
             op = rng.choice(updates) if updates and rng.random() < 0.5 else rng.choice(queries or updates)
-            if op == "pointGet":
+            if op in SPARSE_ALL:
+                args = []
+            elif op == "pointGet":
                 args = [rng.choice(pool)]
             elif op in POINT_UPDATES:
                 args = [rng.choice(pool), delta(rng) if op == "pointAdd" else gen(rng)]
@@ -1537,6 +1547,7 @@ def main():
         shard = tuple(int(x) for x in args[k + 1].split("/"))
         args = args[:k] + args[k + 2:]
     letters = "--letters" in args
+    sparse_only = "--sparse-only" in args
     filters = [x for x in args if not x.startswith("--")]
     cxx = find_cxx() if want_cpp else None
     if want_cpp and not cxx:
@@ -1582,6 +1593,8 @@ def main():
         lops = parse_ops(lpath, "#") if not letters and os.path.exists(lpath) else None
         if lops:  # a letters version: Python on letters; C++ (generic over T) on the usual numbers
             variants.append(("letters", *make_trials(folder, lops, trials_n, letters=True)))
+        if sparse_only:
+            variants = [v for v in variants if v[0] == "sparse"]
         for stem, trials, ctx in variants:
             vops = ops if stem == "template" or letters else lops if stem == "letters" else sparse_ops
             exp = sparse_expected(trials, ctx, vops) if stem == "sparse" else expected_outputs(trials, ctx)

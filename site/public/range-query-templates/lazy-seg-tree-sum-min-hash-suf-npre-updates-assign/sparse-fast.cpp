@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum minAll minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -29,6 +29,8 @@ using ll = long long;
 //   rightmostLteX: log(U)
 //   rightmostSuffixSumGtX: log(U)
 //   rightmostSuffixSumGteX: log(U)
+//   sumAll: log(U)
+//   minAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -446,6 +448,12 @@ struct SparseLazySegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto minAll() { return rangeMin(first, last); }
 
     // ---- internals ----
 

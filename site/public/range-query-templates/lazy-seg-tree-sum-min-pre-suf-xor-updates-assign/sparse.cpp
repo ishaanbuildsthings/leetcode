@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rangeXorQuery rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rangeXorQuery rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   leftmostLtX: log(U)
@@ -26,6 +26,9 @@ using ll = long long;
 //   rightmostLteX: log(U)
 //   rightmostSuffixSumGtX: log(U)
 //   rightmostSuffixSumGteX: log(U)
+//   sumAll: log(U)
+//   minAll: log(U)
+//   xorAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -343,6 +346,15 @@ struct SparseLazySegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(first, last); }
+
+    // O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    auto xorAll() { return rangeXorQuery(first, last); }
 
     // ---- internals ----
 

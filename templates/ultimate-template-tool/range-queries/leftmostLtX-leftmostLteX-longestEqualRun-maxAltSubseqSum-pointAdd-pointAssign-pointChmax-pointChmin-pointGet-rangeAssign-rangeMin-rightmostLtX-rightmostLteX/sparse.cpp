@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostLtX leftmostLteX longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rightmostLtX rightmostLteX
+// @operations: leftmostLtX leftmostLteX longestEqualRun maxAltSubseqSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rightmostLtX rightmostLteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   leftmostLtX: log(U)
@@ -20,6 +20,7 @@ using ll = long long;
 //   rangeMin: log(U)
 //   rightmostLtX: log(U)
 //   rightmostLteX: log(U)
+//   minAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -234,6 +235,9 @@ struct SparseLazySegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(first, last); }
 
     // ---- internals ----
 

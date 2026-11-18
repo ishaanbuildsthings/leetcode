@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/maxAltSubseqSum-minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumLtX-rightmostSuffixSumLteX/sparse.py
-# @operations: maxAltSubseqSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: maxAltSubseqSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   maxAltSubseqSum: log(U)
@@ -13,6 +13,7 @@
 #   rangeSum: log(U)
 #   rightmostSuffixSumLtX: log(U)
 #   rightmostSuffixSumLteX: log(U)
+#   sumAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -171,6 +172,10 @@ class SparseSegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
 
     # ---- internals ----
 

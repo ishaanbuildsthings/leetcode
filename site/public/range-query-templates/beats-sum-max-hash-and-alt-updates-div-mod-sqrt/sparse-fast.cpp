@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: isPalindrome leftmostGtX leftmostGteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeSum rangesEqual rightmostGtX rightmostGteX
+// @operations: andAll isPalindrome leftmostGtX leftmostGteX maxAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeSum rangesEqual rightmostGtX rightmostGteX sumAll
 // @data-structure-type: beats
 // @complexities:
 //   isPalindrome: log(U)
@@ -27,6 +27,9 @@ using ll = long long;
 //   rangesEqual: log(U)
 //   rightmostGtX: log(U)
 //   rightmostGteX: log(U)
+//   sumAll: log(U)
+//   maxAll: log(U)
+//   andAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -369,6 +372,15 @@ struct SparseShrinkSegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto andAll() { return rangeAndQuery(first, last); }
 
     // ---- internals ----
 

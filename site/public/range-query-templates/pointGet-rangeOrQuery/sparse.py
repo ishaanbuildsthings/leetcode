@@ -1,10 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointGet-rangeOrQuery/sparse.py
-# @operations: pointGet rangeOrQuery
+# @operations: orAll pointGet rangeOrQuery
 # @data-structure-type: sparse-table
 # @complexities:
 #   pointGet: log(N)
 #   rangeOrQuery: log(N)
+#   orAll: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: sparse
@@ -103,3 +104,7 @@ class SparseStaticOr:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0
+
+    # O(log(N)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); indices not given in values count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.lo, self.hi)

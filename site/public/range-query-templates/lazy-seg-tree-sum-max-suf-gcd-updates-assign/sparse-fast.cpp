@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: leftmostGtX leftmostGteX maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeSum rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: gcdAll leftmostGtX leftmostGteX maxAll maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeSum rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   leftmostGtX: log(U)
@@ -23,6 +23,9 @@ using ll = long long;
 //   rightmostGteX: log(U)
 //   rightmostSuffixSumGtX: log(U)
 //   rightmostSuffixSumGteX: log(U)
+//   sumAll: log(U)
+//   maxAll: log(U)
+//   gcdAll: log(U) ?
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -313,6 +316,15 @@ struct SparseLazySegTree {
         }
         return first - 1;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
+
+    // O(log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto maxAll() { return rangeMax(first, last); }
+
+    // O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto gcdAll() { return rangeGcd(first, last); }
 
     // ---- internals ----
 

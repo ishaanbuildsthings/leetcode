@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeXorQuery/sparse.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeXorQuery
+# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeXorQuery xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   pointAdd: log(U)
@@ -9,6 +9,7 @@
 #   pointChmin: log(U)
 #   pointGet: log(U)
 #   rangeXorQuery: log(U)
+#   xorAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -81,6 +82,10 @@ class SparseSegTree:
         for t, _ in self._nodes(l, r):
             res ^= xr[t]
         return res
+
+    # O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    def xorAll(self):
+        return self.rangeXorQuery(self.first, self.last)
 
     # ---- internals ----
 

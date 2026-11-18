@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeGcd-rangeHash-rangeHashReversed-rangesEqual/sparse.py
-# @operations: isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangesEqual
+# @operations: andAll gcdAll isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangesEqual
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -15,6 +15,8 @@
 #   rangeHash: log(U)
 #   rangeHashReversed: log(U)
 #   rangesEqual: log(U)
+#   gcdAll: log(U) ?
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -163,6 +165,14 @@ class SparseLazySegTree:
             raise IndexError(f"rangesEqual: needs lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, got "
                              f"l1 = {l1}, r1 = {r1}, l2 = {l2}, r2 = {r2}")
         return r1 - l1 == r2 - l2 and self.rangeHash(l1, r1) == self.rangeHash(l2, r2)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-min-hash-nsuf/sparse.py
-# @operations: isPalindrome leftmostLtX leftmostLteX minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: isPalindrome leftmostLtX leftmostLteX minAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -21,6 +21,8 @@
 #   rightmostLteX: log(U)
 #   rightmostSuffixSumLtX: log(U)
 #   rightmostSuffixSumLteX: log(U)
+#   sumAll: log(U)
+#   minAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -293,6 +295,14 @@ class SparseSegTree:
                 return tl
             acc += sm[t]
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.first, self.last)
 
     # ---- internals ----
 

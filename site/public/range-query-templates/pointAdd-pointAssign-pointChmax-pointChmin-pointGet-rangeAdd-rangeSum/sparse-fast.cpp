@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
+// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum sumAll
 // @data-structure-type: BIT
 // @complexities:
 //   pointAdd: log(U)
@@ -14,6 +14,7 @@ using ll = long long;
 //   pointGet: log(U)
 //   rangeAdd: log(U)
 //   rangeSum: log(U)
+//   sumAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -179,4 +180,8 @@ struct SparseRangeAddSumBIT {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         T cur = pointGet(i); if (v < cur) rangeAdd(i, i, v - cur);
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(lo, hi); }
+
 };

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeXorQuery
+// @operations: andAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeXorQuery xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   pointAdd: log(U)
@@ -15,6 +15,8 @@ using ll = long long;
 //   rangeAndQuery: log(U)
 //   rangeAssign: log(U)
 //   rangeXorQuery: log(U)
+//   xorAll: log(U)
+//   andAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -110,6 +112,12 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) res ^= nd[ns[i]].xr;
         return res;
     }
+
+    // O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    auto xorAll() { return rangeXorQuery(first, last); }
+
+    // O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    auto andAll() { return rangeAndQuery(first, last); }
 
     // ---- internals ----
 

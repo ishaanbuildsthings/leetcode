@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeOrQuery/sparse.py
-# @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery
+# @operations: longestEqualRun orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   longestEqualRun: log(U)
@@ -11,6 +11,7 @@
 #   pointGet: log(U)
 #   rangeAssign: log(U)
 #   rangeOrQuery: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -120,6 +121,10 @@ class SparseLazySegTree:
         for t, _ in self._nodes(l, r):
             res |= orr[t]
         return res
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

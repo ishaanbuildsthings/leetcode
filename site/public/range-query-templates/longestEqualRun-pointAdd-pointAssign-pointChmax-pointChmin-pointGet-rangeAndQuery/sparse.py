@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery/sparse.py
-# @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery
+# @operations: andAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery
 # @data-structure-type: seg-tree
 # @complexities:
 #   longestEqualRun: log(U)
@@ -10,6 +10,7 @@
 #   pointChmin: log(U)
 #   pointGet: log(U)
 #   rangeAndQuery: log(U)
+#   andAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -110,6 +111,10 @@ class SparseSegTree:
         for t, _ in self._nodes(l, r):
             res &= an[t]
         return res
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-min-hash-and-or-updates-assign/sparse.py
-# @operations: isPalindrome leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMin rangeOrQuery rangesEqual rightmostLtX rightmostLteX
+# @operations: andAll isPalindrome leftmostLtX leftmostLteX minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMin rangeOrQuery rangesEqual rightmostLtX rightmostLteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -20,6 +20,9 @@
 #   rangesEqual: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   minAll: log(U)
+#   andAll: log(U)
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -257,6 +260,18 @@ class SparseLazySegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.first, self.last)
+
+    # O(log(U)) -- AND of the whole array a[lo..hi] (rangeAndQuery(lo, hi)); never-updated indices count as 0
+    def andAll(self):
+        return self.rangeAndQuery(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

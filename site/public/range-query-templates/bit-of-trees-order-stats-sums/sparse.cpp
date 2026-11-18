@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: bit-of-trees
 // @complexities:
 //   countGtX: log(U)*log(U)
@@ -36,6 +36,9 @@ using ll = long long;
 //   sumLtX: log(U)*log(U)
 //   sumLteX: log(U)*log(U)
 //   sumSmallestK: log(U)*log(U)
+//   sumAll: log(U)*log(U)
+//   minAll: log(U)*log(U)
+//   maxAll: log(U)*log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -303,6 +306,15 @@ struct SparseDynamicOrderStats {
         S s = sumBelow(l, r, rk);
         return S(x) * c - s + (sumFirst(l, r, r - l + 1) - s) - S(x) * (r - l + 1 - c);
     }
+
+    // O(log(U)*log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    auto sumAll() { return rangeSum(lo, hi); }
+
+    // O(log(U)*log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    auto minAll() { return rangeMin(lo, hi); }
+
+    // O(log(U)*log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    auto maxAll() { return rangeMax(lo, hi); }
 
     // ---- internals ----
 

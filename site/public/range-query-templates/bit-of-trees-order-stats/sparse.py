@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/bit-of-trees-order-stats/sparse.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX
 # @data-structure-type: bit-of-trees
 # @complexities:
 #   countGtX: log(U)*log(U)
@@ -21,6 +21,8 @@
 #   rangeMin: log(U)*log(U)
 #   smallestGtX: log(U)*log(U)
 #   smallestGteX: log(U)*log(U)
+#   minAll: log(U)*log(U)
+#   maxAll: log(U)*log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -188,6 +190,14 @@ class SparseDynamicOrderStats:
             raise IndexError(f"largestLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x)
         return None if c == 0 else self._kth(l, r, c)
+
+    # O(log(U)*log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)
+
+    # O(log(U)*log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)
 
     # ---- internals ----
 

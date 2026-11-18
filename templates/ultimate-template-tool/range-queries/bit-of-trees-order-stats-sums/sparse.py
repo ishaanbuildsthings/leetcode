@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/bit-of-trees-order-stats-sums/sparse.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: bit-of-trees
 # @complexities:
 #   countGtX: log(U)*log(U)
@@ -32,6 +32,9 @@
 #   sumLtX: log(U)*log(U)
 #   sumLteX: log(U)*log(U)
 #   sumSmallestK: log(U)*log(U)
+#   sumAll: log(U)*log(U)
+#   minAll: log(U)*log(U)
+#   maxAll: log(U)*log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -293,6 +296,18 @@ class SparseDynamicOrderStats:
         rk = x
         c, s = self._countBelow(l, r, rk), self._sumBelow(l, r, rk)
         return x * c - s + (self._sumFirst(l, r, r - l + 1) - s) - x * (r - l + 1 - c)
+
+    # O(log(U)*log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.lo, self.hi)
+
+    # O(log(U)*log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.lo, self.hi)
+
+    # O(log(U)*log(U)) -- max of the whole array a[lo..hi] (rangeMax(lo, hi)); never-updated indices count as 0
+    def maxAll(self):
+        return self.rangeMax(self.lo, self.hi)
 
     # ---- internals ----
 

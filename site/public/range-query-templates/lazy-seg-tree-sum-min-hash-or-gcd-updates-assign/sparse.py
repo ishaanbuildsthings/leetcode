@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-min-hash-or-gcd-updates-assign/sparse.py
-# @operations: isPalindrome leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeHash rangeHashReversed rangeMin rangeOrQuery rangeSum rangesEqual rightmostLtX rightmostLteX
+# @operations: gcdAll isPalindrome leftmostLtX leftmostLteX minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeHash rangeHashReversed rangeMin rangeOrQuery rangeSum rangesEqual rightmostLtX rightmostLteX sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -21,6 +21,10 @@
 #   rangesEqual: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   sumAll: log(U)
+#   minAll: log(U)
+#   gcdAll: log(U) ?
+#   orAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -270,6 +274,22 @@ class SparseLazySegTree:
                         t = L[t]
                 return tl
         return self.first - 1
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- min of the whole array a[lo..hi] (rangeMin(lo, hi)); never-updated indices count as 0
+    def minAll(self):
+        return self.rangeMin(self.first, self.last)
+
+    # O(log(U) ?) -- gcd of the whole array a[lo..hi] (rangeGcd(lo, hi)); never-updated indices count as 0
+    def gcdAll(self):
+        return self.rangeGcd(self.first, self.last)
+
+    # O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    def orAll(self):
+        return self.rangeOrQuery(self.first, self.last)
 
     # ---- internals ----
 

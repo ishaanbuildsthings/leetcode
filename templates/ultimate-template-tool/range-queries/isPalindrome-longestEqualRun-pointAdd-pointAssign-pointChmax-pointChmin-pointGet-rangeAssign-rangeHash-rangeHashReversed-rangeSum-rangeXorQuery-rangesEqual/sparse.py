@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeHash-rangeHashReversed-rangeSum-rangeXorQuery-rangesEqual/sparse.py
-# @operations: isPalindrome longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeSum rangeXorQuery rangesEqual
+# @operations: isPalindrome longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeSum rangeXorQuery rangesEqual sumAll xorAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   isPalindrome: log(U)
@@ -16,6 +16,8 @@
 #   rangeSum: log(U)
 #   rangeXorQuery: log(U)
 #   rangesEqual: log(U)
+#   sumAll: log(U)
+#   xorAll: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -191,6 +193,14 @@ class SparseLazySegTree:
             raise IndexError(f"rangesEqual: needs lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, got "
                              f"l1 = {l1}, r1 = {r1}, l2 = {l2}, r2 = {r2}")
         return r1 - l1 == r2 - l2 and self.rangeHash(l1, r1) == self.rangeHash(l2, r2)
+
+    # O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    def sumAll(self):
+        return self.rangeSum(self.first, self.last)
+
+    # O(log(U)) -- xor of the whole array a[lo..hi] (rangeXorQuery(lo, hi)); never-updated indices count as 0
+    def xorAll(self):
+        return self.rangeXorQuery(self.first, self.last)
 
     # ---- internals ----
 

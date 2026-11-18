@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery
+// @operations: orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery
 // @data-structure-type: seg-tree
 // @complexities:
 //   pointAdd: log(U)
@@ -13,6 +13,7 @@ using ll = long long;
 //   pointChmin: log(U)
 //   pointGet: log(U)
 //   rangeOrQuery: log(U)
+//   orAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -123,6 +124,9 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) res |= nd[ns[i]].orr;
         return res;
     }
+
+    // O(log(U)) -- OR of the whole array a[lo..hi] (rangeOrQuery(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto orAll() { return rangeOrQuery(first, last); }
 
     // ---- internals ----
 

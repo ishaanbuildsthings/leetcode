@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+// @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeSum sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   longestEqualRun: log(U)
@@ -14,6 +14,7 @@ using ll = long long;
 //   pointChmin: log(U)
 //   pointGet: log(U)
 //   rangeSum: log(U)
+//   sumAll: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -152,6 +153,9 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) res += nd[ns[i]].sm;
         return res;
     }
+
+    // O(log(U)) -- sum of the whole array a[lo..hi] (rangeSum(lo, hi)); never-updated indices count as 0
+    LEETCODE_NO_SANITIZE auto sumAll() { return rangeSum(first, last); }
 
     // ---- internals ----
 
