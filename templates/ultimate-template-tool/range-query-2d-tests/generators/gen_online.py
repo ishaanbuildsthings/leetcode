@@ -45,7 +45,7 @@ def seg_tree(aggs):
     ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"]
     for a in A:
         ops += [a.rect, a.all]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             ops += [f"{a.key}{n}" for n, _, _ in CORNERS]
     costs = {}
     for op in ops:
@@ -182,12 +182,12 @@ def seg_tree(aggs):
             py += [f"        res = {root}", f"        return {a.py_result('res')}", ""]
         else:
             py += [f"        return abs({root})" if a.key == "gcd" else f"        return {root}", ""]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for n, xsn, ysn in CORNERS:
                 bx = ("self.xLo", "x") if xsn == "<=" else ("x", "self.xHi")
                 by = ("self.yLo", "y") if ysn == "<=" else ("y", "self.yHi")
-                py += indent(wrap_comment(f"O(log^2 U) -- {a.word} of the set cells with x {xsn} the given x and y {ysn} the given y (None if there are none); "
-                                          f"{POINT_RULE_PY}", "#"))
+                py += indent(wrap_comment(f"O(log^2 U) -- {a.word} of the set cells with x {xsn} the given x and y {ysn} the given y"
+                                          f"{' (None if there are none)' if a.key != 'sum' else ''}; {POINT_RULE_PY}", "#"))
                 py.append(f"    def {a.key}{n}(self, x, y):")
                 py += indent(py_point_check(f"{a.key}{n}") + [f"return self._{a.key}Of({bx[0]}, {by[0]}, {bx[1]}, {by[1]})"], 2) + [""]
     while py[-1] == "":
@@ -283,13 +283,13 @@ def seg_tree(aggs):
         cpp.append(f"    // O(1) -- {a.word} of every set cell ({a.none_words_cpp} if there are none)" if mm else f"    // O(1) -- {a.word} of the whole range")
         root = f"{a.arr}[xTree[1]]"
         cpp += [f"    {t} {a.all}() const {{", f"        return gcdOf({root}, T(0));" if a.key == "gcd" else f"        return {root};", "    }", ""]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for n, xsn, ysn in CORNERS:
                 bx = ("xLo", "x") if xsn == "<=" else ("x", "xHi")
                 by = ("yLo", "y") if ysn == "<=" else ("y", "yHi")
-                cpp += indent(wrap_comment(f"O(log^2 U) -- {a.word} of the set cells with x {xsn} the given x and y {ysn} the given y ({a.none_words_cpp} if there are none); "
-                                           f"{POINT_RULE_CPP}", "//"))
-                cpp.append(f"    T {a.key}{n}(ll x, ll y) const {{")
+                cpp += indent(wrap_comment(f"O(log^2 U) -- {a.word} of the set cells with x {xsn} the given x and y {ysn} the given y"
+                                           f"{f' ({a.none_words_cpp} if there are none)' if a.key != 'sum' else ''}; {POINT_RULE_CPP}", "//"))
+                cpp.append(f"    {a.cpp_type} {a.key}{n}(ll x, ll y) const {{")
                 cpp += indent(cpp_point_check(f"{a.key}{n}") + [f"return {a.key}Of({bx[0]}, {by[0]}, {bx[1]}, {by[1]});"], 2) + ["    }", ""]
     while cpp[-1] == "":
         cpp.pop()

@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-seg-tree-sum-max-and-or/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: andAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectMax rectOr rectSum sumAll
+// @operations: andAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectMax rectOr rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 // @data-structure-type: seg-tree
 // @input: grid
 // @empty-cells: yes
@@ -24,6 +24,10 @@ using namespace std;
 //   rectOr: log(R)*log(C)
 //   rectSum: log(R)*log(C)
 //   sumAll: 1
+//   sumGteGte: log(R)*log(C)
+//   sumGteLte: log(R)*log(C)
+//   sumLteGte: log(R)*log(C)
+//   sumLteLte: log(R)*log(C)
 //   build: R*C
 // @memory:
 //   layout: 2n-iterative
@@ -219,6 +223,34 @@ struct SegTree2D {
     // O(1) -- sum of every set cell (0 if there are none)
     LEETCODE_NO_SANITIZE S sumAll() const {
         return sm[W + 1];
+    }
+
+    // O(log R * log C) -- sum of the set cells with row <= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    // throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumLteLte: needs 0 <= r < R and 0 <= c < C");
+        return sumOf(0, 0, r, c);
+    }
+
+    // O(log R * log C) -- sum of the set cells with row <= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    // throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumLteGte: needs 0 <= r < R and 0 <= c < C");
+        return sumOf(0, c, r, C - 1);
+    }
+
+    // O(log R * log C) -- sum of the set cells with row >= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    // throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumGteLte: needs 0 <= r < R and 0 <= c < C");
+        return sumOf(r, 0, R - 1, c);
+    }
+
+    // O(log R * log C) -- sum of the set cells with row >= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    // throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumGteGte: needs 0 <= r < R and 0 <= c < C");
+        return sumOf(r, c, R - 1, C - 1);
     }
 
     LEETCODE_NO_SANITIZE T maxOf(int r1, int c1, int r2, int c2) const {

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/online-seg-tree-sum-min/template.py
-# @operations: minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectMin rectSum sumAll
+# @operations: minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectMin rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 # @data-structure-type: seg-tree
 # @input: online
 # @empty-cells: yes
@@ -18,6 +18,10 @@
 #   rectMin: log^2(U)
 #   rectSum: log^2(U)
 #   sumAll: 1
+#   sumGteGte: log^2(U)
+#   sumGteLte: log^2(U)
+#   sumLteGte: log^2(U)
+#   sumLteLte: log^2(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -265,6 +269,38 @@ class DynamicSegTree2D:
     # O(1) -- sum of every set cell (0 if there are none)
     def sumAll(self):
         return self.sm[self.xTree[1]]
+
+    # O(log^2 U) -- sum of the set cells with x <= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <=
+    # y <= yHi, else IndexError
+    def sumLteLte(self, x, y):
+        if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
+            raise IndexError(f"sumLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
+                             f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
+        return self._sumOf(self.xLo, self.yLo, x, y)
+
+    # O(log^2 U) -- sum of the set cells with x <= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <=
+    # y <= yHi, else IndexError
+    def sumLteGte(self, x, y):
+        if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
+            raise IndexError(f"sumLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
+                             f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
+        return self._sumOf(self.xLo, y, x, self.yHi)
+
+    # O(log^2 U) -- sum of the set cells with x >= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <=
+    # y <= yHi, else IndexError
+    def sumGteLte(self, x, y):
+        if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
+            raise IndexError(f"sumGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
+                             f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
+        return self._sumOf(x, self.yLo, self.xHi, y)
+
+    # O(log^2 U) -- sum of the set cells with x >= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <=
+    # y <= yHi, else IndexError
+    def sumGteGte(self, x, y):
+        if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
+            raise IndexError(f"sumGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
+                             f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
+        return self._sumOf(x, y, self.xHi, self.yHi)
 
     def _minOf(self, x1, y1, x2, y2):
         xLeft, xRight, xTree, yLeft, yRight = self.xLeft, self.xRight, self.xTree, self.yLeft, self.yRight

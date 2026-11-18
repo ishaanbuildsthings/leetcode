@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-seg-tree-sum-gcd-and-or/template.py
-# @operations: andAll gcdAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectGcd rectOr rectSum sumAll
+# @operations: andAll gcdAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectGcd rectOr rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 # @data-structure-type: seg-tree
 # @input: points
 # @complexities:
@@ -17,6 +17,10 @@
 #   rectOr: log^2(N)
 #   rectSum: log^2(N)
 #   sumAll: 1
+#   sumGteGte: log^2(N)
+#   sumGteLte: log^2(N)
+#   sumLteGte: log^2(N)
+#   sumLteLte: log^2(N)
 #   build: N*log(N)
 # @memory:
 #   layout: 2n-iterative
@@ -27,6 +31,9 @@
 
 from bisect import bisect_left, bisect_right
 from math import gcd
+
+NEG = float("-inf")  # an empty point in a max array; also "no lower bound" on a coordinate
+POS = float("inf")  # an empty point in a min array; also "no upper bound" on a coordinate
 
 
 # 2D segment tree over points known up front (sum, gcd, AND, OR): point updates and any-rectangle queries in O(log^2
@@ -202,6 +209,22 @@ class PointsSegTree2D:
     # O(1) -- sum of every point
     def sumAll(self):
         return self.sm[2 * self.off[1] + 1]
+
+    # O(log^2 N) -- sum of the set points with x <= the given x and y <= the given y; any integers
+    def sumLteLte(self, x, y):
+        return self._sumOf(NEG, NEG, x, y)
+
+    # O(log^2 N) -- sum of the set points with x <= the given x and y >= the given y; any integers
+    def sumLteGte(self, x, y):
+        return self._sumOf(NEG, y, x, POS)
+
+    # O(log^2 N) -- sum of the set points with x >= the given x and y <= the given y; any integers
+    def sumGteLte(self, x, y):
+        return self._sumOf(x, NEG, POS, y)
+
+    # O(log^2 N) -- sum of the set points with x >= the given x and y >= the given y; any integers
+    def sumGteGte(self, x, y):
+        return self._sumOf(x, y, POS, POS)
 
     def _gcdOf(self, x1, y1, x2, y2):
         xs, ys, off, cnt = self.xs, self.ys, self.off, self.cnt

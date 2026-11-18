@@ -68,8 +68,10 @@ for _k in ("min", "max"):
         for _b in CMP:
             OPS[f"{_k}{_a}{_b}"] = ("corner", "val")
         OPS[f"{_k}{_a}{_a}{_a}"] = ("corner", "val")
-for _a in CMP:  # (3D only: a sum from one corner)
+for _a in CMP:  # sums from one corner, 3D and 2D
     OPS[f"sum{_a}{_a}{_a}"] = ("corner", "val")
+    for _b in CMP:
+        OPS[f"sum{_a}{_b}"] = ("corner", "val")
 OPS["rectHash"] = ("rectpair", "bool")  # tested as: do two rectangles hash equal exactly when their cells are equal
 OPS["rectsEqual"] = ("rectpair", "bool")
 OPS["hashAll"] = ("", "bool")  # tested as: hashAll() == rectHash(the whole grid)
@@ -117,6 +119,7 @@ class Brute:
         self.cells = dict(cells)
         self.window = window
         self.dims = len(bounds)
+        self.rects = []  # (online) rectangle chmax / chmin, kept as given: a cell's value folds in the ones covering it
         # @empty-cells: yes = a cell nobody set is empty (queries skip it); otherwise it is 0
         self.empty_read = None if empties else 0
         if self.empty_read == 0 and universe is not None:
@@ -152,6 +155,14 @@ class Brute:
             return [p for p in self.universe if all(a <= x <= b for x, a, b in zip(p, lo, hi))]
         raise AssertionError("a rectangle update needs a finite set of cells")
 
+    def value(self, p):
+        """a cell's value: what was set there, then every kept rectangle chmax / chmin that covers it"""
+        v = self.cells.get(p, self.empty_read)
+        for lo, hi, w, op in self.rects:
+            if all(a <= x <= b for x, a, b in zip(p, lo, hi)):
+                v = w if v is None else (max if op == "rectChmax" else min)(v, w)
+        return v
+
     def run(self, op, args):
         """The answer (None = nothing), or the string "E" for arguments the template must refuse."""
         shape = OPS[op][0]
@@ -162,20 +173,23 @@ class Brute:
             if not self.point_ok(p):
                 return "E"
             if op == "pointGet":
-                return cells.get(p, self.empty_read)
+                return self.value(p)
             v = args[d]
             if op == "pointAssign":
                 cells[p] = v
             elif op == "pointAdd":
                 cells[p] = cells.get(p, 0) + v
             elif op in ("pointChmax", "pointChmin"):
-                cur = cells.get(p, self.empty_read)  # (a cell nobody set: empty, or 0 where cells can't be empty)
+                cur = self.value(p)  # (a cell nobody set: empty, or 0 where cells can't be empty)
                 cells[p] = v if cur is None else (max if op == "pointChmax" else min)(cur, v)
             return "-"
         if shape == "rectv":
             lo, hi, v = tuple(args[:d]), tuple(args[d:2 * d]), args[2 * d]
             if not self.rect_ok(lo, hi):
                 return "E"
+            if self.universe is None and op in ("rectChmax", "rectChmin"):
+                self.rects.append((lo, hi, v, op))
+                return "-"
             for p in self.targets(lo, hi):
                 if op == "rectAdd":
                     cells[p] = cells.get(p, 0) + v
@@ -442,6 +456,8 @@ def none_check(op, ops, source):
     if op == "pointGet":
         has = {op_agg(o)[0] for o in ops}
         k = "max" if "max" in has else "min" if "min" in has else None
+        if k is None:  # (no max / min query at all, e.g. rectangle chmax with point reads: the struct's own empty value)
+            k = "max" if "NO_MAX" in source else "min" if "NO_MIN" in source else None
     name = {"max": "NO_MAX", "min": "NO_MIN"}.get(k)
     return f"res == DS::{name}" if name and name in source else "false"
 

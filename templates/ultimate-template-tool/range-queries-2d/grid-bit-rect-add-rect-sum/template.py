@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-bit-rect-add-rect-sum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectSum sumAll
+# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 # @data-structure-type: BIT
 # @input: grid
 # @complexities:
@@ -12,6 +12,10 @@
 #   rectAdd: log(R)*log(C)
 #   rectSum: log(R)*log(C)
 #   sumAll: 1
+#   sumGteGte: log(R)*log(C)
+#   sumGteLte: log(R)*log(C)
+#   sumLteGte: log(R)*log(C)
+#   sumLteLte: log(R)*log(C)
 #   build: R*C
 # @memory:
 #   layout: none
@@ -185,3 +189,35 @@ class RectAddRectSumFenwick2D:
     # O(1) -- sum of the whole grid
     def sumAll(self):
         return self.total
+
+    # O(log R * log C) -- sum of the cells with row <= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumLteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(0, 0, r, c)
+
+    # O(log R * log C) -- sum of the cells with row <= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumLteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(0, c, r, self.C - 1)
+
+    # O(log R * log C) -- sum of the cells with row >= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumGteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(r, 0, self.R - 1, c)
+
+    # O(log R * log C) -- sum of the cells with row >= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumGteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(r, c, self.R - 1, self.C - 1)

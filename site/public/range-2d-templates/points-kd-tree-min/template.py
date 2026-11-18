@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-kd-tree-min/template.py
-# @operations: minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectMin
+# @operations: minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectChmax rectChmin rectMin
 # @data-structure-type: kd-tree
 # @input: points
 # @complexities:
@@ -16,12 +16,14 @@
 #   pointGet: log(N)
 #   rectAdd: sqrt(N)
 #   rectAssign: sqrt(N)
+#   rectChmax: sqrt(N)
+#   rectChmin: sqrt(N)
 #   rectMin: sqrt(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
 #   node: mn[2*N]
-#   tags: addTag[2*N] setTag[2*N]
+#   tags: addTag[2*N] loTag[2*N] hiTag[2*N]
 #   other: xMin[2*N] xMax[2*N] yMin[2*N] yMax[2*N] pts[2*N] pos[1*N]
 #   note: a binary tree over the points in k-d order (2N - 1 nodes), each node with its points' bounding box
 
@@ -31,16 +33,16 @@ POS = float("inf")  # the min of no points; also "no upper bound" on a coordinat
 NEG = float("-inf")  # "no lower bound" on a coordinate
 
 
-# K-d tree with lazy tags (min): rectangle add and rectangle assign together with rectangle min, over points known up
-# front (any integers, negative is fine). O(sqrt N) per rectangle op, O(log N) per point op, linear memory. A tree of
-# trees can't do rectangle updates with these queries (a tag can't be pushed down its outer tree); this can, because
-# it is one tree: the points are split in half by x, each half by y, and so on, every node keeps the bounding box of
-# its points, and a rectangle op only opens the nodes whose box the rectangle's border crosses (about sqrt N of them).
-# The constructor takes every (x, y) that will ever be used; every point starts at 0. Rectangles are inclusive, x1..x2
-# by y1..y2, and their corners can be any integers; a rectangle update touches the given points inside it. A min / max
-# over a rectangle with no given point in it is None.
+# K-d tree with lazy tags (min): rectangle add, assign, chmax and chmin together with rectangle min, over points known
+# up front (any integers, negative is fine). O(sqrt N) per rectangle op, O(log N) per point op, linear memory. A tree
+# of trees can't do rectangle updates with these queries (a tag can't be pushed down its outer tree); this can,
+# because it is one tree: the points are split in half by x, each half by y, and so on, every node keeps the bounding
+# box of its points, and a rectangle op only opens the nodes whose box the rectangle's border crosses (about sqrt N of
+# them). The constructor takes every (x, y) that will ever be used; every point starts at 0. Rectangles are inclusive,
+# x1..x2 by y1..y2, and their corners can be any integers; a rectangle update touches the given points inside it. A
+# min / max over a rectangle with no given point in it is None.
 class KdTree2D:
-    __slots__ = ("n", "pts", "pos", "xMin", "xMax", "yMin", "yMax", "addTag", "setTag", "mn")
+    __slots__ = ("n", "pts", "pos", "xMin", "xMax", "yMin", "yMax", "addTag", "loTag", "hiTag", "mn")
 
     # O(N log N) -- points: every (x, y) that will ever be used, as pairs of integers (negative is fine, repeats are
     # fine); needs at least one, else ValueError
@@ -56,7 +58,8 @@ class KdTree2D:
         yMax = self.yMax = [0] * size
         pos = self.pos = [0] * n  # pos[i]: where point i (in sorted order) sits in k-d order
         self.addTag = [0] * size
-        self.setTag = [None] * size
+        self.loTag = [NEG] * size  # a node's waiting tag: add addTag, then clamp to loTag..hiTag
+        self.hiTag = [POS] * size
         self.mn = [0] * size
         side = [False] * n
         # a node is a stretch l..r of the k-d order; node (l, r) is numbered (l + r) | (l != r), its halves l..mid,
@@ -87,34 +90,32 @@ class KdTree2D:
             for i in first:
                 side[i] = False
 
-    # hands node (l, r)'s waiting assign / add to its two halves
+    # hands node (l, r)'s waiting tag to its two halves
     def _push(self, node, l, r):
-        setTag, addTag = self.setTag, self.addTag
-        sv = setTag[node]
+        addTag, loTag, hiTag = self.addTag, self.loTag, self.hiTag
         av = addTag[node]
-        if sv is None and not av:
+        lv = loTag[node]
+        hv = hiTag[node]
+        if not av and lv == NEG and hv == POS:
             return
         mn = self.mn
         mid = (l + r) >> 1
-        for a, b in ((l, mid), (mid + 1, r)):
-            child = (a + b) | (a != b)
-            cnt = b - a + 1
-            if sv is not None:
-                setTag[child] = sv
-                addTag[child] = 0
-                mn[child] = sv
-            else:
-                if setTag[child] is None:
-                    addTag[child] += av
-                else:
-                    setTag[child] += av
-                mn[child] += av
-        setTag[node] = None
+        for child in ((l + mid) | (l != mid), (mid + 1 + r) | (mid + 1 != r)):
+            addTag[child] += av
+            cand = loTag[child] + av
+            loTag[child] = lv if cand < lv else hv if cand > hv else cand
+            cand = hiTag[child] + av
+            hiTag[child] = lv if cand < lv else hv if cand > hv else cand
+            cand = mn[child] + av
+            mn[child] = lv if cand < lv else hv if cand > hv else cand
         addTag[node] = 0
+        loTag[node] = NEG
+        hiTag[node] = POS
 
-    # every given point inside the rectangle: assign v (isAssign) or add v
-    def _update(self, x1, y1, x2, y2, isAssign, v):
-        xMin, xMax, yMin, yMax, setTag, addTag = self.xMin, self.xMax, self.yMin, self.yMax, self.setTag, self.addTag
+    # every given point inside the rectangle: add a, then clamp to lo..hi
+    def _update(self, x1, y1, x2, y2, a, lo, hi):
+        xMin, xMax, yMin, yMax = self.xMin, self.xMax, self.yMin, self.yMax
+        addTag, loTag, hiTag = self.addTag, self.loTag, self.hiTag
         mn = self.mn
         push = self._push
 
@@ -123,17 +124,13 @@ class KdTree2D:
             if xMin[node] > x2 or xMax[node] < x1 or yMin[node] > y2 or yMax[node] < y1:
                 return
             if x1 <= xMin[node] and xMax[node] <= x2 and y1 <= yMin[node] and yMax[node] <= y2:
-                cnt = r - l + 1
-                if isAssign:
-                    setTag[node] = v
-                    addTag[node] = 0
-                    mn[node] = v
-                else:
-                    if setTag[node] is None:
-                        addTag[node] += v
-                    else:
-                        setTag[node] += v
-                    mn[node] += v
+                addTag[node] += a
+                cand = loTag[node] + a
+                loTag[node] = lo if cand < lo else hi if cand > hi else cand
+                cand = hiTag[node] + a
+                hiTag[node] = lo if cand < lo else hi if cand > hi else cand
+                cand = mn[node] + a
+                mn[node] = lo if cand < lo else hi if cand > hi else cand
                 return
             push(node, l, r)
             mid = (l + r) >> 1
@@ -245,7 +242,7 @@ class KdTree2D:
     def rectAdd(self, x1, y1, x2, y2, v):
         if x1 > x2 or y1 > y2:
             raise IndexError(f"rectAdd: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, y2 = {y2}")
-        self._update(x1, y1, x2, y2, False, v)
+        self._update(x1, y1, x2, y2, v, NEG, POS)
 
     # O(sqrt N) -- every given point becomes v, for the points with x1 <= x <= x2 and y1 <= y <= y2; needs x1 <= x2
     # and y1 <= y2, else IndexError
@@ -253,7 +250,23 @@ class KdTree2D:
         if x1 > x2 or y1 > y2:
             raise IndexError(f"rectAssign: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, "
                              f"y2 = {y2}")
-        self._update(x1, y1, x2, y2, True, v)
+        self._update(x1, y1, x2, y2, 0, v, v)
+
+    # O(sqrt N) -- every given point becomes max(itself, v), for the points with x1 <= x <= x2 and y1 <= y <= y2;
+    # needs x1 <= x2 and y1 <= y2, else IndexError
+    def rectChmax(self, x1, y1, x2, y2, v):
+        if x1 > x2 or y1 > y2:
+            raise IndexError(f"rectChmax: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, "
+                             f"y2 = {y2}")
+        self._update(x1, y1, x2, y2, 0, v, POS)
+
+    # O(sqrt N) -- every given point becomes min(itself, v), for the points with x1 <= x <= x2 and y1 <= y <= y2;
+    # needs x1 <= x2 and y1 <= y2, else IndexError
+    def rectChmin(self, x1, y1, x2, y2, v):
+        if x1 > x2 or y1 > y2:
+            raise IndexError(f"rectChmin: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, "
+                             f"y2 = {y2}")
+        self._update(x1, y1, x2, y2, 0, NEG, v)
 
     # O(sqrt N) -- min of the given points with x1 <= x <= x2 and y1 <= y <= y2 (None if no point is there); needs x1 <=
     # x2 and y1 <= y2, else IndexError

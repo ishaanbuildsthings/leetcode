@@ -16,7 +16,7 @@ def ops_of(aggs):
     ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"]
     for k in aggs:
         ops += [AGGS[k].rect, AGGS[k].all]
-        if k in ("min", "max"):
+        if k in ("min", "max", "sum"):
             ops += [f"{k}{name}" for name, _, _ in CORNERS]
     return ops
 
@@ -230,15 +230,15 @@ def py_template(aggs):
         else:
             L += indent([f"return {root}"], 2)
         L.append("")
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for name, rs, cs in CORNERS:
                 rows = "0, r" if rs == "<=" else "r, self.R - 1"
                 cols = "0, c" if cs == "<=" else "c, self.C - 1"
                 r_lo, r_hi = rows.split(", ")
                 c_lo, c_hi = cols.split(", ")
                 L += indent(wrap_comment(
-                    f"O(log R * log C) -- {a.word} of the set cells with row {rs} r and column {cs} c (None if there are "
-                    f"none); {point_rule}", "#"))
+                    f"O(log R * log C) -- {a.word} of the set cells with row {rs} r and column {cs} c"
+                    f"{' (None if there are none)' if a.key != 'sum' else ''}; {point_rule}", "#"))
                 L.append(f"    def {a.key}{name}(self, r, c):")
                 L += indent(point_check(f"{a.key}{name}") + [f"return self._{a.key}Of({r_lo}, {c_lo}, {r_hi}, {c_hi})"], 2)
                 L.append("")
@@ -395,14 +395,14 @@ def cpp_template(aggs):
         L.append(f"        return gcdOf({root}, T(0));" if a.key == "gcd" else f"        return {root};")
         L.append("    }")
         L.append("")
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for name, rs, cs in CORNERS:
                 r_lo, r_hi = ("0", "r") if rs == "<=" else ("r", "R - 1")
                 c_lo, c_hi = ("0", "c") if cs == "<=" else ("c", "C - 1")
                 L += indent(wrap_comment(
-                    f"O(log R * log C) -- {a.word} of the set cells with row {rs} r and column {cs} c ({a.none_words_cpp} if "
-                    f"there are none); {point_rule}", "//"))
-                L.append(f"    T {a.key}{name}(int r, int c) const {{")
+                    f"O(log R * log C) -- {a.word} of the set cells with row {rs} r and column {cs} c"
+                    f"{f' ({a.none_words_cpp} if there are none)' if a.key != 'sum' else ''}; {point_rule}", "//"))
+                L.append(f"    {a.cpp_type} {a.key}{name}(int r, int c) const {{")
                 L.append("        " + point_check(f"{a.key}{name}"))
                 L.append(f"        return {a.key}Of({r_lo}, {c_lo}, {r_hi}, {c_hi});")
                 L.append("    }")

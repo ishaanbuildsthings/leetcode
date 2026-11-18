@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/online-seg-tree-sum-min-xor-or/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: minAll minGteGte minGteLte minLteGte minLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectMin rectOr rectSum rectXor sumAll xorAll
+// @operations: minAll minGteGte minGteLte minLteGte minLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectMin rectOr rectSum rectXor sumAll sumGteGte sumGteLte sumLteGte sumLteLte xorAll
 // @data-structure-type: seg-tree
 // @input: online
 // @empty-cells: yes
@@ -23,6 +23,10 @@ using namespace std;
 //   rectSum: log^2(U)
 //   rectXor: log^2(U)
 //   sumAll: 1
+//   sumGteGte: log^2(U)
+//   sumGteLte: log^2(U)
+//   sumLteGte: log^2(U)
+//   sumLteLte: log^2(U)
 //   xorAll: 1
 //   build: 1
 // @memory:
@@ -287,6 +291,38 @@ struct DynamicSegTree2D {
     // O(1) -- sum of every set cell (0 if there are none)
     LEETCODE_NO_SANITIZE S sumAll() const {
         return sm[xTree[1]];
+    }
+
+    // O(log^2 U) -- sum of the set cells with x <= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <= y
+    // <= yHi, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteLte(ll x, ll y) const {
+        if (x < xLo || x > xHi || y < yLo || y > yHi)
+            throw out_of_range("sumLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
+        return sumOf(xLo, yLo, x, y);
+    }
+
+    // O(log^2 U) -- sum of the set cells with x <= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <= y
+    // <= yHi, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteGte(ll x, ll y) const {
+        if (x < xLo || x > xHi || y < yLo || y > yHi)
+            throw out_of_range("sumLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");
+        return sumOf(xLo, y, x, yHi);
+    }
+
+    // O(log^2 U) -- sum of the set cells with x >= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <= y
+    // <= yHi, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteLte(ll x, ll y) const {
+        if (x < xLo || x > xHi || y < yLo || y > yHi)
+            throw out_of_range("sumGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
+        return sumOf(x, yLo, xHi, y);
+    }
+
+    // O(log^2 U) -- sum of the set cells with x >= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <= y
+    // <= yHi, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteGte(ll x, ll y) const {
+        if (x < xLo || x > xHi || y < yLo || y > yHi)
+            throw out_of_range("sumGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");
+        return sumOf(x, y, xHi, yHi);
     }
 
     LEETCODE_NO_SANITIZE void minOverY(int q, ll lo, ll hi, ll y1, ll y2, T& res) const {

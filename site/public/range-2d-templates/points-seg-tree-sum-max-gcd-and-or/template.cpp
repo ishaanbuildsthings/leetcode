@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-seg-tree-sum-max-gcd-and-or/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: andAll gcdAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectGcd rectMax rectOr rectSum sumAll
+// @operations: andAll gcdAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectGcd rectMax rectOr rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 // @data-structure-type: seg-tree
 // @input: points
 // @empty-cells: yes
@@ -26,6 +26,10 @@ using namespace std;
 //   rectOr: log^2(N)
 //   rectSum: log^2(N)
 //   sumAll: 1
+//   sumGteGte: log^2(N)
+//   sumGteLte: log^2(N)
+//   sumLteGte: log^2(N)
+//   sumLteLte: log^2(N)
 //   build: N*log(N)
 // @memory:
 //   layout: 2n-iterative
@@ -297,6 +301,26 @@ struct PointsSegTree2D {
     // O(1) -- sum of every set point (0 if there are none)
     LEETCODE_NO_SANITIZE S sumAll() const {
         return sm[2 * off[1] + 1];
+    }
+
+    // O(log^2 N) -- sum of the set points with x <= the given x and y <= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumLteLte(ll x, ll y) const {
+        return sumOf(LOW, LOW, x, y);
+    }
+
+    // O(log^2 N) -- sum of the set points with x <= the given x and y >= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumLteGte(ll x, ll y) const {
+        return sumOf(LOW, y, x, HIGH);
+    }
+
+    // O(log^2 N) -- sum of the set points with x >= the given x and y <= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumGteLte(ll x, ll y) const {
+        return sumOf(x, LOW, HIGH, y);
+    }
+
+    // O(log^2 N) -- sum of the set points with x >= the given x and y >= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumGteGte(ll x, ll y) const {
+        return sumOf(x, y, HIGH, HIGH);
     }
 
     LEETCODE_NO_SANITIZE T maxOf(ll x1, ll y1, ll x2, ll y2) const {

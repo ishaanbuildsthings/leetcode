@@ -2,13 +2,17 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-prefix-sum/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: pointGet rectSum sumAll
+// @operations: pointGet rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 // @data-structure-type: prefix-sum
 // @input: grid
 // @complexities:
 //   pointGet: 1
 //   rectSum: 1
 //   sumAll: 1
+//   sumGteGte: 1
+//   sumGteLte: 1
+//   sumLteGte: 1
+//   sumLteLte: 1
 //   build: R*C
 // @memory:
 //   layout: none
@@ -95,5 +99,29 @@ struct PrefixSums2D {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         int top = r * W, bot = top + W;
         return T(sm[bot + c + 1] - sm[top + c + 1] - sm[bot + c] + sm[top + c]);
+    }
+
+    // O(1) -- sum of the cells with row <= r and column <= c; needs 0 <= r < R and 0 <= c < C, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumLteLte: needs 0 <= r < R and 0 <= c < C");
+        return rectSum(0, 0, r, c);
+    }
+
+    // O(1) -- sum of the cells with row <= r and column >= c; needs 0 <= r < R and 0 <= c < C, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumLteGte: needs 0 <= r < R and 0 <= c < C");
+        return rectSum(0, c, r, C - 1);
+    }
+
+    // O(1) -- sum of the cells with row >= r and column <= c; needs 0 <= r < R and 0 <= c < C, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumGteLte: needs 0 <= r < R and 0 <= c < C");
+        return rectSum(r, 0, R - 1, c);
+    }
+
+    // O(1) -- sum of the cells with row >= r and column >= c; needs 0 <= r < R and 0 <= c < C, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumGteGte: needs 0 <= r < R and 0 <= c < C");
+        return rectSum(r, c, R - 1, C - 1);
     }
 };

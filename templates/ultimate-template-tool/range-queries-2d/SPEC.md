@@ -76,13 +76,14 @@ online tree's updates (2400), which still pay for sanitized vector growth.
 |---|---|
 | Point | `pointGet`, `getAll`, `pointAssign`, `pointAdd`, `pointChmax`, `pointChmin` |
 | Rectangle queries | `rectSum`, `rectMin`, `rectMax`, `rectGcd`, `rectXor`, `rectAnd`, `rectOr`; whole-grid `sumAll`, `minAll`, ... (O(1) wherever the structure can) |
-| Corner queries | `maxLteLte(r, c)`, `maxLteGte`, `maxGteLte`, `maxGteGte`, and the four `min...`: one bound per axis |
+| Corner queries | `sumLteLte(r, c)`, `sumLteGte`, `sumGteLte`, `sumGteGte`, the same four for `max` and `min`: one bound per axis |
 | Rectangle updates | `rectAdd`, `rectAssign`, `rectChmax`, `rectChmin` |
 | Hashing | `rectHash`, `rectsEqual(r1, c1, r2, c2, r3, c3)`, `hashAll` |
 | 3D | `boxSum`, `boxMin`, `boxMax`, corners `sum/max/min` + `LteLteLte` / `GteGteGte`; the point ops with `(x, y, z)` |
 
 Corner ops exist as their own ops so that a Fenwick tree or a plain table can win when a corner is all that's asked;
-every segment tree with min / max lists them too (same cost as a rectangle).
+every segment tree with sum / min / max lists them too (same cost as a rectangle). On a Fenwick tree the all-<= sum is
+one prefix walk instead of four.
 
 ## 5. What is built
 
@@ -153,18 +154,11 @@ trees. So:
 
 Rect add with rect max has no log² structure here: only the last two rows cover it.
 
-## 7. Still to add
+Over points or online, rect chmax with point reads keeps its tags in place the same way (`points-kept-tags-*`,
+`online-kept-tags-*`, log²). Rect chmax with rect max over sparse points is the k-d tree's (its min / max folders take
+assign, add, chmax and chmin as one "add, then clamp" tag).
 
-| What | How | Notes |
-|---|---|---|
-| One lazy seg tree per row (`grid`, type `rows-of-trees`) | copy a 1D lazy template's class unchanged, then a `Grid` class holding R of them (the tree-queries generators do the same kind of wrapping) | every 1D range update / query becomes a rect op at R × its cost |
-| K-d tree over a small grid's cells | the points k-d tree with all R·C cells as points and a `(grid)` constructor | cost per rectangle is O(R + C) |
-| Sparse table on rows × seg tree on columns | per power-of-two row block, a bottom-up column tree | static; log C per query with R·C·log R memory: between the seg tree and the full sparse table |
-| 2D hashing with point updates | Fenwick or seg tree over `value · A^r · B^c`, a rectangle's hash scaled to its corner | log² per op |
-| Fenwick of hash maps (`online`, sum and corner max) | outer / inner Fenwick indices as keys of one seeded hash map | lighter constant than the dynamic tree of trees; needs an unhackable hash in C++ |
-| `points`: starting values | `(points, values)` | today every point starts empty / 0 |
-
-## 8. Adding a family
+## 7. Adding a family
 
 1. A generator `gen_<family>.py` using `lib2d.py`: `header(...)` writes the tags, `write(folder, py, cpp)` the two files
    (it wraps long comments and refuses any other line over 120 columns). Add it to `gen_all.py`.

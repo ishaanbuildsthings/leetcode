@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-seg-tree-sum-min-max-xor-and-or/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: andAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte minAll minGteGte minGteLte minLteGte minLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectMax rectMin rectOr rectSum rectXor sumAll xorAll
+// @operations: andAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte minAll minGteGte minGteLte minLteGte minLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectMax rectMin rectOr rectSum rectXor sumAll sumGteGte sumGteLte sumLteGte sumLteLte xorAll
 // @data-structure-type: seg-tree
 // @input: points
 // @empty-cells: yes
@@ -31,6 +31,10 @@ using namespace std;
 //   rectSum: log^2(N)
 //   rectXor: log^2(N)
 //   sumAll: 1
+//   sumGteGte: log^2(N)
+//   sumGteLte: log^2(N)
+//   sumLteGte: log^2(N)
+//   sumLteLte: log^2(N)
 //   xorAll: 1
 //   build: N*log(N)
 // @memory:
@@ -310,6 +314,26 @@ struct PointsSegTree2D {
     // O(1) -- sum of every set point (0 if there are none)
     LEETCODE_NO_SANITIZE S sumAll() const {
         return sm[2 * off[1] + 1];
+    }
+
+    // O(log^2 N) -- sum of the set points with x <= the given x and y <= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumLteLte(ll x, ll y) const {
+        return sumOf(LOW, LOW, x, y);
+    }
+
+    // O(log^2 N) -- sum of the set points with x <= the given x and y >= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumLteGte(ll x, ll y) const {
+        return sumOf(LOW, y, x, HIGH);
+    }
+
+    // O(log^2 N) -- sum of the set points with x >= the given x and y <= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumGteLte(ll x, ll y) const {
+        return sumOf(x, LOW, HIGH, y);
+    }
+
+    // O(log^2 N) -- sum of the set points with x >= the given x and y >= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumGteGte(ll x, ll y) const {
+        return sumOf(x, y, HIGH, HIGH);
     }
 
     LEETCODE_NO_SANITIZE T minOf(ll x1, ll y1, ll x2, ll y2) const {

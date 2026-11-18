@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-bit-sum/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum sumAll
+// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 // @data-structure-type: BIT
 // @input: points
 // @complexities:
@@ -13,6 +13,10 @@ using namespace std;
 //   pointGet: log(N)
 //   rectSum: log^2(N)
 //   sumAll: 1
+//   sumGteGte: log^2(N)
+//   sumGteLte: log^2(N)
+//   sumLteGte: log^2(N)
+//   sumLteLte: log^2(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -208,5 +212,28 @@ struct PointsFenwick2D {
     // O(1) -- sum of every point
     LEETCODE_NO_SANITIZE S sumAll() const {
         return totalSum;
+    }
+
+    // O(log^2 N) -- sum of the points with x <= the given x and y <= the given y (0 if there are none); any integers
+    LEETCODE_NO_SANITIZE S sumLteLte(ll x, ll y) const {
+        return prefixSum(x, y);
+    }
+
+    // O(log^2 N) -- sum of the points with x <= the given x and y >= the given y (0 if there are none); any integers
+    LEETCODE_NO_SANITIZE S sumLteGte(ll x, ll y) const {
+        const ll HIGH = numeric_limits<ll>::max();
+        return prefixSum(x, HIGH) - prefixSum(x, y - 1);
+    }
+
+    // O(log^2 N) -- sum of the points with x >= the given x and y <= the given y (0 if there are none); any integers
+    LEETCODE_NO_SANITIZE S sumGteLte(ll x, ll y) const {
+        const ll HIGH = numeric_limits<ll>::max();
+        return prefixSum(HIGH, y) - prefixSum(x - 1, y);
+    }
+
+    // O(log^2 N) -- sum of the points with x >= the given x and y >= the given y (0 if there are none); any integers
+    LEETCODE_NO_SANITIZE S sumGteGte(ll x, ll y) const {
+        const ll HIGH = numeric_limits<ll>::max();
+        return totalSum - prefixSum(x - 1, HIGH) - prefixSum(HIGH, y - 1) + prefixSum(x - 1, y - 1);
     }
 };

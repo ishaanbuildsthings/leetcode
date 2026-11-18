@@ -57,11 +57,34 @@ def emit(folder, ops, dstype, costs, build, memory, py, cpp, extra=()):
 
 
 # ------------------------------------------------------------------------------------------------ prefix sums / xors
+SUM_CORNERS = [("LteLte", "<=", "<="), ("LteGte", "<=", ">="), ("GteLte", ">=", "<="), ("GteGte", ">=", ">=")]
+
+
+def grid_sum_corners(cost, lang, body=None, ret="S"):
+    """sumLteLte(r, c) ... sumGteGte: the sum from one corner of the grid. body(name) gives the return expression;
+    without it each is a rectSum of that corner's rectangle."""
+    out = []
+    for n, rs, cs in SUM_CORNERS:
+        r_lo, r_hi = ("0", "r") if rs == "<=" else ("r", "R - 1")
+        c_lo, c_hi = ("0", "c") if cs == "<=" else ("c", "C - 1")
+        if lang == "py":
+            expr = body(n) if body else f"self.rectSum({r_lo}, {c_lo}, {r_hi.replace('R', 'self.R')}, {c_hi.replace('C', 'self.C')})"
+            out += indent(wrap_comment(f"{cost} -- sum of the cells with row {rs} r and column {cs} c; {POINT_RULE_PY}", "#"))
+            out.append(f"    def sum{n}(self, r, c):")
+            out += indent(py_point_check(f"sum{n}") + [f"return {expr}"], 2) + [""]
+        else:
+            expr = body(n) if body else f"rectSum({r_lo}, {c_lo}, {r_hi}, {c_hi})"
+            out += indent(wrap_comment(f"{cost} -- sum of the cells with row {rs} r and column {cs} c; {POINT_RULE_CPP}", "//"))
+            out.append(f"    {ret} sum{n}(int r, int c) const {{")
+            out += indent(cpp_point_check(f"sum{n}") + [f"return {expr};"], 2) + ["    }", ""]
+    return out
+
+
 def prefix(aggs):
     cls = "PrefixSums2D" if aggs == ["sum"] else "PrefixXors2D" if aggs == ["xor"] else "PrefixSumsXors2D"
     A = [AGGS[k] for k in aggs]
     words = " and ".join(a.word for a in A)
-    ops = ["pointGet"] + [x for a in A for x in (a.rect, a.all)]
+    ops = ["pointGet"] + [x for a in A for x in (a.rect, a.all)] + ([f"sum{n}" for n, _, _ in SUM_CORNERS] if "sum" in aggs else [])
     costs = {op: "1" for op in ops}
     memory = {"layout": "none", "node": " ".join(f"{a.arr}[1*R*C]" for a in A),
               "note": "each table is (R + 1) by (C + 1), flat: entry [r][c] covers the rows above r and the columns left of c"}
@@ -99,6 +122,10 @@ def prefix(aggs):
     py += indent(py_point_check("pointGet") + [
         f"{a.arr}, W = self.{a.arr}, self.W", "top = r * W", "bot = top + W",
         f"return {a.arr}[bot + c + 1] {minus} {a.arr}[top + c + 1] {minus} {a.arr}[bot + c] {plus} {a.arr}[top + c]"], 2)
+    if "sum" in aggs:
+        py += [""] + grid_sum_corners("O(1)", "py")
+        while py[-1] == "":
+            py.pop()
 
     cpp = wrap_comment(doc, "//")
     cpp.append("// T is any integer type (int, long long, ...)" + ("; sums are kept in S (long long for a smaller T)." if "sum" in aggs else "."))
@@ -140,7 +167,12 @@ def prefix(aggs):
     cpp += indent(cpp_point_check("pointGet") + [
         "int top = r * W, bot = top + W;",
         f"return T({a.arr}[bot + c + 1] {minus} {a.arr}[top + c + 1] {minus} {a.arr}[bot + c] {plus} {a.arr}[top + c]);"], 2)
-    cpp += ["    }", "};"]
+    cpp += ["    }"]
+    if "sum" in aggs:
+        cpp += [""] + grid_sum_corners("O(1)", "cpp")
+        while cpp[-1] == "":
+            cpp.pop()
+    cpp += ["};"]
     emit("grid-prefix-" + "-".join(aggs), ops, "prefix-sum", costs, "R*C", memory, py, cpp)
 
 

@@ -28,10 +28,13 @@ def kd_tree(aggs):
     A = [AGGS[k] for k in aggs]
     has = {k: k in aggs for k in ("sum", "min", "max")}
     rd = A[0]  # a single point's node holds its value in every array
-    ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin", "rectAdd", "rectAssign"]
+    # without a sum, a tag can be any "add, then clamp to [lo, hi]": assign, add, chmax and chmin are all of that form and
+    # so is any run of them, and min / max go through a clamp unchanged in order (a sum would need every point's value)
+    clamp = not has["sum"]
+    ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin", "rectAdd", "rectAssign"] + (["rectChmax", "rectChmin"] if clamp else [])
     for a in A:
         ops += [a.rect, a.all]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             ops += [f"{a.key}{n}" for n, _, _ in CORNERS]
     costs = {}
     for op in ops:
@@ -39,12 +42,12 @@ def kd_tree(aggs):
     memory = {
         "layout": "none",
         "node": " ".join(f"{a.arr}[2*N]" for a in A),
-        "tags": "addTag[2*N] setTag[2*N]",
+        "tags": "addTag[2*N] loTag[2*N] hiTag[2*N]" if clamp else "addTag[2*N] setTag[2*N]",
         "other": "xMin[2*N] xMax[2*N] yMin[2*N] yMax[2*N] pts[2*N] pos[1*N]",
         "note": "a binary tree over the points in k-d order (2N - 1 nodes), each node with its points' bounding box",
     }
     words = ", ".join(a.word for a in A)
-    doc = (f"K-d tree with lazy tags ({words}): rectangle add and rectangle assign together with rectangle {words}, over points "
+    doc = (f"K-d tree with lazy tags ({words}): rectangle add{', assign, chmax and chmin' if clamp else ' and rectangle assign'} together with rectangle {words}, over points "
            f"known up front (any integers, negative is fine). O(sqrt N) per rectangle op, O(log N) per point op, linear "
            f"memory. A tree of trees can't do rectangle updates with these queries (a tag can't be pushed down its outer "
            f"tree); this can, because it is one tree: the points are split in half by x, each half by y, and so on, every "
@@ -61,9 +64,11 @@ def kd_tree(aggs):
         py.append('POS = float("inf")  # the min of no points; also "no upper bound" on a coordinate')
     if has["max"] != has["min"]:
         py.append('POS = float("inf")  # "no upper bound" on a coordinate' if has["max"] else 'NEG = float("-inf")  # "no lower bound" on a coordinate')
+    if not has["max"] and not has["min"]:
+        py += ['NEG = float("-inf")  # "no lower bound" on a coordinate', 'POS = float("inf")  # "no upper bound" on a coordinate']
     py += ["", ""] + wrap_comment(doc + (" A min / max over a rectangle with no given point in it is None." if has["min"] or has["max"] else ""), "#")
     py.append(f"class {cls}:")
-    slots = ["n", "pts", "pos", "xMin", "xMax", "yMin", "yMax", "addTag", "setTag"] + [a.arr for a in A]
+    slots = ["n", "pts", "pos", "xMin", "xMax", "yMin", "yMax", "addTag"] + (["loTag", "hiTag"] if clamp else ["setTag"]) + [a.arr for a in A]
     py.append("    __slots__ = (" + ", ".join(f'"{s}"' for s in slots) + ")")
     py += [""] + indent(wrap_comment("O(N log N) -- points: every (x, y) that will ever be used, as pairs of integers (negative is fine, repeats "
                                      "are fine); needs at least one, else ValueError", "#")) + ["    def __init__(self, points):"]
@@ -79,8 +84,8 @@ def kd_tree(aggs):
         "yMax = self.yMax = [0] * size",
         "pos = self.pos = [0] * n  # pos[i]: where point i (in sorted order) sits in k-d order",
         "self.addTag = [0] * size",
-        "self.setTag = [None] * size",
-    ]
+    ] + (["self.loTag = [NEG] * size  # a node's waiting tag: add addTag, then clamp to loTag..hiTag", "self.hiTag = [POS] * size"]
+         if clamp else ["self.setTag = [None] * size"])
     for a in A:
         b.append(f"self.{a.arr} = [0] * size")
     b += [
@@ -128,12 +133,28 @@ def kd_tree(aggs):
             out.append(f"{a.arr}[{node}] += {val} * {cnt}" if a.key == "sum" else f"{a.arr}[{node}] += {val}")
         return out
 
-    py += ["    # hands node (l, r)'s waiting assign / add to its two halves", "    def _push(self, node, l, r):"]
+    def py_apply_clamp(node, a_, lo_, hi_):
+        out = [f"addTag[{node}] += {a_}",
+               f"cand = loTag[{node}] + {a_}", f"loTag[{node}] = {lo_} if cand < {lo_} else {hi_} if cand > {hi_} else cand",
+               f"cand = hiTag[{node}] + {a_}", f"hiTag[{node}] = {lo_} if cand < {lo_} else {hi_} if cand > {hi_} else cand"]
+        for a in A:
+            out += [f"cand = {a.arr}[{node}] + {a_}", f"{a.arr}[{node}] = {lo_} if cand < {lo_} else {hi_} if cand > {hi_} else cand"]
+        return out
+
+    if clamp:
+        py += ["    # hands node (l, r)'s waiting tag to its two halves", "    def _push(self, node, l, r):"]
+        b = ["addTag, loTag, hiTag = self.addTag, self.loTag, self.hiTag", "av = addTag[node]", "lv = loTag[node]", "hv = hiTag[node]",
+             "if not av and lv == NEG and hv == POS:", "    return", f"{', '.join(a.arr for a in A)} = {', '.join(f'self.{a.arr}' for a in A)}",
+             "mid = (l + r) >> 1", "for child in ((l + mid) | (l != mid), (mid + 1 + r) | (mid + 1 != r)):"]
+        b += indent(py_apply_clamp("child", "av", "lv", "hv"))
+        b += ["addTag[node] = 0", "loTag[node] = NEG", "hiTag[node] = POS"]
+        py += indent(b, 2) + [""]
+    py += [] if clamp else ["    # hands node (l, r)'s waiting assign / add to its two halves", "    def _push(self, node, l, r):"]
     b = ["setTag, addTag = self.setTag, self.addTag", "sv = setTag[node]", "av = addTag[node]", "if sv is None and not av:", "    return",
          f"{arrs} = {self_arrs}", "mid = (l + r) >> 1", "for a, b in ((l, mid), (mid + 1, r)):", "    child = (a + b) | (a != b)", "    cnt = b - a + 1", "    if sv is not None:"]
     b += indent(py_apply_assign("child", "cnt", "sv"), 2) + ["    else:"] + indent(py_apply_add("child", "cnt", "av"), 2)
     b += ["setTag[node] = None", "addTag[node] = 0"]
-    py += indent(b, 2) + [""]
+    py += [] if clamp else indent(b, 2) + [""]
 
     def py_pull(node, left, right):
         out = []
@@ -141,11 +162,19 @@ def kd_tree(aggs):
             out += a.py_merge(f"{a.arr}[{node}]", f"{a.arr}[{left}]", f"{a.arr}[{right}]")
         return out
 
-    py += ["    # every given point inside the rectangle: assign v (isAssign) or add v", "    def _update(self, x1, y1, x2, y2, isAssign, v):"]
-    b = ["xMin, xMax, yMin, yMax, setTag, addTag = self.xMin, self.xMax, self.yMin, self.yMax, self.setTag, self.addTag", f"{arrs} = {self_arrs}", "push = self._push", "",
-         "def go(l, r):", "    node = (l + r) | (l != r)", "    if xMin[node] > x2 or xMax[node] < x1 or yMin[node] > y2 or yMax[node] < y1:", "        return",
-         "    if x1 <= xMin[node] and xMax[node] <= x2 and y1 <= yMin[node] and yMax[node] <= y2:", "        cnt = r - l + 1", "        if isAssign:"]
-    b += indent(py_apply_assign("node", "cnt", "v"), 3) + ["        else:"] + indent(py_apply_add("node", "cnt", "v"), 3)
+    if clamp:
+        py += ["    # every given point inside the rectangle: add a, then clamp to lo..hi", "    def _update(self, x1, y1, x2, y2, a, lo, hi):"]
+        b = ["xMin, xMax, yMin, yMax = self.xMin, self.xMax, self.yMin, self.yMax", "addTag, loTag, hiTag = self.addTag, self.loTag, self.hiTag",
+             f"{arrs} = {self_arrs}", "push = self._push", "",
+             "def go(l, r):", "    node = (l + r) | (l != r)", "    if xMin[node] > x2 or xMax[node] < x1 or yMin[node] > y2 or yMax[node] < y1:", "        return",
+             "    if x1 <= xMin[node] and xMax[node] <= x2 and y1 <= yMin[node] and yMax[node] <= y2:"]
+        b += indent(py_apply_clamp("node", "a", "lo", "hi"), 2)
+    else:
+        py += ["    # every given point inside the rectangle: assign v (isAssign) or add v", "    def _update(self, x1, y1, x2, y2, isAssign, v):"]
+        b = ["xMin, xMax, yMin, yMax, setTag, addTag = self.xMin, self.xMax, self.yMin, self.yMax, self.setTag, self.addTag", f"{arrs} = {self_arrs}", "push = self._push", "",
+             "def go(l, r):", "    node = (l + r) | (l != r)", "    if xMin[node] > x2 or xMax[node] < x1 or yMin[node] > y2 or yMax[node] < y1:", "        return",
+             "    if x1 <= xMin[node] and xMax[node] <= x2 and y1 <= yMin[node] and yMax[node] <= y2:", "        cnt = r - l + 1", "        if isAssign:"]
+        b += indent(py_apply_assign("node", "cnt", "v"), 3) + ["        else:"] + indent(py_apply_add("node", "cnt", "v"), 3)
     b += ["        return", "    push(node, l, r)", "    mid = (l + r) >> 1", "    go(l, mid)", "    go(mid + 1, r)", "    left = (l + mid) | (l != mid)", "    right = (mid + 1 + r) | (mid + 1 != r)"]
     b += indent(py_pull("node", "left", "right")) + ["", "go(0, self.n - 1)"]
     py += indent(b, 2) + [""]
@@ -181,10 +210,14 @@ def kd_tree(aggs):
     ):
         py += indent(wrap_comment(f"O(log N) -- {text}; {POINT_RULE_PY}", "#"))
         py += [f"    def {name}(self, x, y, v):", f'        p = self._open(x, y, "{name}")'] + indent(lines, 2) + [""]
-    for name, text, flag in (("rectAdd", "adds v to every given point", "False"), ("rectAssign", "every given point becomes v, for the points", "True")):
+    rect_updates = ((("rectAdd", "adds v to every given point", "v, NEG, POS"), ("rectAssign", "every given point becomes v, for the points", "0, v, v"),
+                     ("rectChmax", "every given point becomes max(itself, v), for the points", "0, v, POS"),
+                     ("rectChmin", "every given point becomes min(itself, v), for the points", "0, NEG, v")) if clamp else
+                    (("rectAdd", "adds v to every given point", "False, v"), ("rectAssign", "every given point becomes v, for the points", "True, v")))
+    for name, text, args_ in rect_updates:
         py += indent(wrap_comment(f"O(sqrt N) -- {text} with x1 <= x <= x2 and y1 <= y <= y2; {RECT_RULE_PY}", "#"))
         py.append(f"    def {name}(self, x1, y1, x2, y2, v):")
-        py += indent(py_rect_check(name) + [f"self._update(x1, y1, x2, y2, {flag}, v)"], 2) + [""]
+        py += indent(py_rect_check(name) + [f"self._update(x1, y1, x2, y2, {args_})"], 2) + [""]
     for idx, a in enumerate(A):
         none = "None" if a.key in ("min", "max") else "0"
         py += indent(wrap_comment(f"O(sqrt N) -- {a.word} of the given points with x1 <= x <= x2 and y1 <= y <= y2 ({none} if no point is there); {RECT_RULE_PY}", "#"))
@@ -193,13 +226,14 @@ def kd_tree(aggs):
         body.append(f"return res[{idx}] if res[-1] else None" if a.key in ("min", "max") else f"return res[{idx}]")
         py += indent(py_rect_check(a.rect) + body, 2) + [""]
         py += [f"    # O(1) -- {a.word} of every point", f"    def {a.all}(self):", f"        return self.{a.arr}[(self.n - 1) | (self.n > 1)]", ""]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for n, xsn, ysn in CORNERS:
                 bx = ("NEG", "x") if xsn == "<=" else ("x", "POS")
                 by = ("NEG", "y") if ysn == "<=" else ("y", "POS")
-                py += indent(wrap_comment(f"O(sqrt N) -- {a.word} of the given points with x {xsn} the given x and y {ysn} the given y (None if there are none); "
-                                          f"any integers", "#"))
-                py += [f"    def {a.key}{n}(self, x, y):", f"        res = self._query({bx[0]}, {by[0]}, {bx[1]}, {by[1]})", f"        return res[{idx}] if res[-1] else None", ""]
+                py += indent(wrap_comment(f"O(sqrt N) -- {a.word} of the given points with x {xsn} the given x and y {ysn} the given y"
+                                          f"{' (None if there are none)' if a.key != 'sum' else ''}; any integers", "#"))
+                py += [f"    def {a.key}{n}(self, x, y):", f"        res = self._query({bx[0]}, {by[0]}, {bx[1]}, {by[1]})",
+                       f"        return res[{idx}] if res[-1] else None" if a.key != "sum" else f"        return res[{idx}]", ""]
     while py[-1] == "":
         py.pop()
 
@@ -214,8 +248,11 @@ def kd_tree(aggs):
         cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no point gives")
     if has["min"]:
         cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no point gives")
+    if clamp:
+        cpp.append("    static constexpr T TLOW = numeric_limits<T>::min(), THIGH = numeric_limits<T>::max();  // no clamp on that side")
     cpp += ["    static constexpr ll LOW = numeric_limits<ll>::min(), HIGH = numeric_limits<ll>::max();  // no bound on a coordinate", "    int n;", "    vector<pair<ll, ll>> pts;",
-            "    vector<int> pos;  // pos[i]: where point i (in sorted order) sits in k-d order", "    vector<ll> xMin, xMax, yMin, yMax;", "    vector<T> addTag, setTag;", "    vector<char> hasSet;",
+            "    vector<int> pos;  // pos[i]: where point i (in sorted order) sits in k-d order", "    vector<ll> xMin, xMax, yMin, yMax;", ("    vector<T> addTag, loTag, hiTag;  // a node's waiting tag: add addTag, then clamp to loTag..hiTag" if clamp else "    vector<T> addTag, setTag;"),
+            *([] if clamp else ["    vector<char> hasSet;"]),
             "    unsigned long long seed = 1;  // for the random pivots of the build"]
     for a in A:
         cpp.append(f"    vector<{a.cpp_type}> {a.arr};")
@@ -224,7 +261,8 @@ def kd_tree(aggs):
     cpp += [f"    explicit {cls}(vector<pair<ll, ll>> points) : pts(std::move(points)) {{"]
     b = [f'if (pts.empty()) throw invalid_argument("{cls}: needs at least one point");', "sort(pts.begin(), pts.end());", "pts.erase(unique(pts.begin(), pts.end()), pts.end());",
          "n = (int)pts.size();", "size_t size = 2 * (size_t)n;", "xMin.assign(size, 0), xMax.assign(size, 0), yMin.assign(size, 0), yMax.assign(size, 0);", "pos.assign(n, 0);",
-         "addTag.assign(size, T(0)), setTag.assign(size, T(0)), hasSet.assign(size, 0);"]
+         ("addTag.assign(size, T(0)), loTag.assign(size, TLOW), hiTag.assign(size, THIGH);" if clamp
+          else "addTag.assign(size, T(0)), setTag.assign(size, T(0)), hasSet.assign(size, 0);")]
     for a in A:
         b.append(f"{a.arr}.assign(size, 0);")
     b += ["seed = chrono::steady_clock::now().time_since_epoch().count() | 1;", "vector<int> order(n);", "iota(order.begin(), order.end(), 0);",
@@ -279,26 +317,49 @@ def kd_tree(aggs):
         "buildNode(order, l, mid, axis ^ 1);",
         "buildNode(order, mid + 1, r, axis ^ 1);",
     ], 2) + ["    }", ""]
-    cnt_param = "int cnt" if has["sum"] else "int"  # (how many points the node has: only a sum needs it)
-    cpp += [f"    void applyAssign(int node, {cnt_param}, T v) {{", "        hasSet[node] = 1, setTag[node] = v, addTag[node] = 0;"]
-    for a in A:
-        cpp.append(f"        {a.arr}[node] = {'S(v) * cnt' if a.key == 'sum' else 'v'};")
-    cpp += ["    }", "", f"    void applyAdd(int node, {cnt_param}, T v) {{", "        if (hasSet[node]) setTag[node] += v;", "        else addTag[node] += v;"]
-    for a in A:
-        cpp.append(f"        {a.arr}[node] += {'S(v) * cnt' if a.key == 'sum' else 'v'};")
-    cpp += ["    }", "", "    // hands node (l, r)'s waiting assign / add to its two halves", "    void push(int node, int l, int r) {",
-            "        if (!hasSet[node] && addTag[node] == 0) return;", "        int mid = (l + r) >> 1;",
-            "        if (hasSet[node]) applyAssign(id(l, mid), mid - l + 1, setTag[node]), applyAssign(id(mid + 1, r), r - mid, setTag[node]);",
-            "        else applyAdd(id(l, mid), mid - l + 1, addTag[node]), applyAdd(id(mid + 1, r), r - mid, addTag[node]);",
-            "        hasSet[node] = 0, addTag[node] = 0;", "    }", "", "    void pull(int node, int l, int r) {", "        int mid = (l + r) >> 1, left = id(l, mid), right = id(mid + 1, r);"]
-    for a in A:
-        cpp.append(f"        {a.arr}[node] = {a.cpp_comb(f'{a.arr}[left]', f'{a.arr}[right]')};")
+    if clamp:
+        cpp += ["    // node's points: add a, then clamp to lo..hi (TLOW / THIGH: no clamp on that side)", "    void apply(int node, T a, T lo, T hi) {",
+                "        addTag[node] += a;",
+                "        T cand = loTag[node] == TLOW ? TLOW : T(loTag[node] + a);",
+                "        loTag[node] = cand < lo ? lo : cand > hi ? hi : cand;",
+                "        cand = hiTag[node] == THIGH ? THIGH : T(hiTag[node] + a);",
+                "        hiTag[node] = cand < lo ? lo : cand > hi ? hi : cand;"]
+        for a in A:
+            cpp += [f"        cand = T({a.arr}[node] + a);", f"        {a.arr}[node] = cand < lo ? lo : cand > hi ? hi : cand;"]
+        cpp += ["    }", "", "    // hands node (l, r)'s waiting tag to its two halves", "    void push(int node, int l, int r) {",
+                "        if (addTag[node] == 0 && loTag[node] == TLOW && hiTag[node] == THIGH) return;", "        int mid = (l + r) >> 1;",
+                "        T a = addTag[node], lo = loTag[node], hi = hiTag[node];",
+                "        apply(id(l, mid), a, lo, hi), apply(id(mid + 1, r), a, lo, hi);",
+                "        addTag[node] = 0, loTag[node] = TLOW, hiTag[node] = THIGH;", "    }", "", "    void pull(int node, int l, int r) {",
+                "        int mid = (l + r) >> 1, left = id(l, mid), right = id(mid + 1, r);"]
+        for a in A:
+            cpp.append(f"        {a.arr}[node] = {a.cpp_comb(f'{a.arr}[left]', f'{a.arr}[right]')};")
+    else:
+        cnt_param = "int cnt" if has["sum"] else "int"  # (how many points the node has: only a sum needs it)
+        cpp += [f"    void applyAssign(int node, {cnt_param}, T v) {{", "        hasSet[node] = 1, setTag[node] = v, addTag[node] = 0;"]
+        for a in A:
+            cpp.append(f"        {a.arr}[node] = {'S(v) * cnt' if a.key == 'sum' else 'v'};")
+        cpp += ["    }", "", f"    void applyAdd(int node, {cnt_param}, T v) {{", "        if (hasSet[node]) setTag[node] += v;", "        else addTag[node] += v;"]
+        for a in A:
+            cpp.append(f"        {a.arr}[node] += {'S(v) * cnt' if a.key == 'sum' else 'v'};")
+        cpp += ["    }", "", "    // hands node (l, r)'s waiting assign / add to its two halves", "    void push(int node, int l, int r) {",
+                "        if (!hasSet[node] && addTag[node] == 0) return;", "        int mid = (l + r) >> 1;",
+                "        if (hasSet[node]) applyAssign(id(l, mid), mid - l + 1, setTag[node]), applyAssign(id(mid + 1, r), r - mid, setTag[node]);",
+                "        else applyAdd(id(l, mid), mid - l + 1, addTag[node]), applyAdd(id(mid + 1, r), r - mid, addTag[node]);",
+                "        hasSet[node] = 0, addTag[node] = 0;", "    }", "", "    void pull(int node, int l, int r) {", "        int mid = (l + r) >> 1, left = id(l, mid), right = id(mid + 1, r);"]
+        for a in A:
+            cpp.append(f"        {a.arr}[node] = {a.cpp_comb(f'{a.arr}[left]', f'{a.arr}[right]')};")
     cpp += ["    }", "", "    bool outside(int node, ll x1, ll y1, ll x2, ll y2) const {", "        return xMin[node] > x2 || xMax[node] < x1 || yMin[node] > y2 || yMax[node] < y1;", "    }", "",
             "    bool inside(int node, ll x1, ll y1, ll x2, ll y2) const {", "        return x1 <= xMin[node] && xMax[node] <= x2 && y1 <= yMin[node] && yMax[node] <= y2;", "    }", "",
-            "    // every given point inside the rectangle: assign v (isAssign) or add v", "    void update(int l, int r, ll x1, ll y1, ll x2, ll y2, bool isAssign, T v) {",
-            "        int node = id(l, r);", "        if (outside(node, x1, y1, x2, y2)) return;", "        if (inside(node, x1, y1, x2, y2)) {",
-            "            if (isAssign) applyAssign(node, r - l + 1, v);", "            else applyAdd(node, r - l + 1, v);", "            return;", "        }", "        push(node, l, r);",
-            "        int mid = (l + r) >> 1;", "        update(l, mid, x1, y1, x2, y2, isAssign, v);", "        update(mid + 1, r, x1, y1, x2, y2, isAssign, v);", "        pull(node, l, r);", "    }", ""]
+            *(["    // every given point inside the rectangle: add a, then clamp to lo..hi", "    void update(int l, int r, ll x1, ll y1, ll x2, ll y2, T a, T lo, T hi) {",
+               "        int node = id(l, r);", "        if (outside(node, x1, y1, x2, y2)) return;", "        if (inside(node, x1, y1, x2, y2)) {",
+               "            apply(node, a, lo, hi);", "            return;", "        }", "        push(node, l, r);",
+               "        int mid = (l + r) >> 1;", "        update(l, mid, x1, y1, x2, y2, a, lo, hi);", "        update(mid + 1, r, x1, y1, x2, y2, a, lo, hi);", "        pull(node, l, r);", "    }"]
+              if clamp else
+              ["    // every given point inside the rectangle: assign v (isAssign) or add v", "    void update(int l, int r, ll x1, ll y1, ll x2, ll y2, bool isAssign, T v) {",
+               "        int node = id(l, r);", "        if (outside(node, x1, y1, x2, y2)) return;", "        if (inside(node, x1, y1, x2, y2)) {",
+               "            if (isAssign) applyAssign(node, r - l + 1, v);", "            else applyAdd(node, r - l + 1, v);", "            return;", "        }", "        push(node, l, r);",
+               "        int mid = (l + r) >> 1;", "        update(l, mid, x1, y1, x2, y2, isAssign, v);", "        update(mid + 1, r, x1, y1, x2, y2, isAssign, v);", "        pull(node, l, r);", "    }"]), ""]
     for a in A:
         t = a.cpp_type
         cpp += [f"    void {a.key}Over(int l, int r, ll x1, ll y1, ll x2, ll y2, {t}& res) {{", "        int node = id(l, r);", "        if (outside(node, x1, y1, x2, y2)) return;",
@@ -323,10 +384,14 @@ def kd_tree(aggs):
     ):
         cpp += indent(wrap_comment(f"O(log N) -- {text}; {POINT_RULE_CPP}", "//"))
         cpp += [f"    void {name}(ll x, ll y, T v) {{", f'        int p = open(x, y, "{name}");', "        " + body, "    }", ""]
-    for name, text, flag in (("rectAdd", "adds v to every given point", "false"), ("rectAssign", "every given point becomes v, for the points", "true")):
+    rect_updates = ((("rectAdd", "adds v to every given point", "v, TLOW, THIGH"), ("rectAssign", "every given point becomes v, for the points", "T(0), v, v"),
+                     ("rectChmax", "every given point becomes max(itself, v), for the points", "T(0), v, THIGH"),
+                     ("rectChmin", "every given point becomes min(itself, v), for the points", "T(0), TLOW, v")) if clamp else
+                    (("rectAdd", "adds v to every given point", "false, v"), ("rectAssign", "every given point becomes v, for the points", "true, v")))
+    for name, text, args_ in rect_updates:
         cpp += indent(wrap_comment(f"O(sqrt N) -- {text} with x1 <= x <= x2 and y1 <= y <= y2; {RECT_RULE_CPP}", "//"))
         cpp.append(f"    void {name}(ll x1, ll y1, ll x2, ll y2, T v) {{")
-        cpp += indent(cpp_rect_check(name) + [f"update(0, n - 1, x1, y1, x2, y2, {flag}, v);"], 2) + ["    }", ""]
+        cpp += indent(cpp_rect_check(name) + [f"update(0, n - 1, x1, y1, x2, y2, {args_});"], 2) + ["    }", ""]
     for a in A:
         t = a.cpp_type
         none = a.none_cpp if a.key in ("min", "max") else "0"
@@ -334,13 +399,13 @@ def kd_tree(aggs):
         cpp.append(f"    {t} {a.rect}(ll x1, ll y1, ll x2, ll y2) {{")
         cpp += indent(cpp_rect_check(a.rect) + [f"return {a.key}Of(x1, y1, x2, y2);"], 2) + ["    }", ""]
         cpp += [f"    // O(1) -- {a.word} of every point", f"    {t} {a.all}() const {{", f"        return {a.arr}[id(0, n - 1)];", "    }", ""]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for n, xsn, ysn in CORNERS:
                 bx = ("LOW", "x") if xsn == "<=" else ("x", "HIGH")
                 by = ("LOW", "y") if ysn == "<=" else ("y", "HIGH")
-                cpp += indent(wrap_comment(f"O(sqrt N) -- {a.word} of the given points with x {xsn} the given x and y {ysn} the given y ({a.none_cpp} if there are none); "
-                                           f"any integers", "//"))
-                cpp += [f"    T {a.key}{n}(ll x, ll y) {{", f"        return {a.key}Of({bx[0]}, {by[0]}, {bx[1]}, {by[1]});", "    }", ""]
+                cpp += indent(wrap_comment(f"O(sqrt N) -- {a.word} of the given points with x {xsn} the given x and y {ysn} the given y"
+                                           f"{f' ({a.none_cpp} if there are none)' if a.key != 'sum' else ''}; any integers", "//"))
+                cpp += [f"    {a.cpp_type} {a.key}{n}(ll x, ll y) {{", f"        return {a.key}Of({bx[0]}, {by[0]}, {bx[1]}, {by[1]});", "    }", ""]
     while cpp[-1] == "":
         cpp.pop()
     cpp.append("};")

@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-kd-tree-sum-min/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectMin rectSum sumAll
+// @operations: minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectMin rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 // @data-structure-type: kd-tree
 // @input: points
 // @complexities:
@@ -21,6 +21,10 @@ using namespace std;
 //   rectMin: sqrt(N)
 //   rectSum: sqrt(N)
 //   sumAll: 1
+//   sumGteGte: sqrt(N)
+//   sumGteLte: sqrt(N)
+//   sumLteGte: sqrt(N)
+//   sumLteLte: sqrt(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -336,6 +340,26 @@ struct KdTree2D {
     // O(1) -- sum of every point
     LEETCODE_NO_SANITIZE S sumAll() const {
         return sm[id(0, n - 1)];
+    }
+
+    // O(sqrt N) -- sum of the given points with x <= the given x and y <= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumLteLte(ll x, ll y) {
+        return sumOf(LOW, LOW, x, y);
+    }
+
+    // O(sqrt N) -- sum of the given points with x <= the given x and y >= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumLteGte(ll x, ll y) {
+        return sumOf(LOW, y, x, HIGH);
+    }
+
+    // O(sqrt N) -- sum of the given points with x >= the given x and y <= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumGteLte(ll x, ll y) {
+        return sumOf(x, LOW, HIGH, y);
+    }
+
+    // O(sqrt N) -- sum of the given points with x >= the given x and y >= the given y; any integers
+    LEETCODE_NO_SANITIZE S sumGteGte(ll x, ll y) {
+        return sumOf(x, y, HIGH, HIGH);
     }
 
     // O(sqrt N) -- min of the given points with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN if no point is there); needs x1

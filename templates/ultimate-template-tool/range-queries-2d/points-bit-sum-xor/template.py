@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-bit-sum-xor/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum rectXor sumAll xorAll
+# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum rectXor sumAll sumGteGte sumGteLte sumLteGte sumLteLte xorAll
 # @data-structure-type: BIT
 # @input: points
 # @complexities:
@@ -12,6 +12,10 @@
 #   rectSum: log^2(N)
 #   rectXor: log^2(N)
 #   sumAll: 1
+#   sumGteGte: log^2(N)
+#   sumGteLte: log^2(N)
+#   sumLteGte: log^2(N)
+#   sumLteLte: log^2(N)
 #   xorAll: 1
 #   build: N*log(N)
 # @memory:
@@ -181,3 +185,27 @@ class PointsFenwick2D:
     # O(1) -- xor of every point
     def xorAll(self):
         return self.totalXor
+
+    # O(log^2 N) -- sum of the points with x <= the given x and y <= the given y (0 if there are none); any integers
+    def sumLteLte(self, x, y):
+        p = self._prefixSum
+        INF = float("inf")
+        return p(x, y)
+
+    # O(log^2 N) -- sum of the points with x <= the given x and y >= the given y (0 if there are none); any integers
+    def sumLteGte(self, x, y):
+        p = self._prefixSum
+        INF = float("inf")
+        return p(x, INF) - p(x, y - 1)
+
+    # O(log^2 N) -- sum of the points with x >= the given x and y <= the given y (0 if there are none); any integers
+    def sumGteLte(self, x, y):
+        p = self._prefixSum
+        INF = float("inf")
+        return p(INF, y) - p(x - 1, y)
+
+    # O(log^2 N) -- sum of the points with x >= the given x and y >= the given y (0 if there are none); any integers
+    def sumGteGte(self, x, y):
+        p = self._prefixSum
+        INF = float("inf")
+        return self.totalSum - p(x - 1, INF) - p(INF, y - 1) + p(x - 1, y - 1)

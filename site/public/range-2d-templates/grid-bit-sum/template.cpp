@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-bit-sum/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum sumAll
+// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 // @data-structure-type: BIT
 // @input: grid
 // @complexities:
@@ -13,6 +13,10 @@ using namespace std;
 //   pointGet: 1
 //   rectSum: log(R)*log(C)
 //   sumAll: 1
+//   sumGteGte: log(R)*log(C)
+//   sumGteLte: log(R)*log(C)
+//   sumLteGte: log(R)*log(C)
+//   sumLteLte: log(R)*log(C)
 //   build: R*C
 // @memory:
 //   layout: none
@@ -158,5 +162,33 @@ struct Fenwick2D {
     // O(1) -- sum of the whole grid
     LEETCODE_NO_SANITIZE S sumAll() const {
         return totalSum;
+    }
+
+    // O(log R * log C) -- sum of the cells with row <= r and column <= c; needs 0 <= r < R and 0 <= c < C, else throws
+    // out_of_range
+    LEETCODE_NO_SANITIZE S sumLteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumLteLte: needs 0 <= r < R and 0 <= c < C");
+        return prefixSum(r + 1, c + 1);
+    }
+
+    // O(log R * log C) -- sum of the cells with row <= r and column >= c; needs 0 <= r < R and 0 <= c < C, else throws
+    // out_of_range
+    LEETCODE_NO_SANITIZE S sumLteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumLteGte: needs 0 <= r < R and 0 <= c < C");
+        return prefixSum(r + 1, C) - prefixSum(r + 1, c);
+    }
+
+    // O(log R * log C) -- sum of the cells with row >= r and column <= c; needs 0 <= r < R and 0 <= c < C, else throws
+    // out_of_range
+    LEETCODE_NO_SANITIZE S sumGteLte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumGteLte: needs 0 <= r < R and 0 <= c < C");
+        return prefixSum(R, c + 1) - prefixSum(r, c + 1);
+    }
+
+    // O(log R * log C) -- sum of the cells with row >= r and column >= c; needs 0 <= r < R and 0 <= c < C, else throws
+    // out_of_range
+    LEETCODE_NO_SANITIZE S sumGteGte(int r, int c) const {
+        if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("sumGteGte: needs 0 <= r < R and 0 <= c < C");
+        return totalSum - prefixSum(r, C) - prefixSum(R, c) + prefixSum(r, c);
     }
 };

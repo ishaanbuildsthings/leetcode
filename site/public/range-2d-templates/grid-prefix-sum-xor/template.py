@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-prefix-sum-xor/template.py
-# @operations: pointGet rectSum rectXor sumAll xorAll
+# @operations: pointGet rectSum rectXor sumAll sumGteGte sumGteLte sumLteGte sumLteLte xorAll
 # @data-structure-type: prefix-sum
 # @input: grid
 # @complexities:
@@ -8,6 +8,10 @@
 #   rectSum: 1
 #   rectXor: 1
 #   sumAll: 1
+#   sumGteGte: 1
+#   sumGteLte: 1
+#   sumLteGte: 1
+#   sumLteLte: 1
 #   xorAll: 1
 #   build: R*C
 # @memory:
@@ -83,3 +87,31 @@ class PrefixSumsXors2D:
         top = r * W
         bot = top + W
         return sm[bot + c + 1] - sm[top + c + 1] - sm[bot + c] + sm[top + c]
+
+    # O(1) -- sum of the cells with row <= r and column <= c; needs 0 <= r < R and 0 <= c < C, else IndexError
+    def sumLteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(0, 0, r, c)
+
+    # O(1) -- sum of the cells with row <= r and column >= c; needs 0 <= r < R and 0 <= c < C, else IndexError
+    def sumLteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(0, c, r, self.C - 1)
+
+    # O(1) -- sum of the cells with row >= r and column <= c; needs 0 <= r < R and 0 <= c < C, else IndexError
+    def sumGteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(r, 0, self.R - 1, c)
+
+    # O(1) -- sum of the cells with row >= r and column >= c; needs 0 <= r < R and 0 <= c < C, else IndexError
+    def sumGteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.rectSum(r, c, self.R - 1, self.C - 1)

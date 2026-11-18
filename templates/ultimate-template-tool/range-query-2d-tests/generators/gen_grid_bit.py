@@ -8,7 +8,7 @@
   grid-bit-corner-<max|min>-...     point chmax (chmin), max (min) over a corner: one tree per corner direction asked for
   grid-corner-table-<max|min>-...   the same corner queries with no updates, O(1)
 """
-from gen_grid_static import (POINT_RULE_CPP, POINT_RULE_PY, RECT_RULE_CPP, RECT_RULE_PY, cpp_grid_check, cpp_point_check,
+from gen_grid_static import (grid_sum_corners, POINT_RULE_CPP, POINT_RULE_PY, RECT_RULE_CPP, RECT_RULE_PY, cpp_grid_check, cpp_point_check,
                              cpp_rect_check, emit, py_grid_check, py_point_check, py_rect_check)
 from lib2d import AGGS, indent, subsets, wrap_comment
 
@@ -23,6 +23,7 @@ def bit_sum(aggs):
     sym = {"sum": "+", "xor": "^"}
     words = " and ".join(a.word for a in A)
     ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"] + [x for a in A for x in (a.rect, a.all)]
+    ops += [f"sum{n}" for n, _, _ in CORNERS] if "sum" in aggs else []
     costs = {op: "log(R)*log(C)" for op in ops}
     costs.update({"pointGet": "1", **{a.all: "1" for a in A}})
     memory = {"layout": "none", "node": " ".join(f"{a.arr}[1*R*C]" for a in A), "other": "vals[1*R*C]",
@@ -79,6 +80,11 @@ def bit_sum(aggs):
         py += indent(py_rect_check(a.rect) + [f"p = self._prefix{a.cap}",
                                               f"return p(r2 + 1, c2 + 1) {m} p(r1, c2 + 1) {m} p(r2 + 1, c1) {s} p(r1, c1)"], 2)
         py += ["", f"    # O(1) -- {a.word} of the whole grid", f"    def {a.all}(self):", f"        return self.total{a.cap}", ""]
+    if "sum" in aggs:  # (the all-<= corner is a single prefix walk, a quarter of a rectangle's)
+        py += grid_sum_corners("O(log R * log C)", "py", lambda n: {
+            "LteLte": "self._prefixSum(r + 1, c + 1)", "LteGte": "self._prefixSum(r + 1, self.C) - self._prefixSum(r + 1, c)",
+            "GteLte": "self._prefixSum(self.R, c + 1) - self._prefixSum(r, c + 1)",
+            "GteGte": "self.totalSum - self._prefixSum(r, self.C) - self._prefixSum(self.R, c) + self._prefixSum(r, c)"}[n])
     while py[-1] == "":
         py.pop()
 
@@ -145,6 +151,11 @@ def bit_sum(aggs):
         cpp.append(f"    {a.cpp_type} {a.rect}(int r1, int c1, int r2, int c2) const {{")
         cpp += indent(cpp_rect_check(a.rect) + [f"return {p}(r2 + 1, c2 + 1) {m} {p}(r1, c2 + 1) {m} {p}(r2 + 1, c1) {s} {p}(r1, c1);"], 2)
         cpp += ["    }", "", f"    // O(1) -- {a.word} of the whole grid", f"    {a.cpp_type} {a.all}() const {{", f"        return total{a.cap};", "    }", ""]
+    if "sum" in aggs:
+        cpp += grid_sum_corners("O(log R * log C)", "cpp", lambda n: {
+            "LteLte": "prefixSum(r + 1, c + 1)", "LteGte": "prefixSum(r + 1, C) - prefixSum(r + 1, c)",
+            "GteLte": "prefixSum(R, c + 1) - prefixSum(r, c + 1)",
+            "GteGte": "totalSum - prefixSum(r, C) - prefixSum(R, c) + prefixSum(r, c)"}[n], AGGS["sum"].cpp_type)
     while cpp[-1] == "":
         cpp.pop()
     cpp.append("};")
@@ -155,6 +166,7 @@ def bit_sum(aggs):
 def bit_rect_add(with_sum):
     cls = "RectAddRectSumFenwick2D" if with_sum else "RectAddFenwick2D"
     ops = ["rectAdd", "pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"] + (["rectSum", "sumAll"] if with_sum else [])
+    ops += [f"sum{n}" for n, _, _ in CORNERS] if with_sum else []
     costs = {op: "log(R)*log(C)" for op in ops}
     if with_sum:
         costs["sumAll"] = "1"
@@ -245,6 +257,7 @@ def bit_rect_add(with_sum):
         py.append("    def rectSum(self, r1, c1, r2, c2):")
         py += indent(py_rect_check("rectSum") + ["return self._sumOf(r1, c1, r2, c2)"], 2)
         py += ["", "    # O(1) -- sum of the whole grid", "    def sumAll(self):", "        return self.total", ""]
+        py += grid_sum_corners("O(log R * log C)", "py")
     while py[-1] == "":
         py.pop()
 
@@ -320,6 +333,7 @@ def bit_rect_add(with_sum):
         cpp.append("    S rectSum(int r1, int c1, int r2, int c2) const {")
         cpp += indent(cpp_rect_check("rectSum") + ["return sumOf(r1, c1, r2, c2);"], 2)
         cpp += ["    }", "", "    // O(1) -- sum of the whole grid", "    S sumAll() const {", "        return total;", "    }", ""]
+        cpp += grid_sum_corners("O(log R * log C)", "cpp")
     while cpp[-1] == "":
         cpp.pop()
     cpp.append("};")

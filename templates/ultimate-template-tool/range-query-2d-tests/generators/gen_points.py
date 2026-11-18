@@ -101,7 +101,7 @@ def seg_ops(aggs):
     ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"]
     for k in aggs:
         ops += [AGGS[k].rect, AGGS[k].all]
-        if k in ("min", "max"):
+        if k in ("min", "max", "sum"):
             ops += [f"{k}{n}" for n, _, _ in CORNERS]
     return ops
 
@@ -153,7 +153,7 @@ def seg_tree(aggs):
     if "gcd" in aggs:
         py.append("from math import gcd")
     py.append("")
-    if mm:
+    if mm or "sum" in aggs:  # (corner queries need "no bound")
         py += ['NEG = float("-inf")  # an empty point in a max array; also "no lower bound" on a coordinate',
                'POS = float("inf")  # an empty point in a min array; also "no upper bound" on a coordinate', ""]
     py += [""] + wrap_comment(doc_py, "#") + [f"class {cls}:"]
@@ -258,12 +258,12 @@ def seg_tree(aggs):
             py += [f"        res = {root}", f"        return {a.py_result('res')}", ""]
         else:
             py += [f"        return abs({root})" if a.key == "gcd" else f"        return {root}", ""]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for n, xsn, ysn in CORNERS:
                 bx = ("NEG", "x") if xsn == "<=" else ("x", "POS")
                 by = ("NEG", "y") if ysn == "<=" else ("y", "POS")
-                py += indent(wrap_comment(f"O(log^2 N) -- {a.word} of the set points with x {xsn} the given x and y {ysn} the given y "
-                                          f"(None if there are none); any integers", "#"))
+                py += indent(wrap_comment(f"O(log^2 N) -- {a.word} of the set points with x {xsn} the given x and y {ysn} the given y"
+                                          f"{' (None if there are none)' if a.key != 'sum' else ''}; any integers", "#"))
                 py += [f"    def {a.key}{n}(self, x, y):", f"        return self._{a.key}Of({bx[0]}, {by[0]}, {bx[1]}, {by[1]})", ""]
     while py[-1] == "":
         py.pop()
@@ -279,7 +279,7 @@ def seg_tree(aggs):
         cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set point gives")
     if "min" in aggs:
         cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set point gives")
-    if mm:
+    if mm or "sum" in aggs:
         cpp += ["    static constexpr ll LOW = numeric_limits<ll>::min(), HIGH = numeric_limits<ll>::max();  // no bound on a coordinate"]
     cpp += ["    int n;", "    vector<pair<ll, ll>> pts;", "    vector<T> vals;"]
     if mm:
@@ -374,13 +374,13 @@ def seg_tree(aggs):
         cpp.append(f"    {a.cpp_type} {a.all}() const {{")
         root = f"{a.arr}[2 * off[1] + 1]"
         cpp += [f"        return gcdOf({root}, T(0));" if a.key == "gcd" else f"        return {root};", "    }", ""]
-        if a.key in ("min", "max"):
+        if a.key in ("min", "max", "sum"):
             for n, xsn, ysn in CORNERS:
                 bx = ("LOW", "x") if xsn == "<=" else ("x", "HIGH")
                 by = ("LOW", "y") if ysn == "<=" else ("y", "HIGH")
-                cpp += indent(wrap_comment(f"O(log^2 N) -- {a.word} of the set points with x {xsn} the given x and y {ysn} the given y "
-                                           f"({a.none_words_cpp} if there are none); any integers", "//"))
-                cpp += [f"    T {a.key}{n}(ll x, ll y) const {{", f"        return {a.key}Of({bx[0]}, {by[0]}, {bx[1]}, {by[1]});", "    }", ""]
+                cpp += indent(wrap_comment(f"O(log^2 N) -- {a.word} of the set points with x {xsn} the given x and y {ysn} the given y"
+                                           f"{f' ({a.none_words_cpp} if there are none)' if a.key != 'sum' else ''}; any integers", "//"))
+                cpp += [f"    {a.cpp_type} {a.key}{n}(ll x, ll y) const {{", f"        return {a.key}Of({bx[0]}, {by[0]}, {bx[1]}, {by[1]});", "    }", ""]
     while cpp[-1] == "":
         cpp.pop()
     cpp.append("};")
@@ -416,6 +416,7 @@ def bit_sum(aggs):
     sym = {"sum": "+", "xor": "^"}
     words = " and ".join(a.word for a in A)
     ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"] + [x for a in A for x in (a.rect, a.all)]
+    ops += [f"sum{n}" for n, _, _ in CORNERS] if "sum" in aggs else []
     costs = {op: "log^2(N)" for op in ops}
     costs.update({"pointGet": "log(N)", **{a.all: "1" for a in A}})
     memory = {"layout": "none", "node": " ".join(f"{a.arr}[1*N*log(N)]" for a in A),
@@ -467,6 +468,13 @@ def bit_sum(aggs):
         py.append(f"    def {a.rect}(self, x1, y1, x2, y2):")
         py += indent(py_rect_check(a.rect) + [f"p = self._prefix{a.cap}", f"return p(x2, y2) {m} p(x1 - 1, y2) {m} p(x2, y1 - 1) {s} p(x1 - 1, y1 - 1)"], 2)
         py += ["", f"    # O(1) -- {a.word} of every point", f"    def {a.all}(self):", f"        return self.total{a.cap}", ""]
+    if "sum" in aggs:  # (the all-<= corner is a single prefix walk, a quarter of a rectangle's)
+        for n, xsn, ysn in CORNERS:
+            expr = {"LteLte": "p(x, y)", "LteGte": "p(x, INF) - p(x, y - 1)", "GteLte": "p(INF, y) - p(x - 1, y)",
+                    "GteGte": "self.totalSum - p(x - 1, INF) - p(INF, y - 1) + p(x - 1, y - 1)"}[n]
+            py += indent(wrap_comment(f"O(log^2 N) -- sum of the points with x {xsn} the given x and y {ysn} the given y (0 if there are none); "
+                                      f"any integers", "#"))
+            py += [f"    def sum{n}(self, x, y):", "        p = self._prefixSum", '        INF = float("inf")', f"        return {expr}", ""]
     while py[-1] == "":
         py.pop()
 
@@ -518,6 +526,13 @@ def bit_sum(aggs):
         cpp.append(f"    {a.cpp_type} {a.rect}(ll x1, ll y1, ll x2, ll y2) const {{")
         cpp += indent(cpp_rect_check(a.rect) + [f"return {p}(x2, y2) {m} {p}(x1 - 1, y2) {m} {p}(x2, y1 - 1) {s} {p}(x1 - 1, y1 - 1);"], 2)
         cpp += ["    }", "", f"    // O(1) -- {a.word} of every point", f"    {a.cpp_type} {a.all}() const {{", f"        return total{a.cap};", "    }", ""]
+    if "sum" in aggs:
+        for n, xsn, ysn in CORNERS:
+            expr = {"LteLte": "prefixSum(x, y)", "LteGte": "prefixSum(x, HIGH) - prefixSum(x, y - 1)", "GteLte": "prefixSum(HIGH, y) - prefixSum(x - 1, y)",
+                    "GteGte": "totalSum - prefixSum(x - 1, HIGH) - prefixSum(HIGH, y - 1) + prefixSum(x - 1, y - 1)"}[n]
+            cpp += indent(wrap_comment(f"O(log^2 N) -- sum of the points with x {xsn} the given x and y {ysn} the given y (0 if there are none); "
+                                       f"any integers", "//"))
+            cpp += [f"    S sum{n}(ll x, ll y) const {{"] + (["        const ll HIGH = numeric_limits<ll>::max();"] if "HIGH" in expr else []) + [f"        return {expr};", "    }", ""]
     while cpp[-1] == "":
         cpp.pop()
     cpp.append("};")

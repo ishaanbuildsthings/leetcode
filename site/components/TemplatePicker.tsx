@@ -267,6 +267,9 @@ export interface PickerCatalog<V extends PickerTemplate> {
     view?: (t: V) => V | null;
     disabledOps: ReadonlySet<string>;
     disabledTitle: string;
+    // (optional) switch options hidden while the box is ticked, and the mode shown instead when one of them was picked
+    hidesModes?: string[];
+    fallbackMode?: string;
     // (optional) while the box is ticked: how operation text reads, and what T is in the usage lines
     rename?: (text: string, lang?: TemplateLang) => string;
     elem?: string;
@@ -1274,7 +1277,7 @@ export function TemplatePicker<V extends PickerTemplate>({
     return () => ro.disconnect();
   }, [sheetOpen]);
   const { modes } = catalog;
-  const mode = useSyncExternalStore(
+  const storedMode = useSyncExternalStore(
     subscribeMode,
     () => modes.parse(readStored(modes.storageKey)),
     () => modes.parse(null),
@@ -1285,6 +1288,9 @@ export function TemplatePicker<V extends PickerTemplate>({
     () => !!flag && readStored(flag.storageKey) === "1",
     () => false,
   );
+  // a mode the ticked box rules out (2D: the small grid, under "(x, y) points") gives way to the box's own fallback
+  const modeOff = (m: string) => flagOn && !!flag?.hidesModes?.includes(m);
+  const mode = modeOff(storedMode) ? (flag?.fallbackMode ?? storedMode) : storedMode;
   const isDisabled = (id: string) => flagOn && !!flag?.disabledOps.has(id);
   const reword = (text: string) => (flagOn && flag?.rename ? flag.rename(text) : text);
 
@@ -1834,7 +1840,7 @@ export function TemplatePicker<V extends PickerTemplate>({
               role="radiogroup"
               aria-label={modes.ariaLabel}
             >
-              {modes.options.map((o) => (
+              {modes.options.filter((o) => !modeOff(o.mode)).map((o) => (
                 <button
                   key={o.mode}
                   type="button"

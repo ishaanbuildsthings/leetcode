@@ -51,7 +51,7 @@ export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: 
     mode: "points",
     label: "Updated points known up front",
     title:
-      "Coordinates can be huge or negative. Before the first call you list every (x, y) a point update will ever touch (not the query rectangles: those can be anything); the template compresses them. Then you call it live. N log N memory, log² N per op",
+      "Coordinates can be huge or negative. The constructor takes every (x, y) that will ever hold a value: each point you read or update, and each point a rectangle update should change. Query rectangles and update rectangles' corners are not listed: they can be any integers. Then you call it live",
   },
   {
     mode: "online",
@@ -108,7 +108,7 @@ export function decodeRange2dTemplates(m: Range2dManifest): Range2dTemplate[] {
 }
 
 const CORNER_WORDS: Record<string, string> = { Lte: "≤", Gte: "≥" };
-const corner = (kind: "min" | "max", a: "Lte" | "Gte", b: "Lte" | "Gte") => ({
+const corner = (kind: "sum" | "min" | "max", a: "Lte" | "Gte", b: "Lte" | "Gte") => ({
   id: `${kind}${a}${b}`,
   signature: `${kind}${a}${b}(r, c)`,
   description: `${kind} over row ${CORNER_WORDS[a]} r and column ${CORNER_WORDS[b]} c`,
@@ -167,6 +167,11 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
     id: "corners",
     title: "Corner queries",
     tiers: [
+      {
+        kind: "topic",
+        label: "sum",
+        ops: [corner("sum", "Lte", "Lte"), corner("sum", "Lte", "Gte"), corner("sum", "Gte", "Lte"), corner("sum", "Gte", "Gte")],
+      },
       {
         kind: "topic",
         label: "max",
@@ -233,16 +238,6 @@ export function range2dKindLabel(t: Range2dTemplate): string {
   if (t.input === "online") return `${label}, dynamic (any coordinates)`;
   return label.startsWith("2D") ? label : `2D ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
 }
-
-// still to add: SPEC.md, section 7, says how each is meant to work
-export const RANGE_2D_PLANNED = [
-  "rectangle add / assign with any query on a small grid: one lazy seg tree per row",
-  "k-d tree over a small grid's cells",
-  "sparse table on rows × seg tree on columns",
-  "2D hashing with point updates",
-  "nothing known: Fenwick tree of hash maps (sum, corner max)",
-  "points known: starting values in the constructor",
-];
 
 // The "(x, y) coordinates" checkbox: the op grid and usage lines say x and y instead of r and c (the same arguments)
 export function toXY(text: string): string {

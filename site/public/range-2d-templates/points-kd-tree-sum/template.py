@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-kd-tree-sum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectSum sumAll
+# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 # @data-structure-type: kd-tree
 # @input: points
 # @complexities:
@@ -13,6 +13,10 @@
 #   rectAssign: sqrt(N)
 #   rectSum: sqrt(N)
 #   sumAll: 1
+#   sumGteGte: sqrt(N)
+#   sumGteLte: sqrt(N)
+#   sumLteGte: sqrt(N)
+#   sumLteLte: sqrt(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -23,6 +27,8 @@
 
 from bisect import bisect_left
 
+NEG = float("-inf")  # "no lower bound" on a coordinate
+POS = float("inf")  # "no upper bound" on a coordinate
 
 
 # K-d tree with lazy tags (sum): rectangle add and rectangle assign together with rectangle sum, over points known up
@@ -253,3 +259,23 @@ class KdTree2D:
     # O(1) -- sum of every point
     def sumAll(self):
         return self.sm[(self.n - 1) | (self.n > 1)]
+
+    # O(sqrt N) -- sum of the given points with x <= the given x and y <= the given y; any integers
+    def sumLteLte(self, x, y):
+        res = self._query(NEG, NEG, x, y)
+        return res[0]
+
+    # O(sqrt N) -- sum of the given points with x <= the given x and y >= the given y; any integers
+    def sumLteGte(self, x, y):
+        res = self._query(NEG, y, x, POS)
+        return res[0]
+
+    # O(sqrt N) -- sum of the given points with x >= the given x and y <= the given y; any integers
+    def sumGteLte(self, x, y):
+        res = self._query(x, NEG, POS, y)
+        return res[0]
+
+    # O(sqrt N) -- sum of the given points with x >= the given x and y >= the given y; any integers
+    def sumGteGte(self, x, y):
+        res = self._query(x, y, POS, POS)
+        return res[0]

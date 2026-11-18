@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-seg-tree-sum-max-gcd-xor-and-or/template.py
-# @operations: andAll gcdAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectGcd rectMax rectOr rectSum rectXor sumAll xorAll
+# @operations: andAll gcdAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointAdd pointAssign pointChmax pointChmin pointGet rectAnd rectGcd rectMax rectOr rectSum rectXor sumAll sumGteGte sumGteLte sumLteGte sumLteLte xorAll
 # @data-structure-type: seg-tree
 # @input: points
 # @empty-cells: yes
@@ -25,6 +25,10 @@
 #   rectSum: log^2(N)
 #   rectXor: log^2(N)
 #   sumAll: 1
+#   sumGteGte: log^2(N)
+#   sumGteLte: log^2(N)
+#   sumLteGte: log^2(N)
+#   sumLteLte: log^2(N)
 #   xorAll: 1
 #   build: N*log(N)
 # @memory:
@@ -233,6 +237,22 @@ class PointsSegTree2D:
     # O(1) -- sum of every set point (0 if there are none)
     def sumAll(self):
         return self.sm[2 * self.off[1] + 1]
+
+    # O(log^2 N) -- sum of the set points with x <= the given x and y <= the given y; any integers
+    def sumLteLte(self, x, y):
+        return self._sumOf(NEG, NEG, x, y)
+
+    # O(log^2 N) -- sum of the set points with x <= the given x and y >= the given y; any integers
+    def sumLteGte(self, x, y):
+        return self._sumOf(NEG, y, x, POS)
+
+    # O(log^2 N) -- sum of the set points with x >= the given x and y <= the given y; any integers
+    def sumGteLte(self, x, y):
+        return self._sumOf(x, NEG, POS, y)
+
+    # O(log^2 N) -- sum of the set points with x >= the given x and y >= the given y; any integers
+    def sumGteGte(self, x, y):
+        return self._sumOf(x, y, POS, POS)
 
     def _maxOf(self, x1, y1, x2, y2):
         xs, ys, off, cnt = self.xs, self.ys, self.off, self.cnt

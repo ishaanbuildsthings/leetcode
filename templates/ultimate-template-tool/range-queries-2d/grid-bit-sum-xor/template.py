@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-bit-sum-xor/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum rectXor sumAll xorAll
+# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rectSum rectXor sumAll sumGteGte sumGteLte sumLteGte sumLteLte xorAll
 # @data-structure-type: BIT
 # @input: grid
 # @complexities:
@@ -12,6 +12,10 @@
 #   rectSum: log(R)*log(C)
 #   rectXor: log(R)*log(C)
 #   sumAll: 1
+#   sumGteGte: log(R)*log(C)
+#   sumGteLte: log(R)*log(C)
+#   sumLteGte: log(R)*log(C)
+#   sumLteLte: log(R)*log(C)
 #   xorAll: 1
 #   build: R*C
 # @memory:
@@ -191,3 +195,35 @@ class Fenwick2D:
     # O(1) -- xor of the whole grid
     def xorAll(self):
         return self.totalXor
+
+    # O(log R * log C) -- sum of the cells with row <= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumLteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self._prefixSum(r + 1, c + 1)
+
+    # O(log R * log C) -- sum of the cells with row <= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumLteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self._prefixSum(r + 1, self.C) - self._prefixSum(r + 1, c)
+
+    # O(log R * log C) -- sum of the cells with row >= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumGteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self._prefixSum(self.R, c + 1) - self._prefixSum(r, c + 1)
+
+    # O(log R * log C) -- sum of the cells with row >= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumGteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self.totalSum - self._prefixSum(r, self.C) - self._prefixSum(self.R, c) + self._prefixSum(r, c)

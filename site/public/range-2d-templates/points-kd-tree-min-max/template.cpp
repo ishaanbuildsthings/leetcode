@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/points-kd-tree-min-max/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: maxAll maxGteGte maxGteLte maxLteGte maxLteLte minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectMax rectMin
+// @operations: maxAll maxGteGte maxGteLte maxLteGte maxLteLte minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectAdd rectAssign rectChmax rectChmin rectMax rectMin
 // @data-structure-type: kd-tree
 // @input: points
 // @complexities:
@@ -23,13 +23,15 @@ using namespace std;
 //   pointGet: log(N)
 //   rectAdd: sqrt(N)
 //   rectAssign: sqrt(N)
+//   rectChmax: sqrt(N)
+//   rectChmin: sqrt(N)
 //   rectMax: sqrt(N)
 //   rectMin: sqrt(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
 //   node: mn[2*N] mx[2*N]
-//   tags: addTag[2*N] setTag[2*N]
+//   tags: addTag[2*N] loTag[2*N] hiTag[2*N]
 //   other: xMin[2*N] xMax[2*N] yMin[2*N] yMax[2*N] pts[2*N] pos[1*N]
 //   note: a binary tree over the points in k-d order (2N - 1 nodes), each node with its points' bounding box
 
@@ -71,7 +73,7 @@ LEETCODE_NO_SANITIZE_INLINE A hotMin(A a, A b) { return b < a ? b : a; }
 template <typename A>
 LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 
-// K-d tree with lazy tags (min, max): rectangle add and rectangle assign together with rectangle min, max, over
+// K-d tree with lazy tags (min, max): rectangle add, assign, chmax and chmin together with rectangle min, max, over
 // points known up front (any integers, negative is fine). O(sqrt N) per rectangle op, O(log N) per point op, linear
 // memory. A tree of trees can't do rectangle updates with these queries (a tag can't be pushed down its outer tree);
 // this can, because it is one tree: the points are split in half by x, each half by y, and so on, every node keeps
@@ -85,13 +87,13 @@ struct KdTree2D {
     using ll = long long;
     static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no point gives
     static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no point gives
+    static constexpr T TLOW = numeric_limits<T>::min(), THIGH = numeric_limits<T>::max();  // no clamp on that side
     static constexpr ll LOW = numeric_limits<ll>::min(), HIGH = numeric_limits<ll>::max();  // no bound on a coordinate
     int n;
     HotVector<pair<ll, ll>> pts;
     HotVector<int> pos;  // pos[i]: where point i (in sorted order) sits in k-d order
     HotVector<ll> xMin, xMax, yMin, yMax;
-    HotVector<T> addTag, setTag;
-    HotVector<char> hasSet;
+    HotVector<T> addTag, loTag, hiTag;  // a node's waiting tag: add addTag, then clamp to loTag..hiTag
     unsigned long long seed = 1;  // for the random pivots of the build
     HotVector<T> mn;
     HotVector<T> mx;
@@ -106,7 +108,7 @@ struct KdTree2D {
         size_t size = 2 * (size_t)n;
         xMin.assign(size, 0), xMax.assign(size, 0), yMin.assign(size, 0), yMax.assign(size, 0);
         pos.assign(n, 0);
-        addTag.assign(size, T(0)), setTag.assign(size, T(0)), hasSet.assign(size, 0);
+        addTag.assign(size, T(0)), loTag.assign(size, TLOW), hiTag.assign(size, THIGH);
         mn.assign(size, 0);
         mx.assign(size, 0);
         seed = chrono::steady_clock::now().time_since_epoch().count() | 1;
@@ -167,27 +169,26 @@ struct KdTree2D {
         buildNode(order, mid + 1, r, axis ^ 1);
     }
 
-    LEETCODE_NO_SANITIZE void applyAssign(int node, int, T v) {
-        hasSet[node] = 1, setTag[node] = v, addTag[node] = 0;
-        mn[node] = v;
-        mx[node] = v;
+    // node's points: add a, then clamp to lo..hi (TLOW / THIGH: no clamp on that side)
+    LEETCODE_NO_SANITIZE void apply(int node, T a, T lo, T hi) {
+        addTag[node] += a;
+        T cand = loTag[node] == TLOW ? TLOW : T(loTag[node] + a);
+        loTag[node] = cand < lo ? lo : cand > hi ? hi : cand;
+        cand = hiTag[node] == THIGH ? THIGH : T(hiTag[node] + a);
+        hiTag[node] = cand < lo ? lo : cand > hi ? hi : cand;
+        cand = T(mn[node] + a);
+        mn[node] = cand < lo ? lo : cand > hi ? hi : cand;
+        cand = T(mx[node] + a);
+        mx[node] = cand < lo ? lo : cand > hi ? hi : cand;
     }
 
-    LEETCODE_NO_SANITIZE void applyAdd(int node, int, T v) {
-        if (hasSet[node]) setTag[node] += v;
-        else addTag[node] += v;
-        mn[node] += v;
-        mx[node] += v;
-    }
-
-    // hands node (l, r)'s waiting assign / add to its two halves
+    // hands node (l, r)'s waiting tag to its two halves
     LEETCODE_NO_SANITIZE void push(int node, int l, int r) {
-        if (!hasSet[node] && addTag[node] == 0) return;
+        if (addTag[node] == 0 && loTag[node] == TLOW && hiTag[node] == THIGH) return;
         int mid = (l + r) >> 1;
-        if (hasSet[node])
-            applyAssign(id(l, mid), mid - l + 1, setTag[node]), applyAssign(id(mid + 1, r), r - mid, setTag[node]);
-        else applyAdd(id(l, mid), mid - l + 1, addTag[node]), applyAdd(id(mid + 1, r), r - mid, addTag[node]);
-        hasSet[node] = 0, addTag[node] = 0;
+        T a = addTag[node], lo = loTag[node], hi = hiTag[node];
+        apply(id(l, mid), a, lo, hi), apply(id(mid + 1, r), a, lo, hi);
+        addTag[node] = 0, loTag[node] = TLOW, hiTag[node] = THIGH;
     }
 
     LEETCODE_NO_SANITIZE void pull(int node, int l, int r) {
@@ -204,19 +205,18 @@ struct KdTree2D {
         return x1 <= xMin[node] && xMax[node] <= x2 && y1 <= yMin[node] && yMax[node] <= y2;
     }
 
-    // every given point inside the rectangle: assign v (isAssign) or add v
-    LEETCODE_NO_SANITIZE void update(int l, int r, ll x1, ll y1, ll x2, ll y2, bool isAssign, T v) {
+    // every given point inside the rectangle: add a, then clamp to lo..hi
+    LEETCODE_NO_SANITIZE void update(int l, int r, ll x1, ll y1, ll x2, ll y2, T a, T lo, T hi) {
         int node = id(l, r);
         if (outside(node, x1, y1, x2, y2)) return;
         if (inside(node, x1, y1, x2, y2)) {
-            if (isAssign) applyAssign(node, r - l + 1, v);
-            else applyAdd(node, r - l + 1, v);
+            apply(node, a, lo, hi);
             return;
         }
         push(node, l, r);
         int mid = (l + r) >> 1;
-        update(l, mid, x1, y1, x2, y2, isAssign, v);
-        update(mid + 1, r, x1, y1, x2, y2, isAssign, v);
+        update(l, mid, x1, y1, x2, y2, a, lo, hi);
+        update(mid + 1, r, x1, y1, x2, y2, a, lo, hi);
         pull(node, l, r);
     }
 
@@ -321,14 +321,28 @@ struct KdTree2D {
     // throws out_of_range
     LEETCODE_NO_SANITIZE void rectAdd(ll x1, ll y1, ll x2, ll y2, T v) {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectAdd: needs x1 <= x2 and y1 <= y2");
-        update(0, n - 1, x1, y1, x2, y2, false, v);
+        update(0, n - 1, x1, y1, x2, y2, v, TLOW, THIGH);
     }
 
     // O(sqrt N) -- every given point becomes v, for the points with x1 <= x <= x2 and y1 <= y <= y2; needs x1 <= x2 and
     // y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE void rectAssign(ll x1, ll y1, ll x2, ll y2, T v) {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectAssign: needs x1 <= x2 and y1 <= y2");
-        update(0, n - 1, x1, y1, x2, y2, true, v);
+        update(0, n - 1, x1, y1, x2, y2, T(0), v, v);
+    }
+
+    // O(sqrt N) -- every given point becomes max(itself, v), for the points with x1 <= x <= x2 and y1 <= y <= y2; needs
+    // x1 <= x2 and y1 <= y2, else throws out_of_range
+    LEETCODE_NO_SANITIZE void rectChmax(ll x1, ll y1, ll x2, ll y2, T v) {
+        if (x1 > x2 || y1 > y2) throw out_of_range("rectChmax: needs x1 <= x2 and y1 <= y2");
+        update(0, n - 1, x1, y1, x2, y2, T(0), v, THIGH);
+    }
+
+    // O(sqrt N) -- every given point becomes min(itself, v), for the points with x1 <= x <= x2 and y1 <= y <= y2; needs
+    // x1 <= x2 and y1 <= y2, else throws out_of_range
+    LEETCODE_NO_SANITIZE void rectChmin(ll x1, ll y1, ll x2, ll y2, T v) {
+        if (x1 > x2 || y1 > y2) throw out_of_range("rectChmin: needs x1 <= x2 and y1 <= y2");
+        update(0, n - 1, x1, y1, x2, y2, T(0), TLOW, v);
     }
 
     // O(sqrt N) -- min of the given points with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN if no point is there); needs x1

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-seg-tree-sum-min-gcd/template.py
-# @operations: gcdAll minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectGcd rectMin rectSum sumAll
+# @operations: gcdAll minAll minGteGte minGteLte minLteGte minLteLte pointAdd pointAssign pointChmax pointChmin pointGet rectGcd rectMin rectSum sumAll sumGteGte sumGteLte sumLteGte sumLteLte
 # @data-structure-type: seg-tree
 # @input: grid
 # @empty-cells: yes
@@ -20,6 +20,10 @@
 #   rectMin: log(R)*log(C)
 #   rectSum: log(R)*log(C)
 #   sumAll: 1
+#   sumGteGte: log(R)*log(C)
+#   sumGteLte: log(R)*log(C)
+#   sumLteGte: log(R)*log(C)
+#   sumLteLte: log(R)*log(C)
 #   build: R*C*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -206,6 +210,38 @@ class SegTree2D:
     # O(1) -- sum of every set cell (0 if there are none)
     def sumAll(self):
         return self.sm[self.W + 1]
+
+    # O(log R * log C) -- sum of the set cells with row <= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumLteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self._sumOf(0, 0, r, c)
+
+    # O(log R * log C) -- sum of the set cells with row <= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumLteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumLteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self._sumOf(0, c, r, self.C - 1)
+
+    # O(log R * log C) -- sum of the set cells with row >= r and column <= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumGteLte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteLte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self._sumOf(r, 0, self.R - 1, c)
+
+    # O(log R * log C) -- sum of the set cells with row >= r and column >= c; needs 0 <= r < R and 0 <= c < C, else
+    # IndexError
+    def sumGteGte(self, r, c):
+        if not (0 <= r < self.R and 0 <= c < self.C):
+            raise IndexError(f"sumGteGte: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
+                             f"C = {self.C}")
+        return self._sumOf(r, c, self.R - 1, self.C - 1)
 
     def _minOf(self, r1, c1, r2, c2):
         R, C, W = self.R, self.C, self.W
