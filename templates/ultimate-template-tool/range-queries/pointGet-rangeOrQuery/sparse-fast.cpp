@@ -37,18 +37,25 @@ struct SparseOr {
         }
     }
 
-    // O(logN) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(1) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeOrQuery(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeOrQuery: needs 0 <= l <= r < n");
         int k = 31 - __builtin_clz(r - l + 1);
         return combine(sp[k][l], sp[k][r - (1 << k) + 1]);
     }
 
-    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return sp[0][i];
     }
+
+    // O(1) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
+    }
+
 };
 
 // ======================================================================================== sparse wrapper
@@ -120,13 +127,14 @@ struct SparseStaticOr {
         return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1;
     }
 
-    // O(logN) -- range or of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- range or of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeOrQuery(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeOrQuery: needs lo <= l <= r <= hi");
         return inner.rangeOrQuery(element(l), element(r));
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);

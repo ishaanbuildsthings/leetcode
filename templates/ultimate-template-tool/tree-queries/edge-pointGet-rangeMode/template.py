@@ -126,8 +126,8 @@ class RangeMode:
 
     #################### PUBLIC METHODS START HERE ####################
 
-    # O(rootN) -- (mode, frequency) of arr[l...r] inclusive. requires needs 0 <= l <= r < n, else IndexError ties:
-    # returns any one of the tied values
+    # O(rootN) -- (mode, frequency) of arr[l...r] inclusive; on a tie, any one of the tied values; needs
+    # 0 <= l <= r < n, else IndexError
     def rangeMode(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeMode: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

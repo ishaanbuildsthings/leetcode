@@ -27,7 +27,7 @@ class PersistentMex:
         self.n = len(arr)
         self._buildMex()
 
-    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -112,14 +112,15 @@ class SparsePersistentMex:
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0
 
-    # O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- smallest integer >= 0 that is not in a[l..r]; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def rangeMex(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMex: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

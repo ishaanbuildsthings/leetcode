@@ -101,8 +101,8 @@ struct SparseLazySegTree {
         newZero(D);
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostPrefixSumGtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -126,8 +126,8 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostPrefixSumGteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -151,8 +151,8 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; never-updated indices count as
+    // 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S maxAltSubseqSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxAltSubseqSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -161,7 +161,8 @@ struct SparseLazySegTree {
         return max(a[0], a[1]);
     }
 
-    // O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S maxPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -170,8 +171,8 @@ struct SparseLazySegTree {
         return res;
     }
 
-    // O(logU) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else throws
-    // out_of_range
+    // O(logU) -- max sum of a non-empty contiguous subarray of a[l..r]; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S maxSubarraySum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSubarraySum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -183,7 +184,8 @@ struct SparseLazySegTree {
         return res;
     }
 
-    // O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S maxSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -220,7 +222,7 @@ struct SparseLazySegTree {
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) {
         if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
@@ -233,7 +235,8 @@ struct SparseLazySegTree {
         update(1, D, first, l, r, [&](int t, int s, long long) { applyAssign(t, s, v); });
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE S rangeSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -242,8 +245,8 @@ struct SparseLazySegTree {
         return res;
     }
 
-    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostSuffixSumGtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostSuffixSumGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -267,8 +270,8 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostSuffixSumGteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostSuffixSumGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];

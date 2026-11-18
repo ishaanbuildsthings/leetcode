@@ -187,8 +187,7 @@ struct SegTree2D {
     }
 
     // O(log R * log C + log U) -- gcd of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C,
-    // else
-    // throws out_of_range
+    // else throws out_of_range
     LEETCODE_NO_SANITIZE T rectGcd(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectGcd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
@@ -223,8 +222,7 @@ struct SegTree2D {
     }
 
     // O(log R * log C) -- xor of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else
-    // throws
-    // out_of_range
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T rectXor(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectXor: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

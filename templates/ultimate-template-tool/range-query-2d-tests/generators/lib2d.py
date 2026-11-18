@@ -23,6 +23,8 @@ INPUTS = ("grid", "points", "online", "batch", "grid-3d")
 # with no slower twin). The marker and HotVector are the range query generators' own, so the text stays the same.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "range-query-tests"))
 from gen_fast import PRELUDE as HOT_VECTOR_PRELUDE  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))
+from format_long_lines import reflow_text  # noqa: E402
 
 # (nothing here uses the SSE header; and one accessor is past 120 columns as it comes)
 HOT_VECTOR_PRELUDE = HOT_VECTOR_PRELUDE.replace("#ifdef __SSE2__\n#include <immintrin.h>\n#endif\n\n", "")
@@ -299,6 +301,8 @@ def write(folder, py_lines, cpp_lines):
         if name.endswith(".cpp"):
             lines = make_fast(lines)
         text = "\n".join(_wrap_long_comments(lines, "#" if name.endswith(".py") else "//")).rstrip("\n") + "\n"
+        # (what format_long_lines.py would do to it, so running the formatter over the repo changes nothing here)
+        text = reflow_text(text, name.endswith(".py"))
         long = [line for line in text.split("\n") if len(line) > 120 and "http" not in line and " @" not in line[:6]
                 and not line.lstrip("#/ ").startswith(("node:", "tags:", "other:", "note:"))]
         assert not long, f"{folder}/{name}: lines over 120 columns:\n" + "\n".join(long)

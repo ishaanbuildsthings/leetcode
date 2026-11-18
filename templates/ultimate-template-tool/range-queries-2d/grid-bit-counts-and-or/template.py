@@ -20,10 +20,10 @@
 
 
 
-# Static rectangle AND and OR from one 2D prefix-count table per bit: a bit is in the OR when some cell of the
-# rectangle has it, and in the AND when every cell does. O(bits) per query, bits = bit length of the largest value,
-# and bits * R * C memory (a sparse table answers in O(1) but takes log R * log C tables). Values must be >= 0. No
-# updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.
+# Static rectangle AND and OR from one 2D prefix-count table per bit: a bit is in the OR when some cell of the rectangle
+# has it, and in the AND when every cell does. O(bits) per query, bits = bit length of the largest value, and bits * R *
+# C memory (a sparse table answers in O(1) but takes log R * log C tables). Values must be >= 0. No updates. Rows and
+# columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.
 class BitCounts2D:
     __slots__ = ("R", "C", "W", "bits", "cnt", "vals")
 

@@ -65,8 +65,8 @@ class SparseLazySegTree:
         self.hasAsg = [0]
         self._newZero(self.D)
 
-    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostGtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -84,8 +84,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    # indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostGteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -103,8 +103,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostLtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -122,8 +122,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated
+    # indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostLteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -141,8 +141,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -163,8 +163,8 @@ class SparseLazySegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -185,7 +185,8 @@ class SparseLazySegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -199,7 +200,8 @@ class SparseLazySegTree:
             acc += sm[t]
         return res
 
-    # O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -245,7 +247,7 @@ class SparseLazySegTree:
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.first <= i <= self.last:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
@@ -257,7 +259,7 @@ class SparseLazySegTree:
             raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._applyAssign(t, s, v))
 
-    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -267,7 +269,7 @@ class SparseLazySegTree:
                 res = mx[t]
         return res
 
-    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -277,7 +279,7 @@ class SparseLazySegTree:
                 res = mn[t]
         return res
 
-    # O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] | ... | a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeOrQuery(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeOrQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -286,7 +288,7 @@ class SparseLazySegTree:
             res |= orr[t]
         return res
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -295,8 +297,8 @@ class SparseLazySegTree:
             res += sm[t]
         return res
 
-    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostGtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -314,8 +316,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostGteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -333,8 +335,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostLtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -352,8 +354,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostLteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -371,8 +373,8 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostSuffixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -393,8 +395,8 @@ class SparseLazySegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostSuffixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

@@ -108,7 +108,7 @@ struct SparseArithSeqBIT {
         rangeAddArithSeq(l, r, v, 0);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         F s = prefix(i - lo);

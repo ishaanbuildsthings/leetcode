@@ -207,8 +207,7 @@ class DynamicSegTree2D:
         self._set(x, y, v)
 
     # O(log^2 U) gcds -- adds v to the cell at (x, y); an empty cell becomes v; needs xLo <= x <= xHi and yLo <= y <=
-    # yHi,
-    # else IndexError
+    # yHi, else IndexError
     def pointAdd(self, x, y, v):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"pointAdd: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -217,8 +216,7 @@ class DynamicSegTree2D:
         self._set(x, y, v if cur == NEG else cur + v)
 
     # O(log^2 U) gcds -- the cell at (x, y) becomes max(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and
-    # yLo
-    # <= y <= yHi, else IndexError
+    # yLo <= y <= yHi, else IndexError
     def pointChmax(self, x, y, v):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"pointChmax: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -228,8 +226,7 @@ class DynamicSegTree2D:
             self._set(x, y, v)
 
     # O(log^2 U) gcds -- the cell at (x, y) becomes min(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and
-    # yLo
-    # <= y <= yHi, else IndexError
+    # yLo <= y <= yHi, else IndexError
     def pointChmin(self, x, y, v):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"pointChmin: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "

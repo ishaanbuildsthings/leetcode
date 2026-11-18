@@ -270,8 +270,7 @@ class KdTree2D:
         self._update(x1, y1, x2, y2, False, v)
 
     # O(sqrt N) -- every given point becomes v, for the points with x1 <= x <= x2 and y1 <= y <= y2; needs x1 <= x2
-    # and y1
-    # <= y2, else IndexError
+    # and y1 <= y2, else IndexError
     def rectAssign(self, x1, y1, x2, y2, v):
         if x1 > x2 or y1 > y2:
             raise IndexError(f"rectAssign: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, "

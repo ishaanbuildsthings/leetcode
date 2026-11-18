@@ -161,13 +161,14 @@ struct SparseArithSeqSumBIT {
         return s[0] + s[1] * W(x) + s[2] * tri(x);
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE long long rangeSum(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         return l <= r ? (long long)(sum(r - lo) - sum(l - 1 - lo)) : 0;
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return T(rangeSum(i, i));

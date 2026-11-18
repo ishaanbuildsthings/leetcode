@@ -91,7 +91,7 @@ struct SparseRangeAndTree {
         return y;
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         T t = T(-1), x = 0;

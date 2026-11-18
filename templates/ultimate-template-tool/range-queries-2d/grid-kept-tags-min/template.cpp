@@ -181,16 +181,14 @@ struct RectChminRectMin2D {
     }
 
     // O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    // <= c
-    // < C, else throws out_of_range
+    // <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
         update(r, c, r, c, v);
     }
 
     // O(log R * log C) -- the value at (r, c), NO_MIN if the cell is empty; needs 0 <= r < R and 0 <= c < C, else
-    // throws
-    // out_of_range
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         return query(r, c, r, c);
@@ -205,32 +203,28 @@ struct RectChminRectMin2D {
     }
 
     // O(log R * log C) -- min of the set cells with row <= r and column <= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minLteLte: needs 0 <= r < R and 0 <= c < C");
         return query(0, 0, r, c);
     }
 
     // O(log R * log C) -- min of the set cells with row <= r and column >= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minLteGte: needs 0 <= r < R and 0 <= c < C");
         return query(0, c, r, C - 1);
     }
 
     // O(log R * log C) -- min of the set cells with row >= r and column <= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minGteLte: needs 0 <= r < R and 0 <= c < C");
         return query(r, 0, R - 1, c);
     }
 
     // O(log R * log C) -- min of the set cells with row >= r and column >= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minGteGte: needs 0 <= r < R and 0 <= c < C");
         return query(r, c, R - 1, C - 1);

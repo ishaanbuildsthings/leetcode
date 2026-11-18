@@ -84,7 +84,7 @@ struct WaveletMatrix {
         order(bits);  // (the final order)
     }
 
-    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];
@@ -385,21 +385,23 @@ struct SparseWaveletMatrix {
         return {i0, i1, (r - l + 1) - (i1 - i0 + 1)};
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of i in [l, r] with a[i] == x; indices not given in values count as 0; needs lo <= l <= r <= hi,
+    // else throws out_of_range
     long long countOccurrences(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countOccurrences(i0, i1, x) : 0) + (x == T(0) ? zeros : 0);
     }
 
-    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -407,55 +409,62 @@ struct SparseWaveletMatrix {
             highVal) : 0) + (lowVal <= T(0) && T(0) <= highVal ? zeros : 0);
     }
 
-    // O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values < x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     long long countLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countLtX(i0, i1, x) : 0) + (T(0) < x ? zeros : 0);
     }
 
-    // O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values <= x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     long long countLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countLteX(i0, i1, x) : 0) + (T(0) <= x ? zeros : 0);
     }
 
-    // O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values > x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     long long countGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countGtX(i0, i1, x) : 0) + (x < T(0) ? zeros : 0);
     }
 
-    // O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values >= x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     long long countGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countGteX(i0, i1, x) : 0) + (x <= T(0) ? zeros : 0);
     }
 
-    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
-    // else throws out_of_range
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); indices not given in values count as 0; needs
+    // lo <= l <= r <= hi and 1 <= k <= r - l + 1, else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthSmallest: needs lo <= l <= r <= hi");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
 
-    // O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- min of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     T rangeMin(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         return kth(l, r, 1);
     }
 
-    // O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- max of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     T rangeMax(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         return kth(l, r, r - l + 1);
     }
 
-    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- smallest value >= x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     optional<T> smallestGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("smallestGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -464,7 +473,8 @@ struct SparseWaveletMatrix {
         return a;
     }
 
-    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- smallest value > x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     optional<T> smallestGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("smallestGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -473,7 +483,8 @@ struct SparseWaveletMatrix {
         return a;
     }
 
-    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- largest value <= x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     optional<T> largestLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("largestLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -482,7 +493,8 @@ struct SparseWaveletMatrix {
         return a;
     }
 
-    // O(logN) -- largest value < x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- largest value < x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     optional<T> largestLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("largestLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -491,32 +503,32 @@ struct SparseWaveletMatrix {
         return a;
     }
 
-    // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none (the zeros add nothing);
+    // indices not given in values count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T xorLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("xorLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorLtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing);
+    // indices not given in values count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T xorLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("xorLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorLteX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none (the zeros add nothing);
+    // indices not given in values count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T xorGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("xorGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorGtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing);
+    // indices not given in values count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T xorGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("xorGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -524,15 +536,15 @@ struct SparseWaveletMatrix {
     }
 
     // O(logN) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none (the
-    // zeros add nothing); needs lo <= l <= r <= hi, else throws out_of_range
+    // zeros add nothing); indices not given in values count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T xorInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("xorInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorInValRange(i0, i1, lowVal, highVal) : T(0);
     }
 
-    // O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; indices not given in values
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T andLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -540,8 +552,8 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andLtX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; indices not given in values
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T andLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -549,8 +561,8 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andLteX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; indices not given in values
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T andGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -558,8 +570,8 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andGtX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; indices not given in values
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T andGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -567,8 +579,8 @@ struct SparseWaveletMatrix {
         return i0 <= i1 ? inner.andGteX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; indices
+    // not given in values count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T andInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("andInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);

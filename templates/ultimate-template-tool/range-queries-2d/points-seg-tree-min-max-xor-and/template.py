@@ -139,8 +139,7 @@ class PointsSegTree2D:
         return self.vals[self._index(x, y, "pointGet")]
 
     # O(log^2 N) -- the point (x, y) becomes v (it may go down as well as up); needs (x, y) to be one of the points
-    # given,
-    # else IndexError
+    # given, else IndexError
     def pointAssign(self, x, y, v):
         self.vals[self._index(x, y, "pointAssign")] = v
         self._set(x, y, v)

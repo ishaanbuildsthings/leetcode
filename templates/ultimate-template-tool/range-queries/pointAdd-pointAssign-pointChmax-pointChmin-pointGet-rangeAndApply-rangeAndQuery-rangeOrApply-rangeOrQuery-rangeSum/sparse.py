@@ -260,22 +260,22 @@ class SparseBitBeats:
         if kind == 1: return a & b
         return a | b
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 0)
-    # O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] & ... & a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeAndQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.FULL if (l > r) else self._q(1, self.lo, self.hi, l, r, 1)
-    # O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] | ... | a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeOrQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeOrQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 2)
-    # O(logU) -- a[p]; needs lo <= p <= hi, else IndexError
+    # O(logU) -- a[p]; 0 if never updated; needs lo <= p <= hi, else IndexError
     def pointGet(self, p):
         if not self.lo <= p <= self.hi:
             raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")

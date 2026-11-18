@@ -60,7 +60,8 @@ class SparseSegTree:
             pw.append(pw[k] * pw[k] % _HP)
         self._newZero(self.D)
 
-    # O(logU) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- is a[l..r] a palindrome (its two hashes agree); never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def isPalindrome(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"isPalindrome: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -71,8 +72,8 @@ class SparseSegTree:
             p = p * pw[s] % P
         return f == b
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumLtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -92,8 +93,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumLteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -113,7 +114,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def minPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -159,14 +161,14 @@ class SparseSegTree:
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.first <= i <= self.last:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; never-updated
+    # indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeHash(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeHash: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -175,8 +177,8 @@ class SparseSegTree:
             res = (res * pw[s] + fh[t]) % P
         return res
 
-    # O(logU) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
-    # else IndexError
+    # O(logU) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); never-updated indices count
+    # as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeHashReversed(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeHashReversed: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -186,7 +188,7 @@ class SparseSegTree:
             p = p * pw[s] % P
         return res
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -195,7 +197,7 @@ class SparseSegTree:
             res += sm[t]
         return res
 
-    # O(logU) -- a[l] ^ ... ^ a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] ^ ... ^ a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeXorQuery(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeXorQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -204,7 +206,7 @@ class SparseSegTree:
             res ^= xr[t]
         return res
 
-    # O(logU) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
+    # O(logU) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); never-updated indices count as 0; needs
     # lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, else IndexError
     def rangesEqual(self, l1, r1, l2, r2):
         if not (self.first <= l1 <= r1 <= self.last and self.first <= l2 <= r2 <= self.last):

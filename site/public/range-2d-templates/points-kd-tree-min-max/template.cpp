@@ -97,8 +97,7 @@ struct KdTree2D {
     HotVector<T> mx;
 
     // O(N log N) -- points: every (x, y) that will ever be used (negative is fine, repeats are fine); needs at least
-    // one,
-    // else throws invalid_argument
+    // one, else throws invalid_argument
     explicit KdTree2D(vector<pair<ll, ll>> points) : pts(std::move(points)) {
         if (pts.empty()) throw invalid_argument("KdTree2D: needs at least one point");
         sort(pts.begin(), pts.end());

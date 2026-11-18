@@ -32,7 +32,7 @@ class SparseMin:
                     val = min(val, self.sparse[power - 1][rightEdge])
                 self.sparse[power][left] = val
 
-    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
+    # O(1) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -44,11 +44,17 @@ class SparseMin:
             self.sparse[maxPow][l + width - powWidth]
         )
 
-    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.sparse[0][i]
+
+    # O(1) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
 
 # ======================================================================================== sparse wrapper
 
@@ -84,13 +90,14 @@ class SparseStaticMin:
         self.starts = starts
         self.inner = SparseMin(arr)
 
-    # O(logN) -- range min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- range min of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeMin(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.inner.rangeMin(bisect_right(self.starts, l) - 1, bisect_right(self.starts, r) - 1)
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

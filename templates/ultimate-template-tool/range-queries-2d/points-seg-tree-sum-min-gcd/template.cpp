@@ -204,8 +204,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) gcds -- the point (x, y) becomes v (it may go down as well as up); needs (x, y) to be one of the
-    // points
-    // given, else throws out_of_range
+    // points given, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(ll x, ll y, T v) {
         int i = indexOf(x, y, "pointAssign");
         vals[i] = v;
@@ -223,8 +222,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) gcds -- the point (x, y) becomes max(itself, v); an empty point becomes v; needs (x, y) to be one of
-    // the
-    // points given, else throws out_of_range
+    // the points given, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(ll x, ll y, T v) {
         int i = indexOf(x, y, "pointChmax");
         if (isSet[i] && !(v > vals[i])) return;
@@ -234,8 +232,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) gcds -- the point (x, y) becomes min(itself, v); an empty point becomes v; needs (x, y) to be one of
-    // the
-    // points given, else throws out_of_range
+    // the points given, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(ll x, ll y, T v) {
         int i = indexOf(x, y, "pointChmin");
         if (isSet[i] && !(v < vals[i])) return;
@@ -314,8 +311,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) -- min of the set points with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN if there are none); needs x1
-    // <= x2
-    // and y1 <= y2, else throws out_of_range
+    // <= x2 and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectMin(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectMin: needs x1 <= x2 and y1 <= y2");
         return minOf(x1, y1, x2, y2);
@@ -379,8 +375,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N + log U) -- gcd of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs
-    // x1 <=
-    // x2 and y1 <= y2, else throws out_of_range
+    // x1 <= x2 and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectGcd(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectGcd: needs x1 <= x2 and y1 <= y2");
         return gcdOf(x1, y1, x2, y2);

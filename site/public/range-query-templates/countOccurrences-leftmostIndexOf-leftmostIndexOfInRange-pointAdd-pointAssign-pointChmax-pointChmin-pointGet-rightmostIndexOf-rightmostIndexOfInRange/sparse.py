@@ -146,7 +146,8 @@ class SparseOccurrenceLists:
         self.pos = {}  # value -> SortedList of its indices (nonzero values only)
         self.nz = SortedList()  # indices holding a nonzero value
 
-    # O(logU) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- # of i in [l, r] with a[i] == x; never-updated indices count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def countOccurrences(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -158,16 +159,18 @@ class SparseOccurrenceLists:
         s = self.pos.get(x ^ SALT if type(x) is int else x)
         return 0 if s is None else s.countLess(r + 1) - s.countLess(l)
 
-    # O(logU * logU) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    # O(logU * logU) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    # count as 0
     def leftmostIndexOf(self, x):
         return self.leftmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logU * logU) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    # O(logU * logU) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    # count as 0
     def rightmostIndexOf(self, x):
         return self.rightmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logU * logU) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostIndexOfInRange(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -190,8 +193,8 @@ class SparseOccurrenceLists:
         i = s.succ(l - 1) if s is not None else None
         return i if i is not None and i <= r else self.lo - 1
 
-    # O(logU * logU) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostIndexOfInRange(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -238,7 +241,7 @@ class SparseOccurrenceLists:
             self.nz.remove(i)
             del self.vals[i ^ SALT]
 
-    # O(1) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(1) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

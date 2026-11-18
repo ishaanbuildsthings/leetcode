@@ -56,8 +56,8 @@ class SparseSegTree:
         self.nbest = [0]
         self._newZero(self.D)
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -77,8 +77,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -98,8 +98,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumLtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -119,8 +119,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumLteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -140,7 +140,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -154,7 +155,8 @@ class SparseSegTree:
             acc += sm[t]
         return res
 
-    # O(logU) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max sum of a non-empty contiguous subarray of a[l..r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxSubarraySum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -167,7 +169,8 @@ class SparseSegTree:
             q = max(suf[t], sm[t] + q)
         return res
 
-    # O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -181,7 +184,8 @@ class SparseSegTree:
             acc += sm[t]
         return res
 
-    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def minPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -195,7 +199,8 @@ class SparseSegTree:
             acc += sm[t]
         return res
 
-    # O(logU) -- min sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min sum of a non-empty contiguous subarray of a[l..r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def minSubarraySum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -208,7 +213,8 @@ class SparseSegTree:
             q = min(nsuf[t], sm[t] + q)
         return res
 
-    # O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def minSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -254,13 +260,13 @@ class SparseSegTree:
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.first <= i <= self.last:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -269,8 +275,8 @@ class SparseSegTree:
             res += sm[t]
         return res
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostSuffixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -290,8 +296,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostSuffixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -311,8 +317,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] < x, or lo - 1 (a walk pruned by min suffix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] < x, or lo - 1 (a walk pruned by min suffix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumLtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostSuffixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -332,8 +338,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] <= x, or lo - 1 (a walk pruned by min suffix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] <= x, or lo - 1 (a walk pruned by min suffix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumLteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rightmostSuffixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

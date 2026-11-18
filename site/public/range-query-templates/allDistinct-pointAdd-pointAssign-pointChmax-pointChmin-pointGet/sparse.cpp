@@ -102,7 +102,8 @@ struct SparseDistinctTree {
         return res;
     }
 
-    // O(logU) -- true iff no value repeats inside a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- true iff no value repeats inside a[l..r]; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     bool allDistinct(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("allDistinct: needs lo <= l <= r <= hi");
         auto [mn, c] = query(root, lo, hi, l, r);
@@ -138,7 +139,7 @@ struct SparseDistinctTree {
         }
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return valueAt(i);

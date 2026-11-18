@@ -19,10 +19,10 @@ from math import gcd
 
 
 
-# Static sparse table for square queries only (gcd, AND): O(1) per square (one gcd run, O(log U)), with a single log
-# of memory and build, R * C * log(min(R, C)), where the any-rectangle sparse table needs log R * log C. Level k holds
-# the aggregate of every 2^k by 2^k window; a square is covered by four such windows, one in each corner (they
-# overlap, which is fine for these aggregates). No updates. Rows and columns are 0-based; a square is its top-left
+# Static sparse table for square queries only (gcd, AND): O(1) per square (one gcd run, O(log U)), with a single log of
+# memory and build, R * C * log(min(R, C)), where the any-rectangle sparse table needs log R * log C. Level k holds the
+# aggregate of every 2^k by 2^k window; a square is covered by four such windows, one in each corner (they overlap,
+# which is fine for these aggregates). No updates. Rows and columns are 0-based; a square is its top-left
 # cell (r, c) and its side.
 class SquareSparseTable2D:
     __slots__ = ("R", "C", "gc", "an")

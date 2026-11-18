@@ -65,12 +65,12 @@ LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 
 // K-d tree with lazy tags (max): rectangle add and rectangle assign together with rectangle max, over points known up
 // front (any integers, negative is fine). O(sqrt N) per rectangle op, O(log N) per point op, linear memory. A tree of
-// trees can't do rectangle updates with these queries (a tag can't be pushed down its outer tree); this can, because
-// it is one tree: the points are split in half by x, each half by y, and so on, every node keeps the bounding box of
-// its points, and a rectangle op only opens the nodes whose box the rectangle's border crosses (about sqrt N of
-// them). The constructor takes every (x, y) that will ever be used; every point starts at 0. Rectangles are
-// inclusive, x1..x2 by y1..y2, and their corners can be any integers; a rectangle update touches the given points
-// inside it. A min / max over a rectangle with no given point in it is NO_MAX.
+// trees can't do rectangle updates with these queries (a tag can't be pushed down its outer tree); this can, because it
+// is one tree: the points are split in half by x, each half by y, and so on, every node keeps the bounding box of its
+// points, and a rectangle op only opens the nodes whose box the rectangle's border crosses (about sqrt N of them). The
+// constructor takes every (x, y) that will ever be used; every point starts at 0. Rectangles are inclusive, x1..x2 by
+// y1..y2, and their corners can be any integers; a rectangle update touches the given points inside it. A min / max
+// over a rectangle with no given point in it is NO_MAX.
 // T is any integer type (int, long long, ...). Coordinates are long long.
 template <typename T>
 struct KdTree2D {
@@ -87,8 +87,7 @@ struct KdTree2D {
     HotVector<T> mx;
 
     // O(N log N) -- points: every (x, y) that will ever be used (negative is fine, repeats are fine); needs at least
-    // one,
-    // else throws invalid_argument
+    // one, else throws invalid_argument
     explicit KdTree2D(vector<pair<ll, ll>> points) : pts(std::move(points)) {
         if (pts.empty()) throw invalid_argument("KdTree2D: needs at least one point");
         sort(pts.begin(), pts.end());

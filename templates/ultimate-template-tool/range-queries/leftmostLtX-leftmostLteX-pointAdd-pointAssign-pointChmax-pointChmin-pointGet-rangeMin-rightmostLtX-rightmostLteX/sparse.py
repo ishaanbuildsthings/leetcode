@@ -57,7 +57,7 @@ class SparseMinSearchTree:
             self.mn[p ^ SALT] = u if u < w else w
             p >>= 1
 
-    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -79,7 +79,8 @@ class SparseMinSearchTree:
             r >>= 1
         return res
 
-    # O(logU) -- first i in [l, r] with a[i] <= x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[i] <= x, or lo - 1; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -99,7 +100,8 @@ class SparseMinSearchTree:
             if not p & (p - 1):  # walked off the right edge
                 return self.lo - 1
 
-    # O(logU) -- last i in [l, r] with a[i] <= x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] <= x, or lo - 1; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -119,7 +121,8 @@ class SparseMinSearchTree:
             if not p & (p - 1):  # walked off the left edge
                 return self.lo - 1
 
-    # O(logU) -- first i in [l, r] with a[i] < x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[i] < x, or lo - 1; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -139,7 +142,8 @@ class SparseMinSearchTree:
             if not p & (p - 1):  # walked off the right edge
                 return self.lo - 1
 
-    # O(logU) -- last i in [l, r] with a[i] < x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] < x, or lo - 1; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -159,7 +163,7 @@ class SparseMinSearchTree:
             if not p & (p - 1):  # walked off the left edge
                 return self.lo - 1
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

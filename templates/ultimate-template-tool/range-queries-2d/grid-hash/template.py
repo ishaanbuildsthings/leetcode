@@ -27,8 +27,8 @@ _HO = random.randrange(1, _HP)  # value v hashes as v + _HO: no common value has
 # equal rectangles hash equal wherever they sit, so two rectangles of the same size can be compared in O(1). A cell
 # (i, j) of a rectangle counts as value * A^(rows below it) * B^(columns right of it), mod the prime 2^61 - 1; the
 # prefix table then gives a rectangle from four entries, each shifted by a power of A and B. Both bases and a value
-# offset are picked at random each run, so no test can be built against them. Cells can be numbers or single
-# characters. No updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.
+# offset are picked at random each run, so no test can be built against them. Cells can be numbers or single characters.
+# No updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.
 class Hash2D:
     __slots__ = ("R", "C", "W", "pre", "powR", "powC")
 
@@ -75,8 +75,7 @@ class Hash2D:
         return self._hashOf(r1, c1, r2, c2)
 
     # O(1) -- is the rectangle rows r1..r2, columns c1..c2 equal, cell by cell, to the same-size rectangle whose
-    # top-left
-    # cell is (r3, c3); needs both inside the grid, else IndexError
+    # top-left cell is (r3, c3); needs both inside the grid, else IndexError
     def rectsEqual(self, r1, c1, r2, c2, r3, c3):
         r4 = r3 + r2 - r1
         c4 = c3 + c2 - c1

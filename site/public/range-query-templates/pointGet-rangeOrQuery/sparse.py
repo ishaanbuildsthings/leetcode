@@ -32,7 +32,7 @@ class SparseOr:
                     val |= self.sparse[power - 1][rightEdge]
                 self.sparse[power][left] = val
 
-    # O(logN) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else IndexError
+    # O(1) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrQuery(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeOrQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -44,11 +44,17 @@ class SparseOr:
             self.sparse[maxPow][l + width - powWidth]
         )
 
-    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.sparse[0][i]
+
+    # O(1) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
 # ======================================================================================== sparse wrapper
 
@@ -84,13 +90,14 @@ class SparseStaticOr:
         self.starts = starts
         self.inner = SparseOr(arr)
 
-    # O(logN) -- range or of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- range or of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeOrQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeOrQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.inner.rangeOrQuery(bisect_right(self.starts, l) - 1, bisect_right(self.starts, r) - 1)
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

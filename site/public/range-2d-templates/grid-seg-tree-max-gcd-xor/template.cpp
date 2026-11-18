@@ -213,32 +213,28 @@ struct SegTree2D {
     }
 
     // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteLte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(0, 0, r, c);
     }
 
     // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteGte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(0, c, r, C - 1);
     }
 
     // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteLte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(r, 0, R - 1, c);
     }
 
     // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteGte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(r, c, R - 1, C - 1);
@@ -302,8 +298,7 @@ struct SegTree2D {
     }
 
     // O(log R * log C) -- xor of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0 <= r1 <=
-    // r2
-    // < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    // r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectXor(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectXor: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

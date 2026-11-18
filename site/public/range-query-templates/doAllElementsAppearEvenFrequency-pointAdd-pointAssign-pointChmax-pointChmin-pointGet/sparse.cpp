@@ -133,8 +133,8 @@ struct SparseXorEven {
         return z ^ (z >> 31);
     }
 
-    // O(logU) -- true iff every value in a[l..r] appears an even number of times; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logU) -- true iff every value in a[l..r] appears an even number of times; never-updated indices count as 0;
+    // needs lo <= l <= r <= hi, else throws out_of_range
     bool doAllElementsAppearEvenFrequency(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("doAllElementsAppearEvenFrequency: needs lo <= l <= r <= hi");
         U64 h = prefix(r) ^ prefix(l - 1);
@@ -150,7 +150,7 @@ struct SparseXorEven {
         pool[leafOf(i)].v = v;
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return valueAt(i);

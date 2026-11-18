@@ -261,19 +261,19 @@ class SparseShrinkSeg:
             raise IndexError(f"pointAssign: needs lo <= pos <= hi, got pos = {pos}")
         self.rangeAssign(pos, pos, v)
 
-    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return None if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
-    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return None if (l > r) else self._qmin(1, self.lo, self.hi, l, r)
 
-    # O(logU) -- a[pos]; needs lo <= pos <= hi, else IndexError
+    # O(logU) -- a[pos]; 0 if never updated; needs lo <= pos <= hi, else IndexError
     def pointGet(self, pos):
         if not self.lo <= pos <= self.hi:
             raise IndexError(f"pointGet: needs lo <= pos <= hi, got pos = {pos}")

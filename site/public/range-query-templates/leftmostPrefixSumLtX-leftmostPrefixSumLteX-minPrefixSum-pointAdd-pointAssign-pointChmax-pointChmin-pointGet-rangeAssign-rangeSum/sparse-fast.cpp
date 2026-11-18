@@ -88,8 +88,8 @@ struct SparseLazySegTree {
         newZero(D);
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostPrefixSumLtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -113,8 +113,8 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostPrefixSumLteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -138,7 +138,8 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S minPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -175,7 +176,7 @@ struct SparseLazySegTree {
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) {
         if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
@@ -188,7 +189,8 @@ struct SparseLazySegTree {
         update(1, D, first, l, r, [&](int t, int s, long long) { applyAssign(t, s, v); });
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE S rangeSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);

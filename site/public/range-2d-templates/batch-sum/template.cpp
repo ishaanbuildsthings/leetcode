@@ -93,9 +93,8 @@ struct OfflineRectSum {
     }
 
     // O(1) now (O(log^2 N) amortized in solve) -- records: sum of everything added so far at x1 <= x <= x2 and y1 <=
-    // y <=
-    // y2. Returns this query's number: its answer is solve()[that number]; needs x1 <= x2 and y1 <= y2, else throws
-    // out_of_range
+    // y <= y2. Returns this query's number: its answer is solve()[that number]; needs x1 <= x2 and y1 <= y2, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE int rectSum(ll x1, ll y1, ll x2, ll y2) {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectSum: needs x1 <= x2 and y1 <= y2");
         events.push_back({x1, y1, x2, y2, T(0), queries});

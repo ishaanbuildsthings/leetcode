@@ -231,8 +231,7 @@ struct SegTree2D {
     }
 
     // O(log R * log C) -- sum of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0 <= r1 <=
-    // r2
-    // < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    // r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE S rectSum(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectSum: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
@@ -280,32 +279,28 @@ struct SegTree2D {
     }
 
     // O(log R * log C) -- min of the set cells with row <= r and column <= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minLteLte: needs 0 <= r < R and 0 <= c < C");
         return minOf(0, 0, r, c);
     }
 
     // O(log R * log C) -- min of the set cells with row <= r and column >= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minLteGte: needs 0 <= r < R and 0 <= c < C");
         return minOf(0, c, r, C - 1);
     }
 
     // O(log R * log C) -- min of the set cells with row >= r and column <= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minGteLte: needs 0 <= r < R and 0 <= c < C");
         return minOf(r, 0, R - 1, c);
     }
 
     // O(log R * log C) -- min of the set cells with row >= r and column >= c (NO_MIN if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minGteGte: needs 0 <= r < R and 0 <= c < C");
         return minOf(r, c, R - 1, C - 1);
@@ -369,8 +364,7 @@ struct SegTree2D {
     }
 
     // O(log R * log C) -- xor of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0 <= r1 <=
-    // r2
-    // < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    // r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectXor(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectXor: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

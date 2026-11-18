@@ -36,6 +36,9 @@ def header(cm, ops, dtype, comp, mem, note):
 def dense_body(folder, ext):
     """The dense template file without its @ header."""
     lines = strip_attribution(open(os.path.join(DIR, folder, f"template.{ext}")).read()).split("\n")
+    # (a finished template.cpp carries add_cpp_prelude.py's include / using lines before its header: skip them)
+    while lines and (lines[0].startswith(("#include", "using ")) or lines[0] == ""):
+        lines.pop(0)
     k = 0
     while k < len(lines) and HEADER_LINE.match(lines[k]):
         k += 1
@@ -720,7 +723,7 @@ class _PieceCost:
 
 
 def _pieces(lo, hi, pts, c):
-    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for given values pts over [lo, hi]."""
+    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for strict costs) for given values pts over [lo, hi]."""
     starts, v, w, slope = [], [], [], []
     prev = lo - 1
     for i, x in pts:

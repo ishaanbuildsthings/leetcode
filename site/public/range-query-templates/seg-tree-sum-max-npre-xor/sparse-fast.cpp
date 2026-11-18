@@ -93,8 +93,8 @@ struct SparseSegTree {
         newZero(D);
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostGtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -115,8 +115,8 @@ struct SparseSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostGteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -137,8 +137,8 @@ struct SparseSegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostPrefixSumLtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -162,8 +162,8 @@ struct SparseSegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums);
+    // never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostPrefixSumLteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -187,7 +187,8 @@ struct SparseSegTree {
         return first - 1;
     }
 
-    // O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE S minPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -224,14 +225,14 @@ struct SparseSegTree {
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) {
         if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
         return leaf(leafOf(i, path));
     }
 
-    // O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeMax(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -240,7 +241,8 @@ struct SparseSegTree {
         return res;
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE S rangeSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -249,7 +251,8 @@ struct SparseSegTree {
         return res;
     }
 
-    // O(logU) -- a[l] ^ ... ^ a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] ^ ... ^ a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeXorQuery(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeXorQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -258,8 +261,8 @@ struct SparseSegTree {
         return res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostGtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -280,8 +283,8 @@ struct SparseSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostGteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];

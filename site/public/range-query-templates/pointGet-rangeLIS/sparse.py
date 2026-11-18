@@ -265,7 +265,7 @@ class RangeLIS:
             return 0
         return (r - l + 1) - self._countPrefix(l, self.n - 1, bisect_right(self.sortedVals, r))
 
-    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -306,13 +306,14 @@ class SparseStaticLIS:
         self.starts = starts
         self.inner = RangeLIS(arr)
 
-    # O(logN) -- range lis of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- range lis of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeLIS(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeLIS: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.inner.rangeLIS(bisect_right(self.starts, l) - 1, bisect_right(self.starts, r) - 1)
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

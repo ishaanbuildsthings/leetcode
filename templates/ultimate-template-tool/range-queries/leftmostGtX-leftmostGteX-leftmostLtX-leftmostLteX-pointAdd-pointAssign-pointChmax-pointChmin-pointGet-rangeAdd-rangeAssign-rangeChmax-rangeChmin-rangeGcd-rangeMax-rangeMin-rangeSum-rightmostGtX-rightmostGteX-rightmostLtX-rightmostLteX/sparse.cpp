@@ -262,31 +262,33 @@ struct SparseBeatsGcd {
         if (l <= r) assign(root, lo, hi, l, r, x);
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     S rangeSum(long long l, long long r) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         return l > r ? S(0) : qsum(root, lo, hi, l, r);
     }
 
-    // O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeMax(long long l, long long r) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         return l > r ? NEG_INF : qmax(root, lo, hi, l, r);
     }
 
-    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeMin(long long l, long long r) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         return l > r ? POS_INF : qmin(root, lo, hi, l, r);
     }
 
-    // O(logU logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU logU) -- gcd of |a[l]|, ..., |a[r]|; never-updated indices count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     T rangeGcd(long long l, long long r) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         return l > r ? T(0) : qgcd(root, lo, hi, l, r);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return rangeMax(i, i);
@@ -316,64 +318,64 @@ struct SparseBeatsGcd {
         rangeAdd(i, i, delta);
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGtX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return t[i].mx > x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGteX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return t[i].mx >= x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return t[i].mn < x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return t[i].mn <= x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGtX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return t[i].mx > x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGteX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return t[i].mx >= x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return t[i].mn < x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return t[i].mn <= x; });

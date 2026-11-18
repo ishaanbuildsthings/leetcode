@@ -162,7 +162,7 @@ struct SparseChminChmaxTree {
         if (l <= r) update(root, lo, hi, l, r, Tag{v, v});
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         Agg res = query(root, lo, hi, i, i, ID);

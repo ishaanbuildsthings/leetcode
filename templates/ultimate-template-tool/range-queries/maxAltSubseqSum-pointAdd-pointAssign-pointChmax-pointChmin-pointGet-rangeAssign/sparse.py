@@ -53,8 +53,8 @@ class SparseLazySegTree:
         self.hasAsg = [0]
         self._newZero(self.D)
 
-    # O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; never-updated indices count as
+    # 0; needs lo <= l <= r <= hi, else IndexError
     def maxAltSubseqSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxAltSubseqSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -98,7 +98,7 @@ class SparseLazySegTree:
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.first <= i <= self.last:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

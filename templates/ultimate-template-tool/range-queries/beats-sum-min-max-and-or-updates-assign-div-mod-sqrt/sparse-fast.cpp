@@ -104,8 +104,8 @@ struct SparseShrinkSegTree {
         newZero(D);
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostGtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -126,8 +126,8 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostGteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -148,8 +148,8 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostLtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -170,8 +170,8 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostLteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -220,14 +220,15 @@ struct SparseShrinkSegTree {
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) {
         if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
         return leaf(leafOf(i, path));
     }
 
-    // O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] & ... & a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeAndQuery(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -261,7 +262,7 @@ struct SparseShrinkSegTree {
         });
     }
 
-    // O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeMax(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -270,7 +271,7 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeMin(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -289,7 +290,8 @@ struct SparseShrinkSegTree {
             });
     }
 
-    // O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] | ... | a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeOrQuery(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeOrQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -298,7 +300,8 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE S rangeSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
@@ -307,8 +310,8 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostGtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -329,8 +332,8 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostGteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -351,8 +354,8 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostLtX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
@@ -373,8 +376,8 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostLteX(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];

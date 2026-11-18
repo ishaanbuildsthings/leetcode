@@ -135,8 +135,7 @@ struct Fenwick3D {
     }
 
     // O(log X * log Y * log Z) -- sum of the box x1..x2, y1..y2, z1..z2; needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y
-    // and 0
-    // <= z1 <= z2 < Z, else throws out_of_range
+    // and 0 <= z1 <= z2 < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE S boxSum(int x1, int y1, int z1, int x2, int y2, int z2) const {
         if (x1 < 0 || x1 > x2 || x2 >= X || y1 < 0 || y1 > y2 || y2 >= Y || z1 < 0 || z1 > z2 || z2 >= Z)
             throw out_of_range("boxSum: needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z");

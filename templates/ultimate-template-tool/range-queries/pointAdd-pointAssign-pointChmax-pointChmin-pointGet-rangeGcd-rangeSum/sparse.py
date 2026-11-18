@@ -71,13 +71,14 @@ class SparseSegTree:
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.first <= i <= self.last:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]|; never-updated indices count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeGcd(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -86,7 +87,7 @@ class SparseSegTree:
             res = gcd(res, g[t])
         return res
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

@@ -41,8 +41,8 @@ POS = float("inf")  # an empty cell in the min array
 
 
 # 2D segment tree (sum, min, max, xor, AND): point updates and any-rectangle queries on an R x C grid, O(log R * log
-# C) each. A tree over the rows whose every node is a tree over the columns, bottom-up, in one flat array per
-# aggregate. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2. A cell can be
+# C) each. A tree over the rows whose every node is a tree over the columns, bottom-up, in one flat array per aggregate.
+# Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2. A cell can be
 # empty (None in the grid) and queries only see set cells: a min / max over no set cell is None; a sum / xor over none
 # is 0; an AND over none is -1 (every bit set).
 class SegTree2D:

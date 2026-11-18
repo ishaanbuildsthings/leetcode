@@ -75,7 +75,7 @@ class SparseRangeMultModTree:
                 self._apply(2 * x, v)
                 self._apply(2 * x + 1, v)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

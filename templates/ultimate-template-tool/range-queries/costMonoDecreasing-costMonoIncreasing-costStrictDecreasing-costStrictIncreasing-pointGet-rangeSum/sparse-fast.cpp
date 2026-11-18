@@ -190,7 +190,8 @@ struct SparseMonoCosts {
         return *v;
     }
 
-    // O(logN) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- a[l] + ... + a[r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE long long rangeSum(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         if (l > r) return 0;
@@ -199,33 +200,35 @@ struct SparseMonoCosts {
         return (long long)(pf[b] - pf[a]);
     }
 
-    // O(logN) -- min +1 increments to make a[l..r] non-decreasing; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- min +1 increments to make a[l..r] non-decreasing; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long costMonoIncreasing(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("costMonoIncreasing: needs lo <= l <= r <= hi");
         return view(false, false).cost(l, r);
     }
 
-    // O(logN) -- min +1 increments to make a[l..r] non-increasing; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- min +1 increments to make a[l..r] non-increasing; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long costMonoDecreasing(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("costMonoDecreasing: needs lo <= l <= r <= hi");
         return view(true, false).cost(lo + hi - r, lo + hi - l);
     }
 
-    // O(logN) -- min +1 increments to make a[l..r] strictly increasing; needs lo <= l <= r <= hi, else throws
-    // out_of_range
+    // O(logN) -- min +1 increments to make a[l..r] strictly increasing; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long costStrictIncreasing(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("costStrictIncreasing: needs lo <= l <= r <= hi");
         return view(false, true).cost(l, r);
     }
 
-    // O(logN) -- min +1 increments to make a[l..r] strictly decreasing; needs lo <= l <= r <= hi, else throws
-    // out_of_range
+    // O(logN) -- min +1 increments to make a[l..r] strictly decreasing; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long costStrictDecreasing(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("costStrictDecreasing: needs lo <= l <= r <= hi");
         return view(true, true).cost(lo + hi - r, lo + hi - l);
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);

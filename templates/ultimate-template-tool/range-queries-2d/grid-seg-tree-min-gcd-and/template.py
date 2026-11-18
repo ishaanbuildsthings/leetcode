@@ -290,8 +290,7 @@ class SegTree2D:
         return res
 
     # O(log R * log C + log U) -- gcd of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0
-    # <= r1
-    # <= r2 < R and 0 <= c1 <= c2 < C, else IndexError
+    # <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else IndexError
     def rectGcd(self, r1, c1, r2, c2):
         if not (0 <= r1 <= r2 < self.R and 0 <= c1 <= c2 < self.C):
             raise IndexError(f"rectGcd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "

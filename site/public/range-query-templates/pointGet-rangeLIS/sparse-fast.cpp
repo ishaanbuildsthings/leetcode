@@ -231,7 +231,7 @@ struct RangeLIS {
         return (r - l + 1) - countPrefix(l, n - 1, p);
     }
 
-    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];
@@ -308,13 +308,14 @@ struct SparseStaticLIS {
         return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1;
     }
 
-    // O(logN) -- range lis of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- range lis of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE int rangeLIS(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeLIS: needs lo <= l <= r <= hi");
         return inner.rangeLIS(element(l), element(r));
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);

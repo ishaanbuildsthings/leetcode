@@ -71,8 +71,8 @@ class SparseXorEven:
             x &= x - 1
         return s
 
-    # O(logU) -- True iff every value in a[l..r] appears an even number of times; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logU) -- True iff every value in a[l..r] appears an even number of times; never-updated indices count as 0;
+    # needs lo <= l <= r <= hi, else IndexError
     def doAllElementsAppearEvenFrequency(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"doAllElementsAppearEvenFrequency: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -93,7 +93,7 @@ class SparseXorEven:
         if d:
             self._add(i, d)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

@@ -107,14 +107,14 @@ struct SparseRangeAddRangeGcd {
         if (r < hi) shiftDiff(r + 1, -x);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return prefix(i);
     }
 
-    // O(logU) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0); needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0); never-updated indices count
+    // as 0; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeGcd(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         T res = absT(prefix(l));

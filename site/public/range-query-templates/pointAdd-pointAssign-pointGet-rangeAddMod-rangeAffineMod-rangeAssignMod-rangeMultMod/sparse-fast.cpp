@@ -170,7 +170,7 @@ struct SparseAffineTree {
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(mult), norm(add)});
     }
 
-    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i], in [0, mod); 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         Agg res = query(root, lo, hi, i, i, ID);

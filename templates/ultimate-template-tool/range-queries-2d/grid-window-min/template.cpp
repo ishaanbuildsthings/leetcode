@@ -62,8 +62,7 @@ struct WindowMin2D {
     HotVector<T> mn;
 
     // O(R*C) -- grid: R rows of C numbers each; windows are h rows by w columns; needs 1 <= h <= R and 1 <= w <= C,
-    // else
-    // throws invalid_argument
+    // else throws invalid_argument
     WindowMin2D(const vector<vector<T>>& grid, int h, int w)
         : R((int)grid.size()), C(grid.empty() ? 0 : (int)grid[0].size()), h(h), w(w), outW(C - w + 1) {
         if (R < 1 || C < 1) throw invalid_argument("WindowMin2D: needs R >= 1 and C >= 1");

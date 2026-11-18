@@ -257,8 +257,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- min of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN if there are none); needs xLo
-    // <= x1
-    // <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws out_of_range
+    // <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectMin(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 < xLo || x1 > x2 || x2 > xHi || y1 < yLo || y1 > y2 || y2 > yHi)
             throw out_of_range("rectMin: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi");
@@ -271,8 +270,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- min of the set cells with x <= the given x and y <= the given y (NO_MIN if there are none); needs
-    // xLo
-    // <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
+    // xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteLte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -280,8 +278,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- min of the set cells with x <= the given x and y >= the given y (NO_MIN if there are none); needs
-    // xLo
-    // <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
+    // xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteGte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -289,8 +286,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- min of the set cells with x >= the given x and y <= the given y (NO_MIN if there are none); needs
-    // xLo
-    // <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
+    // xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteLte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -298,8 +294,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- min of the set cells with x >= the given x and y >= the given y (NO_MIN if there are none); needs
-    // xLo
-    // <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
+    // xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteGte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");

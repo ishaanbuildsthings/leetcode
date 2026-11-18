@@ -263,22 +263,22 @@ class SparseBitBeats:
         if kind == 1: return a & b
         return a | b
 
-    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return None if (l > r) else self._q(1, self.lo, self.hi, l, r, 0)
-    # O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] & ... & a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeAndQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.FULL if (l > r) else self._q(1, self.lo, self.hi, l, r, 1)
-    # O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] | ... | a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeOrQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeOrQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 2)
-    # O(logU) -- a[p]; needs lo <= p <= hi, else IndexError
+    # O(logU) -- a[p]; 0 if never updated; needs lo <= p <= hi, else IndexError
     def pointGet(self, p):
         if not self.lo <= p <= self.hi:
             raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")
@@ -304,8 +304,8 @@ class SparseBitBeats:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -313,8 +313,8 @@ class SparseBitBeats:
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] < x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated
+    # indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -322,8 +322,8 @@ class SparseBitBeats:
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] <= x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -331,8 +331,8 @@ class SparseBitBeats:
         res = self._lastPass(1, self.lo, self.hi, l, r, lambda i: F[i] < x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

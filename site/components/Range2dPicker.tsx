@@ -4,27 +4,25 @@ import { TemplatePicker, type PickerCatalog } from "@/components/TemplatePicker"
 import { GENERIC_SPARSE_TABLES_2D } from "@/lib/generic-seg-trees";
 import { RANGE_2D_MANIFEST } from "@/lib/generated/range-2d-templates";
 import {
-  RANGE_2D_INPUTS,
   RANGE_2D_INPUT_OPTIONS,
+  RANGE_2D_MODES,
   RANGE_2D_OP_GROUPS,
   RANGE_2D_PLANNED,
   RANGE_2D_TYPES,
   RANGE_2D_UPDATE_OPS,
   decodeRange2dTemplates,
   range2dKindLabel,
-  type Range2dInput,
+  type Range2dMode,
   type Range2dTemplate,
 } from "@/lib/range-2d-picker";
 
 // Written by the generators in templates/ultimate-template-tool/range-query-2d-tests/generators
 // (npm run gen:range-queries-2d). An op with no template yet reads "No template covers this selection yet."
 const TEMPLATES = decodeRange2dTemplates(RANGE_2D_MANIFEST);
-const BY_INPUT = Object.fromEntries(RANGE_2D_INPUTS.map((input) => [input, TEMPLATES.filter((t) => t.input === input)])) as Record<
-  Range2dInput,
+const BY_INPUT = Object.fromEntries(RANGE_2D_MODES.map((input) => [input, TEMPLATES.filter((t) => t.input === input)])) as Record<
+  Range2dMode,
   Range2dTemplate[]
 >;
-
-const isMinMax = (op: string) => /^(rect|square|window|box)?(Min|Max)$|^(min|max)(All|Lte|Gte)/.test(op);
 
 const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   title: "2D Range Query Picker",
@@ -40,8 +38,8 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
     ariaLabel: "What you know about the coordinates ahead of time",
     storageKey: "range2dPicker.input",
     options: RANGE_2D_INPUT_OPTIONS,
-    parse: (stored) => ((RANGE_2D_INPUTS as readonly string[]).includes(stored ?? "") ? (stored as string) : "grid"),
-    views: (mode) => BY_INPUT[mode as Range2dInput] ?? [],
+    parse: (stored) => ((RANGE_2D_MODES as readonly string[]).includes(stored ?? "") ? (stored as string) : "grid"),
+    views: (mode) => BY_INPUT[mode as Range2dMode] ?? [],
   },
   kindLabel: range2dKindLabel,
   memoryGroups: (t) => [
@@ -63,20 +61,15 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
     },
     h: { py: "h: the window's height (rows)", cpp: "h: the window's height (rows)" },
     w: { py: "w: the window's width (columns)", cpp: "w: the window's width (columns)" },
-    X: { py: "X: the first side: x is 0..X-1", cpp: "X: the first side: x is 0..X-1" },
-    Y: { py: "Y: the second side: y is 0..Y-1", cpp: "Y: the second side: y is 0..Y-1" },
-    Z: { py: "Z: the third side: z is 0..Z-1", cpp: "Z: the third side: z is 0..Z-1" },
   }),
   ctorComments: (t) => [
     ...(t.emptyCells
       ? ["Cells can be empty: queries only see cells that have been set."]
-      : t.input === "points" || t.input === "grid-3d"
+      : t.input === "points"
         ? ["Everything starts at 0."]
         : []),
     ...(t.nonNegative ? ["Values must be >= 0."] : []),
   ],
-  // a min / max over nothing has no number to give back
-  queryNote: (t, op) => (t.emptyCells && isMinMax(op) ? "nothing (None in Python, NO_MAX / NO_MIN in C++) when no set cell is inside" : ""),
 };
 
 export function Range2dPicker() {

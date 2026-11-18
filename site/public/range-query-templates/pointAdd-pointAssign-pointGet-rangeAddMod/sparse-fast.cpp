@@ -134,7 +134,7 @@ struct SparseRangeAddBITMod {
         if (r < hi) add(r + 1 - lo, F{norm(-W(x))});
     }
 
-    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i], in [0, mod); 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return norm(prefix(i - lo)[0]);

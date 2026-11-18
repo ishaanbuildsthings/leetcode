@@ -138,8 +138,7 @@ class PointsSegTree2D:
         self._set(x, y, v)
 
     # O(log^2 N) gcds -- adds v to the point (x, y); an empty point becomes v; needs (x, y) to be one of the points
-    # given,
-    # else IndexError
+    # given, else IndexError
     def pointAdd(self, x, y, v):
         i = self._index(x, y, "pointAdd")
         cur = self.vals[i]
@@ -149,8 +148,7 @@ class PointsSegTree2D:
         self._set(x, y, v)
 
     # O(log^2 N) gcds -- the point (x, y) becomes max(itself, v); an empty point becomes v; needs (x, y) to be one of
-    # the
-    # points given, else IndexError
+    # the points given, else IndexError
     def pointChmax(self, x, y, v):
         i = self._index(x, y, "pointChmax")
         cur = self.vals[i]
@@ -159,8 +157,7 @@ class PointsSegTree2D:
             self._set(x, y, v)
 
     # O(log^2 N) gcds -- the point (x, y) becomes min(itself, v); an empty point becomes v; needs (x, y) to be one of
-    # the
-    # points given, else IndexError
+    # the points given, else IndexError
     def pointChmin(self, x, y, v):
         i = self._index(x, y, "pointChmin")
         cur = self.vals[i]
@@ -349,8 +346,7 @@ class PointsSegTree2D:
         return res
 
     # O(log^2 N + log U) -- gcd of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs x1
-    # <=
-    # x2 and y1 <= y2, else IndexError
+    # <= x2 and y1 <= y2, else IndexError
     def rectGcd(self, x1, y1, x2, y2):
         if x1 > x2 or y1 > y2:
             raise IndexError(f"rectGcd: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, y2 = {y2}")

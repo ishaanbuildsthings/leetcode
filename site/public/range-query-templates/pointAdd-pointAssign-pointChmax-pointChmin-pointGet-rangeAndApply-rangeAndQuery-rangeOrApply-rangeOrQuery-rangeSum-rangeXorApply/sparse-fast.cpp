@@ -178,28 +178,31 @@ struct SparseBitCountTree {
         if (l <= r) update(root, lo, hi, l, r, Tag{FULL, T(X & FULL)});
     }
 
-    // O(logU * logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE S rangeSum(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return [&] { S s = 0; for (int b = 0; b < BITS; b++) s += S(res.c[b]) << b; return s; }();
     }
 
-    // O(logU * logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[l] & ... & a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeAndQuery(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return [&] { T v = 0; for (int b = 0; b < BITS; b++) if (res.c[b] == r - l + 1) v |= T(1) << b; return v; }();
     }
 
-    // O(logU * logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- a[l] | ... | a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeOrQuery(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeOrQuery: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return [&] { T v = 0; for (int b = 0; b < BITS; b++) if (res.c[b]) v |= T(1) << b; return v; }();
     }
 
-    // O(logU * logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         Agg res = query(root, lo, hi, i, i, ID);

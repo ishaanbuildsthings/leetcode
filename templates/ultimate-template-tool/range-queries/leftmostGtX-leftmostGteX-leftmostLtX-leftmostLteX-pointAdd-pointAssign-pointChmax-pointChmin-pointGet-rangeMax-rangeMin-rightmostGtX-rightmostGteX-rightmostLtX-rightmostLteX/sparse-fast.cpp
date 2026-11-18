@@ -145,7 +145,7 @@ struct SparseMaxMinSearchTree {
         return max(foldmx(pool[x].l, a, m, l, r), foldmx(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeMax(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         return foldmx(root, lo, hi, l, r);
@@ -158,7 +158,7 @@ struct SparseMaxMinSearchTree {
         return min(foldmn(pool[x].l, a, m, l, r), foldmn(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rangeMin(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         return foldmn(root, lo, hi, l, r);
@@ -180,13 +180,15 @@ struct SparseMaxMinSearchTree {
         return res != lo - 1 ? res : rightGte(pool[x].l, a, m, l, r, v);
     }
 
-    // O(logU) -- first i in [l, r] with a[i] >= x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[i] >= x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGteX: needs lo <= l <= r <= hi");
         return leftGte(root, lo, hi, l, r, x);
     }
 
-    // O(logU) -- last i in [l, r] with a[i] >= x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- last i in [l, r] with a[i] >= x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGteX: needs lo <= l <= r <= hi");
         return rightGte(root, lo, hi, l, r, x);
@@ -208,13 +210,15 @@ struct SparseMaxMinSearchTree {
         return res != lo - 1 ? res : rightGt(pool[x].l, a, m, l, r, v);
     }
 
-    // O(logU) -- first i in [l, r] with a[i] > x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[i] > x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGtX: needs lo <= l <= r <= hi");
         return leftGt(root, lo, hi, l, r, x);
     }
 
-    // O(logU) -- last i in [l, r] with a[i] > x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- last i in [l, r] with a[i] > x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGtX: needs lo <= l <= r <= hi");
         return rightGt(root, lo, hi, l, r, x);
@@ -236,13 +240,15 @@ struct SparseMaxMinSearchTree {
         return res != lo - 1 ? res : rightLte(pool[x].l, a, m, l, r, v);
     }
 
-    // O(logU) -- first i in [l, r] with a[i] <= x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[i] <= x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
         return leftLte(root, lo, hi, l, r, x);
     }
 
-    // O(logU) -- last i in [l, r] with a[i] <= x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- last i in [l, r] with a[i] <= x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
         return rightLte(root, lo, hi, l, r, x);
@@ -264,19 +270,21 @@ struct SparseMaxMinSearchTree {
         return res != lo - 1 ? res : rightLt(pool[x].l, a, m, l, r, v);
     }
 
-    // O(logU) -- first i in [l, r] with a[i] < x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- first i in [l, r] with a[i] < x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
         return leftLt(root, lo, hi, l, r, x);
     }
 
-    // O(logU) -- last i in [l, r] with a[i] < x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- last i in [l, r] with a[i] < x, or lo - 1; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
         return rightLt(root, lo, hi, l, r, x);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return pool[find(i)].v.mx;

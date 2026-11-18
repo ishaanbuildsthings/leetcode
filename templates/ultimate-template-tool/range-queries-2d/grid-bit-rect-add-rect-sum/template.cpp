@@ -144,8 +144,7 @@ struct RectAddRectSumFenwick2D {
     LEETCODE_NO_SANITIZE S get(int r, int c) const { return sumOf(r, c, r, c); }
 
     // O(log R * log C) -- adds v to every cell of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <=
-    // c2
-    // < C, else throws out_of_range
+    // c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void rectAdd(int r1, int c1, int r2, int c2, T v) {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectAdd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
@@ -187,8 +186,7 @@ struct RectAddRectSumFenwick2D {
     }
 
     // O(log R * log C) -- sum of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else
-    // throws
-    // out_of_range
+    // throws out_of_range
     LEETCODE_NO_SANITIZE S rectSum(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectSum: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

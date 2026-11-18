@@ -41,8 +41,8 @@ class SparseSegTree:
         self.an = [-1]
         self._newZero(self.D)
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumLtX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -62,8 +62,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums);
+    # never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumLteX(self, l, r, x):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"leftmostPrefixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -83,7 +83,8 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def minPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -129,13 +130,13 @@ class SparseSegTree:
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.first <= i <= self.last:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] & ... & a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeAndQuery(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -144,7 +145,7 @@ class SparseSegTree:
             res &= an[t]
         return res
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

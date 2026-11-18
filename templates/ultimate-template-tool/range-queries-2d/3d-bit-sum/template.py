@@ -119,8 +119,7 @@ class Fenwick3D:
             self._set(x, y, z, v)
 
     # O(log X * log Y * log Z) -- sum of the box x1..x2, y1..y2, z1..z2; needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y
-    # and 0
-    # <= z1 <= z2 < Z, else IndexError
+    # and 0 <= z1 <= z2 < Z, else IndexError
     def boxSum(self, x1, y1, z1, x2, y2, z2):
         if not (0 <= x1 <= x2 < self.X and 0 <= y1 <= y2 < self.Y and 0 <= z1 <= z2 < self.Z):
             raise IndexError(f"boxSum: needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z, "

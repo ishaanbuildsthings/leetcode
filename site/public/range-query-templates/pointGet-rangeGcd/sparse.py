@@ -30,7 +30,7 @@ class SparseGcd:
                 if rightEdge < self.n:
                     val = gcd(val, self.sparse[power - 1][rightEdge])
                 self.sparse[power][left] = val
-    # O(logN + logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs 0 <= l <= r < n, else IndexError
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs 0 <= l <= r < n, else IndexError
     def rangeGcd(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -42,11 +42,17 @@ class SparseGcd:
             self.sparse[maxPow][l + width - powWidth]
         )
 
-    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.sparse[0][i]
+
+    # O(log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.n < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.n - 1)
 
 # ======================================================================================== sparse wrapper
 
@@ -82,13 +88,14 @@ class SparseStaticGcd:
         self.starts = starts
         self.inner = SparseGcd(arr)
 
-    # O(logN + logU) -- range gcd of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- range gcd of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeGcd(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.inner.rangeGcd(bisect_right(self.starts, l) - 1, bisect_right(self.starts, r) - 1)
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

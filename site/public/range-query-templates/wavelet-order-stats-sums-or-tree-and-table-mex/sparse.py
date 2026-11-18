@@ -90,7 +90,7 @@ class WaveletMatrix:
         self.at.append(self._andTab([srt[v] for v in cur]))  # (the final order)
         self._buildMex()
 
-    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -566,21 +566,23 @@ class SparseWaveletMatrix:
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0
 
-    # O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- # of i in [l, r] with a[i] == x; indices not given in values count as 0; needs lo <= l <= r <= hi,
+    # else IndexError
     def countOccurrences(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return (self.inner.countOccurrences(i0, i1, x) if i0 <= i1 else 0) + (zeros if x == 0 else 0)
 
-    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def countInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countInValRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -588,36 +590,40 @@ class SparseWaveletMatrix:
         inside = self.inner.countInValRange(i0, i1, lowVal, highVal) if i0 <= i1 else 0
         return inside + (zeros if lowVal <= 0 <= highVal else 0)
 
-    # O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- # of values < x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def countLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return (self.inner.countLtX(i0, i1, x) if i0 <= i1 else 0) + (zeros if 0 < x else 0)
 
-    # O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- # of values <= x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def countLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return (self.inner.countLteX(i0, i1, x) if i0 <= i1 else 0) + (zeros if 0 <= x else 0)
 
-    # O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- # of values > x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def countGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return (self.inner.countGtX(i0, i1, x) if i0 <= i1 else 0) + (zeros if 0 > x else 0)
 
-    # O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- # of values >= x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    # IndexError
     def countGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return (self.inner.countGteX(i0, i1, x) if i0 <= i1 else 0) + (zeros if 0 >= x else 0)
 
-    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
-    # else IndexError
+    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); indices not given in values count as 0; needs
+    # lo <= l <= r <= hi and 1 <= k <= r - l + 1, else IndexError
     def kthSmallest(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"kthSmallest: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -625,19 +631,20 @@ class SparseWaveletMatrix:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
 
-    # O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- min of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._kth(l, r, 1)
 
-    # O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- max of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._kth(l, r, r - l + 1)
 
-    # O(logN) -- smallest value >= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- smallest value >= x in a[l..r], or None; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def smallestGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"smallestGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -647,7 +654,8 @@ class SparseWaveletMatrix:
             a = 0 if a is None else min(a, 0)
         return a
 
-    # O(logN) -- smallest value > x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- smallest value > x in a[l..r], or None; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def smallestGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"smallestGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -657,7 +665,8 @@ class SparseWaveletMatrix:
             a = 0 if a is None else min(a, 0)
         return a
 
-    # O(logN) -- largest value <= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- largest value <= x in a[l..r], or None; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def largestLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"largestLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -667,7 +676,8 @@ class SparseWaveletMatrix:
             a = 0 if a is None else max(a, 0)
         return a
 
-    # O(logN) -- largest value < x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- largest value < x in a[l..r], or None; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def largestLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"largestLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -677,51 +687,55 @@ class SparseWaveletMatrix:
             a = 0 if a is None else max(a, 0)
         return a
 
-    # O(logN) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- a[l] + ... + a[r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, _ = self._span(l, r)
         return self.inner.rangeSum(i0, i1) if i0 <= i1 else 0
 
-    # O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing); indices not given
+    # in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def sumInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumInValRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, _ = self._span(l, r)
         return self.inner.sumInValRange(i0, i1, lowVal, highVal) if i0 <= i1 else 0
 
-    # O(logN) -- sum of the values < x in a[l..r] (the zeros add nothing); needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- sum of the values < x in a[l..r] (the zeros add nothing); indices not given in values count as 0;
+    # needs lo <= l <= r <= hi, else IndexError
     def sumLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, _ = self._span(l, r)
         return self.inner.sumLtX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- sum of the values <= x in a[l..r] (the zeros add nothing); needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- sum of the values <= x in a[l..r] (the zeros add nothing); indices not given in values count as 0;
+    # needs lo <= l <= r <= hi, else IndexError
     def sumLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, _ = self._span(l, r)
         return self.inner.sumLteX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- sum of the values > x in a[l..r] (the zeros add nothing); needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- sum of the values > x in a[l..r] (the zeros add nothing); indices not given in values count as 0;
+    # needs lo <= l <= r <= hi, else IndexError
     def sumGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, _ = self._span(l, r)
         return self.inner.sumGtX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- sum of the values >= x in a[l..r] (the zeros add nothing); needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- sum of the values >= x in a[l..r] (the zeros add nothing); indices not given in values count as 0;
+    # needs lo <= l <= r <= hi, else IndexError
     def sumGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, _ = self._span(l, r)
         return self.inner.sumGteX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- sum of the k smallest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
-    # IndexError
+    # O(logN) -- sum of the k smallest values in a[l..r]; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi and 0 <= k <= r - l + 1, else IndexError
     def sumSmallestK(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumSmallestK: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -729,8 +743,8 @@ class SparseWaveletMatrix:
             raise IndexError(f"sumSmallestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, k)
 
-    # O(logN) -- sum of the k largest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
-    # IndexError
+    # O(logN) -- sum of the k largest values in a[l..r]; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi and 0 <= k <= r - l + 1, else IndexError
     def sumLargestK(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumLargestK: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -739,8 +753,8 @@ class SparseWaveletMatrix:
             raise IndexError(f"sumLargestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n) - self._sumFirst(l, r, n - k)
 
-    # O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs
-    # lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
+    # O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); indices not given in
+    # values count as 0; needs lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthSmallestRange(self, l, r, kFrom, kTo):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumKthSmallestRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -750,7 +764,8 @@ class SparseWaveletMatrix:
         return self._sumFirst(l, r, kTo) - self._sumFirst(l, r, kFrom - 1)
 
     # O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
-    # needs lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
+    # indices not given in values count as 0; needs lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else
+    # IndexError
     def sumKthLargestRange(self, l, r, kFrom, kTo):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumKthLargestRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -760,14 +775,16 @@ class SparseWaveletMatrix:
                              f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n - kFrom + 1) - self._sumFirst(l, r, n - kTo)
 
-    # O(logN) -- sum of |a[i] - x| over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- sum of |a[i] - x| over i in [l, r]; indices not given in values count as 0; needs lo <= l <= r <= hi,
+    # else IndexError
     def sumAbsDiffToX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumAbsDiffToX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return (self.inner.sumAbsDiffToX(i0, i1, x) if i0 <= i1 else 0) + zeros * abs(x)
 
-    # O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- smallest integer >= 0 that is not in a[l..r]; indices not given in values count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def rangeMex(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMex: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -776,32 +793,32 @@ class SparseWaveletMatrix:
             return 1  # all zeros
         return self.inner._mexFrom(i0, i1, 1) if zeros else self.inner.rangeMex(i0, i1)
 
-    # O(log^2 N) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(log^2 N) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing); indices not given in
+    # values count as 0; needs lo <= l <= r <= hi, else IndexError
     def orLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"orLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return self.inner.orLtX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(log^2 N) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(log^2 N) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing); indices not given
+    # in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def orLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"orLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return self.inner.orLteX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(log^2 N) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(log^2 N) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing); indices not given in
+    # values count as 0; needs lo <= l <= r <= hi, else IndexError
     def orGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"orGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return self.inner.orGtX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(log^2 N) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(log^2 N) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing); indices not given
+    # in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def orGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"orGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -809,15 +826,15 @@ class SparseWaveletMatrix:
         return self.inner.orGteX(i0, i1, x) if i0 <= i1 else 0
 
     # O(log^2 N) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none (the zeros add
-    # nothing); needs lo <= l <= r <= hi, else IndexError
+    # nothing); indices not given in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def orInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"orInValRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         return self.inner.orInValRange(i0, i1, lowVal, highVal) if i0 <= i1 else 0
 
-    # O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; indices not given in values count
+    # as 0; needs lo <= l <= r <= hi, else IndexError
     def andLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"andLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -826,8 +843,8 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andLtX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; indices not given in values
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def andLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"andLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -836,8 +853,8 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andLteX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; indices not given in values count
+    # as 0; needs lo <= l <= r <= hi, else IndexError
     def andGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"andGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -846,8 +863,8 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andGtX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; indices not given in values
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def andGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"andGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -856,8 +873,8 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andGteX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; indices
+    # not given in values count as 0; needs lo <= l <= r <= hi, else IndexError
     def andInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"andInValRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

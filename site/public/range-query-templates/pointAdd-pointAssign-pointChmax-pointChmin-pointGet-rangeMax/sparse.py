@@ -50,7 +50,7 @@ class SparseMaxTree:
             t[p ^ SALT] = a if a > b else b
             p >>= 1
 
-    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -70,7 +70,7 @@ class SparseMaxTree:
             r >>= 1
         return res
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

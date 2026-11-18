@@ -55,7 +55,7 @@ struct PersistentOrderStats {
         for (const T& v : a) root.push_back(ins(root.back(), lb(v), v));
     }
 
-    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];
@@ -274,21 +274,23 @@ struct SparsePersistentOrderStats {
         return {i0, i1, (r - l + 1) - (i1 - i0 + 1)};
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of i in [l, r] with a[i] == x; indices not given in values count as 0; needs lo <= l <= r <= hi,
+    // else throws out_of_range
     LEETCODE_NO_SANITIZE long long countOccurrences(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countOccurrences(i0, i1, x) : 0) + (x == T(0) ? zeros : 0);
     }
 
-    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -296,55 +298,62 @@ struct SparsePersistentOrderStats {
             highVal) : 0) + (lowVal <= T(0) && T(0) <= highVal ? zeros : 0);
     }
 
-    // O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values < x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE long long countLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countLtX(i0, i1, x) : 0) + (T(0) < x ? zeros : 0);
     }
 
-    // O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values <= x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE long long countLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countLteX(i0, i1, x) : 0) + (T(0) <= x ? zeros : 0);
     }
 
-    // O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values > x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE long long countGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countGtX(i0, i1, x) : 0) + (x < T(0) ? zeros : 0);
     }
 
-    // O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of values >= x in a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     LEETCODE_NO_SANITIZE long long countGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countGteX(i0, i1, x) : 0) + (x <= T(0) ? zeros : 0);
     }
 
-    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
-    // else throws out_of_range
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); indices not given in values count as 0; needs
+    // lo <= l <= r <= hi and 1 <= k <= r - l + 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T kthSmallest(long long l, long long r, long long k) const {
         if (l < lo || l > r || r > hi) throw out_of_range("kthSmallest: needs lo <= l <= r <= hi");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
 
-    // O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- min of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeMin(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         return kth(l, r, 1);
     }
 
-    // O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- max of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeMax(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         return kth(l, r, r - l + 1);
     }
 
-    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- smallest value >= x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("smallestGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -353,7 +362,8 @@ struct SparsePersistentOrderStats {
         return a;
     }
 
-    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- smallest value > x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> smallestGtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("smallestGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -362,7 +372,8 @@ struct SparsePersistentOrderStats {
         return a;
     }
 
-    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- largest value <= x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLteX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("largestLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
@@ -371,7 +382,8 @@ struct SparsePersistentOrderStats {
         return a;
     }
 
-    // O(logN) -- largest value < x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- largest value < x in a[l..r], or nullopt; indices not given in values count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE optional<T> largestLtX(long long l, long long r, T x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("largestLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);

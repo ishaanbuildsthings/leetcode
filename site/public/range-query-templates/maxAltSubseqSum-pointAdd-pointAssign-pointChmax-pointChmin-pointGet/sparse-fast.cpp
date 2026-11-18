@@ -152,15 +152,15 @@ struct SparseAltSumTree {
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU) -- best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]; needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]; never-updated
+    // indices count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE auto maxAltSubseqSum(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("maxAltSubseqSum: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r);
         return max(res.pp, res.pm);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         int x = find(i);

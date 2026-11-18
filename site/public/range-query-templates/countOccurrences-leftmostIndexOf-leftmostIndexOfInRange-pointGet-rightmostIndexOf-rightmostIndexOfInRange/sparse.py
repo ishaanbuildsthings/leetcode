@@ -45,7 +45,8 @@ class SparseStaticOccurrences:
             else:
                 pos[key] = [i]
 
-    # O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
+    # O(logN) -- # of i in [l, r] with a[i] == x; indices not given in values count as 0; needs lo <= l <= r <= hi,
+    # else IndexError
     def countOccurrences(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -57,16 +58,18 @@ class SparseStaticOccurrences:
             res += (r - l + 1) - (bisect_right(self.idx, r) - bisect_left(self.idx, l))
         return res
 
-    # O(logN) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    # O(logN) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; indices not given in values
+    # count as 0
     def leftmostIndexOf(self, x):
         return self.leftmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logN) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    # O(logN) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; indices not given in values
+    # count as 0
     def rightmostIndexOf(self, x):
         return self.rightmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; indices not given in values
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostIndexOfInRange(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -80,8 +83,8 @@ class SparseStaticOccurrences:
             best = min(best, self._firstGap(l))
         return best if best <= r else self.lo - 1
 
-    # O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; indices not given in values count
+    # as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostIndexOfInRange(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -123,7 +126,7 @@ class SparseStaticOccurrences:
                 a = m + 1
         return i - (k - a) - 1
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

@@ -104,8 +104,8 @@ class RangeMode:
 
     #################### PUBLIC METHODS START HERE ####################
 
-    # O(rootN) -- (mode, frequency) of arr[l...r] inclusive. requires needs 0 <= l <= r < n, else IndexError ties:
-    # returns any one of the tied values
+    # O(rootN) -- (mode, frequency) of arr[l...r] inclusive; on a tie, any one of the tied values; needs
+    # 0 <= l <= r < n, else IndexError
     def rangeMode(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeMode: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -149,7 +149,7 @@ class RangeMode:
 
         return self.vals[bestVal], best
 
-    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -185,8 +185,8 @@ class SparseStaticRangeMode:
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)
 
-    # O(sqrtN) -- (mode, frequency) of a[l..r]; ties: any one of the tied values; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(sqrtN) -- (mode, frequency) of a[l..r]; ties: any one of the tied values; indices not given in values count as
+    # 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMode(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMode: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -197,7 +197,7 @@ class SparseStaticRangeMode:
         f0 = zeros + self.zc[i1 + 1] - self.zc[i0]
         return (0, f0) if f0 >= f else (v, f)
 
-    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

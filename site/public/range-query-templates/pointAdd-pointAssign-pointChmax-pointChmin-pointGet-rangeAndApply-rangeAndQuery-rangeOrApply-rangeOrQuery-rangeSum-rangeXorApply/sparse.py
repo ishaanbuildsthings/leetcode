@@ -142,28 +142,28 @@ class SparseBitCountTree:
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (FULL, X & FULL))
 
-    # O(logU * logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return sum(c << b for b, c in enumerate(res))
 
-    # O(logU * logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[l] & ... & a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeAndQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return sum(1 << b for b, c in enumerate(res) if c == r - l + 1)
 
-    # O(logU * logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[l] | ... | a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeOrQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeOrQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return sum(1 << b for b, c in enumerate(res) if c)
 
-    # O(logU * logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

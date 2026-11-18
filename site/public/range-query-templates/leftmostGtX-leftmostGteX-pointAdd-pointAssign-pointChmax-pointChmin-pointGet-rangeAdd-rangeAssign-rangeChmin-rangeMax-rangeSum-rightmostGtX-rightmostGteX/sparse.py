@@ -195,7 +195,7 @@ class SparseChminChmaxBeats:
         tm = (tl + tr) // 2
         return self._sum(self.L[i], tl, tm, ql, qr) + self._sum(self.R[i], tm + 1, tr, ql, qr)
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -211,13 +211,13 @@ class SparseChminChmaxBeats:
         b = self._qmax(self.R[i], tm + 1, tr, ql, qr)
         return a if a > b else b
 
-    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[l..r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return NEG_INF if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
-    # O(logU) -- a[p]; needs lo <= p <= hi, else IndexError
+    # O(logU) -- a[p]; 0 if never updated; needs lo <= p <= hi, else IndexError
     def pointGet(self, p):
         if not self.lo <= p <= self.hi:
             raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")
@@ -247,8 +247,8 @@ class SparseChminChmaxBeats:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         self.rangeChmin(i, i, v)
 
-    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -256,8 +256,8 @@ class SparseChminChmaxBeats:
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] > x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated
+    # indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -265,8 +265,8 @@ class SparseChminChmaxBeats:
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] >= x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -274,8 +274,8 @@ class SparseChminChmaxBeats:
         res = self._lastPass(1, self.lo, self.hi, l, r, lambda i: F[i] > x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

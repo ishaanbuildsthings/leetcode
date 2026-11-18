@@ -78,7 +78,8 @@ struct SparseStaticOccurrences {
         return (long long)(upper_bound(p.begin(), p.end(), r) - lower_bound(p.begin(), p.end(), l));
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- # of i in [l, r] with a[i] == x; indices not given in values count as 0; needs lo <= l <= r <= hi,
+    // else throws out_of_range
     LEETCODE_NO_SANITIZE long long countOccurrences(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
         if (l > r) return 0;
@@ -88,14 +89,16 @@ struct SparseStaticOccurrences {
         return res;
     }
 
-    // O(logN) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    // O(logN) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; indices not given in values
+    // count as 0
     LEETCODE_NO_SANITIZE long long leftmostIndexOf(const T& x) const { return leftmostIndexOfInRange(lo, hi, x); }
 
-    // O(logN) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    // O(logN) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; indices not given in values
+    // count as 0
     LEETCODE_NO_SANITIZE long long rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(lo, hi, x); }
 
-    // O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; indices not given in values
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long leftmostIndexOfInRange(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostIndexOfInRange: needs lo <= l <= r <= hi");
         long long best = r + 1;
@@ -108,8 +111,8 @@ struct SparseStaticOccurrences {
         return best <= r ? best : lo - 1;
     }
 
-    // O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; indices not given in values
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE long long rightmostIndexOfInRange(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostIndexOfInRange: needs lo <= l <= r <= hi");
         long long best = l - 1;
@@ -148,7 +151,7 @@ struct SparseStaticOccurrences {
         return i - (k - a) - 1;
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);

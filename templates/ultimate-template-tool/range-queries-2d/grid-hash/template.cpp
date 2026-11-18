@@ -126,8 +126,7 @@ struct Hash2D {
     }
 
     // O(1) -- hash of rows r1..r2, columns c1..c2: rectangles with equal cells hash equal; needs 0 <= r1 <= r2 < R
-    // and 0
-    // <= c1 <= c2 < C, else throws out_of_range
+    // and 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE U64 rectHash(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectHash: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
@@ -135,8 +134,7 @@ struct Hash2D {
     }
 
     // O(1) -- is the rectangle rows r1..r2, columns c1..c2 equal, cell by cell, to the same-size rectangle whose
-    // top-left
-    // cell is (r3, c3); needs both inside the grid, else throws out_of_range
+    // top-left cell is (r3, c3); needs both inside the grid, else throws out_of_range
     LEETCODE_NO_SANITIZE bool rectsEqual(int r1, int c1, int r2, int c2, int r3, int c3) const {
         int r4 = r3 + r2 - r1, c4 = c3 + c2 - c1;
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C || r3 < 0 || r4 >= R || c3 < 0 || c4 >= C)

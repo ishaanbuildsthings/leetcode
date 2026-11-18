@@ -40,12 +40,12 @@ from math import gcd
 
 
 
-# Static 2D sparse table (min, max, gcd, AND, OR): any rectangle in O(1) (one gcd run, O(log U)). For every
-# power-of-two height and power-of-two width there is a table holding the aggregate of each window of that size; a
-# rectangle is covered by four such windows, one in each corner (they overlap, which is fine: each of these gives the
-# same answer when a cell is counted twice). Memory and build are R * C * log R * log C: when only squares are asked
-# for, the square sparse table needs a single log. No updates. Rows and columns are 0-based and rectangles are
-# inclusive: rows r1..r2, columns c1..c2.
+# Static 2D sparse table (min, max, gcd, AND, OR): any rectangle in O(1) (one gcd run, O(log U)). For every power-of-two
+# height and power-of-two width there is a table holding the aggregate of each window of that size; a rectangle is
+# covered by four such windows, one in each corner (they overlap, which is fine: each of these gives the same answer
+# when a cell is counted twice). Memory and build are R * C * log R * log C: when only squares are asked for, the square
+# sparse table needs a single log. No updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2,
+# columns c1..c2.
 class SparseTable2D:
     __slots__ = ("R", "C", "mn", "mx", "gc", "an", "orr")
 

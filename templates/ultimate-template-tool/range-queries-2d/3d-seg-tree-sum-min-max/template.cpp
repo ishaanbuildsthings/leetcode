@@ -133,8 +133,7 @@ struct SegTree3D {
     }
 
     // O(log X * log Y * log Z) -- adds v to the cell at (x, y, z); an empty cell becomes v; needs 0 <= x < X, 0 <= y
-    // < Y
-    // and 0 <= z < Z, else throws out_of_range
+    // < Y and 0 <= z < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(int x, int y, int z, T v) {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("pointAdd: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");

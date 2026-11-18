@@ -127,7 +127,7 @@ class SparseAffineTree:
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (mult % self.mod, add % self.mod))
 
-    # O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i], in [0, mod); 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

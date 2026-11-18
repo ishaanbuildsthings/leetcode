@@ -62,8 +62,8 @@ struct SparseLazySegTree {
         newZero(D);
     }
 
-    // O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
-    // out_of_range
+    // O(logU) -- the longest run of equal adjacent values in a[l..r]; never-updated indices count as 0; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long longestEqualRun(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -83,8 +83,8 @@ struct SparseLazySegTree {
         return res;
     }
 
-    // O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
-    // throws out_of_range
+    // O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; never-updated indices count as
+    // 0; needs lo <= l <= r <= hi, else throws out_of_range
     S maxAltSubseqSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxAltSubseqSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -121,7 +121,7 @@ struct SparseLazySegTree {
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) {
         if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
@@ -134,7 +134,8 @@ struct SparseLazySegTree {
         update(1, D, first, l, r, [&](int t, int s, long long) { applyAssign(t, s, v); });
     }
 
-    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     S rangeSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);

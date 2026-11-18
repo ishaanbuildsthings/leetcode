@@ -53,10 +53,10 @@ struct HotVector : vector<U> {
 #endif
 };
 
-// 2D Fenwick tree (xor): point updates and any-rectangle xor on an R x C grid, O(log R * log C) each, with a quarter
-// of a 2D segment tree's memory and a smaller constant. A rectangle is four prefix queries (the big corner, minus the
-// strip above, minus the strip to the left, plus the corner both took off). Rows and columns are 0-based and
-// rectangles are inclusive: rows r1..r2, columns c1..c2. The (R, C) constructor starts with every cell 0.
+// 2D Fenwick tree (xor): point updates and any-rectangle xor on an R x C grid, O(log R * log C) each, with a quarter of
+// a 2D segment tree's memory and a smaller constant. A rectangle is four prefix queries (the big corner, minus the
+// strip above, minus the strip to the left, plus the corner both took off). Rows and columns are 0-based and rectangles
+// are inclusive: rows r1..r2, columns c1..c2. The (R, C) constructor starts with every cell 0.
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct Fenwick2D {
@@ -147,8 +147,7 @@ struct Fenwick2D {
     }
 
     // O(log R * log C) -- xor of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else
-    // throws
-    // out_of_range
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T rectXor(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectXor: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

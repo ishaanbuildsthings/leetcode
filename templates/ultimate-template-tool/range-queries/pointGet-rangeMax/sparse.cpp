@@ -37,18 +37,25 @@ struct SparseMax {
         }
     }
 
-    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(1) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         int k = 31 - __builtin_clz(r - l + 1);
         return combine(sp[k][l], sp[k][r - (1 << k) + 1]);
     }
 
-    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return sp[0][i];
     }
+
+    // O(1) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
 };
 
 // ======================================================================================== sparse wrapper
@@ -83,13 +90,14 @@ struct SparseStaticMax {
 
     int element(long long i) const { return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1; }
 
-    // O(logN) -- range max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- range max of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     T rangeMax(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         return inner.rangeMax(element(l), element(r));
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);

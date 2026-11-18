@@ -21,10 +21,10 @@
 
 
 
-# 2D Fenwick tree (sum): point updates and any-rectangle sum on an R x C grid, O(log R * log C) each, with a quarter
-# of a 2D segment tree's memory and a smaller constant. A rectangle is four prefix queries (the big corner, minus the
-# strip above, minus the strip to the left, plus the corner both took off). Rows and columns are 0-based and
-# rectangles are inclusive: rows r1..r2, columns c1..c2.
+# 2D Fenwick tree (sum): point updates and any-rectangle sum on an R x C grid, O(log R * log C) each, with a quarter of
+# a 2D segment tree's memory and a smaller constant. A rectangle is four prefix queries (the big corner, minus the strip
+# above, minus the strip to the left, plus the corner both took off). Rows and columns are 0-based and rectangles are
+# inclusive: rows r1..r2, columns c1..c2.
 class Fenwick2D:
     __slots__ = ("R", "C", "W", "vals", "sm", "totalSum")
 

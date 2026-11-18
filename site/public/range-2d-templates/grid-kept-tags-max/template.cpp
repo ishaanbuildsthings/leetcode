@@ -181,16 +181,14 @@ struct RectChmaxRectMax2D {
     }
 
     // O(log R * log C) -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    // <= c
-    // < C, else throws out_of_range
+    // <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmax: needs 0 <= r < R and 0 <= c < C");
         update(r, c, r, c, v);
     }
 
     // O(log R * log C) -- the value at (r, c), NO_MAX if the cell is empty; needs 0 <= r < R and 0 <= c < C, else
-    // throws
-    // out_of_range
+    // throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         return query(r, c, r, c);
@@ -205,32 +203,28 @@ struct RectChmaxRectMax2D {
     }
 
     // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteLte: needs 0 <= r < R and 0 <= c < C");
         return query(0, 0, r, c);
     }
 
     // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteGte: needs 0 <= r < R and 0 <= c < C");
         return query(0, c, r, C - 1);
     }
 
     // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteLte: needs 0 <= r < R and 0 <= c < C");
         return query(r, 0, R - 1, c);
     }
 
     // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R
-    // and 0 <= c < C, else throws out_of_range
+    // < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteGte: needs 0 <= r < R and 0 <= c < C");
         return query(r, c, R - 1, C - 1);

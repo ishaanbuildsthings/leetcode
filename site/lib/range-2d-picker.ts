@@ -1,4 +1,4 @@
-// The 2D range queries tab's operations, structure types and manifest decoding (the picker itself is the shared
+// The 2D range queries tab's operations, and the structure types and manifest decoding it shares with the 3D tab (the picker itself is the shared
 // components/TemplatePicker.tsx, set up in components/Range2dPicker.tsx). The templates are written by the generators
 // in templates/ultimate-template-tool/range-query-2d-tests/generators; SPEC.md next to them says what exists and why.
 
@@ -40,11 +40,14 @@ export const RANGE_2D_TYPE_LABELS: Record<Range2dType, string> = {
   "offline-sweep": "Offline sweep",
 };
 
-// What the constructor is given: the switch above the op grid.
+// What the constructor is given. The first four are the switch above the 2D op grid; the 3D grid templates have their
+// own tab (lib/range-3d-picker.ts).
 export const RANGE_2D_INPUTS = ["grid", "points", "online", "batch", "grid-3d"] as const;
 export type Range2dInput = (typeof RANGE_2D_INPUTS)[number];
+export const RANGE_2D_MODES = ["grid", "points", "online", "batch"] as const;
+export type Range2dMode = (typeof RANGE_2D_MODES)[number];
 
-export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dInput; label: string; title: string }[] = [
+export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: string }[] = [
   {
     mode: "grid",
     label: "Small grid (R × C)",
@@ -67,7 +70,6 @@ export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dInput; label: string; title:
     title:
       "Every update and query is known before anything is answered, and no call depends on an earlier answer: you record them all, then get all the answers. Linear memory",
   },
-  { mode: "grid-3d", label: "3D grid (X × Y × Z)", title: "Three small sides: sum, min and max over boxes" },
 ];
 
 export interface Range2dTemplate extends PickerTemplate {
@@ -128,7 +130,7 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "point",
     title: "Point operations",
-    note: "(r, c) is (x, y) for points; a 3D grid takes (x, y, z)",
+    note: "(r, c) is (x, y) for points",
     tiers: [
       {
         kind: "common",
@@ -250,25 +252,6 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
       },
     ],
   },
-  {
-    id: "boxes",
-    title: "3D boxes",
-    note: "x1..x2, y1..y2, z1..z2, inclusive",
-    tiers: [
-      {
-        kind: "common",
-        ops: [
-          { id: "boxSum", signature: "boxSum(x1, y1, z1, x2, y2, z2)", description: "Sum of the box" },
-          { id: "boxMin", signature: "boxMin(x1, y1, z1, x2, y2, z2)", description: "Min of the box" },
-          { id: "boxMax", signature: "boxMax(x1, y1, z1, x2, y2, z2)", description: "Max of the box" },
-          { id: "maxLteLteLte", signature: "maxLteLteLte(x, y, z)", description: "max over all three coordinates ≤ x, y, z" },
-          { id: "maxGteGteGte", signature: "maxGteGteGte(x, y, z)", description: "max over all three coordinates ≥ x, y, z" },
-          { id: "minLteLteLte", signature: "minLteLteLte(x, y, z)", description: "min over all three coordinates ≤ x, y, z" },
-          { id: "minGteGteGte", signature: "minGteGteGte(x, y, z)", description: "min over all three coordinates ≥ x, y, z" },
-        ],
-      },
-    ],
-  },
 ];
 
 // ops with nothing to read back (the usage panel calls them without binding a result)
@@ -283,10 +266,9 @@ export const RANGE_2D_UPDATE_OPS: ReadonlySet<string> = new Set([
   "rectChmin",
 ]);
 
-// "Fenwick tree over points known up front", "3D seg tree", "2D sparse table (any rectangle)"
+// "Fenwick tree over points known up front", "2D sparse table (any rectangle)"
 export function range2dKindLabel(t: Range2dTemplate): string {
   const label = RANGE_2D_TYPE_LABELS[t.dataStructureType];
-  if (t.input === "grid-3d") return `3D ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
   if (t.input === "points") return `${label} over points known up front`;
   if (t.input === "online") return `${label}, dynamic (any coordinates)`;
   if (t.input === "batch") return `${label} (whole input up front)`;

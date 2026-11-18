@@ -197,9 +197,6 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
             "A huge array a[lo..hi] (e.g. lo = 0, hi = 10^18; negative is fine) where every index starts at 0: lo and hi only say how long it is.",
             "Untouched indices read as 0, e.g. the max of an untouched range is 0, not -inf.",
           ],
-  // in a sparse version, every query line says what the indices nobody wrote hold
-  queryNote: (t) =>
-    t.file !== "sparse" ? "" : isBuiltFromPoints(t.memory) ? "indices not given in values count as 0" : "never-updated indices count as 0",
   pairResults: {
     rangeMode: ["value", "freq"],
     longestPalCenteredAtI: ["l", "r"],
@@ -211,13 +208,10 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   } satisfies Partial<Record<OpId, string[]>>,
   fillIns: GENERIC_SEG_TREES,
   planned: [
-    "2D tree queries",
     "persistent seg tree queries",
     "tuple values with a custom comparator",
     "interval tree",
-    "2D sparse table",
     "multiset hashing",
-    "2D hashing",
     "centroid decomposition",
     "custom hash tables",
     "Mo's page, Mo's with updates",

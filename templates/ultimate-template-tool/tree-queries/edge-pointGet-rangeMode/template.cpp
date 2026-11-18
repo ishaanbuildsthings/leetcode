@@ -110,7 +110,7 @@ struct RangeMode {
         }
     }
 
-    // O(sqrt N) -- (mode of a[l..r], its frequency); requires needs 0 <= l <= r < n, else throws out_of_range
+    // O(sqrt N) -- (mode of a[l..r], its frequency); needs 0 <= l <= r < n, else throws out_of_range
     pair<T, int> rangeMode(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeMode: needs 0 <= l <= r < n");
         int lb = l / B, rb = r / B, best, bestVal, leftEdgeEnd, rightEdgeStart;

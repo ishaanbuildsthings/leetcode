@@ -63,8 +63,8 @@ struct SquareSparseTable {
         return t[0][(size_t)r * C + c];
     }
 
-    // the Node of the square with top-left cell (r, c) and that many rows and columns: the combine of four
-    // power-of-two squares, one in each corner (they overlap, which is why combine must be idempotent); needs
+    // the Node of the square with top-left cell (r, c) and that many rows and columns: the combine of four power-of-two
+    // squares, one in each corner (they overlap, which is why combine must be idempotent); needs
     // side >= 1 and the square inside the grid, else out_of_range
     Node squareQuery(int r, int c, int side) {
         if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)

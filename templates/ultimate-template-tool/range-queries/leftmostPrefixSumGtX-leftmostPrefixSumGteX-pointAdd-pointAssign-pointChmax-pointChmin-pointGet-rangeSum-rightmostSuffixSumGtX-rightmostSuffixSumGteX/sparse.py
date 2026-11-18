@@ -64,7 +64,7 @@ class SparseBIT:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self._add(i - self.lo, delta)
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -72,7 +72,7 @@ class SparseBIT:
             return 0
         return self._prefix(r - self.lo) - self._prefix(l - 1 - self.lo)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
@@ -115,16 +115,16 @@ class SparseBIT:
             step >>= 1
         return pos
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1. Needs every a[i] >= 0.; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1. Needs every a[i] >= 0.; never-updated
+    # indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostPrefixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i = max(l, self.lo + self._lowerBound(self._prefix(l - 1 - self.lo) + x, False))
         return i if i <= r else self.lo - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1. Needs every a[i] >= 0.; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1. Needs every a[i] >= 0.; never-updated
+    # indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostPrefixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -132,7 +132,8 @@ class SparseBIT:
         return i if i <= r else self.lo - 1
 
     # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1. Needs every a[i] >= 0. That is the last i
-    # with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.; needs lo <= l <= r <= hi, else IndexError
+    # with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostSuffixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -142,8 +143,8 @@ class SparseBIT:
         i = min(r, self.lo + self._lowerBound(t, True))
         return i if i >= l else self.lo - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.; never-updated indices
+    # count as 0; needs lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostSuffixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

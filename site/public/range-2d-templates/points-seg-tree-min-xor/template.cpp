@@ -258,8 +258,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) -- min of the set points with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN if there are none); needs x1
-    // <= x2
-    // and y1 <= y2, else throws out_of_range
+    // <= x2 and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectMin(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectMin: needs x1 <= x2 and y1 <= y2");
         return minOf(x1, y1, x2, y2);

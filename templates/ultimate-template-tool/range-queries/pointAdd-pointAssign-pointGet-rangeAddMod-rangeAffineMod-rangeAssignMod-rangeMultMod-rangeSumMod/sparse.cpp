@@ -142,14 +142,15 @@ struct SparseAffineSumTree {
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(mult), norm(add)});
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) % MOD; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- (a[l] + ... + a[r]) % MOD; never-updated indices count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     T rangeSumMod(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeSumMod: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return res.sm;
     }
 
-    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i], in [0, mod); 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         Agg res = query(root, lo, hi, i, i, ID);

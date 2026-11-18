@@ -38,8 +38,8 @@ class OfflineRectSum:
         self.events.append((x, y, v))
 
     # O(1) now (O(log^2 N) amortized in solve) -- records: sum of everything added so far at x1 <= x <= x2 and y1 <= y
-    # <=
-    # y2. Returns this query's number: its answer is solve()[that number]; needs x1 <= x2 and y1 <= y2, else IndexError
+    # <= y2. Returns this query's number: its answer is solve()[that number]; needs x1 <= x2 and y1 <= y2, else
+    # IndexError
     def rectSum(self, x1, y1, x2, y2):
         if x1 > x2 or y1 > y2:
             raise IndexError(f"rectSum: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, y2 = {y2}")

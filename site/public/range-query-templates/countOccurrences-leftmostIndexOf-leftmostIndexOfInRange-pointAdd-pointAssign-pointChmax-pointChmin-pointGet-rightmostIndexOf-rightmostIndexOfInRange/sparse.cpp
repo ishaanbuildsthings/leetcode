@@ -61,7 +61,8 @@ struct SparseOccurrenceLists {
     // O(1) -- all zeros over [lo, hi]
     SparseOccurrenceLists(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(logU) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- # of i in [l, r] with a[i] == x; never-updated indices count as 0; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     long long countOccurrences(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
         if (l > r) return 0;
@@ -71,14 +72,16 @@ struct SparseOccurrenceLists {
         return (long long)(it->second.order_of_key(r + 1) - it->second.order_of_key(l));
     }
 
-    // O(logU * logU) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    // O(logU * logU) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    // count as 0
     long long leftmostIndexOf(const T& x) const { return leftmostIndexOfInRange(lo, hi, x); }
 
-    // O(logU * logU) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    // O(logU * logU) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    // count as 0
     long long rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(lo, hi, x); }
 
-    // O(logU * logU) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long leftmostIndexOfInRange(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostIndexOfInRange: needs lo <= l <= r <= hi");
         if (l > r) return lo - 1;
@@ -99,8 +102,8 @@ struct SparseOccurrenceLists {
         return j != it->second.end() && *j <= r ? *j : lo - 1;
     }
 
-    // O(logU * logU) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
-    // lo <= l <= r <= hi, else throws out_of_range
+    // O(logU * logU) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; never-updated indices
+    // count as 0; needs lo <= l <= r <= hi, else throws out_of_range
     long long rightmostIndexOfInRange(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostIndexOfInRange: needs lo <= l <= r <= hi");
         if (l > r) return lo - 1;
@@ -143,7 +146,7 @@ struct SparseOccurrenceLists {
         }
     }
 
-    // O(1) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(1) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return valueAt(i);

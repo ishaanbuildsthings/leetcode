@@ -148,8 +148,7 @@ struct SquareSparseTable2D {
     }
 
     // O(1) -- min of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square
-    // inside the grid, else throws out_of_range
+    // square inside the grid, else throws out_of_range
     LEETCODE_NO_SANITIZE T squareMin(int r, int c, int side) const {
         if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
             throw out_of_range("squareMin: needs side >= 1 and the square inside the grid");
@@ -171,8 +170,7 @@ struct SquareSparseTable2D {
     }
 
     // O(1) -- AND of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square
-    // inside the grid, else throws out_of_range
+    // square inside the grid, else throws out_of_range
     LEETCODE_NO_SANITIZE T squareAnd(int r, int c, int side) const {
         if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
             throw out_of_range("squareAnd: needs side >= 1 and the square inside the grid");

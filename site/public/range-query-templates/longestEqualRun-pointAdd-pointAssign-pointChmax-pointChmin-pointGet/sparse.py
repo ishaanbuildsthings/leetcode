@@ -96,15 +96,15 @@ class SparseEqualRunTree:
             return left
         return self._merge(left, right)
 
-    # O(logU) -- length of the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else
-    # IndexError
+    # O(logU) -- length of the longest run of equal adjacent values in a[l..r]; never-updated indices count as 0;
+    # needs lo <= l <= r <= hi, else IndexError
     def longestEqualRun(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"longestEqualRun: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[3]
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

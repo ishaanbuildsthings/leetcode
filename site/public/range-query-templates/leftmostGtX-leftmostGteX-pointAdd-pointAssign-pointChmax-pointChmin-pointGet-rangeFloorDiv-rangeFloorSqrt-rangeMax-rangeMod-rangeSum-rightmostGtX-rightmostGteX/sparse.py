@@ -209,13 +209,13 @@ class SparseSegTree:
             raise IndexError(f"pointAssign: needs lo <= pos <= hi, got pos = {pos}")
         self._pointAssign(1, self.lo, self.hi, pos, val)
 
-    # O(logU) -- a[pos]; needs lo <= pos <= hi, else IndexError
+    # O(logU) -- a[pos]; 0 if never updated; needs lo <= pos <= hi, else IndexError
     def pointGet(self, pos):
         if not self.lo <= pos <= self.hi:
             raise IndexError(f"pointGet: needs lo <= pos <= hi, got pos = {pos}")
         return self._rangeMax(1, self.lo, self.hi, pos, pos)
 
-    # O(log U) -- sum of l...r; needs lo <= l <= r <= hi, else IndexError
+    # O(log U) -- sum of l...r; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -223,7 +223,7 @@ class SparseSegTree:
             return 0
         return self._rangeSum(1, self.lo, self.hi, l, r)
 
-    # O(log U) -- max of l...r; needs lo <= l <= r <= hi, else IndexError
+    # O(log U) -- max of l...r; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

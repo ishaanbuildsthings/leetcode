@@ -151,15 +151,15 @@ struct SparseEqualRunTree {
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU) -- length of the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
-    // out_of_range
+    // O(logU) -- length of the longest run of equal adjacent values in a[l..r]; never-updated indices count as 0;
+    // needs lo <= l <= r <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE auto longestEqualRun(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r);
         return res.best;
     }
 
-    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         int x = find(i);

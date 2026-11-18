@@ -63,7 +63,7 @@ class SparseRangeAddBITMod:
         if r < self.hi:
             self._add(r + 1 - self.lo, -v)
 
-    # O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i], in [0, mod); 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

@@ -88,35 +88,38 @@ class SparseMaxSubarrayTree:
             return left
         return self._merge(left, right)
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- a[l] + ... + a[r]; never-updated indices count as 0; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[0]
 
-    # O(logU) -- best sum of a non-empty prefix of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- best sum of a non-empty prefix of a[l..r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[1]
 
-    # O(logU) -- best sum of a non-empty suffix of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- best sum of a non-empty suffix of a[l..r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[2]
 
-    # O(logU) -- best sum of a non-empty subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- best sum of a non-empty subarray of a[l..r]; never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxSubarraySum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"maxSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[3]
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

@@ -119,14 +119,15 @@ class SparseAssignGcdTree:
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, v)
 
-    # O(logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); never-updated indices count as 0; needs
+    # lo <= l <= r <= hi, else IndexError
     def rangeGcd(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return abs(res)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i]; 0 if never updated; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")

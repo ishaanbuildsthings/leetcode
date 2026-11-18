@@ -57,12 +57,11 @@ struct HotVector : vector<U> {
 
 // K-d tree with lazy tags (sum): rectangle add and rectangle assign together with rectangle sum, over points known up
 // front (any integers, negative is fine). O(sqrt N) per rectangle op, O(log N) per point op, linear memory. A tree of
-// trees can't do rectangle updates with these queries (a tag can't be pushed down its outer tree); this can, because
-// it is one tree: the points are split in half by x, each half by y, and so on, every node keeps the bounding box of
-// its points, and a rectangle op only opens the nodes whose box the rectangle's border crosses (about sqrt N of
-// them). The constructor takes every (x, y) that will ever be used; every point starts at 0. Rectangles are
-// inclusive, x1..x2 by y1..y2, and their corners can be any integers; a rectangle update touches the given points
-// inside it.
+// trees can't do rectangle updates with these queries (a tag can't be pushed down its outer tree); this can, because it
+// is one tree: the points are split in half by x, each half by y, and so on, every node keeps the bounding box of its
+// points, and a rectangle op only opens the nodes whose box the rectangle's border crosses (about sqrt N of them). The
+// constructor takes every (x, y) that will ever be used; every point starts at 0. Rectangles are inclusive, x1..x2 by
+// y1..y2, and their corners can be any integers; a rectangle update touches the given points inside it.
 // T is any integer type (int, long long, ...); sums are kept in S (long long for a smaller T). Coordinates are long
 // long.
 template <typename T>
@@ -80,8 +79,7 @@ struct KdTree2D {
     HotVector<S> sm;
 
     // O(N log N) -- points: every (x, y) that will ever be used (negative is fine, repeats are fine); needs at least
-    // one,
-    // else throws invalid_argument
+    // one, else throws invalid_argument
     explicit KdTree2D(vector<pair<ll, ll>> points) : pts(std::move(points)) {
         if (pts.empty()) throw invalid_argument("KdTree2D: needs at least one point");
         sort(pts.begin(), pts.end());
@@ -292,8 +290,7 @@ struct KdTree2D {
     }
 
     // O(sqrt N) -- sum of the given points with x1 <= x <= x2 and y1 <= y <= y2 (0 if no point is there); needs x1 <=
-    // x2
-    // and y1 <= y2, else throws out_of_range
+    // x2 and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE S rectSum(ll x1, ll y1, ll x2, ll y2) {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectSum: needs x1 <= x2 and y1 <= y2");
         return sumOf(x1, y1, x2, y2);

@@ -37,18 +37,25 @@ struct SparseMin {
         }
     }
 
-    // O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(1) -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMin(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeMin: needs 0 <= l <= r < n");
         int k = 31 - __builtin_clz(r - l + 1);
         return combine(sp[k][l], sp[k][r - (1 << k) + 1]);
     }
 
-    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return sp[0][i];
     }
+
+    // O(1) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
 };
 
 // ======================================================================================== sparse wrapper
@@ -120,13 +127,14 @@ struct SparseStaticMin {
         return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1;
     }
 
-    // O(logN) -- range min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN) -- range min of a[l..r]; indices not given in values count as 0; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T rangeMin(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         return inner.rangeMin(element(l), element(r));
     }
 
-    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(logN) -- a[i]; 0 if not given in values; needs lo <= i <= hi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);

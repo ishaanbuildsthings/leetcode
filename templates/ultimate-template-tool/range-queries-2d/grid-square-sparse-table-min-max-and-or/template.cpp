@@ -58,10 +58,9 @@ template <typename A>
 LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 
 // Static sparse table for square queries only (min, max, AND, OR): O(1) per square, with a single log of memory and
-// build, R * C * log(min(R, C)), where the any-rectangle sparse table needs log R * log C. Level k holds the
-// aggregate of every 2^k by 2^k window; a square is covered by four such windows, one in each corner (they overlap,
-// which is fine for these aggregates). No updates. Rows and columns are 0-based; a square is its top-left cell (r, c)
-// and its side.
+// build, R * C * log(min(R, C)), where the any-rectangle sparse table needs log R * log C. Level k holds the aggregate
+// of every 2^k by 2^k window; a square is covered by four such windows, one in each corner (they overlap, which is fine
+// for these aggregates). No updates. Rows and columns are 0-based; a square is its top-left cell (r, c) and its side.
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct SquareSparseTable2D {
@@ -149,8 +148,7 @@ struct SquareSparseTable2D {
     }
 
     // O(1) -- min of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square
-    // inside the grid, else throws out_of_range
+    // square inside the grid, else throws out_of_range
     LEETCODE_NO_SANITIZE T squareMin(int r, int c, int side) const {
         if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
             throw out_of_range("squareMin: needs side >= 1 and the square inside the grid");
@@ -161,8 +159,7 @@ struct SquareSparseTable2D {
     }
 
     // O(1) -- max of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square
-    // inside the grid, else throws out_of_range
+    // square inside the grid, else throws out_of_range
     LEETCODE_NO_SANITIZE T squareMax(int r, int c, int side) const {
         if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
             throw out_of_range("squareMax: needs side >= 1 and the square inside the grid");
@@ -173,8 +170,7 @@ struct SquareSparseTable2D {
     }
 
     // O(1) -- AND of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square
-    // inside the grid, else throws out_of_range
+    // square inside the grid, else throws out_of_range
     LEETCODE_NO_SANITIZE T squareAnd(int r, int c, int side) const {
         if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
             throw out_of_range("squareAnd: needs side >= 1 and the square inside the grid");

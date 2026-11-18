@@ -15,6 +15,7 @@ import textwrap
 
 from bounds import add_bounds
 from derived_ops import add_derived_ops
+from empty_note import add_empty_note
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 LABELS = {"cpp": "C++: ", "py": "Python: "}
@@ -257,7 +258,7 @@ def fix_copies_cost(text):
 
 def write_template(path, text):
     lang = "py" if path.endswith(".py") else "cpp"
-    open(path, "w").write(attribute(fix_copies_cost(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang)), path))
+    open(path, "w").write(attribute(fix_copies_cost(fix_text(add_empty_note(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang), lang)), path))
 
 
 if __name__ == "__main__":
@@ -268,7 +269,7 @@ if __name__ == "__main__":
                 path = os.path.join(DIR, folder, stem + ext)
                 if os.path.exists(path):
                     text = open(path).read()
-                    new = attribute(fix_copies_cost(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang)), path)
+                    new = attribute(fix_copies_cost(fix_text(add_empty_note(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang), lang)), path)
                     if new != text:
                         open(path, "w").write(new)
                         changed += 1

@@ -132,8 +132,8 @@ class RangeAddRangeGcd:
 
     #################### PUBLIC METHODS START HERE ####################
 
-    # O(log n * log maxVal) -- adds x to every arr[l...r] inclusive. requires needs 0 <= l <= r < n, else IndexError,
-    # x may be negative
+    # O(log n * log maxVal) -- adds x to every arr[l...r] inclusive, x may be negative; needs 0 <= l <= r < n, else
+    # IndexError
     def rangeAdd(self, l, r, x):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -155,8 +155,8 @@ class RangeAddRangeGcd:
             out.append(s)
         return out
 
-    # O(log n + log maxVal) -- gcd of arr[l...r] inclusive, always >= 0. requires needs 0 <= l <= r < n, else
-    # IndexError returns 0 only if every value in the range is 0
+    # O(log n + log maxVal) -- gcd of arr[l...r] inclusive, always >= 0, and 0 only if every value in the range is 0;
+    # needs 0 <= l <= r < n, else IndexError
     def rangeGcd(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

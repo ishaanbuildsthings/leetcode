@@ -210,8 +210,7 @@ class RectChmaxRectMax2D:
         self._update(r1, c1, r2, c2, v)
 
     # O(log R * log C) -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    # <= c
-    # < C, else IndexError
+    # <= c < C, else IndexError
     def pointChmax(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointChmax: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "

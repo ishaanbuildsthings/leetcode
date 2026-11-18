@@ -104,8 +104,7 @@ class SegTree3D:
         return None if cur == NEG else cur
 
     # O(log X * log Y * log Z) -- the cell at (x, y, z) becomes v (it may go down as well as up); needs 0 <= x < X, 0
-    # <= y
-    # < Y and 0 <= z < Z, else IndexError
+    # <= y < Y and 0 <= z < Z, else IndexError
     def pointAssign(self, x, y, z, v):
         if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
             raise IndexError(f"pointAssign: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "
@@ -344,8 +343,7 @@ class SegTree3D:
         return None if res == NEG else res
 
     # O(log X * log Y * log Z) -- max of the set cells in the box x1..x2, y1..y2, z1..z2 (None if there are none);
-    # needs 0
-    # <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z, else IndexError
+    # needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z, else IndexError
     def boxMax(self, x1, y1, z1, x2, y2, z2):
         if not (0 <= x1 <= x2 < self.X and 0 <= y1 <= y2 < self.Y and 0 <= z1 <= z2 < self.Z):
             raise IndexError(f"boxMax: needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z, "
