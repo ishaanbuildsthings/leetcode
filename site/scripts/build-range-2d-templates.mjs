@@ -4,7 +4,7 @@
 //   - public/range-2d-templates/<folder>/template.{py,cpp}  (the copies the picker's drawer fetches)
 //
 // Each folder holds template.py and template.cpp with the same header as the 1D range-query templates, plus
-//   @input: grid | compressed | online | grid-3d   what the constructor is given (the picker's switch)
+//   @input: grid | points | online | grid-3d   what the constructor is given (the picker's switch)
 //   @empty-cells: yes                                  (optional) cells can be empty: a min / max over none is "nothing"
 //   @values: non-negative                              (optional) what the values must be
 // Costs use R, C (a grid's rows and columns), X, Y (distinct coordinates; a 3D grid's sides), N, U (a coordinate range), Z.
@@ -22,10 +22,10 @@ const manifestPath = path.join(siteDir, "lib/generated/range-2d-templates.ts");
 
 const TAGS = ["operations", "data-structure-type", "input", "empty-cells", "values", "complexities", "memory"];
 const OPTIONAL_TAGS = ["empty-cells", "values"];
-const INPUTS = ["grid", "compressed", "online", "grid-3d"];
+const INPUTS = ["grid", "points", "online", "grid-3d"];
 // (kept in step with RANGE_2D_TYPES in lib/range-2d-picker.ts, which tsc checks the manifest against)
 const TYPES = ["prefix-sum", "difference-array", "corner-table", "hash", "bit-counts", "sparse-table",
-  "BIT", "seg-tree", "seg-tree-kept-tags", "rows-of-trees", "kd-tree"];
+  "BIT", "seg-tree", "seg-tree-kept-tags", "rows-of-trees"];
 
 const errors = [];
 const entries = [];

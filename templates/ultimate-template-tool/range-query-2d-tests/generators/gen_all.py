@@ -13,14 +13,14 @@ import gen_grid_bit
 import gen_grid_seg
 import gen_grid_static
 import gen_grid_tags
-import gen_kd
 import gen_online
+import gen_points
 import gen_tags_online
 import lib2d
 
 
 def main():
-    for gen in (gen_grid_static, gen_grid_bit, gen_grid_seg, gen_grid_tags, gen_tags_online, gen_kd, gen_online, gen_3d):
+    for gen in (gen_grid_static, gen_grid_bit, gen_grid_seg, gen_grid_tags, gen_tags_online, gen_points, gen_online, gen_3d):
         gen.main()
     print(f"{len(lib2d.WRITTEN)} folders in all")
     extra = lib2d.unwritten()

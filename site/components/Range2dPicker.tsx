@@ -35,10 +35,10 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   ],
   flag: {
     label: "(x, y) coordinates",
-    title: "Coordinates as (x, y): the compressed and online templates, which take any integers. Untick for the small grid, read as grid[r][c]",
+    title: "Coordinates as (x, y): the compressed-coordinates and online templates, which take any integers. Untick for the small grid, read as grid[r][c]",
     storageKey: "range2dPicker.xy",
     keep: (t) => t.input !== "grid",
-    onInModes: ["compressed", "online"],
+    onInModes: ["points", "online"],
     offMode: "grid",
     disabledOps: GRID_ONLY_OPS,
     disabledTitle: "Only the small-grid templates have this",
@@ -72,13 +72,9 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
       py: `grid: a list of R rows, each a list of C values${t.emptyCells ? " (None = an empty cell)" : ""}`,
       cpp: `grid: vector<vector<T>>, R rows of C values${t.emptyCells ? "; or construct with (R, C) to start with every cell empty" : ""}`,
     },
-    xs: {
-      py: "xs: every x a point op will use, e.g. [10**9, -5, 3] (any order, repeats are fine); rectangles and corners can be any integers. Or an int n to leave x as 0..n-1",
-      cpp: "xs: vector<long long>, every x a point op will use (any order, repeats are fine); rectangles and corners can be any integers. Or Compressed2D<T>::upTo(n) to leave x as 0..n-1",
-    },
-    ys: {
-      py: "ys: the same for y",
-      cpp: "ys: the same for y",
+    points: {
+      py: "points: every (x, y) a point op (pointGet, pointAdd, ...) will use, e.g. [(10**9, -5), (3, 7)] (repeats are fine); never rectangle or corner coordinates, those can be any integers",
+      cpp: "points: vector<pair<long long, long long>>, every (x, y) a point op (pointGet, pointAdd, ...) will use (repeats are fine); never rectangle or corner coordinates, those can be any integers",
     },
     h: { py: "h: the window's height (rows)", cpp: "h: the window's height (rows)" },
     w: { py: "w: the window's width (columns)", cpp: "w: the window's width (columns)" },
@@ -86,7 +82,7 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   ctorComments: (t) => [
     ...(t.emptyCells
       ? ["Cells can be empty: queries only see cells that have been set."]
-      : t.input === "compressed"
+      : t.input === "points"
         ? ["Everything starts at 0."]
         : []),
     ...(t.nonNegative ? ["Values must be >= 0."] : []),

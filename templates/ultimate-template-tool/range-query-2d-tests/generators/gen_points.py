@@ -15,10 +15,12 @@ POINT_RULE_PY = "needs (x, y) to be one of the points given, else IndexError"
 POINT_RULE_CPP = "needs (x, y) to be one of the points given, else throws out_of_range"
 RECT_RULE_PY = "needs x1 <= x2 and y1 <= y2, else IndexError"
 RECT_RULE_CPP = "needs x1 <= x2 and y1 <= y2, else throws out_of_range"
-CTOR_PY = ("O(N log N) -- points: every (x, y) that will ever be updated, as pairs of integers (negative is fine, repeats are "
-           "fine); needs at least one, else ValueError")
-CTOR_CPP = ("O(N log N) -- points: every (x, y) that will ever be updated (negative is fine, repeats are fine); needs at least "
-            "one, else throws invalid_argument")
+CTOR_PY = ("O(N log N) -- points: every (x, y) a point operation (pointGet, pointAdd, ...) will use, as pairs of integers "
+           "(negative is fine, repeats are fine); not rectangle or corner coordinates, those can be anything. Needs at least "
+           "one, else ValueError")
+CTOR_CPP = ("O(N log N) -- points: every (x, y) a point operation (pointGet, pointAdd, ...) will use (negative is fine, "
+            "repeats are fine); not rectangle or corner coordinates, those can be anything. Needs at least one, else throws "
+            "invalid_argument")
 
 
 def emit(folder, ops, dstype, costs, build, memory, py, cpp, extra=()):
@@ -131,9 +133,9 @@ def seg_tree(aggs):
         "note": "every point's y is listed in each of the O(log N) x-nodes above it; an x-node's column tree is twice its list",
     }
     words = ", ".join(a.word for a in A)
-    text = (f"2D segment tree over points known up front ({words}): point updates and any-rectangle queries in O(log^2 N), "
+    text = (f"2D segment tree over a fixed list of points ({words}): point updates and any-rectangle queries in O(log^2 N), "
             f"with N log N memory whatever the coordinates are (any integers, negative is fine). The constructor takes "
-            f"every (x, y) that will ever be updated. A bottom-up tree over the distinct x's; every node of it keeps the "
+            f"every (x, y) your point operations will use; rectangles and corners take any integers, never listed. A bottom-up tree over the distinct x's; every node of it keeps the "
             f"sorted y's of the points under it and a bottom-up tree over just those. Rectangles are inclusive, x1..x2 by "
             f"y1..y2, and their corners can be any integers, given or not.")
     if mm:
@@ -276,9 +278,9 @@ def seg_tree(aggs):
     if "sum" in aggs:
         cpp.append("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;")
     if "max" in aggs:
-        cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set point gives")
+        cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set point")
     if "min" in aggs:
-        cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set point gives")
+        cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // the largest value T can hold: a min over no set point")
     if mm or "sum" in aggs:
         cpp += ["    static constexpr ll LOW = numeric_limits<ll>::min(), HIGH = numeric_limits<ll>::max();  // no bound on a coordinate"]
     cpp += ["    int n;", "    vector<pair<ll, ll>> pts;", "    vector<T> vals;"]
@@ -422,9 +424,9 @@ def bit_sum(aggs):
     memory = {"layout": "none", "node": " ".join(f"{a.arr}[1*N*log(N)]" for a in A),
               "other": "ys[1*N*log(N)] pts[2*N] vals[1*N] xs[1*N] off[1*N] cnt[1*N]",
               "note": "every point's y is listed in each of the O(log N) Fenwick x-nodes covering it; an x-node's own Fenwick tree is as long as its list"}
-    doc = (f"2D Fenwick tree over points known up front ({words}): point updates and any-rectangle {words} in O(log^2 N), "
+    doc = (f"2D Fenwick tree over a fixed list of points ({words}): point updates and any-rectangle {words} in O(log^2 N), "
            f"with N log N memory whatever the coordinates are (any integers, negative is fine). The constructor takes every "
-           f"(x, y) that will ever be updated; every point starts at 0. A Fenwick tree over the distinct x's; every node of "
+           f"(x, y) your point operations will use (rectangles take any integers, never listed); every point starts at 0. A Fenwick tree over the distinct x's; every node of "
            f"it keeps the sorted y's of the points it covers and a Fenwick tree over just those. Half the memory of the "
            f"segment tree version and a smaller constant, for {words} only. Rectangles are inclusive, x1..x2 by y1..y2, and "
            f"their corners can be any integers, given or not.")
@@ -554,10 +556,10 @@ def corner_bit(kind, corners):
     k = len(names)
     memory = {"layout": "none", "node": f"tree[{k}*N*log(N)]", "other": f"ys[{k}*N*log(N)] xs[{k}*N] off[{k}*N] cnt[{k}*N] pts[2*N]",
               "note": "one Fenwick-of-Fenwicks per corner direction asked for (a >= direction is the same structure on negated coordinates)"}
-    doc = (f"Corner {kind} over points known up front, with Fenwick trees: {upd} at a point and the {kind} over a corner of the "
+    doc = (f"Corner {kind} over a fixed list of points, with Fenwick trees: {upd} at a point and the {kind} over a corner of the "
            f"plane (every point with x <= or >= a given x, and y <= or >= a given y) in O(log^2 N), with N log N memory per "
            f"direction whatever the coordinates are (any integers, negative is fine). The constructor takes every (x, y) "
-           f"that will ever be updated. This works because values only move one way: a point can only go "
+           f"your point operations will use; corners take any integers, never listed. This works because values only move one way: a point can only go "
            f"{'up' if kind == 'max' else 'down'}, so a tree entry never has to forget a value; for a point that can move both "
            f"ways, or for rectangles that aren't corners, use the segment tree version. Every point starts empty and "
            f"queries only see points that have been set.")
@@ -596,7 +598,7 @@ def corner_bit(kind, corners):
 
     cpp = wrap_comment(doc + f" A {kind} over no set point is {none}.", "//")
     cpp += ["// T is any integer type (int, long long, ...). Coordinates are long long.", "template <typename T>", f"struct {cls} {{", "    using ll = long long;",
-            f"    static constexpr T {none} = numeric_limits<T>::{'min' if kind == 'max' else 'max'}();  // what a {kind} over no set point gives", "",
+            f"    static constexpr T {none} = numeric_limits<T>::{'lowest' if kind == 'max' else 'max'}();  // the {'smallest' if kind == 'max' else 'largest'} value T can hold: a {kind} over no set point", "",
             f"    // {kind} over the points with x <= a given x and y <= a given y, values only going {'up' if kind == 'max' else 'down'}",
             "    struct Prefix {", "        int n = 0;", "        vector<ll> xs, ys;", "        vector<int> off, cnt;", "        vector<T> tree;", "",
             "        void build(vector<pair<ll, ll>> pts) {", "            sort(pts.begin(), pts.end());"]

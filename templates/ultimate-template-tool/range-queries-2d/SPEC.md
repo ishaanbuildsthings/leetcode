@@ -19,7 +19,7 @@ cd ../../../site && npm run gen:range-queries-2d                # the picker's m
 | `@input` | Constructor | Coordinates | Costs in |
 |---|---|---|---|
 | `grid` | `(grid)`: R rows of C values. C++ also `(R, C)` where the template can change | 0-based `(r, c)` | R, C |
-| `compressed` | `(xs, ys)`: every x and every y the point ops will use; an axis can be a size n (0..n-1) | points: listed ones only; rectangles and corners: any integers | X, Y = distinct x's, y's |
+| `points` ("Compressed coordinates") | `points`: every (x, y) the point ops will use | points: listed ones only; rectangles and corners: any integers | N = distinct points |
 | `online` | `(xLo, xHi, yLo, yHi)` | any integers in that range | U = size of a coordinate range |
 | `grid-3d` | `(X, Y, Z)` | 0-based `(x, y, z)` | X, Y, Z |
 
@@ -29,7 +29,7 @@ Rectangles are inclusive and given as the low corner then the high corner: `rect
 ## 2. Empty cells (`@empty-cells: yes`)
 
 - A template **with min or max** that can be updated has empty cells: a cell is empty until set (`None` in a Python
-  grid; the C++ `(R, C)` constructor; every cell of `compressed` / `online` / `grid-3d`). Queries only see set cells. A
+  grid; the C++ `(R, C)` constructor; every point of `points`, every cell of `online` / `grid-3d`). Queries only see set cells. A
   min / max over no set cell is `None` in Python and `NO_MIN` / `NO_MAX` in C++; a sum / gcd / xor / OR over none is 0;
   an AND over none is -1. `pointAdd`, `pointChmax`, `pointChmin` on an empty cell set it to `v`.
 - A template **without min or max** has no empty cells: whatever was not given is the number 0 (so an AND over a
@@ -106,22 +106,18 @@ each aggregate its own flat array, so asking for less costs less memory.
 A Fenwick corner max only works because the value can only go up (`pointChmax`). An assign that can lower a value
 needs the segment tree; the picker gets this from the ops picked.
 
-### Compressed coordinates (`compressed`)
+### Compressed coordinates (`points`)
 
-Every small-grid template with updates also comes as `compressed-<the rest of its name>`: the grid template unchanged,
-then a `Compressed2D` wrapper (`generators/compress2d.py`, called from `lib2d.write`). The wrapper sorts the listed xs
-and ys and calls the template on an X by Y grid. A point op needs a listed x and a listed y (a hash map in Python, a
-binary search in C++; anything else is refused). A rectangle or corner can be any integers: binary search finds the
-listed coordinates inside, and no cell inside gives 0 for sum / gcd / xor / OR, the empty value for min / max (or an
-error where cells can't be empty). A cell is one point, not a block: a rectangle sum adds cell values, never an area.
-Costs and memory are the grid template's with R = X and C = Y.
+| Folders | Structure | Ops | Cost per op | Memory |
+|---|---|---|---|---|
+| `points-seg-tree-<aggs>` | a bottom-up tree over the distinct x's; each node keeps the sorted y's under it and a tree over just those | point updates, any rectangle, corners | log² N | N log N |
+| `points-bit-sum`, `-xor`, `-sum-xor` | the same shape with Fenwick trees (lighter) | point updates, rectangle sum / xor, corners | log² N | N log N |
+| `points-bit-corner-{max,min}-<corners>` | one Fenwick-of-Fenwicks per corner direction | `pointChmax` (`pointChmin`) + corner max (min) | log² N | N log N per direction |
 
-Templates with rectangle updates **and** rectangle / corner / whole-grid queries get no compressed version: a rectangle
-update reaches every listed x with every listed y inside it, pairs that are never real points included, and the query
-would count those. Rectangle updates with point reads (and `getAll`) are kept. There is no k-d tree.
-
-Compressing both axes needs X * Y cells: fine for thousands of distinct coordinates, not for 10^5 points with distinct
-x's and y's (use the online templates there).
+The constructor takes every (x, y) a point op will use (`generators/gen_points.py`); a point op on anything else is
+refused. Rectangles and corners take any integers and are never listed. Each point sits in log N x-nodes, one slot in
+each, so memory is N log N however far apart the coordinates are. There are no rectangle updates here (a tag can't be
+pushed down the outer tree): those are the small grid's, or online for rect chmax with point reads.
 
 ### Nothing known (`online`)
 

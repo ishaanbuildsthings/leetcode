@@ -3,7 +3,7 @@
 A generator builds one folder per template under templates/ultimate-template-tool/range-queries-2d, each holding
 template.py and template.cpp with the same tagged header the 1D range query templates use, plus
 
-    @input: grid | compressed | online | grid-3d          what the constructor is given (the picker's switch)
+    @input: grid | points | online | grid-3d              what the constructor is given (the picker's switch)
     @empty-cells: yes                                    (optional) cells can be empty: see SPEC.md, section 2
 
 Costs use R, C (a grid's rows and columns), N (how many points were given, or how many ops a batch holds), U (the
@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(os.path.dirname(HERE)), "range-queries-2d")
 URL = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d"
 
-INPUTS = ("grid", "compressed", "online", "grid-3d")
+INPUTS = ("grid", "points", "online", "grid-3d")
 
 # ---- C++ is fast by default: sanitizers are skipped inside every template (the range query tab's "fast mode", here
 # with no slower twin). The marker and HotVector are the range query generators' own, so the text stays the same.
@@ -216,7 +216,7 @@ def indent(lines, n=1):
 def header(folder, lang, ops, dstype, costs, build, memory, input_kind, extra_tags=()):
     """The tagged header. costs: {op: cost}; memory: dict(layout, node, tags, other, note)."""
     cm = "#" if lang == "py" else "//"
-    assert input_kind in INPUTS or (input_kind == "points" and folder.startswith("points-")), input_kind  # (a points- folder is rewritten as compressed)
+    assert input_kind in INPUTS, input_kind
     ops = sorted(ops)
     missing = [op for op in ops if op not in costs]
     assert not missing, f"{folder}: no cost for {missing}"
@@ -305,14 +305,7 @@ def _explain_sentinels(lines):
 
 
 def write(folder, py_lines, cpp_lines):
-    """Writes range-queries-2d/<folder>/template.{py,cpp} (only when changed, so timestamps stay put), and the
-    compressed-coordinates version where there is one (compress2d.py). A points-kd-tree folder is only written as that."""
-    from compress2d import compressed_variant
-    variant = compressed_variant(folder, py_lines, cpp_lines) if py_lines and cpp_lines else None
-    if variant:
-        _write_one(*variant)
-    if folder.startswith("points-"):
-        return  # (a k-d tree over given points: not written)
+    """Writes range-queries-2d/<folder>/template.{py,cpp} (only when changed, so timestamps stay put)."""
     _write_one(folder, py_lines, cpp_lines)
 
 
