@@ -78,8 +78,8 @@ class SegTree2D:
                              f"C = {self.C}")
         return self.xr[(r + self.R) * self.W + c + self.C]
 
-    # O(log R * log C) -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c <
-    # C, else IndexError
+    # O(log R * log C) -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c < C,
+    # else IndexError
     def pointAssign(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointAssign: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "

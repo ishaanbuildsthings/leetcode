@@ -180,8 +180,8 @@ struct RectChminRectMin2D {
         update(r1, c1, r2, c2, v);
     }
 
-    // O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    // <= c < C, else throws out_of_range
+    // O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0 <=
+    // c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
         update(r, c, r, c, v);
@@ -194,8 +194,8 @@ struct RectChminRectMin2D {
         return query(r, c, r, c);
     }
 
-    // O(log R * log C) -- min of the set cells in rows r1..r2, columns c1..c2 (NO_MIN, automatically the largest
-    // value of your type T, if there are none); needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    // O(log R * log C) -- min of the set cells in rows r1..r2, columns c1..c2 (NO_MIN, automatically the largest value
+    // of your type T, if there are none); needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectMin(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectMin: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

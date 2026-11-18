@@ -147,8 +147,8 @@ struct PointsSegTree2D {
         orr.assign(2 * ys.size(), T(0));
     }
 
-    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count,
-    // then to write
+    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count, then
+    // to write
     LEETCODE_NO_SANITIZE void fillLists(const pair<ll, int>* byY, int m, bool countOnly) {
         HotVector<ll> last(2 * n, 0);  // the y most recently added to each x-node
         for (int i = 0; i < m; i++) {
@@ -201,8 +201,7 @@ struct PointsSegTree2D {
     }
 
     // O(log N) -- the value at (x, y), NO_MAX, automatically the smallest value of your type T, if it was never set;
-    // needs (x, y) to be one of the points given, else
-    // throws out_of_range
+    // needs (x, y) to be one of the points given, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(ll x, ll y) const {
         int i = indexOf(x, y, "pointGet");
         return isSet[i] ? vals[i] : NO_MAX;
@@ -275,8 +274,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) -- sum of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs x1 <= x2
-    // and
-    // y1 <= y2, else throws out_of_range
+    // and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE S rectSum(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectSum: needs x1 <= x2 and y1 <= y2");
         return sumOf(x1, y1, x2, y2);

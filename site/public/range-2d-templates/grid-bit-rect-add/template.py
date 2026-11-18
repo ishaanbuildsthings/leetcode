@@ -95,9 +95,8 @@ class RectAddFenwick2D:
             i &= i - 1
         return res
 
-    # O(log R * log C) -- adds v to every cell of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <=
-    # c2 <
-    # C, else IndexError
+    # O(log R * log C) -- adds v to every cell of rows r1..r2, columns c1..c2; needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2
+    # < C, else IndexError
     def rectAdd(self, r1, c1, r2, c2, v):
         if not (0 <= r1 <= r2 < self.R and 0 <= c1 <= c2 < self.C):
             raise IndexError(f"rectAdd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "

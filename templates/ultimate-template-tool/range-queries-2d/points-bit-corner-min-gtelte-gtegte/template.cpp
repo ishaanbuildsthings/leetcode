@@ -118,8 +118,8 @@ struct PointsCornerMinFenwick2D {
             tree.assign(ys.size(), NO_MIN);
         }
 
-        // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to
-        // count, then to write
+        // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count,
+        // then to write
         LEETCODE_NO_SANITIZE void fillLists(const pair<ll, int>* byY, int m, bool countOnly) {
             HotVector<ll> last((n + 1), 0);  // the y most recently added to each x-node
             for (int i = 0; i < m; i++) {
@@ -183,14 +183,14 @@ struct PointsCornerMinFenwick2D {
         tGteGte.improve(-x, -y, v);
     }
 
-    // O(log^2 N) -- min of the set points with x >= the given x and y <= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); any integers
+    // O(log^2 N) -- min of the set points with x >= the given x and y <= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); any integers
     LEETCODE_NO_SANITIZE T minGteLte(ll x, ll y) const {
         return tGteLte.best(-x, y);
     }
 
-    // O(log^2 N) -- min of the set points with x >= the given x and y >= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); any integers
+    // O(log^2 N) -- min of the set points with x >= the given x and y >= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); any integers
     LEETCODE_NO_SANITIZE T minGteGte(ll x, ll y) const {
         return tGteGte.best(-x, -y);
     }

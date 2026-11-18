@@ -49,7 +49,7 @@ export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: 
     mode: "points",
     label: "Compressed coordinates",
     title:
-      "Coordinates can be huge or negative. The constructor takes every (x, y) your point ops (pointGet, pointAdd, ...) will use; rectangles and corners take any integers and are never listed. N log N memory, log² N per op, N = how many points",
+      "Coordinates can be huge or negative. You list what your updates touch: every (x, y) your point ops will use (or, for rect add + rect sum, every rectangle you'll add to); queries take any integers and are never listed. N log N memory, log² N per op",
   },
   {
     mode: "online",

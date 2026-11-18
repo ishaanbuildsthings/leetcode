@@ -97,8 +97,8 @@ struct CornerMinFenwick2D {
         }
     }
 
-    // O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    // <= c < C, else throws out_of_range
+    // O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0 <=
+    // c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
         best = hotMin(best, v);

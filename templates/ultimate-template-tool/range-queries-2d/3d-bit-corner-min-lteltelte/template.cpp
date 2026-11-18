@@ -87,9 +87,9 @@ struct CornerMinFenwick3D {
                 }
     }
 
-    // O(log X * log Y * log Z) -- min of the set cells with all three coordinates <= x, y, z (NO_MIN, automatically
-    // the largest value of your type T, if there are none);
-    // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
+    // O(log X * log Y * log Z) -- min of the set cells with all three coordinates <= x, y, z (NO_MIN, automatically the
+    // largest value of your type T, if there are none); needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE T minLteLteLte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("minLteLteLte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");

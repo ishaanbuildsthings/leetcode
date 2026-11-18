@@ -137,8 +137,8 @@ class CornerMinFenwick2D:
                         t[b + j] = t[a + j]
         self.best = best
 
-    # O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    # <= c < C, else IndexError
+    # O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0 <=
+    # c < C, else IndexError
     def pointChmin(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointChmin: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "

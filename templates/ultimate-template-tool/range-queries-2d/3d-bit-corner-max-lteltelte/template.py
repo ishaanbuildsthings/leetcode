@@ -39,9 +39,8 @@ class CornerMaxFenwick3D:
         self.top = NEG
         self.tLteLteLte = [NEG] * ((X + 1) * (Y + 1) * (Z + 1))
 
-    # O(log X * log Y * log Z) -- the cell at (x, y, z) becomes max(itself, v); an empty cell becomes v; needs 0 <= x
-    # < X,
-    # 0 <= y < Y and 0 <= z < Z, else IndexError
+    # O(log X * log Y * log Z) -- the cell at (x, y, z) becomes max(itself, v); an empty cell becomes v; needs 0 <= x <
+    # X, 0 <= y < Y and 0 <= z < Z, else IndexError
     def pointChmax(self, x, y, z, v):
         if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
             raise IndexError(f"pointChmax: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "

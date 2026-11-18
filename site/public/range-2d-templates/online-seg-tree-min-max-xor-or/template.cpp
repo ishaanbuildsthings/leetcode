@@ -235,8 +235,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- the cell at (x, y) becomes max(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and yLo
-    // <=
-    // y <= yHi, else throws out_of_range
+    // <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(ll x, ll y, T v) {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("pointChmax: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -245,8 +244,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- the cell at (x, y) becomes min(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and yLo
-    // <=
-    // y <= yHi, else throws out_of_range
+    // <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(ll x, ll y, T v) {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("pointChmin: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -281,8 +279,8 @@ struct DynamicSegTree2D {
         return res;
     }
 
-    // O(log^2 U) -- min of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN, automatically the largest
-    // value of your type T, if there are none); needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws
+    // O(log^2 U) -- min of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN, automatically the largest value
+    // of your type T, if there are none); needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws
     // out_of_range
     LEETCODE_NO_SANITIZE T rectMin(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 < xLo || x1 > x2 || x2 > xHi || y1 < yLo || y1 > y2 || y2 > yHi)
@@ -295,36 +293,32 @@ struct DynamicSegTree2D {
         return mn[xTree[1]];
     }
 
-    // O(log^2 U) -- min of the set cells with x <= the given x and y <= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- min of the set cells with x <= the given x and y <= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteLte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
         return minOf(xLo, yLo, x, y);
     }
 
-    // O(log^2 U) -- min of the set cells with x <= the given x and y >= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- min of the set cells with x <= the given x and y >= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteGte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");
         return minOf(xLo, y, x, yHi);
     }
 
-    // O(log^2 U) -- min of the set cells with x >= the given x and y <= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- min of the set cells with x >= the given x and y <= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteLte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
         return minOf(x, yLo, xHi, y);
     }
 
-    // O(log^2 U) -- min of the set cells with x >= the given x and y >= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- min of the set cells with x >= the given x and y >= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteGte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("minGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -358,8 +352,8 @@ struct DynamicSegTree2D {
         return res;
     }
 
-    // O(log^2 U) -- max of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (NO_MAX, automatically the smallest
-    // value of your type T, if there are none); needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws
+    // O(log^2 U) -- max of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (NO_MAX, automatically the smallest value
+    // of your type T, if there are none); needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws
     // out_of_range
     LEETCODE_NO_SANITIZE T rectMax(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 < xLo || x1 > x2 || x2 > xHi || y1 < yLo || y1 > y2 || y2 > yHi)
@@ -372,36 +366,32 @@ struct DynamicSegTree2D {
         return mx[xTree[1]];
     }
 
-    // O(log^2 U) -- max of the set cells with x <= the given x and y <= the given y (NO_MAX, automatically the
-    // smallest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- max of the set cells with x <= the given x and y <= the given y (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteLte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("maxLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
         return maxOf(xLo, yLo, x, y);
     }
 
-    // O(log^2 U) -- max of the set cells with x <= the given x and y >= the given y (NO_MAX, automatically the
-    // smallest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- max of the set cells with x <= the given x and y >= the given y (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteGte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("maxLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");
         return maxOf(xLo, y, x, yHi);
     }
 
-    // O(log^2 U) -- max of the set cells with x >= the given x and y <= the given y (NO_MAX, automatically the
-    // smallest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- max of the set cells with x >= the given x and y <= the given y (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteLte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("maxGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi");
         return maxOf(x, yLo, xHi, y);
     }
 
-    // O(log^2 U) -- max of the set cells with x >= the given x and y >= the given y (NO_MAX, automatically the
-    // smallest value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws
-    // out_of_range
+    // O(log^2 U) -- max of the set cells with x >= the given x and y >= the given y (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteGte(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("maxGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -475,8 +465,8 @@ struct DynamicSegTree2D {
         return res;
     }
 
-    // O(log^2 U) -- OR of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs xLo <= x1
-    // <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws out_of_range
+    // O(log^2 U) -- OR of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs xLo <= x1 <=
+    // x2 <= xHi and yLo <= y1 <= y2 <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectOr(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 < xLo || x1 > x2 || x2 > xHi || y1 < yLo || y1 > y2 || y2 > yHi)
             throw out_of_range("rectOr: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi");

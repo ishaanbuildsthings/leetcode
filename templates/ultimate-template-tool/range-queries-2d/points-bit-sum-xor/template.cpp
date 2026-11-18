@@ -132,8 +132,8 @@ struct PointsFenwick2D {
         xr.assign(ys.size(), 0);
     }
 
-    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count,
-    // then to write
+    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count, then
+    // to write
     LEETCODE_NO_SANITIZE void fillLists(const pair<ll, int>* byY, int m, bool countOnly) {
         HotVector<ll> last((n + 1), 0);  // the y most recently added to each x-node
         for (int i = 0; i < m; i++) {

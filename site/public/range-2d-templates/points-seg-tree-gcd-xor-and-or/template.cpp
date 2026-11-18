@@ -134,8 +134,8 @@ struct PointsSegTree2D {
         orr.assign(2 * ys.size(), T(0));
     }
 
-    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count,
-    // then to write
+    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count, then
+    // to write
     LEETCODE_NO_SANITIZE void fillLists(const pair<ll, int>* byY, int m, bool countOnly) {
         HotVector<ll> last(2 * n, 0);  // the y most recently added to each x-node
         for (int i = 0; i < m; i++) {
@@ -379,8 +379,8 @@ struct PointsSegTree2D {
         return res;
     }
 
-    // O(log^2 N) -- OR of the points with x1 <= x <= x2 and y1 <= y <= y2 (0 if no point is there); needs x1 <= x2
-    // and y1 <= y2, else throws out_of_range
+    // O(log^2 N) -- OR of the points with x1 <= x <= x2 and y1 <= y <= y2 (0 if no point is there); needs x1 <= x2 and
+    // y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectOr(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectOr: needs x1 <= x2 and y1 <= y2");
         return orOf(x1, y1, x2, y2);

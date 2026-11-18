@@ -100,9 +100,8 @@ class Fenwick3D:
                              f"z = {z}, X = {self.X}, Y = {self.Y}, Z = {self.Z}")
         self._set(x, y, z, self.vals[(x * self.Y + y) * self.Z + z] + v)
 
-    # O(log X * log Y * log Z) -- the cell at (x, y, z) becomes max(itself, v); needs 0 <= x < X, 0 <= y < Y and 0 <=
-    # z <
-    # Z, else IndexError
+    # O(log X * log Y * log Z) -- the cell at (x, y, z) becomes max(itself, v); needs 0 <= x < X, 0 <= y < Y and 0 <= z
+    # < Z, else IndexError
     def pointChmax(self, x, y, z, v):
         if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
             raise IndexError(f"pointChmax: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "
@@ -110,9 +109,8 @@ class Fenwick3D:
         if v > self.vals[(x * self.Y + y) * self.Z + z]:
             self._set(x, y, z, v)
 
-    # O(log X * log Y * log Z) -- the cell at (x, y, z) becomes min(itself, v); needs 0 <= x < X, 0 <= y < Y and 0 <=
-    # z <
-    # Z, else IndexError
+    # O(log X * log Y * log Z) -- the cell at (x, y, z) becomes min(itself, v); needs 0 <= x < X, 0 <= y < Y and 0 <= z
+    # < Z, else IndexError
     def pointChmin(self, x, y, z, v):
         if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
             raise IndexError(f"pointChmin: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "
@@ -120,8 +118,8 @@ class Fenwick3D:
         if v < self.vals[(x * self.Y + y) * self.Z + z]:
             self._set(x, y, z, v)
 
-    # O(log X * log Y * log Z) -- sum of the box x1..x2, y1..y2, z1..z2; needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y
-    # and 0 <= z1 <= z2 < Z, else IndexError
+    # O(log X * log Y * log Z) -- sum of the box x1..x2, y1..y2, z1..z2; needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and
+    # 0 <= z1 <= z2 < Z, else IndexError
     def boxSum(self, x1, y1, z1, x2, y2, z2):
         if not (0 <= x1 <= x2 < self.X and 0 <= y1 <= y2 < self.Y and 0 <= z1 <= z2 < self.Z):
             raise IndexError(f"boxSum: needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z, "
@@ -138,8 +136,8 @@ class Fenwick3D:
     def sumAll(self):
         return self.total
 
-    # O(log X * log Y * log Z) -- sum of the cells with all three coordinates <= x, y, z (one prefix query); needs 0
-    # <= x < X, 0 <= y < Y and 0 <= z < Z, else IndexError
+    # O(log X * log Y * log Z) -- sum of the cells with all three coordinates <= x, y, z (one prefix query); needs 0 <=
+    # x < X, 0 <= y < Y and 0 <= z < Z, else IndexError
     def sumLteLteLte(self, x, y, z):
         if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
             raise IndexError(f"sumLteLteLte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "

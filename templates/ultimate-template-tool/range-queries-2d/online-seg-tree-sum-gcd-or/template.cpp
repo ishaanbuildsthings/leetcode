@@ -196,8 +196,8 @@ struct DynamicSegTree2D {
         return T(sm[findCell(x, y)]);
     }
 
-    // O(log^2 U) gcds -- the cell at (x, y) becomes v (it may go down as well as up); needs xLo <= x <= xHi and yLo
-    // <= y <= yHi, else throws out_of_range
+    // O(log^2 U) gcds -- the cell at (x, y) becomes v (it may go down as well as up); needs xLo <= x <= xHi and yLo <=
+    // y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(ll x, ll y, T v) {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("pointAssign: needs xLo <= x <= xHi and yLo <= y <= yHi");
@@ -259,8 +259,7 @@ struct DynamicSegTree2D {
     }
 
     // O(log^2 U) -- sum of the cells with x1 <= x <= x2 and y1 <= y <= y2; needs xLo <= x1 <= x2 <= xHi and yLo <= y1
-    // <=
-    // y2 <= yHi, else throws out_of_range
+    // <= y2 <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE S rectSum(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 < xLo || x1 > x2 || x2 > xHi || y1 < yLo || y1 > y2 || y2 > yHi)
             throw out_of_range("rectSum: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi");

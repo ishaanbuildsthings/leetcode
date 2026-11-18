@@ -140,8 +140,7 @@ class PointsSegTree2D:
         self._set(x, y, v)
 
     # O(log^2 N) -- adds v to the point (x, y); an empty point becomes v; needs (x, y) to be one of the points given,
-    # else
-    # IndexError
+    # else IndexError
     def pointAdd(self, x, y, v):
         i = self._index(x, y, "pointAdd")
         cur = self.vals[i]

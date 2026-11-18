@@ -125,8 +125,8 @@ struct Hash2D {
         return hadd(res, hmul(hmul(pre[top + c1], a), b));
     }
 
-    // O(1) -- hash of rows r1..r2, columns c1..c2: rectangles with equal cells hash equal; needs 0 <= r1 <= r2 < R
-    // and 0 <= c1 <= c2 < C, else throws out_of_range
+    // O(1) -- hash of rows r1..r2, columns c1..c2: rectangles with equal cells hash equal; needs 0 <= r1 <= r2 < R and
+    // 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE U64 rectHash(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectHash: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

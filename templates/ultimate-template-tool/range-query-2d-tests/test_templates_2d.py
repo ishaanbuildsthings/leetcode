@@ -152,6 +152,10 @@ class Brute:
                 vals.append(0)
         return vals
 
+    def kept_overlapping(self, lo, hi):
+        """(online) the values of the kept rectangle chmax / chmin that reach into the box lo..hi"""
+        return [w for a, b, w, _ in self.rects if all(x1 <= y2 and y1 <= x2 for x1, x2, y1, y2 in zip(a, b, lo, hi))]
+
     def targets(self, lo, hi):
         if self.universe is not None:
             return [p for p in self.universe if all(a <= x <= b for x, a, b in zip(p, lo, hi))]
@@ -162,11 +166,16 @@ class Brute:
         v = self.cells.get(p, self.empty_read)
         for lo, hi, w, op in self.rects:
             if all(a <= x <= b for x, a, b in zip(p, lo, hi)):
-                v = w if v is None else (max if op == "rectChmax" else min)(v, w)
+                if op in ("rectAssign", "pointAssign"):
+                    v = w
+                else:
+                    v = w if v is None else (max if op in ("rectChmax", "pointChmax") else min)(v, w)
         return v
 
     def run(self, op, args):
         """The answer (None = nothing), or the string "E" for arguments the template must refuse."""
+        if getattr(self, "area", False):
+            return self.run_area(op, args)
         shape = OPS[op][0]
         d = self.dims
         cells = self.cells
@@ -177,7 +186,12 @@ class Brute:
             if op == "pointGet":
                 return self.value(p)
             v = args[d]
-            if op == "pointAssign":
+            if self.universe is None and op == "pointAssign" and "rectAssign" in self.ops:
+                self.rects.append((p, p, v, op))
+            elif self.universe is None and op in ("pointChmax", "pointChmin") and any(
+                    o in self.ops for o in ("rectMax", "rectMin")):
+                self.rects.append((p, p, v, op))
+            elif op == "pointAssign":
                 cells[p] = v
             elif op == "pointAdd":
                 cells[p] = cells.get(p, 0) + v
@@ -189,7 +203,7 @@ class Brute:
             lo, hi, v = tuple(args[:d]), tuple(args[d:2 * d]), args[2 * d]
             if not self.rect_ok(lo, hi):
                 return "E"
-            if self.universe is None and op in ("rectChmax", "rectChmin"):
+            if self.universe is None and op in ("rectChmax", "rectChmin", "rectAssign"):
                 self.rects.append((lo, hi, v, op))
                 return "-"
             for p in self.targets(lo, hi):
@@ -220,7 +234,8 @@ class Brute:
             return True
         k, fam = op_agg(op)
         if fam == "all":
-            return AGG_FN[k](self.inside([b[0] for b in self.bounds], [b[1] for b in self.bounds]))
+            lo, hi = [b[0] for b in self.bounds], [b[1] for b in self.bounds]
+            return AGG_FN[k](self.inside(lo, hi) + self.kept_overlapping(lo, hi))
         if fam in ("rect", "box"):
             lo, hi = tuple(args[:d]), tuple(args[d:2 * d])
             if not self.rect_ok(lo, hi):
@@ -229,6 +244,7 @@ class Brute:
             if self.kind == "compressed" and k in ("min", "max", "and") and self.empty_read == 0 \
                     and not self.targets(lo, hi):
                 return "E"  # (no cell inside, and cells can't be empty: refused)
+            vals += self.kept_overlapping(lo, hi)
             return AGG_FN[k](vals)
         if fam == "square":
             r, c, side = args
@@ -244,11 +260,77 @@ class Brute:
                 return "E"
             sides = [CMP[op[len(k) + 3 * i:len(k) + 3 * i + 3]] for i in range(d)]
             vals = [v for q, v in cells.items() if all(f(x, y) for f, x, y in zip(sides, q, p))]
+            if self.rects:
+                clo = [b[0] if s is CMP["Lte"] else x for s, x, b in zip(sides, p, self.bounds)]
+                chi = [x if s is CMP["Lte"] else b[1] for s, x, b in zip(sides, p, self.bounds)]
+                vals += self.kept_overlapping(clo, chi)
             if self.kind == "compressed" and k in ("min", "max", "and") and self.empty_read == 0 and not any(
                     all(f(x, y) for f, x, y in zip(sides, q, p)) for q in self.universe):
                 return "E"  # (no cell there, and cells can't be empty: refused)
             return AGG_FN[k](vals)
         raise AssertionError(f"the brute force doesn't know {op}")
+
+
+def _overlap(a1, a2, b1, b2):
+    """how many integers lie in both [a1, a2] and [b1, b2] (None = unbounded)"""
+    lo = a1 if b1 is None else max(a1, b1)
+    hi = a2 if b2 is None else min(a2, b2)
+    return max(0, hi - lo + 1)
+
+
+def _run_area(self, op, args):
+    """@model: area -- rect adds are true area adds (kept as a list); queries are area-weighted sums of them. Online:
+    every argument inside the range. Points: an update must be one of the listed rectangles, a query is any integers."""
+    shape = OPS[op][0]
+    online = self.kind == "online"
+
+    def inside(p):
+        return all(lo <= x <= hi for x, (lo, hi) in zip(p, self.bounds))
+
+    def total(lo, hi):
+        return sum(v * _overlap(a[0], b[0], lo[0], hi[0]) * _overlap(a[1], b[1], lo[1], hi[1]) for a, b, v in self.adds)
+
+    if shape in ("pv", "rectv"):
+        if shape == "pv":
+            lo = hi = tuple(args[:2])
+        else:
+            lo, hi = tuple(args[:2]), tuple(args[2:4])
+        v = args[-1]
+        if lo[0] > hi[0] or lo[1] > hi[1]:
+            return "E"
+        if online and not (inside(lo) and inside(hi)):
+            return "E"
+        if not online and lo + hi not in self.allowed:
+            return "E"
+        self.adds.append((lo, hi, v))
+        return "-"
+    if op == "pointGet":
+        p = tuple(args)
+        if online and not inside(p):
+            return "E"
+        return total(p, p)
+    if op == "sumAll":
+        return sum(v * (b[0] - a[0] + 1) * (b[1] - a[1] + 1) for a, b, v in self.adds)
+    k, fam = op_agg(op)
+    assert k == "sum", op
+    if fam == "rect":
+        lo, hi = tuple(args[:2]), tuple(args[2:4])
+        if lo[0] > hi[0] or lo[1] > hi[1] or (online and not (inside(lo) and inside(hi))):
+            return "E"
+        return total(lo, hi)
+    if fam == "corner":
+        p = tuple(args)
+        if online and not inside(p):
+            return "E"
+        lo, hi = [], []
+        for i, side in enumerate((op[3:6], op[6:9])):
+            lo.append(None if side == "Lte" else p[i])
+            hi.append(p[i] if side == "Lte" else None)
+        return sum(v * _overlap(a[0], b[0], lo[0], hi[0]) * _overlap(a[1], b[1], lo[1], hi[1]) for a, b, v in self.adds)
+    raise AssertionError(op)
+
+
+Brute.run_area = _run_area
 
 
 def token(res):
@@ -299,6 +381,21 @@ def make_trial(rng, tags):
             window = (rng.randrange(1, sizes[0] + 1), rng.randrange(1, sizes[1] + 1))
             trial["extra"] = list(window)
         brute = Brute(kind, ops, bounds, every, cells, window, empties)
+    elif kind == "points" and tags.get("model") == "area":
+        span = rng.choice([3, 6, 10**5])
+        rects = []
+        for _ in range(rng.randrange(1, 9)):
+            x1, x2 = sorted(rng.randrange(-span, span + 1) for _ in range(2))
+            y1, y2 = sorted(rng.randrange(-span, span + 1) for _ in range(2))
+            rects.append((x1, y1, x2, y2))
+        for _ in range(rng.randrange(0, 4)):  # cells, for pointAdd
+            x, y = rng.randrange(-span, span + 1), rng.randrange(-span, span + 1)
+            rects.append((x, y, x, y))
+        rects += [rng.choice(rects) for _ in range(rng.randrange(0, 2))]  # (duplicates are allowed)
+        pts = [c for x1, y1, x2, y2 in rects for c in ((x1, y1), (x2, y2), (x2 + 1, y2 + 1))]
+        trial.update(rects=rects, points=pts, span=span)
+        brute = Brute(kind, ops, [(-span, span)] * 2, None, {}, None, empties)
+        brute.area, brute.adds, brute.allowed = True, [], set(rects)
     elif kind == "points":
         span = rng.choice([3, 6, 10**9])
         pts = [(rng.randrange(-span, span + 1), rng.randrange(-span, span + 1)) for _ in range(rng.randrange(1, 14))]
@@ -328,13 +425,15 @@ def make_trial(rng, tags):
         brute = Brute(kind, ops, [(axes[0][0], axes[0][-1]), (axes[1][0], axes[1][-1])], every, {}, None, empties)
         brute.axes = axes
     elif kind in ("online", "batch"):
-        span = rng.choice([4, 8, 10**9, 10**18])
+        span = rng.choice([4, 8, 10**5] if tags.get("model") == "area" else [4, 8, 10**9, 10**18])
         lo = [rng.choice([-span, 0]) for _ in range(2)]
         hi = [span, span]
         trial.update(lo=lo, hi=hi, span=span)
         pool = [(rng.randrange(lo[0], hi[0] + 1), rng.randrange(lo[1], hi[1] + 1)) for _ in range(rng.randrange(1, 12))]
         trial["pool"] = pool
         brute = Brute(kind, ops, [(lo[0], hi[0]), (lo[1], hi[1])], None, {}, None, empties)
+        if tags.get("model") == "area":
+            brute.area, brute.adds = True, []
     else:
         raise AssertionError(kind)
 
@@ -416,8 +515,15 @@ def make_trial(rng, tags):
                 args = [r, c, r + h - 1, c + w - 1, r2, c2]
         else:
             args = []
+        if tags.get("model") == "area" and kind == "points" and shape in ("pv", "rectv") and rng.random() < 0.85:
+            if shape == "rectv":
+                args = list(rng.choice(trial["rects"]))
+            else:
+                cells = [r for r in trial["rects"] if r[0] == r[2] and r[1] == r[3]]
+                if cells:
+                    args = list(rng.choice(cells)[:2])
         if shape in ("pv", "rectv"):
-            args.append(value(rng, ops, tags))
+            args.append(rng.randrange(-1000, 1001) if tags.get("model") == "area" else value(rng, ops, tags))
         if args and shape not in ("rectpair", "square", "window") and rng.random() < 0.06:
             args = bad(args, shape)
         script.append((op, args))
@@ -443,6 +549,8 @@ def py_construct(cls, trial):
         return cls(grid, *trial["extra"])
     if kind == "grid-3d":
         return cls(*trial["sizes"])
+    if kind == "points" and "rects" in trial:
+        return cls(list(trial["rects"]))
     if kind == "points":
         return cls(list(trial["points"]))
     if kind == "compressed":
@@ -524,6 +632,9 @@ def cpp_driver(folder, tags, struct):
               "        }"]
     elif kind == "grid-3d":
         L += ["        int X, Y, Z; scanf(\"%d %d %d\", &X, &Y, &Z);", "        ds.reset(new DS(X, Y, Z));"]
+    elif kind == "points" and tags.get("model") == "area":
+        L += ["        int n; scanf(\"%d\", &n);", "        vector<array<ll, 4>> rs(n);",
+              "        for (auto& r : rs) scanf(\"%lld %lld %lld %lld\", &r[0], &r[1], &r[2], &r[3]);", "        ds.reset(new DS(rs));"]
     elif kind == "points":
         L += ["        int n; scanf(\"%d\", &n);", "        vector<pair<ll, ll>> pts(n);",
               "        for (auto& p : pts) scanf(\"%lld %lld\", &p.first, &p.second);", "        ds.reset(new DS(pts));"]
@@ -589,6 +700,8 @@ def cpp_input(trials):
                 out.append(" ".join(str(t["cells"][(r, c)]) for r in range(R) for c in range(C)))
         elif kind == "grid-3d":
             out.append(" ".join(map(str, t["sizes"])))
+        elif kind == "points" and "rects" in t:
+            out.append(str(len(t["rects"])) + " " + " ".join(" ".join(map(str, r)) for r in t["rects"]))
         elif kind == "points":
             out.append(str(len(t["points"])) + " " + " ".join(f"{x} {y}" for x, y in t["points"]))
         elif kind == "online":

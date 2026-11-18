@@ -259,9 +259,15 @@ def wrap_comment(text, cm, width=118):
 
 
 def _wrap_long_comments(lines, cm):
-    """Comment-only lines past 120 columns are rewrapped at their own indentation (header tag lines are left alone)."""
+    """Comment-only lines past 120 columns are rewrapped at their own indentation (header tag lines are left alone).
+    The rest of that comment (the lines after it with the same indentation, up to the code) is rewrapped with it, so the
+    overflow doesn't leave a short line in the middle."""
     out, in_header = [], True
-    for line in lines:
+    lines = list(lines)
+    k = 0
+    while k < len(lines):
+        line = lines[k]
+        k += 1
         body = line.lstrip()
         if in_header and line == "":
             in_header = False
@@ -285,7 +291,11 @@ def _wrap_long_comments(lines, cm):
             out.append(line)
             continue
         pad = line[: len(line) - len(body)]
-        out += [pad + piece for piece in wrap_comment(body[len(cm):], cm, 118 - len(pad))]
+        text = body[len(cm):]
+        while k < len(lines) and lines[k].startswith(pad + cm + " ") and not lines[k][len(pad):].startswith(cm + "  "):
+            text += " " + lines[k][len(pad) + len(cm) + 1:]
+            k += 1
+        out += [pad + piece for piece in wrap_comment(text, cm, 120 - len(pad))]
     return out
 
 

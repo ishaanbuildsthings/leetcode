@@ -113,17 +113,23 @@ needs the segment tree; the picker gets this from the ops picked.
 | `points-seg-tree-<aggs>` | a bottom-up tree over the distinct x's; each node keeps the sorted y's under it and a tree over just those | point updates, any rectangle, corners | log² N | N log N |
 | `points-bit-sum`, `-xor`, `-sum-xor` | the same shape with Fenwick trees (lighter) | point updates, rectangle sum / xor, corners | log² N | N log N |
 | `points-bit-corner-{max,min}-<corners>` | one Fenwick-of-Fenwicks per corner direction | `pointChmax` (`pointChmin`) + corner max (min) | log² N | N log N per direction |
+| `points-rect-add-rect-sum` | corner marks with sums of d, d·x, d·y, d·x·y in a Fenwick-of-Fenwicks over the marks | rect add + rect sum (true area), corners | log² N | N log N, N = rectangles |
 
 The constructor takes every (x, y) a point op will use (`generators/gen_points.py`); a point op on anything else is
 refused. Rectangles and corners take any integers and are never listed. Each point sits in log N x-nodes, one slot in
 each, so memory is N log N however far apart the coordinates are. There are no rectangle updates here (a tag can't be
-pushed down the outer tree): those are the small grid's, or online for rect chmax with point reads.
+pushed down the outer tree), except rect add + rect sum: there the constructor takes every rectangle a rectAdd will
+use (`points-rect-add-rect-sum`), whose corners become the known points.
 
 ### Nothing known (`online`)
 
 | Folders | Structure | Ops | Cost per op | Memory per update |
 |---|---|---|---|---|
 | `online-seg-tree-<aggs>` (127) | dynamic tree over x whose nodes each own a dynamic tree over y | point updates, any rectangle, corners | log² U | log² U nodes |
+| `online-kept-tags-{max,min}` | the same, tags kept in place | rect chmax (chmin) + point get | log² U | about 4 log² U nodes |
+| `online-kept-tags-rect-{max,min}` | the same, each x-node with a "cover" and a "touch" y-tree, each y-node with both values | rect chmax (chmin) + rect max (min), corners | log² U | about 8 log² U nodes |
+| `online-rect-assign-point-get` | the same, newest timestamp kept in place | rect assign + point get | log² U | about 4 log² U nodes |
+| `online-rect-add-rect-sum` | corner marks (+v, -v, -v, +v) with sums of d, d·x, d·y, d·x·y in the dynamic tree of trees | rect add + rect sum (true area), corners | log² U | about 4 log² U nodes |
 
 ### 3D (`grid-3d`)
 
@@ -147,6 +153,7 @@ trees. So:
 |---|---|---|
 | rect add + point get / rect sum | Fenwick over corner marks (built) | log² |
 | rect chmax + rect max (chmin + min) | tags kept in place, read on the way down (built) | log² |
+| rect assign + point get | newest timestamp kept in place, `grid-rect-assign-point-get` (built) | log² |
 | any update + any query, short side small | one 1D lazy seg tree per row, looping the rows (not built) | R × the 1D cost |
 
 Rect add with rect max has no log² structure here: only the last two rows cover it.

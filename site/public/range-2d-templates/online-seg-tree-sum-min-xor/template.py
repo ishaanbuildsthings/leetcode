@@ -209,8 +209,7 @@ class DynamicSegTree2D:
         self._set(x, y, v)
 
     # O(log^2 U) -- adds v to the cell at (x, y); an empty cell becomes v; needs xLo <= x <= xHi and yLo <= y <= yHi,
-    # else
-    # IndexError
+    # else IndexError
     def pointAdd(self, x, y, v):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"pointAdd: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -218,8 +217,8 @@ class DynamicSegTree2D:
         cur = self._cell(x, y)
         self._set(x, y, v if cur == POS else cur + v)
 
-    # O(log^2 U) -- the cell at (x, y) becomes max(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and yLo
-    # <= y <= yHi, else IndexError
+    # O(log^2 U) -- the cell at (x, y) becomes max(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and yLo <=
+    # y <= yHi, else IndexError
     def pointChmax(self, x, y, v):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"pointChmax: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -228,8 +227,8 @@ class DynamicSegTree2D:
         if cur == POS or v > cur:
             self._set(x, y, v)
 
-    # O(log^2 U) -- the cell at (x, y) becomes min(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and yLo
-    # <= y <= yHi, else IndexError
+    # O(log^2 U) -- the cell at (x, y) becomes min(itself, v); an empty cell becomes v; needs xLo <= x <= xHi and yLo <=
+    # y <= yHi, else IndexError
     def pointChmin(self, x, y, v):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"pointChmin: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -267,8 +266,8 @@ class DynamicSegTree2D:
                 res += sm[q]
         return res
 
-    # O(log^2 U) -- sum of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs xLo <= x1
-    # <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
+    # O(log^2 U) -- sum of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs xLo <= x1 <=
+    # x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
     def rectSum(self, x1, y1, x2, y2):
         if not (self.xLo <= x1 <= x2 <= self.xHi and self.yLo <= y1 <= y2 <= self.yHi):
             raise IndexError(f"rectSum: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, got x1 = {x1}, "
@@ -280,32 +279,32 @@ class DynamicSegTree2D:
     def sumAll(self):
         return self.sm[self.xTree[1]]
 
-    # O(log^2 U) -- sum of the set cells with x <= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <=
-    # y <= yHi, else IndexError
+    # O(log^2 U) -- sum of the set cells with x <= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <= y
+    # <= yHi, else IndexError
     def sumLteLte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"sumLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._sumOf(self.xLo, self.yLo, x, y)
 
-    # O(log^2 U) -- sum of the set cells with x <= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <=
-    # y <= yHi, else IndexError
+    # O(log^2 U) -- sum of the set cells with x <= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <= y
+    # <= yHi, else IndexError
     def sumLteGte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"sumLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._sumOf(self.xLo, y, x, self.yHi)
 
-    # O(log^2 U) -- sum of the set cells with x >= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <=
-    # y <= yHi, else IndexError
+    # O(log^2 U) -- sum of the set cells with x >= the given x and y <= the given y; needs xLo <= x <= xHi and yLo <= y
+    # <= yHi, else IndexError
     def sumGteLte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"sumGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._sumOf(x, self.yLo, self.xHi, y)
 
-    # O(log^2 U) -- sum of the set cells with x >= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <=
-    # y <= yHi, else IndexError
+    # O(log^2 U) -- sum of the set cells with x >= the given x and y >= the given y; needs xLo <= x <= xHi and yLo <= y
+    # <= yHi, else IndexError
     def sumGteGte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"sumGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -343,9 +342,8 @@ class DynamicSegTree2D:
                     res = cand
         return None if res == POS else res
 
-    # O(log^2 U) -- min of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (None if there are none); needs xLo <=
-    # x1 <=
-    # x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
+    # O(log^2 U) -- min of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (None if there are none); needs xLo <= x1
+    # <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
     def rectMin(self, x1, y1, x2, y2):
         if not (self.xLo <= x1 <= x2 <= self.xHi and self.yLo <= y1 <= y2 <= self.yHi):
             raise IndexError(f"rectMin: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, got x1 = {x1}, "
@@ -358,36 +356,32 @@ class DynamicSegTree2D:
         res = self.mn[self.xTree[1]]
         return None if res == POS else res
 
-    # O(log^2 U) -- min of the set cells with x <= the given x and y <= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- min of the set cells with x <= the given x and y <= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def minLteLte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"minLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._minOf(self.xLo, self.yLo, x, y)
 
-    # O(log^2 U) -- min of the set cells with x <= the given x and y >= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- min of the set cells with x <= the given x and y >= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def minLteGte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"minLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._minOf(self.xLo, y, x, self.yHi)
 
-    # O(log^2 U) -- min of the set cells with x >= the given x and y <= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- min of the set cells with x >= the given x and y <= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def minGteLte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"minGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._minOf(x, self.yLo, self.xHi, y)
 
-    # O(log^2 U) -- min of the set cells with x >= the given x and y >= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- min of the set cells with x >= the given x and y >= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def minGteGte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"minGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -423,8 +417,8 @@ class DynamicSegTree2D:
                 res ^= xr[q]
         return res
 
-    # O(log^2 U) -- xor of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs xLo <= x1
-    # <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
+    # O(log^2 U) -- xor of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs xLo <= x1 <=
+    # x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
     def rectXor(self, x1, y1, x2, y2):
         if not (self.xLo <= x1 <= x2 <= self.xHi and self.yLo <= y1 <= y2 <= self.yHi):
             raise IndexError(f"rectXor: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, got x1 = {x1}, "

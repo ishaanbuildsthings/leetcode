@@ -181,8 +181,8 @@ struct DynamicSegTree2D {
         return T(orr[findCell(x, y)]);
     }
 
-    // O(log^2 U) gcds -- the cell at (x, y) becomes v (it may go down as well as up); needs xLo <= x <= xHi and yLo
-    // <= y <= yHi, else throws out_of_range
+    // O(log^2 U) gcds -- the cell at (x, y) becomes v (it may go down as well as up); needs xLo <= x <= xHi and yLo <=
+    // y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(ll x, ll y, T v) {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("pointAssign: needs xLo <= x <= xHi and yLo <= y <= yHi");

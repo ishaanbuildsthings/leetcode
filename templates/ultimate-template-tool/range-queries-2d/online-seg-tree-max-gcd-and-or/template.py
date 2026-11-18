@@ -276,9 +276,8 @@ class DynamicSegTree2D:
                     res = cand
         return None if res == NEG else res
 
-    # O(log^2 U) -- max of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (None if there are none); needs xLo <=
-    # x1 <=
-    # x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
+    # O(log^2 U) -- max of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (None if there are none); needs xLo <= x1
+    # <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
     def rectMax(self, x1, y1, x2, y2):
         if not (self.xLo <= x1 <= x2 <= self.xHi and self.yLo <= y1 <= y2 <= self.yHi):
             raise IndexError(f"rectMax: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, got x1 = {x1}, "
@@ -291,36 +290,32 @@ class DynamicSegTree2D:
         res = self.mx[self.xTree[1]]
         return None if res == NEG else res
 
-    # O(log^2 U) -- max of the set cells with x <= the given x and y <= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- max of the set cells with x <= the given x and y <= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def maxLteLte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"maxLteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._maxOf(self.xLo, self.yLo, x, y)
 
-    # O(log^2 U) -- max of the set cells with x <= the given x and y >= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- max of the set cells with x <= the given x and y >= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def maxLteGte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"maxLteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._maxOf(self.xLo, y, x, self.yHi)
 
-    # O(log^2 U) -- max of the set cells with x >= the given x and y <= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- max of the set cells with x >= the given x and y <= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def maxGteLte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"maxGteLte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
                              f"xLo = {self.xLo}, xHi = {self.xHi}, yLo = {self.yLo}, yHi = {self.yHi}")
         return self._maxOf(x, self.yLo, self.xHi, y)
 
-    # O(log^2 U) -- max of the set cells with x >= the given x and y >= the given y (None if there are none); needs
-    # xLo <=
-    # x <= xHi and yLo <= y <= yHi, else IndexError
+    # O(log^2 U) -- max of the set cells with x >= the given x and y >= the given y (None if there are none); needs xLo
+    # <= x <= xHi and yLo <= y <= yHi, else IndexError
     def maxGteGte(self, x, y):
         if not (self.xLo <= x <= self.xHi and self.yLo <= y <= self.yHi):
             raise IndexError(f"maxGteGte: needs xLo <= x <= xHi and yLo <= y <= yHi, got x = {x}, y = {y}, "
@@ -357,8 +352,7 @@ class DynamicSegTree2D:
         return res
 
     # O(log^2 U + log U) -- gcd of the set cells with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs xLo
-    # <=
-    # x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
+    # <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, else IndexError
     def rectGcd(self, x1, y1, x2, y2):
         if not (self.xLo <= x1 <= x2 <= self.xHi and self.yLo <= y1 <= y2 <= self.yHi):
             raise IndexError(f"rectGcd: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, got x1 = {x1}, "

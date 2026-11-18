@@ -136,8 +136,7 @@ class PointsSegTree2D:
         self._set(x, y, v)
 
     # O(log^2 N) -- adds v to the point (x, y); an empty point becomes v; needs (x, y) to be one of the points given,
-    # else
-    # IndexError
+    # else IndexError
     def pointAdd(self, x, y, v):
         i = self._index(x, y, "pointAdd")
         cur = self.vals[i]
@@ -360,8 +359,8 @@ class PointsSegTree2D:
             r >>= 1
         return res
 
-    # O(log^2 N) -- OR of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs x1 <= x2
-    # and y1 <= y2, else IndexError
+    # O(log^2 N) -- OR of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs x1 <= x2 and
+    # y1 <= y2, else IndexError
     def rectOr(self, x1, y1, x2, y2):
         if x1 > x2 or y1 > y2:
             raise IndexError(f"rectOr: needs x1 <= x2 and y1 <= y2, got x1 = {x1}, y1 = {y1}, x2 = {x2}, y2 = {y2}")

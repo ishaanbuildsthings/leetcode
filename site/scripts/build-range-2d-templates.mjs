@@ -6,6 +6,7 @@
 // Each folder holds template.py and template.cpp with the same header as the 1D range-query templates, plus
 //   @input: grid | points | online | grid-3d   what the constructor is given (the picker's switch)
 //   @empty-cells: yes                                  (optional) cells can be empty: a min / max over none is "nothing"
+//   @model: area                                       (optional) rect adds are true area adds (tester only)
 //   @values: non-negative                              (optional) what the values must be
 // Costs use R, C (a grid's rows and columns), X, Y (distinct coordinates; a 3D grid's sides), N, U (a coordinate range), Z.
 // Run with: npm run gen:range-queries-2d
@@ -20,8 +21,8 @@ const srcDir = path.resolve(siteDir, "../templates/ultimate-template-tool/range-
 const publicDir = path.join(siteDir, "public/range-2d-templates");
 const manifestPath = path.join(siteDir, "lib/generated/range-2d-templates.ts");
 
-const TAGS = ["operations", "data-structure-type", "input", "empty-cells", "values", "complexities", "memory"];
-const OPTIONAL_TAGS = ["empty-cells", "values"];
+const TAGS = ["operations", "data-structure-type", "input", "empty-cells", "values", "model", "complexities", "memory"];
+const OPTIONAL_TAGS = ["empty-cells", "values", "model"];
 const INPUTS = ["grid", "points", "online", "grid-3d"];
 // (kept in step with RANGE_2D_TYPES in lib/range-2d-picker.ts, which tsc checks the manifest against)
 const TYPES = ["prefix-sum", "difference-array", "corner-table", "hash", "bit-counts", "sparse-table",

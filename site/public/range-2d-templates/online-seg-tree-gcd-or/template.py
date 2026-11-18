@@ -240,9 +240,8 @@ class DynamicSegTree2D:
                 res = gcd(res, gc[q])
         return res
 
-    # O(log^2 U + log U) -- gcd of the cells with x1 <= x <= x2 and y1 <= y <= y2; needs xLo <= x1 <= x2 <= xHi and
-    # yLo <=
-    # y1 <= y2 <= yHi, else IndexError
+    # O(log^2 U + log U) -- gcd of the cells with x1 <= x <= x2 and y1 <= y <= y2; needs xLo <= x1 <= x2 <= xHi and yLo
+    # <= y1 <= y2 <= yHi, else IndexError
     def rectGcd(self, x1, y1, x2, y2):
         if not (self.xLo <= x1 <= x2 <= self.xHi and self.yLo <= y1 <= y2 <= self.yHi):
             raise IndexError(f"rectGcd: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, got x1 = {x1}, "
@@ -283,8 +282,8 @@ class DynamicSegTree2D:
                 res |= orr[q]
         return res
 
-    # O(log^2 U) -- OR of the cells with x1 <= x <= x2 and y1 <= y <= y2; needs xLo <= x1 <= x2 <= xHi and yLo <= y1
-    # <= y2 <= yHi, else IndexError
+    # O(log^2 U) -- OR of the cells with x1 <= x <= x2 and y1 <= y <= y2; needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <=
+    # y2 <= yHi, else IndexError
     def rectOr(self, x1, y1, x2, y2):
         if not (self.xLo <= x1 <= x2 <= self.xHi and self.yLo <= y1 <= y2 <= self.yHi):
             raise IndexError(f"rectOr: needs xLo <= x1 <= x2 <= xHi and yLo <= y1 <= y2 <= yHi, got x1 = {x1}, "

@@ -127,8 +127,8 @@ class SegTree2D:
         cur = self.mx[(r + self.R) * self.W + c + self.C]
         return None if cur == NEG else cur
 
-    # O(log R * log C) -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c <
-    # C, else IndexError
+    # O(log R * log C) -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c < C,
+    # else IndexError
     def pointAssign(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointAssign: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
@@ -144,8 +144,8 @@ class SegTree2D:
         cur = self.mx[(r + self.R) * self.W + c + self.C]
         self._set(r, c, v if cur == NEG else cur + v)
 
-    # O(log R * log C) -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    # <= c < C, else IndexError
+    # O(log R * log C) -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and 0 <=
+    # c < C, else IndexError
     def pointChmax(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointChmax: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
@@ -154,8 +154,8 @@ class SegTree2D:
         if cur == NEG or v > cur:
             self._set(r, c, v)
 
-    # O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    # <= c < C, else IndexError
+    # O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0 <=
+    # c < C, else IndexError
     def pointChmin(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointChmin: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "

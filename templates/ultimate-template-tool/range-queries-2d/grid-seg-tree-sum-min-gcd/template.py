@@ -120,8 +120,8 @@ class SegTree2D:
         cur = self.mn[(r + self.R) * self.W + c + self.C]
         return None if cur == POS else cur
 
-    # O(log R * log C) gcds -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <=
-    # c < C, else IndexError
+    # O(log R * log C) gcds -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c
+    # < C, else IndexError
     def pointAssign(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointAssign: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
@@ -137,8 +137,8 @@ class SegTree2D:
         cur = self.mn[(r + self.R) * self.W + c + self.C]
         self._set(r, c, v if cur == POS else cur + v)
 
-    # O(log R * log C) gcds -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R
-    # and 0 <= c < C, else IndexError
+    # O(log R * log C) gcds -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and
+    # 0 <= c < C, else IndexError
     def pointChmax(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointChmax: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
@@ -147,8 +147,8 @@ class SegTree2D:
         if cur == POS or v > cur:
             self._set(r, c, v)
 
-    # O(log R * log C) gcds -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R
-    # and 0 <= c < C, else IndexError
+    # O(log R * log C) gcds -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and
+    # 0 <= c < C, else IndexError
     def pointChmin(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointChmin: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "
@@ -198,9 +198,8 @@ class SegTree2D:
             rr >>= 1
         return res
 
-    # O(log R * log C) -- sum of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0 <= r1 <=
-    # r2 <
-    # R and 0 <= c1 <= c2 < C, else IndexError
+    # O(log R * log C) -- sum of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0 <= r1 <= r2
+    # < R and 0 <= c1 <= c2 < C, else IndexError
     def rectSum(self, r1, c1, r2, c2):
         if not (0 <= r1 <= r2 < self.R and 0 <= c1 <= c2 < self.C):
             raise IndexError(f"rectSum: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "
@@ -378,8 +377,8 @@ class SegTree2D:
             rr >>= 1
         return res
 
-    # O(log R * log C + log U) -- gcd of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0
-    # <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else IndexError
+    # O(log R * log C + log U) -- gcd of the set cells in rows r1..r2, columns c1..c2 (0 if there are none); needs 0 <=
+    # r1 <= r2 < R and 0 <= c1 <= c2 < C, else IndexError
     def rectGcd(self, r1, c1, r2, c2):
         if not (0 <= r1 <= r2 < self.R and 0 <= c1 <= c2 < self.C):
             raise IndexError(f"rectGcd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "

@@ -129,8 +129,8 @@ struct SegTree2D {
         return T(sm[(r + R) * W + c + C]);
     }
 
-    // O(log R * log C) gcds -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <=
-    // c < C, else throws out_of_range
+    // O(log R * log C) gcds -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c
+    // < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAssign: needs 0 <= r < R and 0 <= c < C");
         setCell(r, c, v);
@@ -143,16 +143,16 @@ struct SegTree2D {
         setCell(r, c, T(cur + v));
     }
 
-    // O(log R * log C) gcds -- the cell at (r, c) becomes max(itself, v); needs 0 <= r < R and 0 <= c < C, else
-    // throws out_of_range
+    // O(log R * log C) gcds -- the cell at (r, c) becomes max(itself, v); needs 0 <= r < R and 0 <= c < C, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmax: needs 0 <= r < R and 0 <= c < C");
         T cur = T(sm[(r + R) * W + c + C]);
         if (v > cur) setCell(r, c, v);
     }
 
-    // O(log R * log C) gcds -- the cell at (r, c) becomes min(itself, v); needs 0 <= r < R and 0 <= c < C, else
-    // throws out_of_range
+    // O(log R * log C) gcds -- the cell at (r, c) becomes min(itself, v); needs 0 <= r < R and 0 <= c < C, else throws
+    // out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
         T cur = T(sm[(r + R) * W + c + C]);

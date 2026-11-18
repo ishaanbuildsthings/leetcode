@@ -157,8 +157,8 @@ struct PointsSegTree2D {
         an.assign(2 * ys.size(), T(-1));
     }
 
-    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count,
-    // then to write
+    // every x-node's sorted distinct y's, back to back in ys (x-node p's start at off[p]); called twice: to count, then
+    // to write
     LEETCODE_NO_SANITIZE void fillLists(const pair<ll, int>* byY, int m, bool countOnly) {
         HotVector<ll> last(2 * n, 0);  // the y most recently added to each x-node
         for (int i = 0; i < m; i++) {
@@ -219,8 +219,7 @@ struct PointsSegTree2D {
     }
 
     // O(log N) -- the value at (x, y), NO_MIN, automatically the largest value of your type T, if it was never set;
-    // needs (x, y) to be one of the points given, else
-    // throws out_of_range
+    // needs (x, y) to be one of the points given, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(ll x, ll y) const {
         int i = indexOf(x, y, "pointGet");
         return isSet[i] ? vals[i] : NO_MIN;
@@ -293,8 +292,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) -- sum of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs x1 <= x2
-    // and
-    // y1 <= y2, else throws out_of_range
+    // and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE S rectSum(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectSum: needs x1 <= x2 and y1 <= y2");
         return sumOf(x1, y1, x2, y2);
@@ -353,8 +351,8 @@ struct PointsSegTree2D {
         return res;
     }
 
-    // O(log^2 N) -- min of the set points with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN, automatically the largest
-    // value of your type T, if there are none); needs x1 <= x2 and y1 <= y2, else throws out_of_range
+    // O(log^2 N) -- min of the set points with x1 <= x <= x2 and y1 <= y <= y2 (NO_MIN, automatically the largest value
+    // of your type T, if there are none); needs x1 <= x2 and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectMin(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectMin: needs x1 <= x2 and y1 <= y2");
         return minOf(x1, y1, x2, y2);
@@ -365,26 +363,26 @@ struct PointsSegTree2D {
         return mn[2 * off[1] + 1];
     }
 
-    // O(log^2 N) -- min of the set points with x <= the given x and y <= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); any integers
+    // O(log^2 N) -- min of the set points with x <= the given x and y <= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); any integers
     LEETCODE_NO_SANITIZE T minLteLte(ll x, ll y) const {
         return minOf(LOW, LOW, x, y);
     }
 
-    // O(log^2 N) -- min of the set points with x <= the given x and y >= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); any integers
+    // O(log^2 N) -- min of the set points with x <= the given x and y >= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); any integers
     LEETCODE_NO_SANITIZE T minLteGte(ll x, ll y) const {
         return minOf(LOW, y, x, HIGH);
     }
 
-    // O(log^2 N) -- min of the set points with x >= the given x and y <= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); any integers
+    // O(log^2 N) -- min of the set points with x >= the given x and y <= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); any integers
     LEETCODE_NO_SANITIZE T minGteLte(ll x, ll y) const {
         return minOf(x, LOW, HIGH, y);
     }
 
-    // O(log^2 N) -- min of the set points with x >= the given x and y >= the given y (NO_MIN, automatically the
-    // largest value of your type T, if there are none); any integers
+    // O(log^2 N) -- min of the set points with x >= the given x and y >= the given y (NO_MIN, automatically the largest
+    // value of your type T, if there are none); any integers
     LEETCODE_NO_SANITIZE T minGteGte(ll x, ll y) const {
         return minOf(x, y, HIGH, HIGH);
     }
@@ -417,8 +415,8 @@ struct PointsSegTree2D {
         return res;
     }
 
-    // O(log^2 N + log U) -- gcd of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs
-    // x1 <= x2 and y1 <= y2, else throws out_of_range
+    // O(log^2 N + log U) -- gcd of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs x1
+    // <= x2 and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectGcd(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectGcd: needs x1 <= x2 and y1 <= y2");
         return gcdOf(x1, y1, x2, y2);
@@ -458,8 +456,7 @@ struct PointsSegTree2D {
     }
 
     // O(log^2 N) -- xor of the set points with x1 <= x <= x2 and y1 <= y <= y2 (0 if there are none); needs x1 <= x2
-    // and
-    // y1 <= y2, else throws out_of_range
+    // and y1 <= y2, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectXor(ll x1, ll y1, ll x2, ll y2) const {
         if (x1 > x2 || y1 > y2) throw out_of_range("rectXor: needs x1 <= x2 and y1 <= y2");
         return xorOf(x1, y1, x2, y2);

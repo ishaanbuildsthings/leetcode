@@ -201,16 +201,15 @@ class RectChminRectMin2D:
         return None if res == POS else res
 
     # O(log R * log C) -- every cell of rows r1..r2, columns c1..c2 becomes min(itself, v); an empty cell becomes v;
-    # needs
-    # 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else IndexError
+    # needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else IndexError
     def rectChmin(self, r1, c1, r2, c2, v):
         if not (0 <= r1 <= r2 < self.R and 0 <= c1 <= c2 < self.C):
             raise IndexError(f"rectChmin: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         self._update(r1, c1, r2, c2, v)
 
-    # O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0
-    # <= c < C, else IndexError
+    # O(log R * log C) -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and 0 <=
+    # c < C, else IndexError
     def pointChmin(self, r, c, v):
         if not (0 <= r < self.R and 0 <= c < self.C):
             raise IndexError(f"pointChmin: needs 0 <= r < R and 0 <= c < C, got r = {r}, c = {c}, R = {self.R}, "

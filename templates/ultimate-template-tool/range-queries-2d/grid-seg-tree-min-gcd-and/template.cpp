@@ -139,38 +139,38 @@ struct SegTree2D {
         }
     }
 
-    // O(1) -- the value at (r, c), NO_MIN, automatically the largest value of your type T, if the cell is empty;
-    // needs 0 <= r < R and 0 <= c < C, else throws out_of_range
+    // O(1) -- the value at (r, c), NO_MIN, automatically the largest value of your type T, if the cell is empty; needs
+    // 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         return T(mn[(r + R) * W + c + C]);
     }
 
-    // O(log R * log C) gcds -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <=
-    // c < C, else throws out_of_range
+    // O(log R * log C) gcds -- the cell at (r, c) becomes v (it may go down as well as up); needs 0 <= r < R and 0 <= c
+    // < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAssign(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAssign: needs 0 <= r < R and 0 <= c < C");
         setCell(r, c, v);
     }
 
-    // O(log R * log C) gcds -- adds v to the cell at (r, c); an empty cell becomes v; needs 0 <= r < R and 0 <= c <
-    // C, else throws out_of_range
+    // O(log R * log C) gcds -- adds v to the cell at (r, c); an empty cell becomes v; needs 0 <= r < R and 0 <= c < C,
+    // else throws out_of_range
     LEETCODE_NO_SANITIZE void pointAdd(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointAdd: needs 0 <= r < R and 0 <= c < C");
         T cur = T(mn[(r + R) * W + c + C]);
         setCell(r, c, cur == NO_MIN ? v : T(cur + v));
     }
 
-    // O(log R * log C) gcds -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R
-    // and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) gcds -- the cell at (r, c) becomes max(itself, v); an empty cell becomes v; needs 0 <= r < R and
+    // 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmax(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmax: needs 0 <= r < R and 0 <= c < C");
         T cur = T(mn[(r + R) * W + c + C]);
         if (cur == NO_MIN || v > cur) setCell(r, c, v);
     }
 
-    // O(log R * log C) gcds -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R
-    // and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) gcds -- the cell at (r, c) becomes min(itself, v); an empty cell becomes v; needs 0 <= r < R and
+    // 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE void pointChmin(int r, int c, T v) {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointChmin: needs 0 <= r < R and 0 <= c < C");
         T cur = T(mn[(r + R) * W + c + C]);
@@ -199,8 +199,8 @@ struct SegTree2D {
         return res;
     }
 
-    // O(log R * log C) -- min of the set cells in rows r1..r2, columns c1..c2 (NO_MIN, automatically the largest
-    // value of your type T, if there are none); needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    // O(log R * log C) -- min of the set cells in rows r1..r2, columns c1..c2 (NO_MIN, automatically the largest value
+    // of your type T, if there are none); needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectMin(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectMin: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");

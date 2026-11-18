@@ -72,6 +72,10 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
       py: `grid: a list of R rows, each a list of C values${t.emptyCells ? " (None = an empty cell)" : ""}`,
       cpp: `grid: vector<vector<T>>, R rows of C values${t.emptyCells ? "; or construct with (R, C) to start with every cell empty" : ""}`,
     },
+    rects: {
+      py: "rects: every (x1, y1, x2, y2) a rectAdd will use, e.g. [(0, 0, 10**9, 5)] (repeats are fine); a pointAdd at (x, y) needs (x, y, x, y). Queries are never listed",
+      cpp: "rects: vector<array<long long, 4>>, every {x1, y1, x2, y2} a rectAdd will use (repeats are fine); a pointAdd at (x, y) needs {x, y, x, y}. Queries are never listed",
+    },
     points: {
       py: "points: every (x, y) a point op (pointGet, pointAdd, ...) will use, e.g. [(10**9, -5), (3, 7)] (repeats are fine); never rectangle or corner coordinates, those can be any integers",
       cpp: "points: vector<pair<long long, long long>>, every (x, y) a point op (pointGet, pointAdd, ...) will use (repeats are fine); never rectangle or corner coordinates, those can be any integers",
