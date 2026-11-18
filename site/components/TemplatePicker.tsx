@@ -232,8 +232,6 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // (optional) instead of one grid: the `fixed` groups in a frozen left column, and the rest in tabs to its right
   // (tree queries: shape ops on the left, node / edge ops in tabs). Picks stay when you switch tabs
   pane?: { fixed: string[]; tabs: { id: string; label: string; groups: string[] }[] };
-  // a line shown above the op columns (2D range queries: (r, c) and (x, y) are the same thing)
-  intro?: string;
   // a short "still to add" list shown under the op columns
   planned?: string[];
   // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
@@ -1866,8 +1864,6 @@ export function TemplatePicker<V extends PickerTemplate>({
           </>
         </PickerTabs>
       </div>
-
-      {catalog.intro && <p className="mb-3 text-sm text-foreground">{catalog.intro}</p>}
 
       {catalog.pane ? (
         <OpPane pane={catalog.pane} opGroups={catalog.opGroups} renderGroup={renderGroup} active={active} query={query} />

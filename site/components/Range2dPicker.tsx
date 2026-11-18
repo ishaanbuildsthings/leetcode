@@ -30,8 +30,6 @@ const BY_INPUT = Object.fromEntries(RANGE_2D_MODES.map((input) => [input, TEMPLA
 
 const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   title: "2D Range Query Picker",
-  intro:
-    "(r, c) and (x, y) are fully interchangeable: both mean (first coordinate, second coordinate), so use whichever you think in. The one exception is a template built from a grid, which reads it as grid[r][c]. Tick \"(x, y) points\" to see everything written with x and y.",
   flag: {
     label: "(x, y) points",
     title: "Write coordinates as (x, y) instead of (r, c). Leaves out the small-grid templates, which are built from grid[r][c]",
@@ -78,12 +76,6 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
     w: { py: "w: the window's width (columns)", cpp: "w: the window's width (columns)" },
   }),
   ctorComments: (t) => [
-    ...(t.input === "batch"
-      ? [
-          "Every call is only recorded: a query returns its number k (0, 1, 2, ...), not an answer.",
-          "When all calls are made: answers = ds.solve(); answers[k] is query k's answer.",
-        ]
-      : []),
     ...(t.emptyCells
       ? ["Cells can be empty: queries only see cells that have been set."]
       : t.input === "points"

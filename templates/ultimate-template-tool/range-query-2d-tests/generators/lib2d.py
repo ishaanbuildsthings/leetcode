@@ -3,7 +3,7 @@
 A generator builds one folder per template under templates/ultimate-template-tool/range-queries-2d, each holding
 template.py and template.cpp with the same tagged header the 1D range query templates use, plus
 
-    @input: grid | points | online | batch | grid-3d     what the constructor is given (the picker's switch)
+    @input: grid | points | online | grid-3d              what the constructor is given (the picker's switch)
     @empty-cells: yes                                    (optional) cells can be empty: see SPEC.md, section 2
 
 Costs use R, C (a grid's rows and columns), N (how many points were given, or how many ops a batch holds), U (the
@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(os.path.dirname(HERE)), "range-queries-2d")
 URL = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d"
 
-INPUTS = ("grid", "points", "online", "batch", "grid-3d")
+INPUTS = ("grid", "points", "online", "grid-3d")
 
 # ---- C++ is fast by default: sanitizers are skipped inside every template (the range query tab's "fast mode", here
 # with no slower twin). The marker and HotVector are the range query generators' own, so the text stays the same.

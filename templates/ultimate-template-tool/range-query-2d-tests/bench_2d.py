@@ -100,11 +100,6 @@ CASES = {
         for (int i = 0; i < 200000; i++) ds.pointAssign(below(n), below(n), below(n), below(1000000)); LAP("updates");
         for (int i = 0; i < 200000; i++) { int a = below(n), b = below(n), c = below(n), d = below(n), e = below(n), f = below(n); ORDER(a, b); ORDER(c, d); ORDER(e, f);
             ll got = ds.boxMax(a, c, e, b, d, f); sum += got == DS::NO_MAX ? -1 : got; } LAP("queries");"""),
-    "batch-sum": ("OfflineRectSum", """
-        ll lim = 1000000000; DS ds; LAP("build");
-        for (int i = 0; i < 300000; i++) { if (i % 3) ds.pointAdd(below(lim), below(lim), below(1000));
-            else { ll a = below(lim), b = below(lim), c = below(lim), d = below(lim); ORDER(a, b); ORDER(c, d); ds.rectSum(a, c, b, d); } } LAP("updates");
-        for (ll x : ds.solve()) sum += x; LAP("queries");"""),
 }
 
 

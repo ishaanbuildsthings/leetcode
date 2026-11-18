@@ -17,7 +17,6 @@ export const RANGE_2D_TYPES = [
   "seg-tree-kept-tags",
   "rows-of-trees",
   "kd-tree",
-  "offline-sweep",
 ] as const;
 export type Range2dType = (typeof RANGE_2D_TYPES)[number];
 
@@ -33,14 +32,13 @@ export const RANGE_2D_TYPE_LABELS: Record<Range2dType, string> = {
   "seg-tree-kept-tags": "Seg tree, tags kept in place",
   "rows-of-trees": "One lazy seg tree per row",
   "kd-tree": "K-d tree (lazy tags)",
-  "offline-sweep": "Offline sweep",
 };
 
-// What the constructor is given. The first four are the switch above the 2D op grid; the 3D grid templates have their
+// What the constructor is given. The first three are the switch above the 2D op grid; the 3D grid templates have their
 // own tab (lib/range-3d-picker.ts).
-export const RANGE_2D_INPUTS = ["grid", "points", "online", "batch", "grid-3d"] as const;
+export const RANGE_2D_INPUTS = ["grid", "points", "online", "grid-3d"] as const;
 export type Range2dInput = (typeof RANGE_2D_INPUTS)[number];
-export const RANGE_2D_MODES = ["grid", "points", "online", "batch"] as const;
+export const RANGE_2D_MODES = ["grid", "points", "online"] as const;
 export type Range2dMode = (typeof RANGE_2D_MODES)[number];
 
 export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: string }[] = [
@@ -59,12 +57,6 @@ export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: 
     mode: "online",
     label: "Nothing known (online)",
     title: "Coordinates arrive as you go, anywhere in a range you give. The heaviest option: log² U per op and per update of memory",
-  },
-  {
-    mode: "batch",
-    label: "Answer at the end (offline)",
-    title:
-      "Nothing to list up front: you make every call in order, each one is only recorded (a query returns its number), then solve() returns all the answers at once. Works only when no call depends on an earlier answer. Linear memory",
   },
 ];
 
@@ -239,7 +231,6 @@ export function range2dKindLabel(t: Range2dTemplate): string {
   const label = RANGE_2D_TYPE_LABELS[t.dataStructureType];
   if (t.input === "points") return `${label} over points known up front`;
   if (t.input === "online") return `${label}, dynamic (any coordinates)`;
-  if (t.input === "batch") return `${label} (whole input up front)`;
   return label.startsWith("2D") ? label : `2D ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
 }
 
@@ -250,7 +241,6 @@ export const RANGE_2D_PLANNED = [
   "sparse table on rows × seg tree on columns",
   "2D hashing with point updates",
   "nothing known: Fenwick tree of hash maps (sum, corner max)",
-  "answer at the end (offline): corner max, point assign",
   "points known: starting values in the constructor",
 ];
 

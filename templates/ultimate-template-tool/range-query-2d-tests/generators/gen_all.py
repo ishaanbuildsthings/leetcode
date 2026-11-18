@@ -9,7 +9,6 @@ the copies it serves).
 import sys
 
 import gen_3d
-import gen_batch
 import gen_grid_bit
 import gen_grid_seg
 import gen_grid_static
@@ -21,7 +20,7 @@ import lib2d
 
 
 def main():
-    for gen in (gen_grid_static, gen_grid_bit, gen_grid_seg, gen_grid_tags, gen_points, gen_kd, gen_online, gen_batch, gen_3d):
+    for gen in (gen_grid_static, gen_grid_bit, gen_grid_seg, gen_grid_tags, gen_points, gen_kd, gen_online, gen_3d):
         gen.main()
     print(f"{len(lib2d.WRITTEN)} folders in all")
     extra = lib2d.unwritten()
