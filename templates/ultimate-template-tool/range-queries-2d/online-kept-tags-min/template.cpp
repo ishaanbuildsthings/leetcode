@@ -61,7 +61,7 @@ struct HotVector : vector<U> {
 template <typename T>
 struct OnlineRectChmin2D {
     using ll = long long;
-    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a cell no update has reached reads
+    static constexpr T NO_MIN = numeric_limits<T>::max();  // the largest value T can hold: a cell no update has reached
     ll xLo, xHi, yLo, yHi;
     int xUsed = 2, yUsed = 1;  // how many x-nodes / y-nodes exist (the arrays are longer: they double when full)
     // x-node 0 = nothing there, 1 = the root; xTree = its own y-tree's root (0 = none)
@@ -142,8 +142,8 @@ struct OnlineRectChmin2D {
         update(1, xLo, xHi, x, y, x, y, v);
     }
 
-    // O(log^2 U) -- the value at (x, y), NO_MIN if no update has reached it; needs xLo <= x <= xHi and yLo <= y <= yHi,
-    // else throws out_of_range
+    // O(log^2 U) -- the value at (x, y), NO_MIN, automatically the largest value of your type T, if no update has
+    // reached it; needs xLo <= x <= xHi and yLo <= y <= yHi, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(ll x, ll y) const {
         if (x < xLo || x > xHi || y < yLo || y > yHi)
             throw out_of_range("pointGet: needs xLo <= x <= xHi and yLo <= y <= yHi");

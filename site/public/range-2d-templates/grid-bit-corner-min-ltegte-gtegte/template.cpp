@@ -64,7 +64,7 @@ LEETCODE_NO_SANITIZE_INLINE A hotMin(A a, A b) { return b < a ? b : a; }
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct CornerMinFenwick2D {
-    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set cell gives
+    static constexpr T NO_MIN = numeric_limits<T>::max();  // the largest value T can hold: a min over no set cell
     int R, C, W;
     T best = NO_MIN;
     HotVector<T> tLteGte, tGteGte;
@@ -112,8 +112,8 @@ struct CornerMinFenwick2D {
             for (int j = C - c; j <= C; j += j & -j) tGteGte[i * W + j] = hotMin(tGteGte[i * W + j], v);
     }
 
-    // O(log R * log C) -- min of the set cells with row <= r and column >= c (NO_MIN if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- min of the set cells with row <= r and column >= c (NO_MIN, automatically the largest value
+    // of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minLteGte: needs 0 <= r < R and 0 <= c < C");
         T res = NO_MIN;
@@ -122,8 +122,8 @@ struct CornerMinFenwick2D {
         return res;
     }
 
-    // O(log R * log C) -- min of the set cells with row >= r and column >= c (NO_MIN if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- min of the set cells with row >= r and column >= c (NO_MIN, automatically the largest value
+    // of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("minGteGte: needs 0 <= r < R and 0 <= c < C");
         T res = NO_MIN;
@@ -132,7 +132,7 @@ struct CornerMinFenwick2D {
         return res;
     }
 
-    // O(1) -- min of every set cell (NO_MIN if there are none)
+    // O(1) -- min of every set cell (NO_MIN, automatically the largest value of your type T, if there are none)
     LEETCODE_NO_SANITIZE T minAll() const {
         return best;
     }

@@ -79,7 +79,7 @@ LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 template <typename T>
 struct SegTree2D {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives
+    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set cell
     int R, C, W;
     HotVector<S> sm;
     HotVector<T> mx;
@@ -142,8 +142,8 @@ struct SegTree2D {
         }
     }
 
-    // O(1) -- the value at (r, c), NO_MAX if the cell is empty; needs 0 <= r < R and 0 <= c < C, else throws
-    // out_of_range
+    // O(1) -- the value at (r, c), NO_MAX, automatically the smallest value of your type T, if the cell is empty;
+    // needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("pointGet: needs 0 <= r < R and 0 <= c < C");
         return T(mx[(r + R) * W + c + C]);
@@ -265,42 +265,42 @@ struct SegTree2D {
         return res;
     }
 
-    // O(log R * log C) -- max of the set cells in rows r1..r2, columns c1..c2 (NO_MAX if there are none); needs 0 <= r1
-    // <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells in rows r1..r2, columns c1..c2 (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T rectMax(int r1, int c1, int r2, int c2) const {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectMax: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return maxOf(r1, c1, r2, c2);
     }
 
-    // O(1) -- max of every set cell (NO_MAX if there are none)
+    // O(1) -- max of every set cell (NO_MAX, automatically the smallest value of your type T, if there are none)
     LEETCODE_NO_SANITIZE T maxAll() const {
         return mx[W + 1];
     }
 
-    // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteLte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(0, 0, r, c);
     }
 
-    // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteGte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(0, c, r, C - 1);
     }
 
-    // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteLte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(r, 0, R - 1, c);
     }
 
-    // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteGte: needs 0 <= r < R and 0 <= c < C");
         return maxOf(r, c, R - 1, C - 1);

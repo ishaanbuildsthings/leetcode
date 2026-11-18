@@ -224,7 +224,7 @@ def kept_tags(kind):
 
     cpp = wrap_comment(doc + f" The (R, C) constructor starts with every cell empty, and a {kind} over no set cell is {none}.", "//")
     cpp += ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{",
-            f"    static constexpr T {none} = numeric_limits<T>::{'min' if kind == 'max' else 'max'}();  // what a {kind} over no set cell gives",
+            f"    static constexpr T {none} = numeric_limits<T>::{'lowest' if kind == 'max' else 'max'}();  // the {'smallest' if kind == 'max' else 'largest'} value T can hold: a {kind} over no set cell",
             "    int R, C, W;", f"    T best = {none};", "    vector<T> fullTag, fullBest, partTag, partBest;", "",
             "    // O(R*C) -- R rows by C columns, every cell empty; needs R >= 1 and C >= 1, else throws invalid_argument",
             f"    {cls}(int rows, int cols) : R(rows), C(cols), W(2 * cols) {{",

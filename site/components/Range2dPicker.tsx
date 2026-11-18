@@ -29,13 +29,17 @@ const BY_INPUT = Object.fromEntries(RANGE_2D_MODES.map((input) => [input, TEMPLA
 
 const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   title: "2D Range Query Picker",
+  siblings: [
+    { href: "/templates/range-queries-2d", label: "2D", current: true },
+    { href: "/templates/range-queries-3d", label: "3D", current: false },
+  ],
   flag: {
-    label: "(x, y) points",
-    title: "Write coordinates as (x, y) instead of (r, c). Leaves out the small-grid templates, which are built from grid[r][c]",
+    label: "(x, y) coordinates",
+    title: "Coordinates as (x, y): the compressed and online templates, which take any integers. Untick for the small grid, read as grid[r][c]",
     storageKey: "range2dPicker.xy",
     keep: (t) => t.input !== "grid",
-    hidesModes: ["grid"],
-    fallbackMode: "points",
+    onInModes: ["compressed", "online"],
+    offMode: "grid",
     disabledOps: GRID_ONLY_OPS,
     disabledTitle: "Only the small-grid templates have this",
     rename: toXY,
@@ -68,9 +72,13 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
       py: `grid: a list of R rows, each a list of C values${t.emptyCells ? " (None = an empty cell)" : ""}`,
       cpp: `grid: vector<vector<T>>, R rows of C values${t.emptyCells ? "; or construct with (R, C) to start with every cell empty" : ""}`,
     },
-    points: {
-      py: "points: every (x, y) that will ever hold a value (read, updated, or inside an update rectangle), e.g. [(3, 5), (-4, 7)]. Rectangles' corners are NOT listed: any integers. Repeats are fine",
-      cpp: "points: vector<pair<long long, long long>>, every (x, y) that will ever hold a value (read, updated, or inside an update rectangle). Rectangles' corners are NOT listed: any integers. Repeats are fine",
+    xs: {
+      py: "xs: every x a point op will use, e.g. [10**9, -5, 3] (any order, repeats are fine); rectangles and corners can be any integers. Or an int n to leave x as 0..n-1",
+      cpp: "xs: vector<long long>, every x a point op will use (any order, repeats are fine); rectangles and corners can be any integers. Or Compressed2D<T>::upTo(n) to leave x as 0..n-1",
+    },
+    ys: {
+      py: "ys: the same for y",
+      cpp: "ys: the same for y",
     },
     h: { py: "h: the window's height (rows)", cpp: "h: the window's height (rows)" },
     w: { py: "w: the window's width (columns)", cpp: "w: the window's width (columns)" },
@@ -78,7 +86,7 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   ctorComments: (t) => [
     ...(t.emptyCells
       ? ["Cells can be empty: queries only see cells that have been set."]
-      : t.input === "points"
+      : t.input === "compressed"
         ? ["Everything starts at 0."]
         : []),
     ...(t.nonNegative ? ["Values must be >= 0."] : []),

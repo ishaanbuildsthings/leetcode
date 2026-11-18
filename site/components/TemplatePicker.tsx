@@ -31,7 +31,6 @@ import { readMainClass, readUsage } from "@/lib/template-usage";
 const PICKER_PAGES = [
   { href: "/templates/range-queries", label: "Range queries" },
   { href: "/templates/range-queries-2d", label: "2D range queries" },
-  { href: "/templates/range-queries-3d", label: "3D range queries" },
   { href: "/templates/sets", label: "Sets" },
   { href: "/templates/union-find", label: "Union find" },
   { href: "/templates/strings", label: "Strings" },
@@ -40,6 +39,7 @@ const PICKER_PAGES = [
   { href: "/templates/matrices", label: "Matrices" },
   { href: "/templates/combinatorics", label: "Combinatorics" },
   { href: "/templates/bitset", label: "Bit ops & Bitset" },
+  { href: "/templates/geometry", label: "Geometry" },
   { href: "/templates/misc", label: "Misc." },
   { href: "/templates/golden-references", label: "Golden References" },
 ];
@@ -53,7 +53,8 @@ export function PickerTabs({ children }: { children?: React.ReactNode }) {
       aria-label="Template pickers"
     >
       {PICKER_PAGES.map((p) => {
-        const active = pathname === p.href;
+        // (the 3D range queries live inside the 2D tab: a 2D / 3D switch on that page)
+        const active = pathname === p.href || (p.href === "/templates/range-queries-2d" && pathname === "/templates/range-queries-3d");
         return (
           <Link
             key={p.href}
@@ -234,6 +235,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   pane?: { fixed: string[]; tabs: { id: string; label: string; groups: string[] }[] };
   // a short "still to add" list shown under the op columns
   planned?: string[];
+  // (optional) pages shown as a switch at the start of the control row, e.g. 2D / 3D range queries
+  siblings?: { href: string; label: string; current: boolean }[];
   // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
   // in the toolbar: the file is at publicBase/<folder>/<file>.<lang>, and on GitHub at githubUrl + <file>.<lang>
   fillIns?: FillIn[];
@@ -270,6 +273,9 @@ export interface PickerCatalog<V extends PickerTemplate> {
     // (optional) switch options hidden while the box is ticked, and the mode shown instead when one of them was picked
     hidesModes?: string[];
     fallbackMode?: string;
+    // (optional) tie the box to the switch: ticked exactly in these modes; ticking picks the first, unticking offMode
+    onInModes?: string[];
+    offMode?: string;
     // (optional) while the box is ticked: how operation text reads, and what T is in the usage lines
     rename?: (text: string, lang?: TemplateLang) => string;
     elem?: string;
@@ -1283,11 +1289,13 @@ export function TemplatePicker<V extends PickerTemplate>({
     () => modes.parse(null),
   );
   const { flag } = catalog;
-  const flagOn = useSyncExternalStore(
+  const storedFlag = useSyncExternalStore(
     subscribeMode,
     () => !!flag && readStored(flag.storageKey) === "1",
     () => false,
   );
+  // a box tied to the switch (2D: "(x, y) points" = every mode but the small grid) is on exactly in those modes
+  const flagOn = flag?.onInModes ? flag.onInModes.includes(storedMode) : storedFlag;
   // a mode the ticked box rules out (2D: the small grid, under "(x, y) points") gives way to the box's own fallback
   const modeOff = (m: string) => flagOn && !!flag?.hidesModes?.includes(m);
   const mode = modeOff(storedMode) ? (flag?.fallbackMode ?? storedMode) : storedMode;
@@ -1771,6 +1779,20 @@ export function TemplatePicker<V extends PickerTemplate>({
         <h1 className="sr-only">{catalog.title}</h1>
         <PickerTabs>
           <>
+            {catalog.siblings && (
+              <div className="flex overflow-hidden rounded-md border border-border text-xs font-medium" role="group" aria-label="Dimensions">
+                {catalog.siblings.map((s) => (
+                  <Link
+                    key={s.href}
+                    href={s.href}
+                    aria-current={s.current ? "page" : undefined}
+                    className={`px-3 py-1.5 transition-colors ${s.current ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"}`}
+                  >
+                    {s.label}
+                  </Link>
+                ))}
+              </div>
+            )}
             {catalog.fillIns && catalog.fillIns.length > 0 && (
               <div className="relative">
                 <button
@@ -1826,7 +1848,9 @@ export function TemplatePicker<V extends PickerTemplate>({
                   type="checkbox"
                   checked={flagOn}
                   onChange={(e) =>
-                    writeStored(flag.storageKey, e.target.checked ? "1" : "0")
+                    flag.onInModes
+                      ? writeStored(modes.storageKey, e.target.checked ? flag.onInModes[0] : (flag.offMode ?? storedMode))
+                      : writeStored(flag.storageKey, e.target.checked ? "1" : "0")
                   }
                   className="accent-primary"
                 />

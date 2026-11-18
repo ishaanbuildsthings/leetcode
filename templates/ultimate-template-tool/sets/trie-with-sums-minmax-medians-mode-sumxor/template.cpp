@@ -405,14 +405,14 @@ struct TrieMultiset {
         return T(kthX(i + 1, (long long)x));
     }
 
-    // O(logU) -- largest value < x; ms.NONE if there is none
+    // O(logU) -- largest value < x; if there is none, ms.NONE (always -1)
     T largestLtX(T x) {
         long long c = lt(x);
         if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logU) -- largest value <= x; ms.NONE if there is none
+    // O(logU) -- largest value <= x; if there is none, ms.NONE (always -1)
     T largestLteX(T x) {
         long long c = le(x);
         if (!c) return NONE;
@@ -604,14 +604,14 @@ struct TrieMultiset {
         return n;
     }
 
-    // O(logU) -- smallest value > x; ms.NONE if there is none
+    // O(logU) -- smallest value > x; if there is none, ms.NONE (always -1)
     T smallestGtX(T x) {
         long long c = le(x);
         if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logU) -- smallest value >= x; ms.NONE if there is none
+    // O(logU) -- smallest value >= x; if there is none, ms.NONE (always -1)
     T smallestGteX(T x) {
         long long c = lt(x);
         if (c == n) return NONE;

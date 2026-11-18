@@ -19,7 +19,7 @@ cd ../../../site && npm run gen:range-queries-2d                # the picker's m
 | `@input` | Constructor | Coordinates | Costs in |
 |---|---|---|---|
 | `grid` | `(grid)`: R rows of C values. C++ also `(R, C)` where the template can change | 0-based `(r, c)` | R, C |
-| `points` | `(points)`: every `(x, y)` that will ever be updated | any integers `(x, y)`, negative is fine | N = points given |
+| `compressed` | `(xs, ys)`: every x and every y the point ops will use; an axis can be a size n (0..n-1) | points: listed ones only; rectangles and corners: any integers | X, Y = distinct x's, y's |
 | `online` | `(xLo, xHi, yLo, yHi)` | any integers in that range | U = size of a coordinate range |
 | `grid-3d` | `(X, Y, Z)` | 0-based `(x, y, z)` | X, Y, Z |
 
@@ -29,13 +29,12 @@ Rectangles are inclusive and given as the low corner then the high corner: `rect
 ## 2. Empty cells (`@empty-cells: yes`)
 
 - A template **with min or max** that can be updated has empty cells: a cell is empty until set (`None` in a Python
-  grid; the C++ `(R, C)` constructor; every point in `points` / `online` / `grid-3d`). Queries only see set cells. A
+  grid; the C++ `(R, C)` constructor; every cell of `compressed` / `online` / `grid-3d`). Queries only see set cells. A
   min / max over no set cell is `None` in Python and `NO_MIN` / `NO_MAX` in C++; a sum / gcd / xor / OR over none is 0;
   an AND over none is -1. `pointAdd`, `pointChmax`, `pointChmin` on an empty cell set it to `v`.
 - A template **without min or max** has no empty cells: whatever was not given is the number 0 (so an AND over a
   rectangle holding a cell nobody set is 0).
-- Static templates (sparse tables, tables, prefix sums) and the k-d tree take full values: no empties. The k-d tree's
-  points all start at 0; its min / max over a rectangle with no given point in it is still `None` / `NO_MIN` / `NO_MAX`.
+- Static templates (sparse tables, tables, prefix sums) take full values: no empties.
 
 The tester reads this from the tag, not from the op list.
 
@@ -61,9 +60,6 @@ mode does (`lib2d.make_fast`, with that tab's own `LEETCODE_NO_SANITIZE` and `Ho
 | grid Fenwick sum, 300k adds, 300k sums | 171 → 46 | 192 → 57 | 10 → 12 |
 | grid rect chmax / rect max, 100k each | 2605 → 630 | 1159 → 407 | 102 → 104 |
 | grid sparse table min, 400 x 400, 1M queries | | 157 → 65 | 179 → 67 |
-| points seg tree max, 100k points, 100k assigns, 100k queries | 1361 → about 700 | 857 → about 480 | 533 → 125 |
-| points Fenwick sum, 200k adds, 200k sums | 723 → about 490 | 1679 → about 980 | 377 → 104 |
-| k-d tree sum + max, 100k points, 20k rect adds, 20k rect sums | 2744 → about 670 | 1259 → about 440 | 509 → 80 |
 | online seg tree max, +-10^9, 50k assigns, 50k queries | 9664 → about 3700 | 1490 → about 1050 | |
 | 3D seg tree max, 60^3, 200k assigns, 200k queries | 1590 → 343 | 319 → 156 | |
 
@@ -110,16 +106,22 @@ each aggregate its own flat array, so asking for less costs less memory.
 A Fenwick corner max only works because the value can only go up (`pointChmax`). An assign that can lower a value
 needs the segment tree; the picker gets this from the ops picked.
 
-### Points known up front (`points`)
+### Compressed coordinates (`compressed`)
 
-| Folders | Structure | Ops | Cost per op | Memory |
-|---|---|---|---|---|
-| `points-bit-{sum,xor,sum-xor}` | Fenwick over the distinct x's; each node a Fenwick over the sorted y's it covers | point updates, rect sum / xor | log² N | ~2 N log N |
-| `points-bit-corner-{max,min}-<corners>` (30) | the same per corner direction (>= is the structure on negated coordinates) | `pointChmax` + corner max | log² N | ~2 N log N per direction |
-| `points-seg-tree-<aggs>` (127) | bottom-up tree over the distinct x's; each node a bottom-up tree over its sorted y's | point updates, any rectangle, corners | log² N | ~2 N log N each, + N log N |
-| `points-kd-tree-<aggs>` (7: sum, min, max) | one tree over the points in k-d order, bounding boxes, lazy assign / add tags | `rectAdd`, `rectAssign` with rect sum / min / max; point ops | sqrt N per rectangle, log N per point | linear |
+Every small-grid template with updates also comes as `compressed-<the rest of its name>`: the grid template unchanged,
+then a `Compressed2D` wrapper (`generators/compress2d.py`, called from `lib2d.write`). The wrapper sorts the listed xs
+and ys and calls the template on an X by Y grid. A point op needs a listed x and a listed y (a hash map in Python, a
+binary search in C++; anything else is refused). A rectangle or corner can be any integers: binary search finds the
+listed coordinates inside, and no cell inside gives 0 for sum / gcd / xor / OR, the empty value for min / max (or an
+error where cells can't be empty). A cell is one point, not a block: a rectangle sum adds cell values, never an area.
+Costs and memory are the grid template's with R = X and C = Y.
 
-Point lookups are binary searches on sorted arrays (no hash maps: nothing to attack).
+Templates with rectangle updates **and** rectangle / corner / whole-grid queries get no compressed version: a rectangle
+update reaches every listed x with every listed y inside it, pairs that are never real points included, and the query
+would count those. Rectangle updates with point reads (and `getAll`) are kept. There is no k-d tree.
+
+Compressing both axes needs X * Y cells: fine for thousands of distinct coordinates, not for 10^5 points with distinct
+x's and y's (use the online templates there).
 
 ### Nothing known (`online`)
 
@@ -149,14 +151,11 @@ trees. So:
 |---|---|---|
 | rect add + point get / rect sum | Fenwick over corner marks (built) | log² |
 | rect chmax + rect max (chmin + min) | tags kept in place, read on the way down (built) | log² |
-| any update + any query, points | k-d tree with lazy tags (built) | sqrt N |
 | any update + any query, short side small | one 1D lazy seg tree per row, looping the rows (not built) | R × the 1D cost |
 
 Rect add with rect max has no log² structure here: only the last two rows cover it.
 
-Over points or online, rect chmax with point reads keeps its tags in place the same way (`points-kept-tags-*`,
-`online-kept-tags-*`, log²). Rect chmax with rect max over sparse points is the k-d tree's (its min / max folders take
-assign, add, chmax and chmin as one "add, then clamp" tag).
+Online, rect chmax with point reads keeps its tags in place the same way (`online-kept-tags-*`, log² U).
 
 ## 7. Adding a family
 

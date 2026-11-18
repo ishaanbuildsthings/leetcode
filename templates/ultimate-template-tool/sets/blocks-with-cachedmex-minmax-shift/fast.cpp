@@ -424,7 +424,7 @@ struct BlockMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(sqrtN) -- largest value < x; ms.NONE if there is none
+    // O(sqrtN) -- largest value < x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
@@ -432,7 +432,7 @@ struct BlockMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(sqrtN) -- largest value <= x; ms.NONE if there is none
+    // O(sqrtN) -- largest value <= x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T largestLteX(T x) {
         x -= off;
         long long c = le(x);
@@ -557,7 +557,7 @@ struct BlockMultiset {
         return n;
     }
 
-    // O(sqrtN) -- smallest value > x; ms.NONE if there is none
+    // O(sqrtN) -- smallest value > x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
@@ -565,7 +565,7 @@ struct BlockMultiset {
         return T(kthAt(c + 1) + off);
     }
 
-    // O(sqrtN) -- smallest value >= x; ms.NONE if there is none
+    // O(sqrtN) -- smallest value >= x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);

@@ -306,6 +306,9 @@ NONE_GENERIC = """    template <class K>
 """
 
 
+NONE_WORDS = {"trie": "ms.NONE (always -1)", "fastset": "ms.NONE (automatically a value just outside [lo, hi])"}
+
+
 def return_rules_cpp(text, dtype):
     """Public ops stop returning optional: see EMPTY_ERROR_OPS. (Private helpers keep it.)"""
     lines = text.split("\n")
@@ -329,6 +332,9 @@ def return_rules_cpp(text, dtype):
             i = j
         i += 1
     text = "\n".join(lines)
+    # a neighbour query's doc says what NONE is for this set: the lowest T, -1, or a value just outside [lo, hi]
+    words = NONE_WORDS.get(dtype, "ms.NONE (automatically the lowest value of T)")
+    text = re.sub(r"ms\.NONE( |\n {4}// )if there is none", lambda m: f"if there is none,{m.group(1)}{words}", text)
     left = set(re.findall(r"^    optional<.*> (\w+)\(", text, re.M)) - {"bestIn", "bestSide"}
     assert not left, f"public ops still returning optional: {sorted(left)}"
     if "NONE" in text.split("struct ", 1)[-1]:

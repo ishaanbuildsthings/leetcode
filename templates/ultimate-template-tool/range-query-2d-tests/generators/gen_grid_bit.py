@@ -396,7 +396,7 @@ def corner_bit(kind, corners):
     none = a.none_cpp
     cpp = wrap_comment(doc + f" The (R, C) constructor starts with every cell empty, and a {kind} over no set cell is {none}.", "//")
     cpp += ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{",
-            f"    static constexpr T {none} = numeric_limits<T>::{'min' if kind == 'max' else 'max'}();  // what a {kind} over no set cell gives",
+            f"    static constexpr T {none} = numeric_limits<T>::{'lowest' if kind == 'max' else 'max'}();  // the {'smallest' if kind == 'max' else 'largest'} value T can hold: a {kind} over no set cell",
             "    int R, C, W;", f"    T best = {none};", f"    vector<T> {', '.join('t' + n for n in names)};", "",
             f"    // O(R*C) -- R rows by C columns, every cell empty; {SIZED_CPP}", f"    {cls}(int rows, int cols) : R(rows), C(cols), W(cols + 1) {{",
             f'        if (R < 1 || C < 1) throw invalid_argument("{cls}: needs R >= 1 and C >= 1");']

@@ -231,28 +231,28 @@ struct FastSet {
         return v;
     }
 
-    // O(log64(U)) -- smallest value >= x; ms.NONE if there is none
+    // O(log64(U)) -- smallest value >= x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     LEETCODE_NO_SANITIZE T smallestGteX(T x) const {
         long long i = next((long long)x - lo);
         if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- smallest value > x; ms.NONE if there is none
+    // O(log64(U)) -- smallest value > x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     LEETCODE_NO_SANITIZE T smallestGtX(T x) const {
         long long i = next((long long)x - lo + 1);
         if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value <= x; ms.NONE if there is none
+    // O(log64(U)) -- largest value <= x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     LEETCODE_NO_SANITIZE T largestLteX(T x) const {
         long long i = prev((long long)x - lo);
         if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value < x; ms.NONE if there is none
+    // O(log64(U)) -- largest value < x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     LEETCODE_NO_SANITIZE T largestLtX(T x) const {
         long long i = prev((long long)x - lo - 1);
         if (i < 0) return NONE;

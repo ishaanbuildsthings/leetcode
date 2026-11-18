@@ -510,7 +510,7 @@ struct TreapMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(logN expected) -- largest value < x; ms.NONE if there is none
+    // O(logN expected) -- largest value < x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
@@ -518,7 +518,7 @@ struct TreapMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(logN expected) -- largest value <= x; ms.NONE if there is none
+    // O(logN expected) -- largest value <= x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T largestLteX(T x) {
         x -= off;
         long long c = le(x);
@@ -650,7 +650,7 @@ struct TreapMultiset {
         return n;
     }
 
-    // O(logN expected) -- smallest value > x; ms.NONE if there is none
+    // O(logN expected) -- smallest value > x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
@@ -658,7 +658,7 @@ struct TreapMultiset {
         return T(kthAt(c + 1) + off);
     }
 
-    // O(logN expected) -- smallest value >= x; ms.NONE if there is none
+    // O(logN expected) -- smallest value >= x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);

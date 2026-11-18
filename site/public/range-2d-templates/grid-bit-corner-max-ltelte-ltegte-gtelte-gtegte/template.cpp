@@ -66,7 +66,7 @@ LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct CornerMaxFenwick2D {
-    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives
+    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set cell
     int R, C, W;
     T best = NO_MAX;
     HotVector<T> tLteLte, tLteGte, tGteLte, tGteGte;
@@ -124,8 +124,8 @@ struct CornerMaxFenwick2D {
             for (int j = C - c; j <= C; j += j & -j) tGteGte[i * W + j] = hotMax(tGteGte[i * W + j], v);
     }
 
-    // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row <= r and column <= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteLte: needs 0 <= r < R and 0 <= c < C");
         T res = NO_MAX;
@@ -134,8 +134,8 @@ struct CornerMaxFenwick2D {
         return res;
     }
 
-    // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row <= r and column >= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxLteGte: needs 0 <= r < R and 0 <= c < C");
         T res = NO_MAX;
@@ -144,8 +144,8 @@ struct CornerMaxFenwick2D {
         return res;
     }
 
-    // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row >= r and column <= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteLte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteLte: needs 0 <= r < R and 0 <= c < C");
         T res = NO_MAX;
@@ -154,8 +154,8 @@ struct CornerMaxFenwick2D {
         return res;
     }
 
-    // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX if there are none); needs 0 <= r
-    // < R and 0 <= c < C, else throws out_of_range
+    // O(log R * log C) -- max of the set cells with row >= r and column >= c (NO_MAX, automatically the smallest
+    // value of your type T, if there are none); needs 0 <= r < R and 0 <= c < C, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteGte(int r, int c) const {
         if (r < 0 || r >= R || c < 0 || c >= C) throw out_of_range("maxGteGte: needs 0 <= r < R and 0 <= c < C");
         T res = NO_MAX;
@@ -164,7 +164,7 @@ struct CornerMaxFenwick2D {
         return res;
     }
 
-    // O(1) -- max of every set cell (NO_MAX if there are none)
+    // O(1) -- max of every set cell (NO_MAX, automatically the smallest value of your type T, if there are none)
     LEETCODE_NO_SANITIZE T maxAll() const {
         return best;
     }

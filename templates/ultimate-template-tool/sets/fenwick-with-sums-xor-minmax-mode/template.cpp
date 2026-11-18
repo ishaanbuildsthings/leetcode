@@ -367,14 +367,14 @@ struct FenwickMultiset {
         return kthAt(i + 1);
     }
 
-    // O(logN) -- largest value < x; ms.NONE if there is none
+    // O(logN) -- largest value < x; if there is none, ms.NONE (automatically the lowest value of T)
     T largestLtX(T x) {
         long long c = lt(x);
         if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logN) -- largest value <= x; ms.NONE if there is none
+    // O(logN) -- largest value <= x; if there is none, ms.NONE (automatically the lowest value of T)
     T largestLteX(T x) {
         long long c = le(x);
         if (!c) return NONE;
@@ -488,14 +488,14 @@ struct FenwickMultiset {
         return n;
     }
 
-    // O(logN) -- smallest value > x; ms.NONE if there is none
+    // O(logN) -- smallest value > x; if there is none, ms.NONE (automatically the lowest value of T)
     T smallestGtX(T x) {
         long long c = le(x);
         if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logN) -- smallest value >= x; ms.NONE if there is none
+    // O(logN) -- smallest value >= x; if there is none, ms.NONE (automatically the lowest value of T)
     T smallestGteX(T x) {
         long long c = lt(x);
         if (c == n) return NONE;

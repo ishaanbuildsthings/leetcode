@@ -64,31 +64,6 @@ CASES = {
         LAP("updates");
         for (int i = 0; i < 1000000; i++) { int a = below(R), b = below(R), c = below(C), d = below(C); ORDER(a, b); ORDER(c, d);
             sum += ds.rectMin(a, c, b, d); } LAP("queries");"""),
-    "points-seg-tree-max": ("PointsSegTree2D", """
-        int n = 100000; vector<pair<ll, ll>> pts(n); for (auto& p : pts) p = {below(2000000000) - 1000000000, below(2000000000) - 1000000000};
-        DS ds(pts); LAP("build");
-        for (int i = 0; i < 100000; i++) { auto& p = pts[below(n)]; ds.pointAssign(p.first, p.second, below(1000000)); } LAP("updates");
-        for (int i = 0; i < 100000; i++) { ll a = pts[below(n)].first, b = pts[below(n)].first, c = pts[below(n)].second, d = pts[below(n)].second;
-            ORDER(a, b); ORDER(c, d); ll got = ds.rectMax(a, c, b, d); sum += got == DS::NO_MAX ? -1 : got; } LAP("queries");"""),
-    "points-bit-sum": ("PointsFenwick2D", """
-        int n = 100000; vector<pair<ll, ll>> pts(n); for (auto& p : pts) p = {below(2000000000) - 1000000000, below(2000000000) - 1000000000};
-        DS ds(pts); LAP("build");
-        for (int i = 0; i < 200000; i++) { auto& p = pts[below(n)]; ds.pointAdd(p.first, p.second, below(1000)); } LAP("updates");
-        for (int i = 0; i < 200000; i++) { ll a = pts[below(n)].first, b = pts[below(n)].first, c = pts[below(n)].second, d = pts[below(n)].second;
-            ORDER(a, b); ORDER(c, d); sum += ds.rectSum(a, c, b, d); } LAP("queries");"""),
-    "points-bit-corner-max-ltelte": ("PointsCornerMaxFenwick2D", """
-        int n = 100000; vector<pair<ll, ll>> pts(n); for (auto& p : pts) p = {below(2000000000) - 1000000000, below(2000000000) - 1000000000};
-        DS ds(pts); LAP("build");
-        for (int i = 0; i < 200000; i++) { auto& p = pts[below(n)]; ds.pointChmax(p.first, p.second, below(1000000)); } LAP("updates");
-        for (int i = 0; i < 200000; i++) { ll got = ds.maxLteLte(pts[below(n)].first, pts[below(n)].second); sum += got == DS::NO_MAX ? -1 : got; }
-        LAP("queries");"""),
-    "points-kd-tree-sum-max": ("KdTree2D", """
-        int n = 100000; vector<pair<ll, ll>> pts(n); for (auto& p : pts) p = {below(2000000000) - 1000000000, below(2000000000) - 1000000000};
-        DS ds(pts); LAP("build");
-        for (int i = 0; i < 20000; i++) { ll a = pts[below(n)].first, b = pts[below(n)].first, c = pts[below(n)].second, d = pts[below(n)].second;
-            ORDER(a, b); ORDER(c, d); ds.rectAdd(a, c, b, d, below(1000)); } LAP("updates");
-        for (int i = 0; i < 20000; i++) { ll a = pts[below(n)].first, b = pts[below(n)].first, c = pts[below(n)].second, d = pts[below(n)].second;
-            ORDER(a, b); ORDER(c, d); sum += ds.rectSum(a, c, b, d); } LAP("queries");"""),
     "online-seg-tree-max": ("DynamicSegTree2D", """
         ll lim = 1000000000; DS ds(-lim, lim, -lim, lim); LAP("build");
         vector<pair<ll, ll>> pts(50000); for (auto& p : pts) { p = {below(2 * lim) - lim, below(2 * lim) - lim}; ds.pointAssign(p.first, p.second, below(1000000)); }

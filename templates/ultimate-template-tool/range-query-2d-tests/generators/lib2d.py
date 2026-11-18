@@ -3,7 +3,7 @@
 A generator builds one folder per template under templates/ultimate-template-tool/range-queries-2d, each holding
 template.py and template.cpp with the same tagged header the 1D range query templates use, plus
 
-    @input: grid | points | online | grid-3d              what the constructor is given (the picker's switch)
+    @input: grid | compressed | online | grid-3d          what the constructor is given (the picker's switch)
     @empty-cells: yes                                    (optional) cells can be empty: see SPEC.md, section 2
 
 Costs use R, C (a grid's rows and columns), N (how many points were given, or how many ops a batch holds), U (the
@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(os.path.dirname(HERE)), "range-queries-2d")
 URL = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d"
 
-INPUTS = ("grid", "points", "online", "grid-3d")
+INPUTS = ("grid", "compressed", "online", "grid-3d")
 
 # ---- C++ is fast by default: sanitizers are skipped inside every template (the range query tab's "fast mode", here
 # with no slower twin). The marker and HotVector are the range query generators' own, so the text stays the same.
@@ -216,7 +216,7 @@ def indent(lines, n=1):
 def header(folder, lang, ops, dstype, costs, build, memory, input_kind, extra_tags=()):
     """The tagged header. costs: {op: cost}; memory: dict(layout, node, tags, other, note)."""
     cm = "#" if lang == "py" else "//"
-    assert input_kind in INPUTS, input_kind
+    assert input_kind in INPUTS or (input_kind == "points" and folder.startswith("points-")), input_kind  # (a points- folder is rewritten as compressed)
     ops = sorted(ops)
     missing = [op for op in ops if op not in costs]
     assert not missing, f"{folder}: no cost for {missing}"
@@ -289,8 +289,34 @@ def _wrap_long_comments(lines, cm):
     return out
 
 
+SENTINEL_WORDS = {
+    "NO_MIN / NO_MAX": "NO_MIN / NO_MAX, automatically the largest / smallest value of your type T,",
+    "NO_MAX": "NO_MAX, automatically the smallest value of your type T,",
+    "NO_MIN": "NO_MIN, automatically the largest value of your type T,",
+}
+
+
+def _explain_sentinels(lines):
+    """In comments, a returned NO_MAX / NO_MIN ("NO_MAX if there are none") says what it is: the smallest / largest
+    value of the type, which the template sets itself. Lines this makes too long are rewrapped after."""
+    text = re.sub(r"\b(NO_MIN / NO_MAX|NO_MAX|NO_MIN)(?=(?: |\n[ \t]*// )if\b)",
+                  lambda m: SENTINEL_WORDS[m.group(1)], "\n".join(lines))
+    return text.split("\n")
+
+
 def write(folder, py_lines, cpp_lines):
-    """Writes range-queries-2d/<folder>/template.{py,cpp} (only when changed, so timestamps stay put)."""
+    """Writes range-queries-2d/<folder>/template.{py,cpp} (only when changed, so timestamps stay put), and the
+    compressed-coordinates version where there is one (compress2d.py). A points-kd-tree folder is only written as that."""
+    from compress2d import compressed_variant
+    variant = compressed_variant(folder, py_lines, cpp_lines) if py_lines and cpp_lines else None
+    if variant:
+        _write_one(*variant)
+    if folder.startswith("points-"):
+        return  # (a k-d tree over given points: not written)
+    _write_one(folder, py_lines, cpp_lines)
+
+
+def _write_one(folder, py_lines, cpp_lines):
     assert folder not in WRITTEN, f"{folder} written twice"
     WRITTEN.add(folder)
     d = os.path.join(OUT, folder)
@@ -300,6 +326,8 @@ def write(folder, py_lines, cpp_lines):
             continue
         if name.endswith(".cpp"):
             lines = make_fast(lines)
+        if name.endswith(".cpp"):
+            lines = _explain_sentinels(lines)
         text = "\n".join(_wrap_long_comments(lines, "#" if name.endswith(".py") else "//")).rstrip("\n") + "\n"
         # (what format_long_lines.py would do to it, so running the formatter over the repo changes nothing here)
         text = reflow_text(text, name.endswith(".py"))

@@ -62,7 +62,7 @@ LEETCODE_NO_SANITIZE_INLINE A hotMin(A a, A b) { return b < a ? b : a; }
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct CornerMinFenwick3D {
-    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set cell gives
+    static constexpr T NO_MIN = numeric_limits<T>::max();  // the largest value T can hold: a min over no set cell
     int X, Y, Z, SY, SZ;
     T top = NO_MIN;
     HotVector<T> tGteGteGte;
@@ -87,8 +87,8 @@ struct CornerMinFenwick3D {
                 }
     }
 
-    // O(log X * log Y * log Z) -- min of the set cells with all three coordinates >= x, y, z (NO_MIN if there are
-    // none);
+    // O(log X * log Y * log Z) -- min of the set cells with all three coordinates >= x, y, z (NO_MIN, automatically
+    // the largest value of your type T, if there are none);
     // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE T minGteGteGte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
@@ -100,7 +100,7 @@ struct CornerMinFenwick3D {
         return res;
     }
 
-    // O(1) -- min of every set cell (NO_MIN if there are none)
+    // O(1) -- min of every set cell (NO_MIN, automatically the largest value of your type T, if there are none)
     LEETCODE_NO_SANITIZE T minAll() const {
         return top;
     }

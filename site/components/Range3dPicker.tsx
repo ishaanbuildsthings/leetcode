@@ -11,6 +11,10 @@ const TEMPLATES = decodeRange2dTemplates(RANGE_2D_MANIFEST).filter((t) => t.inpu
 
 const RANGE_3D_CATALOG: PickerCatalog<Range2dTemplate> = {
   title: "3D Range Query Picker",
+  siblings: [
+    { href: "/templates/range-queries-2d", label: "2D", current: false },
+    { href: "/templates/range-queries-3d", label: "3D", current: true },
+  ],
   opGroups: RANGE_3D_OP_GROUPS,
   publicBase: "/range-2d-templates",
   githubBase: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/",

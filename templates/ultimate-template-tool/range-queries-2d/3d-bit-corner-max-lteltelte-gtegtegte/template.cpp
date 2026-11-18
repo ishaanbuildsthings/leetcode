@@ -63,7 +63,7 @@ LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct CornerMaxFenwick3D {
-    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives
+    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set cell
     int X, Y, Z, SY, SZ;
     T top = NO_MAX;
     HotVector<T> tLteLteLte, tGteGteGte;
@@ -95,8 +95,8 @@ struct CornerMaxFenwick3D {
                 }
     }
 
-    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates <= x, y, z (NO_MAX if there are
-    // none);
+    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates <= x, y, z (NO_MAX, automatically
+    // the smallest value of your type T, if there are none);
     // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteLteLte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
@@ -108,8 +108,8 @@ struct CornerMaxFenwick3D {
         return res;
     }
 
-    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates >= x, y, z (NO_MAX if there are
-    // none);
+    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates >= x, y, z (NO_MAX, automatically
+    // the smallest value of your type T, if there are none);
     // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteGteGte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
@@ -121,7 +121,7 @@ struct CornerMaxFenwick3D {
         return res;
     }
 
-    // O(1) -- max of every set cell (NO_MAX if there are none)
+    // O(1) -- max of every set cell (NO_MAX, automatically the smallest value of your type T, if there are none)
     LEETCODE_NO_SANITIZE T maxAll() const {
         return top;
     }

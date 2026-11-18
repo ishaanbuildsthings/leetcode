@@ -68,7 +68,7 @@ LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct SegTree3D {
-    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives
+    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set cell
     int X, Y, Z, SY, SZ;  // SY = 2Y y-nodes per x-node, SZ = 2Z z-nodes per y-node
     HotVector<T> mx;
 
@@ -93,8 +93,8 @@ struct SegTree3D {
                 }
     }
 
-    // O(1) -- the value at (x, y, z), NO_MAX if the cell is empty; needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else
-    // throws out_of_range
+    // O(1) -- the value at (x, y, z), NO_MAX, automatically the smallest value of your type T, if the cell is empty;
+    // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE T pointGet(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
             throw out_of_range("pointGet: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
@@ -164,7 +164,8 @@ struct SegTree3D {
         return res;
     }
 
-    // O(log X * log Y * log Z) -- max of the set cells in the box x1..x2, y1..y2, z1..z2 (NO_MAX if there are none);
+    // O(log X * log Y * log Z) -- max of the set cells in the box x1..x2, y1..y2, z1..z2 (NO_MAX, automatically the
+    // smallest value of your type T, if there are none);
     // needs 0 <= x1 <= x2 < X, 0 <= y1 <= y2 < Y and 0 <= z1 <= z2 < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE T boxMax(int x1, int y1, int z1, int x2, int y2, int z2) const {
         if (x1 < 0 || x1 > x2 || x2 >= X || y1 < 0 || y1 > y2 || y2 >= Y || z1 < 0 || z1 > z2 || z2 >= Z)
@@ -172,13 +173,13 @@ struct SegTree3D {
         return maxOf(x1, y1, z1, x2, y2, z2);
     }
 
-    // O(1) -- max of every set cell (NO_MAX if there are none)
+    // O(1) -- max of every set cell (NO_MAX, automatically the smallest value of your type T, if there are none)
     LEETCODE_NO_SANITIZE T maxAll() const {
         return mx[at(1, 1, 1)];
     }
 
-    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates <= x, y, z (NO_MAX if there are
-    // none);
+    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates <= x, y, z (NO_MAX, automatically
+    // the smallest value of your type T, if there are none);
     // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxLteLteLte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
@@ -186,8 +187,8 @@ struct SegTree3D {
         return maxOf(0, 0, 0, x, y, z);
     }
 
-    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates >= x, y, z (NO_MAX if there are
-    // none);
+    // O(log X * log Y * log Z) -- max of the set cells with all three coordinates >= x, y, z (NO_MAX, automatically
+    // the smallest value of your type T, if there are none);
     // needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
     LEETCODE_NO_SANITIZE T maxGteGteGte(int x, int y, int z) const {
         if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)

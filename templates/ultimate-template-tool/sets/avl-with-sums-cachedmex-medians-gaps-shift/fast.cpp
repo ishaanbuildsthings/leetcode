@@ -491,7 +491,7 @@ struct AVLMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(logN) -- largest value < x; ms.NONE if there is none
+    // O(logN) -- largest value < x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
@@ -499,7 +499,7 @@ struct AVLMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(logN) -- largest value <= x; ms.NONE if there is none
+    // O(logN) -- largest value <= x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T largestLteX(T x) {
         x -= off;
         long long c = le(x);
@@ -637,7 +637,7 @@ struct AVLMultiset {
         return n;
     }
 
-    // O(logN) -- smallest value > x; ms.NONE if there is none
+    // O(logN) -- smallest value > x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
@@ -645,7 +645,7 @@ struct AVLMultiset {
         return T(kthAt(c + 1) + off);
     }
 
-    // O(logN) -- smallest value >= x; ms.NONE if there is none
+    // O(logN) -- smallest value >= x; if there is none, ms.NONE (automatically the lowest value of T)
     LEETCODE_NO_SANITIZE T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);

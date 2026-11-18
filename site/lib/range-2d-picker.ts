@@ -36,9 +36,9 @@ export const RANGE_2D_TYPE_LABELS: Record<Range2dType, string> = {
 
 // What the constructor is given. The first three are the switch above the 2D op grid; the 3D grid templates have their
 // own tab (lib/range-3d-picker.ts).
-export const RANGE_2D_INPUTS = ["grid", "points", "online", "grid-3d"] as const;
+export const RANGE_2D_INPUTS = ["grid", "compressed", "online", "grid-3d"] as const;
 export type Range2dInput = (typeof RANGE_2D_INPUTS)[number];
-export const RANGE_2D_MODES = ["grid", "points", "online"] as const;
+export const RANGE_2D_MODES = ["grid", "compressed", "online"] as const;
 export type Range2dMode = (typeof RANGE_2D_MODES)[number];
 
 export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: string }[] = [
@@ -48,10 +48,10 @@ export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: 
     title: "The whole grid fits in memory: built from a list of rows. Costs are in R and C",
   },
   {
-    mode: "points",
-    label: "Updated points known up front",
+    mode: "compressed",
+    label: "Compressed coordinates",
     title:
-      "Coordinates can be huge or negative. The constructor takes every (x, y) that will ever hold a value: each point you read or update, and each point a rectangle update should change. Query rectangles and update rectangles' corners are not listed: they can be any integers. Then you call it live",
+      "Coordinates can be huge or negative. The constructor takes xs and ys: every x and every y your point ops will use (or a size, to leave that axis as 0..n-1); rectangles can be any integers. Each listed x is a row and each listed y a column of a small grid, and a cell is one point, not a block (a rectangle sum is never an area); costs and memory are a small grid's with X = distinct x's and Y = distinct y's",
   },
   {
     mode: "online",
@@ -231,10 +231,10 @@ export const RANGE_2D_UPDATE_OPS: ReadonlySet<string> = new Set([
   "rectChmin",
 ]);
 
-// "Fenwick tree over points known up front", "2D sparse table (any rectangle)"
+// "2D Fenwick tree over compressed coordinates", "2D sparse table (any rectangle)"
 export function range2dKindLabel(t: Range2dTemplate): string {
   const label = RANGE_2D_TYPE_LABELS[t.dataStructureType];
-  if (t.input === "points") return `${label} over points known up front`;
+  if (t.input === "compressed") return `${label.startsWith("2D") || label.startsWith("K-d") ? label : `2D ${label.charAt(0).toLowerCase()}${label.slice(1)}`} over compressed coordinates`;
   if (t.input === "online") return `${label}, dynamic (any coordinates)`;
   return label.startsWith("2D") ? label : `2D ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
 }

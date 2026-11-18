@@ -202,9 +202,9 @@ def seg_tree(aggs):
     if "sum" in aggs:
         cpp.append("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;")
     if "max" in aggs:
-        cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives")
+        cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set cell")
     if "min" in aggs:
-        cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set cell gives")
+        cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // the largest value T can hold: a min over no set cell")
     cpp += ["    ll xLo, xHi, yLo, yHi;", "    int xUsed = 2, yUsed = 1;  // how many x-nodes / y-nodes exist (the arrays are longer: they double when full)",
             "    vector<int> xLeft, xRight, xTree;  // x-node 0 = nothing there, 1 = the root; xTree = an x-node's own y-tree (its root)",
             "    vector<int> yLeft, yRight;  // y-node 0 = nothing there: its aggregates are what an untouched range gives"]

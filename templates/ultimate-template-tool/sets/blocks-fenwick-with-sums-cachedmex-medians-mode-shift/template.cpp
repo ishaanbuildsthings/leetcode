@@ -450,7 +450,7 @@ struct BlockFenwickMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(logN) -- largest value < x; ms.NONE if there is none
+    // O(logN) -- largest value < x; if there is none, ms.NONE (automatically the lowest value of T)
     T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
@@ -458,7 +458,7 @@ struct BlockFenwickMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(logN) -- largest value <= x; ms.NONE if there is none
+    // O(logN) -- largest value <= x; if there is none, ms.NONE (automatically the lowest value of T)
     T largestLteX(T x) {
         x -= off;
         long long c = le(x);
@@ -591,7 +591,7 @@ struct BlockFenwickMultiset {
         return n;
     }
 
-    // O(logN) -- smallest value > x; ms.NONE if there is none
+    // O(logN) -- smallest value > x; if there is none, ms.NONE (automatically the lowest value of T)
     T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
@@ -599,7 +599,7 @@ struct BlockFenwickMultiset {
         return T(kthAt(c + 1) + off);
     }
 
-    // O(logN) -- smallest value >= x; ms.NONE if there is none
+    // O(logN) -- smallest value >= x; if there is none, ms.NONE (automatically the lowest value of T)
     T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);

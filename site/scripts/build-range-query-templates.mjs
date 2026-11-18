@@ -203,6 +203,9 @@ for (const name of fs.readdirSync(stringsDir).filter((name) => /\.(py|cpp)$/.tes
 const matricesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/matrices");
 fs.mkdirSync(path.join(publicDir, "_matrices"));
 for (const name of fs.readdirSync(matricesDir).filter((name) => /^(matMul|vecMatMul|matPow)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
+const geometryDir = path.resolve(siteDir, "../templates/ultimate-template-tool/geometry");
+fs.mkdirSync(path.join(publicDir, "_geometry"));
+for (const name of ["polygonArea.py", "polygonArea.cpp"]) fs.copyFileSync(path.join(geometryDir, name), path.join(publicDir, "_geometry", name));
 
 // the combinatorics templates (the Combinatorics tab)
 const combinatoricsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/combinatorics");

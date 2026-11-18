@@ -201,14 +201,14 @@ struct FastSetMultiset {
         return d;
     }
 
-    // O(log64(U)) -- largest value < x; ms.NONE if there is none
+    // O(log64(U)) -- largest value < x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     T largestLtX(T x) {
         long long i = prev((long long)x - lo - 1);
         if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value <= x; ms.NONE if there is none
+    // O(log64(U)) -- largest value <= x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     T largestLteX(T x) {
         long long i = prev((long long)x - lo);
         if (i < 0) return NONE;
@@ -300,14 +300,14 @@ struct FastSetMultiset {
         return n;
     }
 
-    // O(log64(U)) -- smallest value > x; ms.NONE if there is none
+    // O(log64(U)) -- smallest value > x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     T smallestGtX(T x) {
         long long i = next((long long)x - lo + 1);
         if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- smallest value >= x; ms.NONE if there is none
+    // O(log64(U)) -- smallest value >= x; if there is none, ms.NONE (automatically a value just outside [lo, hi])
     T smallestGteX(T x) {
         long long i = next((long long)x - lo);
         if (i < 0) return NONE;

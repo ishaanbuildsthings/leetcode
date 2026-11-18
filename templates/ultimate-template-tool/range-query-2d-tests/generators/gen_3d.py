@@ -164,9 +164,9 @@ def seg_tree(aggs):
     if "sum" in aggs:
         cpp.append("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;")
     if "max" in aggs:
-        cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives")
+        cpp.append("    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set cell")
     if "min" in aggs:
-        cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set cell gives")
+        cpp.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // the largest value T can hold: a min over no set cell")
     cpp.append("    int X, Y, Z, SY, SZ;  // SY = 2Y y-nodes per x-node, SZ = 2Z z-nodes per y-node")
     for a in A:
         cpp.append(f"    vector<{a.cpp_type}> {a.arr};")
@@ -369,7 +369,7 @@ def corner_bit(kind, corners):
 
     cpp = wrap_comment(doc + f" A {kind} over no set cell is {none}.", "//")
     cpp += ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{",
-            f"    static constexpr T {none} = numeric_limits<T>::{'min' if kind == 'max' else 'max'}();  // what a {kind} over no set cell gives",
+            f"    static constexpr T {none} = numeric_limits<T>::{'lowest' if kind == 'max' else 'max'}();  // the {'smallest' if kind == 'max' else 'largest'} value T can hold: a {kind} over no set cell",
             "    int X, Y, Z, SY, SZ;", f"    T top = {none};", f"    vector<T> {', '.join('t' + n for n in names)};", "",
             "    // O(X*Y*Z) -- X by Y by Z, every cell empty; needs X >= 1, Y >= 1 and Z >= 1, else throws invalid_argument",
             f"    {cls}(int X, int Y, int Z) : X(X), Y(Y), Z(Z), SY(Y + 1), SZ(Z + 1) {{",

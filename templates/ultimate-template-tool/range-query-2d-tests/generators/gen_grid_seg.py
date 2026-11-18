@@ -267,9 +267,9 @@ def cpp_template(aggs):
     if "sum" in aggs:
         L.append("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;")
     if "max" in aggs:
-        L.append("    static constexpr T NO_MAX = numeric_limits<T>::min();  // what a max over no set cell gives")
+        L.append("    static constexpr T NO_MAX = numeric_limits<T>::lowest();  // the smallest value T can hold: a max over no set cell")
     if "min" in aggs:
-        L.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // what a min over no set cell gives")
+        L.append("    static constexpr T NO_MIN = numeric_limits<T>::max();  // the largest value T can hold: a min over no set cell")
     L.append("    int R, C, W;")
     for a in A:
         L.append(f"    vector<{a.cpp_type}> {a.arr};")
