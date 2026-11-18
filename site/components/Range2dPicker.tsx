@@ -11,6 +11,7 @@ import {
   RANGE_2D_TYPES,
   RANGE_2D_UPDATE_OPS,
   decodeRange2dTemplates,
+  toXY,
   range2dKindLabel,
   type Range2dMode,
   type Range2dTemplate,
@@ -19,6 +20,9 @@ import {
 // Written by the generators in templates/ultimate-template-tool/range-query-2d-tests/generators
 // (npm run gen:range-queries-2d). An op with no template yet reads "No template covers this selection yet."
 const TEMPLATES = decodeRange2dTemplates(RANGE_2D_MANIFEST);
+// ops only a grid template has (no (x, y) version): greyed out while the (x, y) box is ticked
+const XY_OPS = new Set(TEMPLATES.filter((t) => t.input !== "grid").flatMap((t) => t.operations));
+const GRID_ONLY_OPS = new Set(TEMPLATES.flatMap((t) => t.operations).filter((op) => !XY_OPS.has(op)));
 const BY_INPUT = Object.fromEntries(RANGE_2D_MODES.map((input) => [input, TEMPLATES.filter((t) => t.input === input)])) as Record<
   Range2dMode,
   Range2dTemplate[]
@@ -27,7 +31,16 @@ const BY_INPUT = Object.fromEntries(RANGE_2D_MODES.map((input) => [input, TEMPLA
 const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
   title: "2D Range Query Picker",
   intro:
-    "(r, c) and (x, y) are fully interchangeable: both mean (first coordinate, second coordinate), so use whichever you think in. The one exception is a template built from a grid, which reads it as grid[r][c].",
+    "(r, c) and (x, y) are fully interchangeable: both mean (first coordinate, second coordinate), so use whichever you think in. The one exception is a template built from a grid, which reads it as grid[r][c]. Tick \"(x, y) points\" to see everything written with x and y.",
+  flag: {
+    label: "(x, y) points",
+    title: "Write coordinates as (x, y) instead of (r, c). Leaves out the small-grid templates, which are built from grid[r][c]",
+    storageKey: "range2dPicker.xy",
+    keep: (t) => t.input !== "grid",
+    disabledOps: GRID_ONLY_OPS,
+    disabledTitle: "Only the small-grid templates have this",
+    rename: toXY,
+  },
   opGroups: RANGE_2D_OP_GROUPS,
   planned: RANGE_2D_PLANNED,
   fillIns: GENERIC_SPARSE_TABLES_2D,
@@ -65,6 +78,12 @@ const RANGE_2D_CATALOG: PickerCatalog<Range2dTemplate> = {
     w: { py: "w: the window's width (columns)", cpp: "w: the window's width (columns)" },
   }),
   ctorComments: (t) => [
+    ...(t.input === "batch"
+      ? [
+          "Every call is only recorded: a query returns its number k (0, 1, 2, ...), not an answer.",
+          "When all calls are made: answers = ds.solve(); answers[k] is query k's answer.",
+        ]
+      : []),
     ...(t.emptyCells
       ? ["Cells can be empty: queries only see cells that have been set."]
       : t.input === "points"

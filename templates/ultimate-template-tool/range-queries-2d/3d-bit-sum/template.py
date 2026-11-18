@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/3d-bit-sum/template.py
-# @operations: boxSum pointAdd pointAssign pointChmax pointChmin pointGet sumAll
+# @operations: boxSum pointAdd pointAssign pointChmax pointChmin pointGet sumAll sumGteGteGte sumLteLteLte
 # @data-structure-type: BIT
 # @input: grid-3d
 # @complexities:
@@ -11,6 +11,8 @@
 #   pointChmin: log(X)*log(Y)*log(Z)
 #   pointGet: 1
 #   sumAll: 1
+#   sumGteGteGte: log(X)*log(Y)*log(Z)
+#   sumLteLteLte: log(X)*log(Y)*log(Z)
 #   build: X*Y*Z
 # @memory:
 #   layout: none
@@ -135,3 +137,19 @@ class Fenwick3D:
     # O(1) -- sum of the whole grid
     def sumAll(self):
         return self.total
+
+    # O(log X * log Y * log Z) -- sum of the cells with all three coordinates <= x, y, z (one prefix query); needs 0
+    # <= x < X, 0 <= y < Y and 0 <= z < Z, else IndexError
+    def sumLteLteLte(self, x, y, z):
+        if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
+            raise IndexError(f"sumLteLteLte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "
+                             f"z = {z}, X = {self.X}, Y = {self.Y}, Z = {self.Z}")
+        return self._prefix(x + 1, y + 1, z + 1)
+
+    # O(log X * log Y * log Z) -- sum of the cells with all three coordinates >= x, y, z (a box query, eight prefix
+    # queries); needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else IndexError
+    def sumGteGteGte(self, x, y, z):
+        if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
+            raise IndexError(f"sumGteGteGte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "
+                             f"z = {z}, X = {self.X}, Y = {self.Y}, Z = {self.Z}")
+        return self.boxSum(x, y, z, self.X - 1, self.Y - 1, self.Z - 1)

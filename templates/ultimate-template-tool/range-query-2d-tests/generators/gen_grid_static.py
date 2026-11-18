@@ -1,5 +1,6 @@
-"""Small grid, nothing changes after the build: prefix sums, per-bit counts, 2D hashing, sparse tables (any rectangle,
-squares only), one fixed window size, and the difference array (rectangle adds first, one read of the grid at the end).
+"""Small grid, nothing changes after the build: prefix sums, per-bit counts, 2D hashing, sparse tables (any rectangle)
+and the difference array (rectangle adds first, one read of the grid at the end). Square-only queries are left to the
+generic square sparse table (generic-2d/GenericSquareSparseTable).
 
     python3 gen_grid_static.py     # writes range-queries-2d/grid-<family>-.../template.{py,cpp}
 """
@@ -288,12 +289,12 @@ def sparse_rect(aggs):
     g = "gcd" in aggs
     ops = ["pointGet"]
     for a in A:
-        ops += [a.rect, a.all, f"square{a.cap}"]
+        ops += [a.rect, a.all]
         if a.key in ("min", "max"):
             ops += [f"{a.key}{n}" for n, _, _ in CORNERS]
     costs = {op: "1" for op in ops}
     if g:
-        costs.update({"rectGcd": "log(U) ?", "gcdAll": "log(U) ?", "squareGcd": "log(U) ?"})
+        costs.update({"rectGcd": "log(U) ?", "gcdAll": "log(U) ?"})
     memory = {"layout": "none", "node": " ".join(f"{a.arr}[1*R*C*log(R)*log(C)]" for a in A),
               "note": "per aggregate, one table for every pair of a power-of-two height and a power-of-two width "
                       "(the 1 x 1 table is the grid itself, shared)"}
@@ -301,8 +302,8 @@ def sparse_rect(aggs):
     doc = (f"Static 2D sparse table ({words}): any rectangle in O(1){' (one gcd run, O(log U))' if g else ''}. For every "
            f"power-of-two height and power-of-two width there is a table holding the aggregate of each window of that "
            f"size; a rectangle is covered by four such windows, one in each corner (they overlap, which is fine: each of "
-           f"these gives the same answer when a cell is counted twice). Memory and build are R * C * log R * log C: when "
-           f"only squares are asked for, the square sparse table needs a single log. No updates. Rows and columns are "
+           f"these gives the same answer when a cell is counted twice). Memory and build are R * C * log R * log C. No "
+           f"updates. Rows and columns are "
            f"0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.")
     py = []
     if g:
@@ -349,14 +350,6 @@ def sparse_rect(aggs):
         py += indent(wrap_comment(f"{cost} -- {a.word} of rows r1..r2, columns c1..c2; {RECT_RULE_PY}", "#"))
         py.append(f"    def {a.rect}(self, r1, c1, r2, c2):")
         py += indent(py_rect_check(a.rect) + [f"return self._{a.key}Of(r1, c1, r2, c2)"], 2) + [""]
-        py += indent(wrap_comment(
-            f"{cost} -- {a.word} of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 "
-            f"and the square inside the grid, else IndexError", "#"))
-        py.append(f"    def square{a.cap}(self, r, c, side):")
-        py += indent(["if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):"]
-                     + indent(py_raise("IndexError", f"square{a.cap}: needs side >= 1 and the square inside the grid, got r = {{r}}, "
-                                       "c = {c}, side = {side}, R = {self.R}, C = {self.C}", 3))
-                     + [f"return self._{a.key}Of(r, c, r + side - 1, c + side - 1)"], 2) + [""]
         py += [f"    # {cost} -- {a.word} of the whole grid", f"    def {a.all}(self):",
                f"        return self._{a.key}Of(0, 0, self.R - 1, self.C - 1)", ""]
         if a.key in ("min", "max"):
@@ -421,13 +414,6 @@ def sparse_rect(aggs):
         cpp += indent(wrap_comment(f"{cost} -- {a.word} of rows r1..r2, columns c1..c2; {RECT_RULE_CPP}", "//"))
         cpp.append(f"    T {a.rect}(int r1, int c1, int r2, int c2) const {{")
         cpp += indent(cpp_rect_check(a.rect) + [f"return {a.key}Of(r1, c1, r2, c2);"], 2) + ["    }", ""]
-        cpp += indent(wrap_comment(
-            f"{cost} -- {a.word} of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 "
-            f"and the square inside the grid, else throws out_of_range", "//"))
-        cpp.append(f"    T square{a.cap}(int r, int c, int side) const {{")
-        cpp += indent(cpp_throw("side < 1 || r < 0 || r + side > R || c < 0 || c + side > C", "out_of_range",
-                                f"square{a.cap}: needs side >= 1 and the square inside the grid", 2)
-                      + [f"return {a.key}Of(r, c, r + side - 1, c + side - 1);"], 2) + ["    }", ""]
         cpp += [f"    // {cost} -- {a.word} of the whole grid", f"    T {a.all}() const {{", f"        return {a.key}Of(0, 0, R - 1, C - 1);", "    }", ""]
         if a.key in ("min", "max"):
             for name, rs, cs in CORNERS:
@@ -443,232 +429,6 @@ def sparse_rect(aggs):
     emit("grid-sparse-table-" + "-".join(aggs), ops, "sparse-table", costs, build, memory, py, cpp)
 
 
-def sparse_square(aggs):
-    cls = "SquareSparseTable2D"
-    A = [AGGS[k] for k in aggs]
-    g = "gcd" in aggs
-    ops = ["pointGet"] + [f"square{a.cap}" for a in A]
-    costs = {op: "1" for op in ops}
-    if g:
-        costs["squareGcd"] = "log(U) ?"
-    memory = {"layout": "none", "node": " ".join(f"{a.arr}[1*R*C*log(min(R,C))]" for a in A),
-              "note": "per aggregate, one table per power-of-two side (side 1 is the grid itself, shared)"}
-    words = ", ".join(a.word for a in A)
-    doc = (f"Static sparse table for square queries only ({words}): O(1) per square{' (one gcd run, O(log U))' if g else ''}, "
-           f"with a single log of memory and build, R * C * log(min(R, C)), where the any-rectangle sparse table needs "
-           f"log R * log C. Level k holds the aggregate of every 2^k by 2^k window; a square is covered by four such "
-           f"windows, one in each corner (they overlap, which is fine for these aggregates). No updates. Rows and "
-           f"columns are 0-based; a square is its top-left cell (r, c) and its side.")
-    py = []
-    if g:
-        py += ["from math import gcd", ""]
-    py += ["", ""] + wrap_comment(doc, "#") + [f"class {cls}:"]
-    py.append("    __slots__ = (" + ", ".join(f'"{s}"' for s in ["R", "C"] + [a.arr for a in A]) + ")")
-    py += ["", f"    # O(R*C*log(min(R, C)){'*logU' if g else ''}) -- grid: R rows of C numbers each; needs R >= 1 and C >= 1, else ValueError",
-           "    def __init__(self, grid):"]
-    b = py_grid_check(cls) + ["flat = [v for row in grid for v in row]", "levels = min(R, C).bit_length()"]
-    for a in A:
-        b += [
-            f"t = self.{a.arr} = [flat]  # t[k]: windows of 2^k by 2^k, flat, (R - 2^k + 1) rows of (C - 2^k + 1)",
-            "for k in range(1, levels):",
-            "    half = 1 << (k - 1)",
-            "    prevW = C - half + 1",
-            "    prev = t[-1]",
-            "    cur = []",
-            "    for i in range(R - (1 << k) + 1):",
-            "        top = prev[i * prevW:(i + 1) * prevW]",
-            "        bot = prev[(i + half) * prevW:(i + half + 1) * prevW]",
-            f"        cur += [{py_four(a, 'wxyz')} for w, x, y, z in zip(top, top[half:], bot, bot[half:])]",
-            "    t.append(cur)",
-        ]
-    py += indent(b, 2) + [""]
-    for a in A:
-        cost = "O(log U)" if a.key == "gcd" else "O(1)"
-        py += indent(wrap_comment(
-            f"{cost} -- {a.word} of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 "
-            f"and the square inside the grid, else IndexError", "#"))
-        py.append(f"    def square{a.cap}(self, r, c, side):")
-        py += indent(["if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):"]
-                     + indent(py_raise("IndexError", f"square{a.cap}: needs side >= 1 and the square inside the grid, got r = {{r}}, "
-                                       "c = {c}, side = {side}, R = {self.R}, C = {self.C}", 3))
-                     + ["k = side.bit_length() - 1", f"t = self.{a.arr}[k]", "w = self.C - (1 << k) + 1", "d = side - (1 << k)",
-                        "i = r * w + c", "j = i + d * w", f"return {py_four(a, ['t[i]', 't[i + d]', 't[j]', 't[j + d]'])}"], 2) + [""]
-    py.append(f"    # O(1) -- the value at (r, c); {POINT_RULE_PY}")
-    py.append("    def pointGet(self, r, c):")
-    py += indent(py_point_check("pointGet") + [f"return self.{A[0].arr}[0][r * self.C + c]"], 2)
-
-    cpp = wrap_comment(doc, "//") + ["// T is any integer type (int, long long, ...).", "template <typename T>", f"struct {cls} {{", "    int R, C, levels;",
-                                      "    vector<size_t> at;  // at[k]: where the table of 2^k by 2^k windows starts in each array"]
-    for a in A:
-        cpp.append(f"    vector<T> {a.arr};  // every table back to back, each flat: (R - 2^k + 1) rows of (C - 2^k + 1)")
-    cpp += ["", f"    // O(R*C*log(min(R, C)){'*logU' if g else ''}) -- grid: R rows of C numbers each; needs R >= 1 and C >= 1, else throws "
-            "invalid_argument", f"    explicit {cls}(const vector<vector<T>>& grid)",
-            "        : R((int)grid.size()), C(grid.empty() ? 0 : (int)grid[0].size()) {"]
-    b = cpp_grid_check(cls) + ["levels = 32 - __builtin_clz(min(R, C));", "at.assign(levels + 1, 0);",
-                               "for (int k = 0; k < levels; k++) at[k + 1] = at[k] + (size_t)(R - (1 << k) + 1) * (C - (1 << k) + 1);"]
-    for a in A:
-        b += [f"{a.arr}.assign(at.back(), T(0));", "for (int r = 0; r < R; r++)", f"    for (int c = 0; c < C; c++) {a.arr}[(size_t)r * C + c] = grid[r][c];"]
-    b.append("buildLevels();")
-    cpp += indent(b, 2) + ["    }", "", "    // every table from the one of half its side", "    void buildLevels() {"]
-    b = []
-    for a in A:
-        four = cpp_two(a, cpp_two(a, "top[j]", "top[j + half]"), cpp_two(a, "bot[j]", "bot[j + half]"))
-        if a.key in ("and", "or"):
-            sym = "&" if a.key == "and" else "|"
-            four = f"top[j] {sym} top[j + half] {sym} bot[j] {sym} bot[j + half]"
-        b += [
-            "for (int k = 1; k < levels; k++) {",
-            "    int half = 1 << (k - 1), prevW = C - half + 1, h = R - (1 << k) + 1, w = C - (1 << k) + 1;",
-            f"    const T* prev = &{a.arr}[at[k - 1]];",
-            f"    T* cur = &{a.arr}[at[k]];",
-            "    for (int i = 0; i < h; i++) {",
-            "        const T* top = prev + (size_t)i * prevW;",
-            "        const T* bot = top + (size_t)half * prevW;",
-            "        T* out = cur + (size_t)i * w;",
-            "        for (int j = 0; j < w; j++)",
-            f"            out[j] = {four};",
-            "    }",
-            "}",
-        ]
-    cpp += indent(b, 2) + ["    }", ""]
-    for a in A:
-        cost = "O(log U)" if a.key == "gcd" else "O(1)"
-        four = cpp_two(a, cpp_two(a, "t[i]", "t[i + d]"), cpp_two(a, "t[j]", "t[j + d]"))
-        if a.key in ("and", "or"):
-            sym = "&" if a.key == "and" else "|"
-            four = f"t[i] {sym} t[i + d] {sym} t[j] {sym} t[j + d]"
-        cpp += indent(wrap_comment(
-            f"{cost} -- {a.word} of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 "
-            f"and the square inside the grid, else throws out_of_range", "//"))
-        cpp.append(f"    T square{a.cap}(int r, int c, int side) const {{")
-        cpp += indent(cpp_throw("side < 1 || r < 0 || r + side > R || c < 0 || c + side > C", "out_of_range",
-                                f"square{a.cap}: needs side >= 1 and the square inside the grid", 2)
-                      + ["int k = 31 - __builtin_clz(side), w = C - (1 << k) + 1, d = side - (1 << k);", "size_t i = (size_t)r * w + c, j = i + (size_t)d * w;",
-                         f"const T* t = &{a.arr}[at[k]];", f"return {four};"], 2) + ["    }", ""]
-    cpp.append(f"    // O(1) -- the value at (r, c); {POINT_RULE_CPP}")
-    cpp.append("    T pointGet(int r, int c) const {")
-    cpp += indent(cpp_point_check("pointGet") + [f"return {A[0].arr}[(size_t)r * C + c];"], 2) + ["    }", "};"]
-    build = "R*C*log(min(R,C))*log(U) ?" if g else "R*C*log(min(R,C))"
-    emit("grid-square-sparse-table-" + "-".join(aggs), ops, "square-sparse-table", costs, build, memory, py, cpp)
-
-
-# ------------------------------------------------------------------------------------------------ one fixed window size
-def window(aggs):
-    cls = "WindowMinMax2D" if len(aggs) == 2 else f"Window{AGGS[aggs[0]].cap}2D"
-    A = [AGGS[k] for k in aggs]
-    ops = [f"window{a.cap}" for a in A]
-    costs = {op: "1" for op in ops}
-    memory = {"layout": "none", "node": " ".join(f"{a.arr}[1*R*C]" for a in A),
-              "note": "one answer per window position, (R - h + 1) by (C - w + 1); the build also uses one R by (C - w + 1) scratch table"}
-    words = " and ".join(a.word for a in A)
-    doc = (f"The {words} of every h x w window of a grid, for one window size fixed at the build: O(R * C) to build with "
-           f"no log (a sliding-window {words} along each row with a monotonic queue, then the same down each column of "
-           f"those), then O(1) per window. When every query has the same size this beats a sparse table on build time "
-           f"and memory. No updates. Rows and columns are 0-based; a window is named by its top-left cell.")
-    cmp_py = {"min": ">=", "max": "<="}
-    py = ["", ""] + wrap_comment(doc, "#") + [f"class {cls}:"]
-    py.append("    __slots__ = (" + ", ".join(f'"{s}"' for s in ["R", "C", "h", "w", "outW"] + [a.arr for a in A]) + ")")
-    py += ["", "    # O(R*C) -- grid: R rows of C numbers each; windows are h rows by w columns; needs 1 <= h <= R and 1 <= w <= C, else",
-           "    # ValueError", "    def __init__(self, grid, h, w):"]
-    b = py_grid_check(cls) + ["if not (1 <= h <= R and 1 <= w <= C):"] + indent(py_raise(
-        "ValueError", f"{cls}: needs 1 <= h <= R and 1 <= w <= C, got h = {{h}}, w = {{w}}, R = {{R}}, C = {{C}}", 3)) + [
-        "self.h = h", "self.w = w", "outW = self.outW = C - w + 1"]
-    for a in A:
-        op = cmp_py[a.key]
-        b += [
-            "rows = []  # rows[r][c]: the " + a.word + " of grid[r][c .. c + w - 1]",
-            "for row in grid:",
-            "    out = []",
-            "    q = [0] * C  # column indices, their values " + ("rising" if a.key == "min" else "falling"),
-            "    head = tail = 0",
-            "    for c in range(C):",
-            "        v = row[c]",
-            f"        while tail > head and row[q[tail - 1]] {op} v:",
-            "            tail -= 1",
-            "        q[tail] = c",
-            "        tail += 1",
-            "        if q[head] <= c - w:",
-            "            head += 1",
-            "        if c >= w - 1:",
-            "            out.append(row[q[head]])",
-            "    rows.append(out)",
-            f"res = self.{a.arr} = [0] * ((R - h + 1) * outW)",
-            "q = [0] * R",
-            "for c in range(outW):",
-            "    head = tail = 0",
-            "    for r in range(R):",
-            "        v = rows[r][c]",
-            f"        while tail > head and rows[q[tail - 1]][c] {op} v:",
-            "            tail -= 1",
-            "        q[tail] = r",
-            "        tail += 1",
-            "        if q[head] <= r - h:",
-            "            head += 1",
-            "        if r >= h - 1:",
-            "            res[(r - h + 1) * outW + c] = rows[q[head]][c]",
-        ]
-    py += indent(b, 2) + [""]
-    for a in A:
-        py += indent(wrap_comment(f"O(1) -- {a.word} of the h x w window whose top-left cell is (r, c); needs 0 <= r <= R - h and "
-                                  f"0 <= c <= C - w, else IndexError", "#"))
-        py.append(f"    def window{a.cap}(self, r, c):")
-        py += indent(["if not (0 <= r <= self.R - self.h and 0 <= c <= self.C - self.w):"]
-                     + indent(py_raise("IndexError", f"window{a.cap}: needs 0 <= r <= R - h and 0 <= c <= C - w, got r = {{r}}, c = {{c}}, "
-                                       "R = {self.R}, C = {self.C}, h = {self.h}, w = {self.w}", 3))
-                     + [f"return self.{a.arr}[r * self.outW + c]"], 2) + [""]
-    while py[-1] == "":
-        py.pop()
-
-    cpp = wrap_comment(doc, "//") + ["// T is any type with < (int, long long, double, ...).", "template <typename T>", f"struct {cls} {{",
-                                      "    int R, C, h, w, outW;"]
-    for a in A:
-        cpp.append(f"    vector<T> {a.arr};")
-    cpp += ["", "    // O(R*C) -- grid: R rows of C numbers each; windows are h rows by w columns; needs 1 <= h <= R and 1 <= w <= C, else",
-            "    // throws invalid_argument",
-            f"    {cls}(const vector<vector<T>>& grid, int h, int w)",
-            "        : R((int)grid.size()), C(grid.empty() ? 0 : (int)grid[0].size()), h(h), w(w), outW(C - w + 1) {"]
-    b = cpp_grid_check(cls) + [f'if (h < 1 || h > R || w < 1 || w > C) throw invalid_argument("{cls}: needs 1 <= h <= R and 1 <= w <= C");',
-                               "vector<T> rows((size_t)R * outW);  // rows[r * outW + c]: that aggregate of grid[r][c .. c + w - 1]",
-                               "vector<int> q(max(R, C));"]
-    for a in A:
-        op = cmp_py[a.key]
-        b += [
-            "for (int r = 0; r < R; r++) {",
-            "    const auto& row = grid[r];",
-            "    int head = 0, tail = 0;",
-            "    for (int c = 0; c < C; c++) {",
-            f"        while (tail > head && !(row[q[tail - 1]] {'<' if a.key == 'min' else '>'} row[c])) tail--;",
-            "        q[tail++] = c;",
-            "        if (q[head] <= c - w) head++;",
-            "        if (c >= w - 1) rows[(size_t)r * outW + c - w + 1] = row[q[head]];",
-            "    }",
-            "}",
-            f"{a.arr}.resize((size_t)(R - h + 1) * outW);",
-            "for (int c = 0; c < outW; c++) {",
-            "    int head = 0, tail = 0;",
-            "    for (int r = 0; r < R; r++) {",
-            f"        while (tail > head && !(rows[(size_t)q[tail - 1] * outW + c] {'<' if a.key == 'min' else '>'} rows[(size_t)r * outW + c])) tail--;",
-            "        q[tail++] = r;",
-            "        if (q[head] <= r - h) head++;",
-            f"        if (r >= h - 1) {a.arr}[(size_t)(r - h + 1) * outW + c] = rows[(size_t)q[head] * outW + c];",
-            "    }",
-            "}",
-        ]
-    cpp += indent(b, 2) + ["    }", ""]
-    for a in A:
-        cpp += indent(wrap_comment(f"O(1) -- {a.word} of the h x w window whose top-left cell is (r, c); needs 0 <= r <= R - h and "
-                                   f"0 <= c <= C - w, else throws out_of_range", "//"))
-        cpp.append(f"    T window{a.cap}(int r, int c) const {{")
-        cpp += indent(cpp_throw("r < 0 || r > R - h || c < 0 || c > C - w", "out_of_range",
-                                f"window{a.cap}: needs 0 <= r <= R - h and 0 <= c <= C - w", 2)
-                      + [f"return {a.arr}[(size_t)r * outW + c];"], 2) + ["    }", ""]
-    while cpp[-1] == "":
-        cpp.pop()
-    cpp.append("};")
-    emit("grid-window-" + "-".join(aggs), ops, "sliding-window", costs, "R*C", memory, py, cpp)
-
-
-# ------------------------------------------------------------------------------------------------ difference array
 def difference_array():
     cls = "DifferenceArray2D"
     ops = ["rectAdd", "getAll"]
@@ -835,10 +595,6 @@ def main():
         n += 1
     for aggs in subsets(ST_AGGS):
         sparse_rect(aggs)
-        sparse_square(aggs)
-        n += 2
-    for aggs in subsets(["min", "max"]):
-        window(aggs)
         n += 1
     difference_array()
     hashing()

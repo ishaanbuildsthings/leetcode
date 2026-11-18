@@ -24,7 +24,7 @@ const TAGS = ["operations", "data-structure-type", "input", "empty-cells", "valu
 const OPTIONAL_TAGS = ["empty-cells", "values"];
 const INPUTS = ["grid", "points", "online", "batch", "grid-3d"];
 // (kept in step with RANGE_2D_TYPES in lib/range-2d-picker.ts, which tsc checks the manifest against)
-const TYPES = ["prefix-sum", "difference-array", "corner-table", "sliding-window", "hash", "bit-counts", "square-sparse-table", "sparse-table",
+const TYPES = ["prefix-sum", "difference-array", "corner-table", "hash", "bit-counts", "sparse-table",
   "BIT", "seg-tree", "seg-tree-kept-tags", "rows-of-trees", "kd-tree", "offline-sweep"];
 
 const errors = [];

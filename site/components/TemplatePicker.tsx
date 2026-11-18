@@ -1603,7 +1603,7 @@ export function TemplatePicker<V extends PickerTemplate>({
               </span>
             )}
             {group.title}
-            {group.note && <span className="text-xs font-normal text-muted-foreground">{group.note}</span>}
+            {group.note && <span className="text-xs font-normal text-muted-foreground">{reword(group.note)}</span>}
             {closed && picked > 0 && (
               <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">
                 {picked} selected

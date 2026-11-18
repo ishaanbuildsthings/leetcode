@@ -2,14 +2,13 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-sparse-table-or/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: orAll pointGet rectOr squareOr
+// @operations: orAll pointGet rectOr
 // @data-structure-type: sparse-table
 // @input: grid
 // @complexities:
 //   orAll: 1
 //   pointGet: 1
 //   rectOr: 1
-//   squareOr: 1
 //   build: R*C*log(R)*log(C)
 // @memory:
 //   layout: none
@@ -53,8 +52,8 @@ struct HotVector : vector<U> {
 // Static 2D sparse table (OR): any rectangle in O(1). For every power-of-two height and power-of-two width there is a
 // table holding the aggregate of each window of that size; a rectangle is covered by four such windows, one in each
 // corner (they overlap, which is fine: each of these gives the same answer when a cell is counted twice). Memory and
-// build are R * C * log R * log C: when only squares are asked for, the square sparse table needs a single log. No
-// updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.
+// build are R * C * log R * log C. No updates. Rows and columns are 0-based and rectangles are inclusive: rows
+// r1..r2, columns c1..c2.
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct SparseTable2D {
@@ -114,14 +113,6 @@ struct SparseTable2D {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectOr: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return orOf(r1, c1, r2, c2);
-    }
-
-    // O(1) -- OR of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    // inside the grid, else throws out_of_range
-    LEETCODE_NO_SANITIZE T squareOr(int r, int c, int side) const {
-        if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
-            throw out_of_range("squareOr: needs side >= 1 and the square inside the grid");
-        return orOf(r, c, r + side - 1, c + side - 1);
     }
 
     // O(1) -- OR of the whole grid

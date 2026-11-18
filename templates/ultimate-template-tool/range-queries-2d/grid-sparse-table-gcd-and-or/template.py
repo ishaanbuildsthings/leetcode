@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-sparse-table-gcd-and-or/template.py
-# @operations: andAll gcdAll orAll pointGet rectAnd rectGcd rectOr squareAnd squareGcd squareOr
+# @operations: andAll gcdAll orAll pointGet rectAnd rectGcd rectOr
 # @data-structure-type: sparse-table
 # @input: grid
 # @complexities:
@@ -11,9 +11,6 @@
 #   rectAnd: 1
 #   rectGcd: log(U) ?
 #   rectOr: 1
-#   squareAnd: 1
-#   squareGcd: log(U) ?
-#   squareOr: 1
 #   build: R*C*log(R)*log(C)*log(U) ?
 # @memory:
 #   layout: none
@@ -28,10 +25,9 @@ from math import gcd
 
 # Static 2D sparse table (gcd, AND, OR): any rectangle in O(1) (one gcd run, O(log U)). For every power-of-two height
 # and power-of-two width there is a table holding the aggregate of each window of that size; a rectangle is covered by
-# four such windows, one in each corner (they overlap, which is fine: each of these gives the same answer when a cell
-# is counted twice). Memory and build are R * C * log R * log C: when only squares are asked for, the square sparse
-# table needs a single log. No updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2,
-# columns c1..c2.
+# four such windows, one in each corner (they overlap, which is fine: each of these gives the same answer when a cell is
+# counted twice). Memory and build are R * C * log R * log C. No updates. Rows and columns are 0-based and rectangles
+# are inclusive: rows r1..r2, columns c1..c2.
 class SparseTable2D:
     __slots__ = ("R", "C", "gc", "an", "orr")
 
@@ -113,14 +109,6 @@ class SparseTable2D:
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         return self._gcdOf(r1, c1, r2, c2)
 
-    # O(log U) -- gcd of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    # square inside the grid, else IndexError
-    def squareGcd(self, r, c, side):
-        if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):
-            raise IndexError(f"squareGcd: needs side >= 1 and the square inside the grid, got r = {r}, c = {c}, "
-                             f"side = {side}, R = {self.R}, C = {self.C}")
-        return self._gcdOf(r, c, r + side - 1, c + side - 1)
-
     # O(log U) -- gcd of the whole grid
     def gcdAll(self):
         return self._gcdOf(0, 0, self.R - 1, self.C - 1)
@@ -142,14 +130,6 @@ class SparseTable2D:
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         return self._andOf(r1, c1, r2, c2)
 
-    # O(1) -- AND of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    # inside the grid, else IndexError
-    def squareAnd(self, r, c, side):
-        if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):
-            raise IndexError(f"squareAnd: needs side >= 1 and the square inside the grid, got r = {r}, c = {c}, "
-                             f"side = {side}, R = {self.R}, C = {self.C}")
-        return self._andOf(r, c, r + side - 1, c + side - 1)
-
     # O(1) -- AND of the whole grid
     def andAll(self):
         return self._andOf(0, 0, self.R - 1, self.C - 1)
@@ -170,14 +150,6 @@ class SparseTable2D:
             raise IndexError(f"rectOr: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         return self._orOf(r1, c1, r2, c2)
-
-    # O(1) -- OR of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    # inside the grid, else IndexError
-    def squareOr(self, r, c, side):
-        if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):
-            raise IndexError(f"squareOr: needs side >= 1 and the square inside the grid, got r = {r}, c = {c}, "
-                             f"side = {side}, R = {self.R}, C = {self.C}")
-        return self._orOf(r, c, r + side - 1, c + side - 1)
 
     # O(1) -- OR of the whole grid
     def orAll(self):

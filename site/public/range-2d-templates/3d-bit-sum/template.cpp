@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/3d-bit-sum/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: boxSum pointAdd pointAssign pointChmax pointChmin pointGet sumAll
+// @operations: boxSum pointAdd pointAssign pointChmax pointChmin pointGet sumAll sumGteGteGte sumLteLteLte
 // @data-structure-type: BIT
 // @input: grid-3d
 // @complexities:
@@ -13,6 +13,8 @@ using namespace std;
 //   pointChmin: log(X)*log(Y)*log(Z)
 //   pointGet: 1
 //   sumAll: 1
+//   sumGteGteGte: log(X)*log(Y)*log(Z)
+//   sumLteLteLte: log(X)*log(Y)*log(Z)
 //   build: X*Y*Z
 // @memory:
 //   layout: none
@@ -147,5 +149,21 @@ struct Fenwick3D {
     // O(1) -- sum of the whole grid
     LEETCODE_NO_SANITIZE S sumAll() const {
         return total;
+    }
+
+    // O(log X * log Y * log Z) -- sum of the cells with all three coordinates <= x, y, z (one prefix query); needs 0
+    // <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteLteLte(int x, int y, int z) const {
+        if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
+            throw out_of_range("sumLteLteLte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
+        return prefix(x + 1, y + 1, z + 1);
+    }
+
+    // O(log X * log Y * log Z) -- sum of the cells with all three coordinates >= x, y, z (a box query, eight prefix
+    // queries); needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteGteGte(int x, int y, int z) const {
+        if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
+            throw out_of_range("sumGteGteGte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
+        return boxSum(x, y, z, X - 1, Y - 1, Z - 1);
     }
 };

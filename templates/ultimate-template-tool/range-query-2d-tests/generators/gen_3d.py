@@ -57,9 +57,7 @@ def seg_tree(aggs):
     rd = read_agg(aggs)
     ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin"]
     for a in A:
-        ops += [BOX_OP[a.key], a.all]
-        if a.key in ("min", "max"):
-            ops += [f"{a.key}{n}" for n, _ in CORNERS]
+        ops += [BOX_OP[a.key], a.all] + [f"{a.key}{n}" for n, _ in CORNERS]
     costs = {op: "log(X)*log(Y)*log(Z)" for op in ops}
     costs.update({"pointGet": "1", **{a.all: "1" for a in A}})
     memory = {"layout": "2n-iterative", "node": " ".join(f"{a.arr}[8*X*Y*Z]" for a in A),
@@ -148,10 +146,12 @@ def seg_tree(aggs):
         py.append(f"    def {a.all}(self):")
         root = f"self.{a.arr}[(self.SY + 1) * self.SZ + 1]"
         py += ([f"        res = {root}", f"        return {a.py_result('res')}"] if a.key in ("min", "max") else [f"        return {root}"]) + [""]
-        if a.key in ("min", "max"):
+        if True:
             for n, s in CORNERS:
                 box = "0, 0, 0, x, y, z" if s == "<=" else "x, y, z, self.X - 1, self.Y - 1, self.Z - 1"
-                py += indent(wrap_comment(f"{cost} -- {a.word} of the set cells with all three coordinates {s} x, y, z (None if there are none); {POINT_RULE_PY}", "#"))
+                what = (f"{a.word} of the set cells with all three coordinates {s} x, y, z (None if there are none)" if a.key in ("min", "max")
+                        else f"{a.word} of the cells with all three coordinates {s} x, y, z")
+                py += indent(wrap_comment(f"{cost} -- {what}; {POINT_RULE_PY}", "#"))
                 py.append(f"    def {a.key}{n}(self, x, y, z):")
                 py += indent(py_point_check(f"{a.key}{n}") + [f"return self._{a.key}Of({box})"], 2) + [""]
     while py[-1] == "":
@@ -221,11 +221,13 @@ def seg_tree(aggs):
         cpp += indent(cpp_box_check(BOX_OP[a.key]) + [f"return {a.key}Of(x1, y1, z1, x2, y2, z2);"], 2) + ["    }", ""]
         cpp.append(f"    // O(1) -- {a.word} of every set cell ({a.none_words_cpp} if there are none)" if mm else f"    // O(1) -- {a.word} of the whole grid")
         cpp += [f"    {t} {a.all}() const {{", f"        return {a.arr}[at(1, 1, 1)];", "    }", ""]
-        if a.key in ("min", "max"):
+        if True:
             for n, s in CORNERS:
                 box = "0, 0, 0, x, y, z" if s == "<=" else "x, y, z, X - 1, Y - 1, Z - 1"
-                cpp += indent(wrap_comment(f"{cost} -- {a.word} of the set cells with all three coordinates {s} x, y, z ({a.none_words_cpp} if there are none); {POINT_RULE_CPP}", "//"))
-                cpp.append(f"    T {a.key}{n}(int x, int y, int z) const {{")
+                what = (f"{a.word} of the set cells with all three coordinates {s} x, y, z ({a.none_words_cpp} if there are none)" if a.key in ("min", "max")
+                        else f"{a.word} of the cells with all three coordinates {s} x, y, z")
+                cpp += indent(wrap_comment(f"{cost} -- {what}; {POINT_RULE_CPP}", "//"))
+                cpp.append(f"    {t} {a.key}{n}(int x, int y, int z) const {{")
                 cpp += indent(cpp_point_check(f"{a.key}{n}") + [f"return {a.key}Of({box});"], 2) + ["    }", ""]
     while cpp[-1] == "":
         cpp.pop()
@@ -236,7 +238,7 @@ def seg_tree(aggs):
 # ------------------------------------------------------------------------------------------------ Fenwick, sum
 def bit_sum():
     cls = "Fenwick3D"
-    ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin", "boxSum", "sumAll"]
+    ops = ["pointGet", "pointAssign", "pointAdd", "pointChmax", "pointChmin", "boxSum", "sumAll", "sumLteLteLte", "sumGteGteGte"]
     costs = {op: "log(X)*log(Y)*log(Z)" for op in ops}
     costs.update({"pointGet": "1", "sumAll": "1"})
     memory = {"layout": "none", "node": "sm[1*X*Y*Z]", "other": "vals[1*X*Y*Z]", "note": "the Fenwick tree is (X + 1) by (Y + 1) by (Z + 1), flat, 1-based"}
@@ -273,7 +275,14 @@ def bit_sum():
     py += indent(py_box_check("boxSum") + ["p = self._prefix", "x2 += 1", "y2 += 1", "z2 += 1",
                                            "return (p(x2, y2, z2) - p(x1, y2, z2) - p(x2, y1, z2) - p(x2, y2, z1)",
                                            "        + p(x1, y1, z2) + p(x1, y2, z1) + p(x2, y1, z1) - p(x1, y1, z1))"], 2)
-    py += ["", "    # O(1) -- sum of the whole grid", "    def sumAll(self):", "        return self.total"]
+    py += ["", "    # O(1) -- sum of the whole grid", "    def sumAll(self):", "        return self.total", ""]
+    py += indent(wrap_comment(f"{cost} -- sum of the cells with all three coordinates <= x, y, z (one prefix query); {POINT_RULE_PY}", "#"))
+    py.append("    def sumLteLteLte(self, x, y, z):")
+    py += indent(py_point_check("sumLteLteLte") + ["return self._prefix(x + 1, y + 1, z + 1)"], 2) + [""]
+    py += indent(wrap_comment(f"{cost} -- sum of the cells with all three coordinates >= x, y, z (a box query, eight prefix queries); "
+                              f"{POINT_RULE_PY}", "#"))
+    py.append("    def sumGteGteGte(self, x, y, z):")
+    py += indent(py_point_check("sumGteGteGte") + ["return self.boxSum(x, y, z, self.X - 1, self.Y - 1, self.Z - 1)"], 2)
 
     cpp = wrap_comment(doc, "//") + ["// T is any integer type (int, long long, ...); sums are kept in S (long long for a smaller T).", "template <typename T>", f"struct {cls} {{",
                                       "    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;", "    int X, Y, Z, SY, SZ;", "    vector<S> sm;", "    vector<T> vals;", "    S total = 0;", "",
@@ -302,7 +311,14 @@ def bit_sum():
     cpp.append("    S boxSum(int x1, int y1, int z1, int x2, int y2, int z2) const {")
     cpp += indent(cpp_box_check("boxSum") + ["x2++, y2++, z2++;", "return prefix(x2, y2, z2) - prefix(x1, y2, z2) - prefix(x2, y1, z2) - prefix(x2, y2, z1)",
                                              "     + prefix(x1, y1, z2) + prefix(x1, y2, z1) + prefix(x2, y1, z1) - prefix(x1, y1, z1);"], 2)
-    cpp += ["    }", "", "    // O(1) -- sum of the whole grid", "    S sumAll() const {", "        return total;", "    }", "};"]
+    cpp += ["    }", "", "    // O(1) -- sum of the whole grid", "    S sumAll() const {", "        return total;", "    }", ""]
+    cpp += indent(wrap_comment(f"{cost} -- sum of the cells with all three coordinates <= x, y, z (one prefix query); {POINT_RULE_CPP}", "//"))
+    cpp.append("    S sumLteLteLte(int x, int y, int z) const {")
+    cpp += indent(cpp_point_check("sumLteLteLte") + ["return prefix(x + 1, y + 1, z + 1);"], 2) + ["    }", ""]
+    cpp += indent(wrap_comment(f"{cost} -- sum of the cells with all three coordinates >= x, y, z (a box query, eight prefix queries); "
+                               f"{POINT_RULE_CPP}", "//"))
+    cpp.append("    S sumGteGteGte(int x, int y, int z) const {")
+    cpp += indent(cpp_point_check("sumGteGteGte") + ["return boxSum(x, y, z, X - 1, Y - 1, Z - 1);"], 2) + ["    }", "};"]
     emit("3d-bit-sum", ops, "BIT", costs, "X*Y*Z", memory, py, cpp)
 
 

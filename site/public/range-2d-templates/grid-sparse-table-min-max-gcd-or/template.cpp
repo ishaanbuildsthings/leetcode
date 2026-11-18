@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-sparse-table-min-max-gcd-or/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: gcdAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte minAll minGteGte minGteLte minLteGte minLteLte orAll pointGet rectGcd rectMax rectMin rectOr squareGcd squareMax squareMin squareOr
+// @operations: gcdAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte minAll minGteGte minGteLte minLteGte minLteLte orAll pointGet rectGcd rectMax rectMin rectOr
 // @data-structure-type: sparse-table
 // @input: grid
 // @complexities:
@@ -23,10 +23,6 @@ using namespace std;
 //   rectMax: 1
 //   rectMin: 1
 //   rectOr: 1
-//   squareGcd: log(U) ?
-//   squareMax: 1
-//   squareMin: 1
-//   squareOr: 1
 //   build: R*C*log(R)*log(C)*log(U) ?
 // @memory:
 //   layout: none
@@ -76,9 +72,8 @@ LEETCODE_NO_SANITIZE_INLINE A hotMax(A a, A b) { return a < b ? b : a; }
 // Static 2D sparse table (min, max, gcd, OR): any rectangle in O(1) (one gcd run, O(log U)). For every power-of-two
 // height and power-of-two width there is a table holding the aggregate of each window of that size; a rectangle is
 // covered by four such windows, one in each corner (they overlap, which is fine: each of these gives the same answer
-// when a cell is counted twice). Memory and build are R * C * log R * log C: when only squares are asked for, the
-// square sparse table needs a single log. No updates. Rows and columns are 0-based and rectangles are inclusive: rows
-// r1..r2, columns c1..c2.
+// when a cell is counted twice). Memory and build are R * C * log R * log C. No updates. Rows and columns are 0-based
+// and rectangles are inclusive: rows r1..r2, columns c1..c2.
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct SparseTable2D {
@@ -203,14 +198,6 @@ struct SparseTable2D {
         return minOf(r1, c1, r2, c2);
     }
 
-    // O(1) -- min of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square inside the grid, else throws out_of_range
-    LEETCODE_NO_SANITIZE T squareMin(int r, int c, int side) const {
-        if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
-            throw out_of_range("squareMin: needs side >= 1 and the square inside the grid");
-        return minOf(r, c, r + side - 1, c + side - 1);
-    }
-
     // O(1) -- min of the whole grid
     LEETCODE_NO_SANITIZE T minAll() const {
         return minOf(0, 0, R - 1, C - 1);
@@ -254,14 +241,6 @@ struct SparseTable2D {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectMax: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return maxOf(r1, c1, r2, c2);
-    }
-
-    // O(1) -- max of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square inside the grid, else throws out_of_range
-    LEETCODE_NO_SANITIZE T squareMax(int r, int c, int side) const {
-        if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
-            throw out_of_range("squareMax: needs side >= 1 and the square inside the grid");
-        return maxOf(r, c, r + side - 1, c + side - 1);
     }
 
     // O(1) -- max of the whole grid
@@ -309,14 +288,6 @@ struct SparseTable2D {
         return gcdOf(r1, c1, r2, c2);
     }
 
-    // O(log U) -- gcd of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square inside the grid, else throws out_of_range
-    LEETCODE_NO_SANITIZE T squareGcd(int r, int c, int side) const {
-        if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
-            throw out_of_range("squareGcd: needs side >= 1 and the square inside the grid");
-        return gcdOf(r, c, r + side - 1, c + side - 1);
-    }
-
     // O(log U) -- gcd of the whole grid
     LEETCODE_NO_SANITIZE T gcdAll() const {
         return gcdOf(0, 0, R - 1, C - 1);
@@ -336,14 +307,6 @@ struct SparseTable2D {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectOr: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return orOf(r1, c1, r2, c2);
-    }
-
-    // O(1) -- OR of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    // inside the grid, else throws out_of_range
-    LEETCODE_NO_SANITIZE T squareOr(int r, int c, int side) const {
-        if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
-            throw out_of_range("squareOr: needs side >= 1 and the square inside the grid");
-        return orOf(r, c, r + side - 1, c + side - 1);
     }
 
     // O(1) -- OR of the whole grid

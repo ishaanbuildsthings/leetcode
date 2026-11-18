@@ -5,7 +5,7 @@
 import type { PickerOpGroup } from "@/lib/template-picker";
 import { RANGE_2D_TYPE_LABELS, type Range2dTemplate } from "@/lib/range-2d-picker";
 
-const corner = (kind: "min" | "max", side: "Lte" | "Gte") => ({
+const corner = (kind: "sum" | "min" | "max", side: "Lte" | "Gte") => ({
   id: `${kind}${side}${side}${side}`,
   signature: `${kind}${side}${side}${side}(x, y, z)`,
   description: `${kind} over all three coordinates ${side === "Lte" ? "≤" : "≥"} x, y, z`,
@@ -50,8 +50,9 @@ export const RANGE_3D_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "corners",
     title: "3D corner queries",
-    note: "one bound per axis: when this is all you ask, a Fenwick tree is enough. For a corner sum use boxSum from the corner, e.g. boxSum(0, 0, 0, x, y, z)",
+    note: "one bound per axis: when this is all you ask, a Fenwick tree is enough",
     tiers: [
+      { kind: "topic", label: "sum", ops: [corner("sum", "Lte"), corner("sum", "Gte")] },
       { kind: "topic", label: "max", ops: [corner("max", "Lte"), corner("max", "Gte")] },
       { kind: "topic", label: "min", ops: [corner("min", "Lte"), corner("min", "Gte")] },
     ],

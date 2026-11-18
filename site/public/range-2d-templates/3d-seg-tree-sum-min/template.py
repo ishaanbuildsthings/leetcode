@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/3d-seg-tree-sum-min/template.py
-# @operations: boxMin boxSum minAll minGteGteGte minLteLteLte pointAdd pointAssign pointChmax pointChmin pointGet sumAll
+# @operations: boxMin boxSum minAll minGteGteGte minLteLteLte pointAdd pointAssign pointChmax pointChmin pointGet sumAll sumGteGteGte sumLteLteLte
 # @data-structure-type: seg-tree
 # @input: grid-3d
 # @empty-cells: yes
@@ -16,6 +16,8 @@
 #   pointChmin: log(X)*log(Y)*log(Z)
 #   pointGet: 1
 #   sumAll: 1
+#   sumGteGteGte: log(X)*log(Y)*log(Z)
+#   sumLteLteLte: log(X)*log(Y)*log(Z)
 #   build: X*Y*Z
 # @memory:
 #   layout: 2n-iterative
@@ -240,6 +242,24 @@ class SegTree3D:
     # O(1) -- sum of every set cell (0 if there are none)
     def sumAll(self):
         return self.sm[(self.SY + 1) * self.SZ + 1]
+
+    # O(log X * log Y * log Z) -- sum of the cells with all three coordinates <= x, y, z; needs 0 <= x < X, 0 <= y < Y
+    # and
+    # 0 <= z < Z, else IndexError
+    def sumLteLteLte(self, x, y, z):
+        if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
+            raise IndexError(f"sumLteLteLte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "
+                             f"z = {z}, X = {self.X}, Y = {self.Y}, Z = {self.Z}")
+        return self._sumOf(0, 0, 0, x, y, z)
+
+    # O(log X * log Y * log Z) -- sum of the cells with all three coordinates >= x, y, z; needs 0 <= x < X, 0 <= y < Y
+    # and
+    # 0 <= z < Z, else IndexError
+    def sumGteGteGte(self, x, y, z):
+        if not (0 <= x < self.X and 0 <= y < self.Y and 0 <= z < self.Z):
+            raise IndexError(f"sumGteGteGte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z, got x = {x}, y = {y}, "
+                             f"z = {z}, X = {self.X}, Y = {self.Y}, Z = {self.Z}")
+        return self._sumOf(x, y, z, self.X - 1, self.Y - 1, self.Z - 1)
 
     def _minOf(self, x1, y1, z1, x2, y2, z2):
         X, Y, Z, SY, SZ = self.X, self.Y, self.Z, self.SY, self.SZ

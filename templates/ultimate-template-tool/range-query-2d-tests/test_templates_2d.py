@@ -68,6 +68,8 @@ for _k in ("min", "max"):
         for _b in CMP:
             OPS[f"{_k}{_a}{_b}"] = ("corner", "val")
         OPS[f"{_k}{_a}{_a}{_a}"] = ("corner", "val")
+for _a in CMP:  # (3D only: a sum from one corner)
+    OPS[f"sum{_a}{_a}{_a}"] = ("corner", "val")
 OPS["rectHash"] = ("rectpair", "bool")  # tested as: do two rectangles hash equal exactly when their cells are equal
 OPS["rectsEqual"] = ("rectpair", "bool")
 OPS["hashAll"] = ("", "bool")  # tested as: hashAll() == rectHash(the whole grid)

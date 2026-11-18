@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-sparse-table-max-and-or/template.py
-# @operations: andAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointGet rectAnd rectMax rectOr squareAnd squareMax squareOr
+# @operations: andAll maxAll maxGteGte maxGteLte maxLteGte maxLteLte orAll pointGet rectAnd rectMax rectOr
 # @data-structure-type: sparse-table
 # @input: grid
 # @complexities:
@@ -15,9 +15,6 @@
 #   rectAnd: 1
 #   rectMax: 1
 #   rectOr: 1
-#   squareAnd: 1
-#   squareMax: 1
-#   squareOr: 1
 #   build: R*C*log(R)*log(C)
 # @memory:
 #   layout: none
@@ -31,8 +28,8 @@
 # Static 2D sparse table (max, AND, OR): any rectangle in O(1). For every power-of-two height and power-of-two width
 # there is a table holding the aggregate of each window of that size; a rectangle is covered by four such windows, one
 # in each corner (they overlap, which is fine: each of these gives the same answer when a cell is counted twice).
-# Memory and build are R * C * log R * log C: when only squares are asked for, the square sparse table needs a single
-# log. No updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.
+# Memory and build are R * C * log R * log C. No updates. Rows and columns are 0-based and rectangles are inclusive:
+# rows r1..r2, columns c1..c2.
 class SparseTable2D:
     __slots__ = ("R", "C", "mx", "an", "orr")
 
@@ -114,14 +111,6 @@ class SparseTable2D:
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         return self._maxOf(r1, c1, r2, c2)
 
-    # O(1) -- max of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    # inside the grid, else IndexError
-    def squareMax(self, r, c, side):
-        if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):
-            raise IndexError(f"squareMax: needs side >= 1 and the square inside the grid, got r = {r}, c = {c}, "
-                             f"side = {side}, R = {self.R}, C = {self.C}")
-        return self._maxOf(r, c, r + side - 1, c + side - 1)
-
     # O(1) -- max of the whole grid
     def maxAll(self):
         return self._maxOf(0, 0, self.R - 1, self.C - 1)
@@ -171,14 +160,6 @@ class SparseTable2D:
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         return self._andOf(r1, c1, r2, c2)
 
-    # O(1) -- AND of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    # inside the grid, else IndexError
-    def squareAnd(self, r, c, side):
-        if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):
-            raise IndexError(f"squareAnd: needs side >= 1 and the square inside the grid, got r = {r}, c = {c}, "
-                             f"side = {side}, R = {self.R}, C = {self.C}")
-        return self._andOf(r, c, r + side - 1, c + side - 1)
-
     # O(1) -- AND of the whole grid
     def andAll(self):
         return self._andOf(0, 0, self.R - 1, self.C - 1)
@@ -199,14 +180,6 @@ class SparseTable2D:
             raise IndexError(f"rectOr: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         return self._orOf(r1, c1, r2, c2)
-
-    # O(1) -- OR of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    # inside the grid, else IndexError
-    def squareOr(self, r, c, side):
-        if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):
-            raise IndexError(f"squareOr: needs side >= 1 and the square inside the grid, got r = {r}, c = {c}, "
-                             f"side = {side}, R = {self.R}, C = {self.C}")
-        return self._orOf(r, c, r + side - 1, c + side - 1)
 
     # O(1) -- OR of the whole grid
     def orAll(self):

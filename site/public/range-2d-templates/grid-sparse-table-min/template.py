@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-sparse-table-min/template.py
-# @operations: minAll minGteGte minGteLte minLteGte minLteLte pointGet rectMin squareMin
+# @operations: minAll minGteGte minGteLte minLteGte minLteLte pointGet rectMin
 # @data-structure-type: sparse-table
 # @input: grid
 # @complexities:
@@ -11,7 +11,6 @@
 #   minLteLte: 1
 #   pointGet: 1
 #   rectMin: 1
-#   squareMin: 1
 #   build: R*C*log(R)*log(C)
 # @memory:
 #   layout: none
@@ -25,8 +24,8 @@
 # Static 2D sparse table (min): any rectangle in O(1). For every power-of-two height and power-of-two width there is a
 # table holding the aggregate of each window of that size; a rectangle is covered by four such windows, one in each
 # corner (they overlap, which is fine: each of these gives the same answer when a cell is counted twice). Memory and
-# build are R * C * log R * log C: when only squares are asked for, the square sparse table needs a single log. No
-# updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2, columns c1..c2.
+# build are R * C * log R * log C. No updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2,
+# columns c1..c2.
 class SparseTable2D:
     __slots__ = ("R", "C", "mn")
 
@@ -73,14 +72,6 @@ class SparseTable2D:
             raise IndexError(f"rectMin: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C, got r1 = {r1}, c1 = {c1}, "
                              f"r2 = {r2}, c2 = {c2}, R = {self.R}, C = {self.C}")
         return self._minOf(r1, c1, r2, c2)
-
-    # O(1) -- min of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the square
-    # inside the grid, else IndexError
-    def squareMin(self, r, c, side):
-        if not (side >= 1 and 0 <= r and r + side <= self.R and 0 <= c and c + side <= self.C):
-            raise IndexError(f"squareMin: needs side >= 1 and the square inside the grid, got r = {r}, c = {c}, "
-                             f"side = {side}, R = {self.R}, C = {self.C}")
-        return self._minOf(r, c, r + side - 1, c + side - 1)
 
     # O(1) -- min of the whole grid
     def minAll(self):

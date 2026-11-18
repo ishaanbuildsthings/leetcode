@@ -2,14 +2,13 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/grid-sparse-table-gcd/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: gcdAll pointGet rectGcd squareGcd
+// @operations: gcdAll pointGet rectGcd
 // @data-structure-type: sparse-table
 // @input: grid
 // @complexities:
 //   gcdAll: log(U) ?
 //   pointGet: 1
 //   rectGcd: log(U) ?
-//   squareGcd: log(U) ?
 //   build: R*C*log(R)*log(C)*log(U) ?
 // @memory:
 //   layout: none
@@ -53,9 +52,8 @@ struct HotVector : vector<U> {
 // Static 2D sparse table (gcd): any rectangle in O(1) (one gcd run, O(log U)). For every power-of-two height and
 // power-of-two width there is a table holding the aggregate of each window of that size; a rectangle is covered by
 // four such windows, one in each corner (they overlap, which is fine: each of these gives the same answer when a cell
-// is counted twice). Memory and build are R * C * log R * log C: when only squares are asked for, the square sparse
-// table needs a single log. No updates. Rows and columns are 0-based and rectangles are inclusive: rows r1..r2,
-// columns c1..c2.
+// is counted twice). Memory and build are R * C * log R * log C. No updates. Rows and columns are 0-based and
+// rectangles are inclusive: rows r1..r2, columns c1..c2.
 // T is any integer type (int, long long, ...).
 template <typename T>
 struct SparseTable2D {
@@ -115,14 +113,6 @@ struct SparseTable2D {
         if (r1 < 0 || r1 > r2 || r2 >= R || c1 < 0 || c1 > c2 || c2 >= C)
             throw out_of_range("rectGcd: needs 0 <= r1 <= r2 < R and 0 <= c1 <= c2 < C");
         return gcdOf(r1, c1, r2, c2);
-    }
-
-    // O(log U) -- gcd of the square with top-left cell (r, c) and that many rows and columns; needs side >= 1 and the
-    // square inside the grid, else throws out_of_range
-    LEETCODE_NO_SANITIZE T squareGcd(int r, int c, int side) const {
-        if (side < 1 || r < 0 || r + side > R || c < 0 || c + side > C)
-            throw out_of_range("squareGcd: needs side >= 1 and the square inside the grid");
-        return gcdOf(r, c, r + side - 1, c + side - 1);
     }
 
     // O(log U) -- gcd of the whole grid

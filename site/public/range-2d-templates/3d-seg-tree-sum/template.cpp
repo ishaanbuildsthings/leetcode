@@ -2,7 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries-2d/3d-seg-tree-sum/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// @operations: boxSum pointAdd pointAssign pointChmax pointChmin pointGet sumAll
+// @operations: boxSum pointAdd pointAssign pointChmax pointChmin pointGet sumAll sumGteGteGte sumLteLteLte
 // @data-structure-type: seg-tree
 // @input: grid-3d
 // @complexities:
@@ -13,6 +13,8 @@ using namespace std;
 //   pointChmin: log(X)*log(Y)*log(Z)
 //   pointGet: 1
 //   sumAll: 1
+//   sumGteGteGte: log(X)*log(Y)*log(Z)
+//   sumLteLteLte: log(X)*log(Y)*log(Z)
 //   build: X*Y*Z
 // @memory:
 //   layout: 2n-iterative
@@ -168,5 +170,21 @@ struct SegTree3D {
     // O(1) -- sum of the whole grid
     LEETCODE_NO_SANITIZE S sumAll() const {
         return sm[at(1, 1, 1)];
+    }
+
+    // O(log X * log Y * log Z) -- sum of the cells with all three coordinates <= x, y, z; needs 0 <= x < X, 0 <= y < Y
+    // and 0 <= z < Z, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumLteLteLte(int x, int y, int z) const {
+        if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
+            throw out_of_range("sumLteLteLte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
+        return sumOf(0, 0, 0, x, y, z);
+    }
+
+    // O(log X * log Y * log Z) -- sum of the cells with all three coordinates >= x, y, z; needs 0 <= x < X, 0 <= y < Y
+    // and 0 <= z < Z, else throws out_of_range
+    LEETCODE_NO_SANITIZE S sumGteGteGte(int x, int y, int z) const {
+        if (x < 0 || x >= X || y < 0 || y >= Y || z < 0 || z >= Z)
+            throw out_of_range("sumGteGteGte: needs 0 <= x < X, 0 <= y < Y and 0 <= z < Z");
+        return sumOf(x, y, z, X - 1, Y - 1, Z - 1);
     }
 };

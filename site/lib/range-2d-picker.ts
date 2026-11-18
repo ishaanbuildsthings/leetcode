@@ -9,10 +9,8 @@ export const RANGE_2D_TYPES = [
   "prefix-sum",
   "difference-array",
   "corner-table",
-  "sliding-window",
   "hash",
   "bit-counts",
-  "square-sparse-table",
   "sparse-table",
   "BIT",
   "seg-tree",
@@ -27,10 +25,8 @@ export const RANGE_2D_TYPE_LABELS: Record<Range2dType, string> = {
   "prefix-sum": "Prefix sums",
   "difference-array": "Difference array",
   "corner-table": "Corner max / min table",
-  "sliding-window": "Fixed window size (monotonic queues)",
   hash: "2D hashing",
   "bit-counts": "Prefix counts per bit",
-  "square-sparse-table": "Square sparse table",
   "sparse-table": "Sparse table (any rectangle)",
   BIT: "Fenwick tree",
   "seg-tree": "Seg tree",
@@ -55,9 +51,9 @@ export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: 
   },
   {
     mode: "points",
-    label: "Points known up front",
+    label: "Updated points known up front",
     title:
-      "Coordinates can be huge or negative, but you can list every (x, y) that will ever be updated before the first call. Then you call it live. N log N memory, log² N per op",
+      "Coordinates can be huge or negative. Before the first call you list every (x, y) a point update will ever touch (not the query rectangles: those can be anything); the template compresses them. Then you call it live. N log N memory, log² N per op",
   },
   {
     mode: "online",
@@ -66,9 +62,9 @@ export const RANGE_2D_INPUT_OPTIONS: { mode: Range2dMode; label: string; title: 
   },
   {
     mode: "batch",
-    label: "Whole input known (batch)",
+    label: "Answer at the end (offline)",
     title:
-      "Every update and query is known before anything is answered, and no call depends on an earlier answer: you record them all, then get all the answers. Linear memory",
+      "Nothing to list up front: you make every call in order, each one is only recorded (a query returns its number), then solve() returns all the answers at once. Works only when no call depends on an earlier answer. Linear memory",
   },
 ];
 
@@ -130,7 +126,6 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "point",
     title: "Point operations",
-    note: "(r, c) is (x, y) for points",
     tiers: [
       {
         kind: "common",
@@ -179,7 +174,6 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "corners",
     title: "Corner queries",
-    note: "one bound per axis: when this is all you ask, Fenwick trees and plain tables compete. For a corner sum use rectSum from the corner",
     tiers: [
       {
         kind: "topic",
@@ -204,32 +198,6 @@ export const RANGE_2D_OP_GROUPS: PickerOpGroup[] = [
           { id: "rectAssign", signature: "rectAssign(r1, c1, r2, c2, v)", description: "Every cell of the rectangle = v" },
           { id: "rectChmax", signature: "rectChmax(r1, c1, r2, c2, v)", description: "Every cell = max(cell, v)" },
           { id: "rectChmin", signature: "rectChmin(r1, c1, r2, c2, v)", description: "Every cell = min(cell, v)" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "squares",
-    title: "Squares and fixed windows",
-    note: "no updates: asking less than any rectangle costs less to build",
-    tiers: [
-      {
-        kind: "topic",
-        label: "square: top-left (r, c) and a side",
-        ops: [
-          { id: "squareMin", signature: "squareMin(r, c, side)", description: "Min of the side × side square" },
-          { id: "squareMax", signature: "squareMax(r, c, side)", description: "Max of the square" },
-          { id: "squareGcd", signature: "squareGcd(r, c, side)", description: "Gcd of the square" },
-          { id: "squareAnd", signature: "squareAnd(r, c, side)", description: "AND of the square" },
-          { id: "squareOr", signature: "squareOr(r, c, side)", description: "OR of the square" },
-        ],
-      },
-      {
-        kind: "topic",
-        label: "one window size h × w, fixed at the build",
-        ops: [
-          { id: "windowMin", signature: "windowMin(r, c)", description: "Min of the h × w window with top-left (r, c)" },
-          { id: "windowMax", signature: "windowMax(r, c)", description: "Max of that window" },
         ],
       },
     ],
@@ -282,6 +250,15 @@ export const RANGE_2D_PLANNED = [
   "sparse table on rows × seg tree on columns",
   "2D hashing with point updates",
   "nothing known: Fenwick tree of hash maps (sum, corner max)",
-  "whole input known: corner max, point assign",
+  "answer at the end (offline): corner max, point assign",
   "points known: starting values in the constructor",
 ];
+
+// The "(x, y) coordinates" checkbox: the op grid and usage lines say x and y instead of r and c (the same arguments)
+export function toXY(text: string): string {
+  return text
+    .replace(/\brows r1\.\.r2, columns c1\.\.c2\b/g, "x1..x2, y1..y2")
+    .replace(/\brow ([≤≥]) r and column ([≤≥]) c\b/g, "x $1 the given x and y $2 the given y")
+    .replace(/\br(\d?)\b/g, "x$1")
+    .replace(/\bc(\d?)\b/g, "y$1");
+}
