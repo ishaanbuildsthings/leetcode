@@ -209,6 +209,9 @@ for (const name of ["polygonArea.py", "polygonArea.cpp"]) fs.copyFileSync(path.j
 const chessDir = path.resolve(siteDir, "../templates/ultimate-template-tool/chess");
 fs.mkdirSync(path.join(publicDir, "_chess"));
 for (const name of ["KnightDistance.py", "KnightDistance.cpp"]) fs.copyFileSync(path.join(chessDir, name), path.join(publicDir, "_chess", name));
+const bisectsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bisects");
+fs.mkdirSync(path.join(publicDir, "_bisects"));
+for (const name of ["bisects.py", "bisects.cpp"]) fs.copyFileSync(path.join(bisectsDir, name), path.join(publicDir, "_bisects", name));
 
 // the combinatorics templates (the Combinatorics tab)
 const combinatoricsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/combinatorics");

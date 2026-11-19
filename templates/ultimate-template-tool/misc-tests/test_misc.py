@@ -1,4 +1,4 @@
-"""Tests the small hand-written folders (combinatorics, next-permutation, trees, reroot, bitset, chess) against brute force.
+"""Tests the small hand-written folders (combinatorics, next-permutation, trees, reroot, bitset, chess, bisects) against brute force.
 
     python3 test_misc.py          # Python and C++
     python3 test_misc.py --py     # Python only
@@ -470,8 +470,56 @@ def test_chess():
     run_cpp("chess/KnightDistance", "chess/KnightDistance.cpp", body, "\n".join(asks) + "\n", want)
 
 
+# ---- bisects ----
+
+BISECT_CMP = {"LT": lambda a, b: a < b, "LTE": lambda a, b: a <= b, "GT": lambda a, b: a > b, "GTE": lambda a, b: a >= b}
+
+
+def bisect_names():
+    return [f"{side}Index{cmp}{dec}" for dec in ("", "Decreasing") for cmp in ("LT", "LTE", "GT", "GTE") for side in ("first", "last")]
+
+
+def bisect_brute(name, arr, threshold):
+    cmp = BISECT_CMP[name.replace("Decreasing", "").split("Index")[1]]
+    hits = [i for i, x in enumerate(arr) if cmp(x, threshold)]
+    if name.startswith("first"):
+        return hits[0] if hits else len(arr)
+    return hits[-1] if hits else -1
+
+
+def test_bisects():
+    mod = load("bisects/bisects.py")
+    rng = random.Random(11)
+    cases = []
+    for _ in range(3000):
+        floats = rng.random() < 0.3
+        arr = sorted(rng.choice([rng.randrange(-5, 6), rng.randrange(-5, 6) + 0.5]) if floats else rng.randrange(-5, 6)
+                     for _ in range(rng.randrange(0, 9)))
+        dec = rng.random() < 0.5
+        if dec:
+            arr.reverse()
+        threshold = rng.choice([rng.randrange(-7, 8), rng.randrange(-7, 8) + 0.5]) if floats else rng.randrange(-7, 8)
+        for name in bisect_names():
+            if name.endswith("Decreasing") != dec:
+                continue
+            want = bisect_brute(name, arr, threshold)
+            same(f"bisects/bisects.py {name}({arr}, {threshold})", getattr(mod, name)(arr, threshold), want)
+            cases.append((name, floats, arr, threshold, want))
+    names = bisect_names()
+    lines = [f"{names.index(n)} {int(f)} {len(a)} " + " ".join(map(str, a)) + f" {th}" for n, f, a, th, _ in cases]
+    body = "    int k, fl, n;\n    while (cin >> k >> fl >> n) {\n"
+    body += "        vector<double> ad(n); for (auto& x : ad) cin >> x; double th; cin >> th;\n"
+    body += "        vector<long long> ai(ad.begin(), ad.end()); long long ti = (long long)th;\n"
+    body += "        int r = -2;\n        switch (k) {\n"
+    for i, name in enumerate(names):
+        body += f"            case {i}: r = fl ? {name}(ad, th) : {name}(ai, ti); break;\n"
+    body += "        }\n        cout << r << '\\n';\n    }"
+    run_cpp("bisects/bisects", "bisects/bisects.cpp", body, "\n".join(lines) + "\n", [str(w) for *_, w in cases])
+
+
 if __name__ == "__main__":
-    for test in (test_modcalc, test_fibonacci, test_next_permutation, test_trees_and_reroot, test_bitset, test_chess):
+    for test in (test_modcalc, test_fibonacci, test_next_permutation, test_trees_and_reroot, test_bitset, test_chess,
+                 test_bisects):
         before = len(failures)
         test()
         print(f"{'FAIL' if len(failures) > before else 'PASS'}  {test.__name__}", flush=True)
