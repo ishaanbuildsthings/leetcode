@@ -961,7 +961,7 @@ export function FillInDrawer({
                   // an entry with no cost is a section heading over the ops after it
                   <span
                     key={op}
-                    className={`col-span-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${i > 0 ? "mt-3" : ""}`}
+                    className={`col-span-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${i > 0 ? "mt-2 border-t border-border pt-2" : ""}`}
                   >
                     {op}
                   </span>
