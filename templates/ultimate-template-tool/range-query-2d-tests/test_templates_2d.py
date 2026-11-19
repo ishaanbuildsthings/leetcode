@@ -127,8 +127,6 @@ class Brute:
                 self.cells.setdefault(p, 0)
 
     def point_ok(self, p):
-        if self.kind == "compressed":  # (only the listed coordinates exist)
-            return all(x in axis for x, axis in zip(p, self.axes))
         if self.kind == "batch":
             return True  # (any coordinates)
         if self.kind == "points":
@@ -138,7 +136,7 @@ class Brute:
     def rect_ok(self, lo, hi):
         if any(a > b for a, b in zip(lo, hi)):
             return False
-        if self.kind in ("points", "batch", "compressed"):  # (compressed: any integers)
+        if self.kind in ("points", "batch"):
             return True
         return all(blo <= a and b <= bhi for a, b, (blo, bhi) in zip(lo, hi, self.bounds))
 
@@ -216,8 +214,6 @@ class Brute:
                 elif op == "rectChmin":
                     cells[p] = min(cells.get(p, v), v)
             return "-"
-        if op == "getAll" and self.kind == "compressed":
-            return [[cells.get((x, y), self.empty_read) for y in self.axes[1]] for x in self.axes[0]]
         if op == "getAll":
             (r0, r1), (c0, c1) = self.bounds
             return [[cells.get((r, c), self.empty_read) for c in range(c0, c1 + 1)] for r in range(r0, r1 + 1)]
@@ -241,9 +237,6 @@ class Brute:
             if not self.rect_ok(lo, hi):
                 return "E"
             vals = self.inside(lo, hi)
-            if self.kind == "compressed" and k in ("min", "max", "and") and self.empty_read == 0 \
-                    and not self.targets(lo, hi):
-                return "E"  # (no cell inside, and cells can't be empty: refused)
             vals += self.kept_overlapping(lo, hi)
             return AGG_FN[k](vals)
         if fam == "square":
@@ -256,7 +249,7 @@ class Brute:
             return AGG_FN[k](self.inside(lo, hi)) if self.rect_ok(lo, hi) else "E"
         if fam == "corner":
             p = tuple(args)
-            if self.kind not in ("points", "compressed") and not self.point_ok(p):
+            if self.kind != "points" and not self.point_ok(p):
                 return "E"
             sides = [CMP[op[len(k) + 3 * i:len(k) + 3 * i + 3]] for i in range(d)]
             vals = [v for q, v in cells.items() if all(f(x, y) for f, x, y in zip(sides, q, p))]
@@ -264,9 +257,6 @@ class Brute:
                 clo = [b[0] if s is CMP["Lte"] else x for s, x, b in zip(sides, p, self.bounds)]
                 chi = [x if s is CMP["Lte"] else b[1] for s, x, b in zip(sides, p, self.bounds)]
                 vals += self.kept_overlapping(clo, chi)
-            if self.kind == "compressed" and k in ("min", "max", "and") and self.empty_read == 0 and not any(
-                    all(f(x, y) for f, x, y in zip(sides, q, p)) for q in self.universe):
-                return "E"  # (no cell there, and cells can't be empty: refused)
             return AGG_FN[k](vals)
         raise AssertionError(f"the brute force doesn't know {op}")
 
@@ -406,24 +396,6 @@ def make_trial(rng, tags):
         rng.shuffle(pts)
         trial.update(points=pts, span=span)
         brute = Brute(kind, ops, [(-span, span)] * 2, set(pts), {}, None, empties)
-    elif kind == "compressed":
-        axes, args = [], []
-        for _ in range(2):
-            if rng.random() < 0.25:  # an axis left as 0..n-1
-                n = rng.randrange(1, 7)
-                axes.append(list(range(n)))
-                args.append(n)
-            else:
-                span = rng.choice([5, 10**9, 10**18])
-                vals = sorted({rng.randrange(-span, span + 1) for _ in range(rng.randrange(1, 8))})
-                listed = vals + [rng.choice(vals) for _ in range(rng.randrange(0, 3))]  # (repeats are allowed)
-                rng.shuffle(listed)
-                axes.append(vals)
-                args.append(listed)
-        trial.update(axes=axes, axis_args=args)
-        every = [(x, y) for x in axes[0] for y in axes[1]]
-        brute = Brute(kind, ops, [(axes[0][0], axes[0][-1]), (axes[1][0], axes[1][-1])], every, {}, None, empties)
-        brute.axes = axes
     elif kind in ("online", "batch"):
         span = rng.choice([4, 8, 10**5] if tags.get("model") == "area" else [4, 8, 10**9, 10**18])
         lo = [rng.choice([-span, 0]) for _ in range(2)]
@@ -441,11 +413,6 @@ def make_trial(rng, tags):
 
     def coord(axis):
         blo, bhi = brute.bounds[axis]
-        if kind == "compressed":  # (a rectangle corner or a corner query: any integer, often a listed one)
-            axis_vals = trial["axes"][axis]
-            if rng.random() < 0.6:
-                return rng.choice(axis_vals) + rng.choice([0, 0, 0, -1, 1])
-            return rng.randrange(axis_vals[0] - 3, axis_vals[-1] + 4)
         if kind == "points":
             if rng.random() < 0.6:
                 return rng.choice(trial["points"])[axis] + rng.choice([0, 0, 0, -1, 1])
@@ -457,8 +424,6 @@ def make_trial(rng, tags):
         return rng.randrange(blo, bhi + 1)
 
     def point():
-        if kind == "compressed":
-            return [rng.choice(trial["axes"][a]) for a in range(d)]
         if kind == "points":
             return list(rng.choice(trial["points"]))
         if kind in ("online", "batch") and rng.random() < 0.8:
@@ -472,8 +437,6 @@ def make_trial(rng, tags):
         blo, bhi = brute.bounds[axis]
         if shape in ("rect", "rectv") and rng.random() < 0.5:
             args[axis], args[axis + d] = max(args[axis], args[axis + d]) + 1, min(args[axis], args[axis + d])
-        elif kind == "compressed":
-            args[axis] = brute.bounds[axis][1] + 1  # (not a listed coordinate)
         elif kind == "points":
             if shape == "corner":
                 return args  # (any corner is fine)
@@ -553,8 +516,6 @@ def py_construct(cls, trial):
         return cls(list(trial["rects"]))
     if kind == "points":
         return cls(list(trial["points"]))
-    if kind == "compressed":
-        return cls(*trial["axis_args"])
     if kind == "online":
         return cls(trial["lo"][0], trial["hi"][0], trial["lo"][1], trial["hi"][1])
     if kind == "batch":
@@ -640,10 +601,6 @@ def cpp_driver(folder, tags, struct):
               "        for (auto& p : pts) scanf(\"%lld %lld\", &p.first, &p.second);", "        ds.reset(new DS(pts));"]
     elif kind == "online":
         L += ["        ll a, b, c, e; scanf(\"%lld %lld %lld %lld\", &a, &b, &c, &e);", "        ds.reset(new DS(a, b, c, e));"]
-    elif kind == "compressed":  # (an axis given as n < 0: upTo(-n))
-        L += ["        vector<ll> axes[2];", "        for (auto& v : axes) {", "            int n; scanf(\"%d\", &n);",
-              "            if (n < 0) v = DS::upTo(-n);", "            else { v.resize(n); for (auto& x : v) scanf(\"%lld\", &x); }", "        }",
-              "        ds.reset(new DS(axes[0], axes[1]));"]
     batch = kind == "batch"
     if batch:
         L += ["        ds.reset(new DS());", "        vector<string> lines;", "        vector<pair<int, int>> asked;  // (line, query number)"]
@@ -706,9 +663,6 @@ def cpp_input(trials):
             out.append(str(len(t["points"])) + " " + " ".join(f"{x} {y}" for x, y in t["points"]))
         elif kind == "online":
             out.append(f"{t['lo'][0]} {t['hi'][0]} {t['lo'][1]} {t['hi'][1]}")
-        elif kind == "compressed":
-            for a in t["axis_args"]:
-                out.append(f"{-a}" if isinstance(a, int) else f"{len(a)} " + " ".join(map(str, a)))
         out.append(str(len(t["ops"])))
         out += [op + "".join(f" {a}" for a in args) for op, args in t["ops"]]
     return "\n".join(out) + "\n"

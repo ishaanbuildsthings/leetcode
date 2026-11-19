@@ -4,7 +4,7 @@
     python3 bench_2d.py --checked            # the same files with the skip switched off: what they cost fully sanitized
     python3 bench_2d.py --cxx clang++        # another compiler (default: ../find_compiler.py's)
     python3 bench_2d.py --plain              # no sanitizers at all (Codeforces-style): the skip changes nothing there
-    python3 bench_2d.py seg kd               # only the cases whose folder contains one of these
+    python3 bench_2d.py seg bit              # only the cases whose folder contains one of these
 
 Each case prints build / updates / queries in milliseconds and a checksum (the same in every mode, or something broke).
 """

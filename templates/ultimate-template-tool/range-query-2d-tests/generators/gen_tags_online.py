@@ -4,8 +4,8 @@
 
 A rectangle chmax is stored at the O(log^2) nodes that make up the rectangle and never pushed down (a tree of trees
 can't push down its outer tree, and chmax doesn't need it); a point read collects the tags on its O(log^2) nodes. This
-covers rectChmax + pointGet. Rectangle chmax together with rectangle max over sparse points is the k-d tree's (no
-log^2 structure: the tags of an outer node would have to be checked against the points of each x-range below it).
+covers rectChmax + pointGet. Rectangle chmax together with rectangle max is online-kept-tags-rect-* (gen_online_tags.py),
+which keeps a second set of tags per node.
 """
 from lib2d import header, write
 
