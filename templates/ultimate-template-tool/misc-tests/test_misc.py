@@ -1,4 +1,5 @@
-"""Tests the small hand-written folders (combinatorics, next-permutation, trees, reroot, bitset, chess, bisects) against brute force.
+"""Tests the small hand-written folders (combinatorics, next-permutation, trees, reroot, bitset, chess, bisects)
+against brute force.
 
     python3 test_misc.py          # Python and C++
     python3 test_misc.py --py     # Python only
@@ -492,8 +493,8 @@ def test_bisects():
     rng = random.Random(11)
     cases = []
     for _ in range(3000):
-        floats = rng.random() < 0.3
-        arr = sorted(rng.choice([rng.randrange(-5, 6), rng.randrange(-5, 6) + 0.5]) if floats else rng.randrange(-5, 6)
+        floats = rng.choice([0, 0, 1, 2])  # 0: ints, 1: floats, 2: an int array with a float threshold
+        arr = sorted(rng.choice([rng.randrange(-5, 6), rng.randrange(-5, 6) + 0.5]) if floats == 1 else rng.randrange(-5, 6)
                      for _ in range(rng.randrange(0, 9)))
         dec = rng.random() < 0.5
         if dec:
@@ -509,10 +510,10 @@ def test_bisects():
     lines = [f"{names.index(n)} {int(f)} {len(a)} " + " ".join(map(str, a)) + f" {th}" for n, f, a, th, _ in cases]
     body = "    int k, fl, n;\n    while (cin >> k >> fl >> n) {\n"
     body += "        vector<double> ad(n); for (auto& x : ad) cin >> x; double th; cin >> th;\n"
-    body += "        vector<long long> ai(ad.begin(), ad.end()); long long ti = (long long)th;\n"
+    body += "        vector<int> ai(ad.begin(), ad.end()); long long ti = (long long)th;\n"
     body += "        int r = -2;\n        switch (k) {\n"
     for i, name in enumerate(names):
-        body += f"            case {i}: r = fl ? {name}(ad, th) : {name}(ai, ti); break;\n"
+        body += f"            case {i}: r = fl == 1 ? {name}(ad, th) : fl == 2 ? {name}(ai, th) : {name}(ai, ti); break;\n"
     body += "        }\n        cout << r << '\\n';\n    }"
     run_cpp("bisects/bisects", "bisects/bisects.cpp", body, "\n".join(lines) + "\n", [str(w) for *_, w in cases])
 
