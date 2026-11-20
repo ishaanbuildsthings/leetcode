@@ -1,3 +1,29 @@
+# nov 19 2026, I am strong now
+class Solution:
+    def fullBloomFlowers(self, flowers, people):
+        FLOWER_GAIN = 1
+        FLOWER_LOSS = 2
+        WATCH = 3
+        events = []
+        for l, r in flowers:
+            events.append((l, FLOWER_GAIN, 0))
+            events.append((r + 1, FLOWER_LOSS, 0))
+        for i, peopleTime in enumerate(people):
+            events.append((peopleTime, WATCH, i))
+        events.sort()
+        active = 0
+        res = [0] * len(people)
+        for i, etype, extraPayload in events:
+            if etype == FLOWER_GAIN:
+                active += 1
+            elif etype == FLOWER_LOSS:
+                active -= 1
+            else:
+                res[extraPayload] = active
+        return res
+
+
+
 # https://leetcode.com/problems/number-of-flowers-in-full-bloom/description/?envType=daily-question&envId=2023-10-11
 # difficulty: hard
 # tags: sweep line, coordinate compression, segment tree, lazy propagation
