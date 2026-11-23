@@ -34,5 +34,3 @@ class Solution:
             if not num in seen:
                 res = max(res, dfs(i))
         return res + 1 # size of set not length of chain
-
-

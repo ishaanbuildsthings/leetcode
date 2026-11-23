@@ -182,7 +182,6 @@ learn reservoir smapling
 1425: https://leetcode.com/problems/constrained-subsequence-sum/description/
 779: https://leetcode.com/problems/k-th-symbol-in-grammar/description/
 823: https://leetcode.com/problems/binary-trees-with-factors/description/
-1660: https://leetcode.com/problems/correct-a-binary-tree/description/
 458: https://leetcode.com/problems/poor-pigs/description/
 2642: https://leetcode.com/problems/design-graph-with-shortest-path-calculator/description/
 1611: https://leetcode.com/problems/minimum-one-bit-operations-to-make-integers-zero/description/
