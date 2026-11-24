@@ -1,14 +1,11 @@
 """Union find templates for the site's Union find tab: one find mode plus any set of extras, in Python and C++.
 
     find modes   compress     path compression: fastest, but parents get rewritten
-                 nocompress   parents never change, so the forest is a record of every merge (uniteAUnderB too)
-                 rollback     no compression plus an undo stack: rollbackLastUnion(), checkpoint(), rollbackTo(k)
+                 nocompress   parents never change, so the forest is a record of every merge (parent(i) walks it)
+                 rollback     no compression plus an undo stack: rollbackLastUnion()
     extras       values       componentSum / componentMin / componentMax of the elements' values
                  merge        your own Node per component: baseFn(v, i) and combine(big, small), like the generic seg tree
                  members      each component's members linked in a circle: elementsInGroup in O(size of the group)
-                 edges        edgeCount(i) / isTree(i): every unite counts as an edge, merging or not
-                 potential    uniteWeighted(i, j, w) means value[j] - value[i] = w, and diff(i, j) reads it back
-                 time         firstConnectedTime(i, j) / connectedAt(i, j, t) (nocompress only)
                  grow         add(val): a new element in its own component
 
 Writes templates/ultimate-template-tool/union-find/<mode>[-extra...]/template.py and template.cpp (folder name: the
@@ -28,12 +25,8 @@ HDLT = os.path.join(REPO, "templates", "union-find")  # (the hand-written fully 
 URL = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find"
 
 MODES = ["compress", "nocompress", "rollback"]
-FEATS = ["values", "merge", "members", "edges", "potential", "time", "grow"]
+FEATS = ["values", "merge", "members", "grow"]
 CLASS = {"compress": "DSU", "nocompress": "DSUNoCompress", "rollback": "RollbackDSU"}
-
-
-def allowed(mode, feats):
-    return not ("time" in feats and mode != "nocompress")
 
 
 def folder(mode, feats):
@@ -44,8 +37,7 @@ def combos():
     for mode in MODES:
         for k in range(len(FEATS) + 1):
             for feats in itertools.combinations(FEATS, k):
-                if allowed(mode, feats):
-                    yield mode, set(feats)
+                yield mode, set(feats)
 
 
 TYPE = {"compress": "dsu", "nocompress": "dsu-nocompress", "rollback": "dsu-rollback"}
@@ -56,40 +48,26 @@ def header(mode, feats, cm):
     has = feats.__contains__
     F = "α(N) amortized" if mode == "compress" else "log(N)"
     slow = "N" if mode == "compress" else "N*log(N)"
-    cost = {"find": F, "uniteWeighted" if has("potential") else "unite": F, "areUnioned": F, "size": F,
+    cost = {"find": F, "unite": F, "areUnioned": F, "size": F,
             "numComponents": "1", "largestSize": "1", "roots": "N", "sizes": "N*log(N)", "groups": slow,
             "elementsInGroup": "K" if has("members") else slow}
-    if mode == "nocompress":
-        cost["uniteAUnderBWeighted" if has("potential") else "uniteAUnderB"] = "log(N)"
     if mode == "rollback":
-        cost.update(rollbackLastUnion="1", checkpoint="1", rollbackTo="1 amortized")
+        cost.update(rollbackLastUnion="1")
+    if mode != "compress":
+        cost["parent"] = "1"
     if has("values"):
         cost.update(componentSum=F, componentMin=F, componentMax=F)
     if has("merge"):
         cost["componentData"] = F
-    if has("edges"):
-        cost.update(edgeCount=F, isTree=F)
-    if has("potential"):
-        cost["diff"] = F
-    if has("time"):
-        cost.update(firstConnectedTime="log(N)", connectedAt="log(N)")
     if has("grow"):
         cost["add"] = "1 amortized"
     other = ["vals[1*N]"]
     other += ["csum[1*N]", "cmin[1*N]", "cmax[1*N]"] if has("values") else []
     other += ["data[1*N]"] if has("merge") else []
     other += ["nxt[1*N]"] if has("members") else []
-    other += ["edges[1*N]"] if has("edges") else []
-    other += ["pot[1*N]"] if has("potential") else []
-    other += ["tm[1*N]"] if has("time") else []
     notes = []
     if has("members"):
         notes.append("K = the size of the group")
-    if mode == "nocompress":
-        ub = "uniteAUnderBWeighted" if has("potential") else "uniteAUnderB"
-        slowOps = "groups" if has("members") else "groups / elementsInGroup"
-        notes.append(f"{ub} skips union by size, so it can build a chain N deep: every log(N) above (and the N*log(N) of {slowOps}) "
-                     f"holds only if you never call it, otherwise those calls are O(N) (O(N^2))")
     if mode == "rollback":
         notes.append("plus the undo stack: one small frame per unite not yet undone" + (", holding a copy of the bigger Node" if has("merge") else ""))
     if has("merge"):
@@ -100,29 +78,6 @@ def header(mode, feats, cm):
     lines += ["  build: N", "@memory:", "  layout: none", "  node: par[1*N] sz[1*N]", "  tags: none", f"  other: {' '.join(other)}"]
     lines += [f"  note: {'; '.join(notes)}"] if notes else []
     return [f"{cm} {x}" for x in lines]
-
-
-def forced_notes(L, cm, name):
-    """nocompress: under each public method whose cost assumes balanced trees, say uniteAUnderB can break it"""
-    I = "    "
-    ub = f"{I}{cm} O(log n), forces a's root under b's root"
-    hits = {f"{I}{cm} O(log n), ": ("O(log n)", "O(n)"),
-            f"{I}{cm} O(n log n), groupsArr": ("O(n log n)", "O(n^2)"),
-            f"{I}{cm} O(n log n), the values of every element": ("O(n log n)", "O(n^2)")}
-    out = []
-    k = 0
-    while k < len(L):
-        line = L[k]
-        hit = next((c for p, c in hits.items() if line.startswith(p)), None)
-        out.append(line)
-        k += 1
-        if hit is None or line.startswith(ub):
-            continue
-        while L[k].startswith(f"{I}{cm} "):
-            out.append(L[k])
-            k += 1
-        out.append(f"{I}{cm} only {hit[0]} if you never call {name}: forced unions can build a chain, then this is {hit[1]}")
-    return out
 
 
 def find_cost(mode):
@@ -156,7 +111,7 @@ PY_MUTATE = {
 }
 
 
-def py_link(win, lose, has, wv="w", tv="t"):
+def py_link(win, lose, has):
     out = [f"self.par[{lose}] = {win}",
            f"self.sz[{win}] += self.sz[{lose}]",
            "self.comps -= 1",
@@ -170,12 +125,6 @@ def py_link(win, lose, has, wv="w", tv="t"):
         out.append(f"self.data[{win}] = self.combine(self.data[{win}], self.data[{lose}])")
     if has("members"):
         out.append(f"self.nxt[{win}], self.nxt[{lose}] = self.nxt[{lose}], self.nxt[{win}]  # (joins the two circles)")
-    if has("edges"):
-        out.append(f"self.edges[{win}] += self.edges[{lose}] + 1")
-    if has("potential"):
-        out.append(f"self.pot[{lose}] = {wv}")
-    if has("time"):
-        out.append(f"self.tm[{lose}] = {tv}")
     return out
 
 
@@ -185,17 +134,12 @@ def py(mode, feats):
     F = "O(α(n)) amortized" if comp else "O(log n)"
     name = folder(mode, feats)
     L = ["# Template by https://github.com/ishaanbuildsthings", f"# {URL}/{name}/template.py"] + header(mode, feats, "#") + [""]
-    if has("time"):
-        L += ["_NEVER = 1 << 62  # (the time of a root: it never got a parent)", "", ""]
     if has("merge"):
         L += PY_STUBS.replace("{mutate}", PY_MUTATE[mode]).rstrip("\n").split("\n") + ["", ""]
     ctor = f"{cls}(vals, baseFn, combine)" if has("merge") else f"{cls}(vals)"
     L += [f"# dsu = {ctor}",
           "# vals: the elements (" + ("numbers: componentSum / Min / Max are over them" if has("values") else "any values: numbers, strings, tuples, ...") +
           "); everything works on their indices 0..n-1" + (", and add(val) appends more" if has("grow") else "")]
-    if has("potential"):
-        L += ["# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)",
-              "# reads it back (for parity / two-colouring, swap + and - for ^ throughout)"]
     L += ["", "", f"class {cls}:"]
     I = "    "
     # ---- constructor
@@ -215,32 +159,11 @@ def py(mode, feats):
               I * 2 + "self.data = [baseFn(v, i) for i, v in enumerate(self.vals)]  # data[root]: the Node of root's component"]
     if has("members"):
         L += [I * 2 + "self.nxt = list(range(n))  # each component's members linked in a circle: i -> nxt[i] -> ... -> i"]
-    if has("edges"):
-        L += [I * 2 + "self.edges = [0] * n  # edges[root]: how many unites touched root's component, merging or not"]
-    if has("potential"):
-        L += [I * 2 + "self.pot = [0] * n  # pot[i] = value[i] - value[par[i]] (0 at a root)"]
-    if has("time"):
-        L += [I * 2 + "self.time = 0  # how many unites so far, failed ones too",
-              I * 2 + "self.tm = [_NEVER] * n  # tm[i]: the unite (0, 1, 2, ...) that gave i its parent"]
     if roll:
         L += [I * 2 + "self.stk = []  # one frame per unite, so rollback can undo it"]
     L.append("")
     # ---- find
-    if comp and has("potential"):
-        L += [I + f"# {F}, effectively O(1): index of the representative of i's component (compresses fully, keeping pot right)",
-              I + "def find(self, i):",
-              I * 2 + "par, pot = self.par, self.pot",
-              I * 2 + "path = []",
-              I * 2 + "while par[i] != i:",
-              I * 3 + "path.append(i)",
-              I * 3 + "i = par[i]",
-              I * 2 + "for x in reversed(path):  # nearest the root first, so its parent's pot is already relative to the root",
-              I * 3 + "p = par[x]",
-              I * 3 + "if p != i:",
-              I * 4 + "pot[x] += pot[p]",
-              I * 4 + "par[x] = i",
-              I * 2 + "return i"]
-    elif comp:
+    if comp:
         L += [I + f"# {F}, effectively O(1): index of the representative of i's component",
               I + "def find(self, i):",
               I * 2 + "par = self.par",
@@ -257,44 +180,19 @@ def py(mode, feats):
               I * 3 + "i = par[i]",
               I * 2 + "return i"]
     L.append("")
-    if has("potential"):
-        L += [I + "# (root of i, value[i] - value[root])", I + "def _rootAndWeight(self, i):"]
-        if comp:
-            L += [I * 2 + "r = self.find(i)", I * 2 + "return r, self.pot[i]"]
-        else:
-            L += [I * 2 + "par, pot = self.par, self.pot", I * 2 + "w = 0",
-                  I * 2 + "while par[i] != i:", I * 3 + "w += pot[i]", I * 3 + "i = par[i]", I * 2 + "return i, w"]
-        L.append("")
     # ---- unite
     doc = [f"{F}, merges the two components, " + ("returns (winner, loser): the new root and the old root now under it, or\n# None if they were already together" if nc else "False if i and j were already together")]
-    if has("potential"):
-        doc.append("w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)")
-    if has("edges"):
-        doc.append("either way it counts as an edge of the component (edgeCount)")
-    if has("time"):
-        doc.append("each call is the next unite in time (0, 1, 2, ...), failed ones too")
     if roll:
         doc.append("either way it records a frame, so it always takes exactly one rollbackLastUnion to undo")
     L += [I + "# " + line.replace("\n", "\n" + I) for line in doc]
-    L.append(I + ("def uniteWeighted(self, i, j, w):" if has("potential") else "def unite(self, i, j):"))
+    L.append(I + "def unite(self, i, j):")
     body = []
-    if has("time"):
-        body += ["t = self.time", "self.time += 1"]
-    if has("potential"):
-        body += ["i, wi = self._rootAndWeight(i)", "j, wj = self._rootAndWeight(j)"]
-    else:
-        body += ["i, j = self.find(i), self.find(j)"]
+    body += ["i, j = self.find(i), self.find(j)"]
     body.append("if i == j:")
-    if has("edges"):
-        body.append("    self.edges[i] += 1")
     if roll:
-        body.append("    self.stk.append(" + ("i)  # (an int frame: only the edge count to undo)" if has("edges") else "None)"))
+        body.append("    self.stk.append(" + "None)")
     body.append("    return None" if nc else "    return False")
-    if has("potential"):
-        body.append("w += wi - wj  # now value[j's root] - value[i's root]")
     body += ["if self.sz[i] < self.sz[j]:", "    i, j = j, i"]
-    if has("potential"):
-        body.append("    w = -w")
     if roll:
         frame = ["i", "j", "self.mx"] + (["self.cmin[i]", "self.cmax[i]"] if has("values") else []) + (["self.data[i]"] if has("merge") else [])
         body.append(f"self.stk.append(({', '.join(frame)}))")
@@ -302,43 +200,13 @@ def py(mode, feats):
     body.append("return i, j" if nc else "return True")
     L += [I * 2 + b for b in body]
     L.append("")
-    # ---- uniteAUnderB
-    if nc:
-        L += [I + "# O(log n), forces a's root under b's root, False if already together",
-              I + "# skips union by size, so these can build a chain n deep: then this, find, unite and every other call that",
-              I + "# walks up is O(n); their O(log n) holds only if you never force unions"]
-        if has("potential"):
-            L.append(I + "# w: value[b] - value[a] = w")
-        if has("merge"):
-            L.append(I + "# combine gets b's component's Node first here, even when it's the smaller one")
-        L.append(I + ("def uniteAUnderBWeighted(self, a, b, w):" if has("potential") else "def uniteAUnderB(self, a, b):"))
-        body = []
-        if has("time"):
-            body += ["t = self.time", "self.time += 1"]
-        if has("potential"):
-            body += ["a, wa = self._rootAndWeight(a)", "b, wb = self._rootAndWeight(b)"]
-        else:
-            body += ["a, b = self.find(a), self.find(b)"]
-        body.append("if a == b:")
-        if has("edges"):
-            body.append("    self.edges[a] += 1")
-        body.append("    return False")
-        if has("potential"):
-            body.append("w = wb - wa - w  # now value[a's root] - value[b's root]")
-        body += py_link("b", "a", has)
-        body.append("return True")
-        L += [I * 2 + b for b in body]
-        L.append("")
     # ---- rollback
     if roll:
         L += [I + "# O(1), undoes the most recent unite, whether or not it merged anything: k calls always undo the last",
               I + "# k unites" + (" (an add is never undone)" if has("grow") else "") + "; IndexError if there's no unite left to undo",
               I + "def rollbackLastUnion(self):",
               I * 2 + "frame = self.stk.pop()"]
-        if has("edges"):
-            L += [I * 2 + "if type(frame) is int:", I * 3 + "self.edges[frame] -= 1", I * 3 + "return"]
-        else:
-            L += [I * 2 + "if frame is None:", I * 3 + "return"]
+        L += [I * 2 + "if frame is None:", I * 3 + "return"]
         unpack = ["i", "j", "mx"] + (["lo", "hi"] if has("values") else []) + (["data"] if has("merge") else [])
         L += [I * 2 + f"{', '.join(unpack)} = frame",
               I * 2 + "self.par[j] = j",
@@ -351,22 +219,15 @@ def py(mode, feats):
             L += [I * 2 + "self.data[i] = data"]
         if has("members"):
             L += [I * 2 + "self.nxt[i], self.nxt[j] = self.nxt[j], self.nxt[i]  # (the same swap splits them again)"]
-        if has("edges"):
-            L += [I * 2 + "self.edges[i] -= self.edges[j] + 1"]
-        if has("potential"):
-            L += [I * 2 + "self.pot[j] = 0"]
-        L += ["",
-              I + "# O(1), a point to roll back to later: how many unites can be undone right now",
-              I + "def checkpoint(self):",
-              I * 2 + "return len(self.stk)",
-              "",
-              I + "# O(1) per unite undone, undoes every unite made since checkpoint() returned k",
-              I + "def rollbackTo(self, k):",
-              I * 2 + "while len(self.stk) > k:",
-              I * 3 + "self.rollbackLastUnion()",
-              ""]
+        L += [""]
     # ---- the base queries
     slow = "O(n)" if comp else "O(n log n)"
+    if not comp:
+        L += [I + "# O(1), i's parent pointer (i itself if it's a root): without path compression the pointers never change",
+              I + "# once set" + (" (until rolled back)" if roll else "") + ", so you can walk them and keep your own data per pointer",
+              I + "def parent(self, i):",
+              I * 2 + "return self.par[i]",
+              ""]
     L += [I + f"# {F}, True if i and j are in the same component",
           I + "def areUnioned(self, i, j):",
           I * 2 + "return self.find(i) == self.find(j)",
@@ -424,39 +285,6 @@ def py(mode, feats):
     if has("merge"):
         L += [I + f"# {F}, the Node of i's component: every member's baseFn, combined",
               I + "def componentData(self, i):", I * 2 + "return self.data[self.find(i)]", ""]
-    if has("edges"):
-        L += [I + f"# {F}, how many unites have touched i's component (merging or not): its edges, if each unite is an edge",
-              I + "def edgeCount(self, i):", I * 2 + "return self.edges[self.find(i)]", "",
-              I + f"# {F}, True if i's component has no cycle: exactly size - 1 edges",
-              I + "def isTree(self, i):", I * 2 + "r = self.find(i)", I * 2 + "return self.edges[r] == self.sz[r] - 1", ""]
-    if has("potential"):
-        L += [I + f"# {F}, value[j] - value[i] from the unites so far, None if i and j aren't together",
-              I + "def diff(self, i, j):",
-              I * 2 + "ri, wi = self._rootAndWeight(i)",
-              I * 2 + "rj, wj = self._rootAndWeight(j)",
-              I * 2 + "return wj - wi if ri == rj else None", ""]
-    if has("time"):
-        L += [I + "# O(log n), how many unites (failed ones too) it took for i and j to end up together: 0 if i == j, -1 if",
-              I + "# they still aren't. Climbs from both ends, always moving the one that got its parent first",
-              I + "def firstConnectedTime(self, i, j):",
-              I * 2 + "if self.find(i) != self.find(j):",
-              I * 3 + "return -1",
-              I * 2 + "par, tm = self.par, self.tm",
-              I * 2 + "last = -1",
-              I * 2 + "while i != j:",
-              I * 3 + "if tm[i] < tm[j]:",
-              I * 4 + "last = max(last, tm[i])",
-              I * 4 + "i = par[i]",
-              I * 3 + "else:",
-              I * 4 + "last = max(last, tm[j])",
-              I * 4 + "j = par[j]",
-              I * 2 + "return last + 1",
-              "",
-              I + "# O(log n), were i and j together after the first t unites",
-              I + "def connectedAt(self, i, j, t):",
-              I * 2 + "f = self.firstConnectedTime(i, j)",
-              I * 2 + "return f != -1 and f <= t",
-              ""]
     if has("grow"):
         L += [I + "# O(1), adds a new element in its own component and returns its index",
               I + "def add(self, val):",
@@ -473,17 +301,9 @@ def py(mode, feats):
             L += [I * 2 + "self.data.append(self.baseFn(val, i))"]
         if has("members"):
             L += [I * 2 + "self.nxt.append(i)"]
-        if has("edges"):
-            L += [I * 2 + "self.edges.append(0)"]
-        if has("potential"):
-            L += [I * 2 + "self.pot.append(0)"]
-        if has("time"):
-            L += [I * 2 + "self.tm.append(_NEVER)"]
         L += [I * 2 + "return i", ""]
     while L[-1] == "":
         L.pop()
-    if nc:
-        L = forced_notes(L, "#", "uniteAUnderBWeighted" if has("potential") else "uniteAUnderB")
     return "\n".join(L) + "\n"
 
 
@@ -515,7 +335,7 @@ Node combine(Node big, const Node& small) {
 CPP_ROLL_NOTE = "\n// rollback keeps a copy of\n// the bigger Node every unite, so keep Nodes small here"
 
 
-def cpp_link(win, lose, has, wv="w", tv="t"):
+def cpp_link(win, lose, has):
     out = [f"par[{lose}] = {win};",
            f"sz[{win}] += sz[{lose}];",
            "comps--;",
@@ -528,12 +348,6 @@ def cpp_link(win, lose, has, wv="w", tv="t"):
         out.append(f"data[{win}] = combine(move(data[{win}]), data[{lose}]);")
     if has("members"):
         out.append(f"swap(nxt[{win}], nxt[{lose}]);  // (joins the two circles)")
-    if has("edges"):
-        out.append(f"edges[{win}] += edges[{lose}] + 1;")
-    if has("potential"):
-        out.append(f"pot[{lose}] = {wv};")
-    if has("time"):
-        out.append(f"tm[{lose}] = {tv};")
     return out
 
 
@@ -552,9 +366,6 @@ def cpp(mode, feats):
         L += [f"// {cls}<int> dsu(vals);"]
     L += ["// vals: the elements (" + ("numbers: componentSum / Min / Max are over them" if has("values") else "any type: numbers, strings, pairs, ...") +
           "); everything works on their indices 0..n-1" + (", and add(val) appends more" if has("grow") else "")]
-    if has("potential"):
-        L += ["// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)",
-              "// reads it back (for parity / two-colouring, swap + and - for ^ throughout)"]
     if has("merge"):
         L += [f"struct {cls} {{", I + "using T = RawVal;"]
     else:
@@ -566,16 +377,9 @@ def cpp(mode, feats):
         L += [I + "vector<Node> data;  // data[root]: the Node of root's component"]
     if has("members"):
         L += [I + "vector<int> nxt;  // each component's members linked in a circle: i -> nxt[i] -> ... -> i"]
-    if has("edges"):
-        L += [I + "vector<int> edges;  // edges[root]: how many unites touched root's component, merging or not"]
-    if has("potential"):
-        L += [I + "vector<long long> pot;  // pot[i] = value[i] - value[par[i]] (0 at a root)"]
-    if has("time"):
-        L += [I + "int time = 0;  // how many unites so far, failed ones too",
-              I + "vector<int> tm;  // tm[i]: the unite (0, 1, 2, ...) that gave i its parent, INT_MAX at a root"]
     if roll:
         fields = "int i, j, mx;" + (" T lo, hi;" if has("values") else "") + (" Node data;" if has("merge") else "")
-        why = "i < 0: a unite that found them already together" + (" (j: its root, for the edge count)" if has("edges") else "")
+        why = "i < 0: a unite that found them already together"
         L += [I + f"struct Frame {{ {fields} }};  // {why}", I + "vector<Frame> stk;  // one frame per unite, so rollback can undo it"]
     L += ["",
           I + "// O(n), every element starts in its own component",
@@ -592,24 +396,9 @@ def cpp(mode, feats):
         L += [I * 2 + "for (int i = 0; i < n; i++) data.push_back(baseFn(vals[i], i));"]
     if has("members"):
         L += [I * 2 + "nxt = par;"]
-    if has("edges"):
-        L += [I * 2 + "edges.assign(n, 0);"]
-    if has("potential"):
-        L += [I * 2 + "pot.assign(n, 0);"]
-    if has("time"):
-        L += [I * 2 + "tm.assign(n, INT_MAX);"]
     L += [I + "}", ""]
     # ---- find
-    if comp and has("potential"):
-        L += [I + f"// {F}, effectively O(1): index of the representative of i's component (compresses fully, keeping pot",
-              I + "// right; union by size keeps the recursion log n deep)",
-              I + "int find(int i) {",
-              I * 2 + "if (par[i] == i) return i;",
-              I * 2 + "int r = find(par[i]);",
-              I * 2 + "pot[i] += pot[par[i]];  // (par[i] now hangs straight off r)",
-              I * 2 + "return par[i] = r;",
-              I + "}"]
-    elif comp:
+    if comp:
         L += [I + f"// {F}, effectively O(1): index of the representative of i's component",
               I + "int find(int i) {",
               I * 2 + "while (par[i] != i) {",
@@ -626,45 +415,20 @@ def cpp(mode, feats):
               I * 2 + "return i;",
               I + "}"]
     L.append("")
-    if has("potential"):
-        L += [I + "// {root of i, value[i] - value[root]}", I + "pair<int, long long> rootAndWeight(int i) {"]
-        if comp:
-            L += [I * 2 + "int r = find(i);", I * 2 + "return {r, pot[i]};"]
-        else:
-            L += [I * 2 + "long long w = 0;", I * 2 + "for (; par[i] != i; i = par[i]) w += pot[i];", I * 2 + "return {i, w};"]
-        L += [I + "}", ""]
     # ---- unite
     doc = [f"{F}, merges the two components, " + ("returns {winner, loser}: the new root and the old root now under it,\n// or {-1, -1} if they were already together" if nc else "false if i and j were already together")]
-    if has("potential"):
-        doc.append("w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)")
-    if has("edges"):
-        doc.append("either way it counts as an edge of the component (edgeCount)")
-    if has("time"):
-        doc.append("each call is the next unite in time (0, 1, 2, ...), failed ones too")
     if roll:
         doc.append("either way it records a frame, so it always takes exactly one rollbackLastUnion to undo")
     L += [I + "// " + line.replace("\n", "\n" + I) for line in doc]
     ret = "pair<int, int>" if nc else "bool"
-    L.append(I + f"{ret} {'uniteWeighted' if has('potential') else 'unite'}(int i, int j{', long long w' if has('potential') else ''}) {{")
+    L.append(I + f"{ret} unite(int i, int j) {{")
     body = []
-    if has("time"):
-        body.append("int t = time++;")
-    if has("potential"):
-        body += ["auto [ri, wi] = rootAndWeight(i);", "auto [rj, wj] = rootAndWeight(j);", "i = ri, j = rj;"]
-    else:
-        body.append("i = find(i), j = find(j);")
+    body.append("i = find(i), j = find(j);")
     body.append("if (i == j) {")
-    if has("edges"):
-        body.append("    edges[i]++;")
     if roll:
-        body.append("    stk.push_back({-1, " + ("i" if has("edges") else "-1") + ", mx});")
+        body.append("    stk.push_back({-1, " + "-1" + ", mx});")
     body += ["    return {-1, -1};" if nc else "    return false;", "}"]
-    if has("potential"):
-        body.append("w += wi - wj;  // now value[j's root] - value[i's root]")
-    if has("potential"):
-        body += ["if (sz[i] < sz[j]) {", "    swap(i, j);", "    w = -w;", "}"]
-    else:
-        body.append("if (sz[i] < sz[j]) swap(i, j);")
+    body.append("if (sz[i] < sz[j]) swap(i, j);")
     if roll:
         frame = ["i", "j", "mx"] + (["cmin[i]", "cmax[i]"] if has("values") else []) + (["data[i]"] if has("merge") else [])
         body.append(f"stk.push_back({{{', '.join(frame)}}});")
@@ -672,33 +436,6 @@ def cpp(mode, feats):
     body.append("return {i, j};" if nc else "return true;")
     L += [I * 2 + b for b in body]
     L += [I + "}", ""]
-    # ---- uniteAUnderB
-    if nc:
-        L += [I + "// O(log n), forces a's root under b's root, false if already together",
-              I + "// skips union by size, so these can build a chain n deep: then this, find, unite and every other call that",
-              I + "// walks up is O(n); their O(log n) holds only if you never force unions"]
-        if has("potential"):
-            L.append(I + "// w: value[b] - value[a] = w")
-        if has("merge"):
-            L.append(I + "// combine gets b's component's Node first here, even when it's the smaller one")
-        L.append(I + f"bool {'uniteAUnderBWeighted' if has('potential') else 'uniteAUnderB'}(int a, int b{', long long w' if has('potential') else ''}) {{")
-        body = []
-        if has("time"):
-            body.append("int t = time++;")
-        if has("potential"):
-            body += ["auto [ra, wa] = rootAndWeight(a);", "auto [rb, wb] = rootAndWeight(b);", "a = ra, b = rb;"]
-        else:
-            body.append("a = find(a), b = find(b);")
-        if has("edges"):
-            body += ["if (a == b) {", "    edges[a]++;", "    return false;", "}"]
-        else:
-            body.append("if (a == b) return false;")
-        if has("potential"):
-            body.append("w = wb - wa - w;  // now value[a's root] - value[b's root]")
-        body += cpp_link("b", "a", has)
-        body.append("return true;")
-        L += [I * 2 + b for b in body]
-        L += [I + "}", ""]
     # ---- rollback
     if roll:
         L += [I + "// O(1), undoes the most recent unite, whether or not it merged anything: k calls always undo the last",
@@ -707,10 +444,7 @@ def cpp(mode, feats):
               I * 2 + 'if (stk.empty()) throw out_of_range("rollbackLastUnion: no unite left to undo");',
               I * 2 + "Frame f = stk.back();",
               I * 2 + "stk.pop_back();"]
-        if has("edges"):
-            L += [I * 2 + "if (f.i < 0) {", I * 3 + "edges[f.j]--;", I * 3 + "return;", I * 2 + "}"]
-        else:
-            L += [I * 2 + "if (f.i < 0) return;"]
+        L += [I * 2 + "if (f.i < 0) return;"]
         L += [I * 2 + "int i = f.i, j = f.j;",
               I * 2 + "par[j] = j;",
               I * 2 + "sz[i] -= sz[j];",
@@ -722,19 +456,13 @@ def cpp(mode, feats):
             L += [I * 2 + "data[i] = move(f.data);"]
         if has("members"):
             L += [I * 2 + "swap(nxt[i], nxt[j]);  // (the same swap splits them again)"]
-        if has("edges"):
-            L += [I * 2 + "edges[i] -= edges[j] + 1;"]
-        if has("potential"):
-            L += [I * 2 + "pot[j] = 0;"]
-        L += [I + "}", "",
-              I + "// O(1), a point to roll back to later: how many unites can be undone right now",
-              I + "int checkpoint() { return stk.size(); }", "",
-              I + "// O(1) per unite undone, undoes every unite made since checkpoint() returned k",
-              I + "void rollbackTo(int k) {",
-              I * 2 + "while ((int)stk.size() > k) rollbackLastUnion();",
-              I + "}", ""]
+        L += [I + "}", ""]
     # ---- base queries
     slow = "O(n)" if comp else "O(n log n)"
+    if not comp:
+        L += [I + "// O(1), i's parent pointer (i itself if it's a root): without path compression the pointers never change",
+              I + "// once set" + (" (until rolled back)" if roll else "") + ", so you can walk them and keep your own data per pointer",
+              I + "int parent(int i) { return par[i]; }", ""]
     L += [I + f"// {F}, true if i and j are in the same component",
           I + "bool areUnioned(int i, int j) { return find(i) == find(j); }", "",
           I + f"// {F}, how many elements are in i's component",
@@ -791,39 +519,6 @@ def cpp(mode, feats):
     if has("merge"):
         L += [I + f"// {F}, the Node of i's component: every member's baseFn, combined",
               I + "Node componentData(int i) { return data[find(i)]; }", ""]
-    if has("edges"):
-        L += [I + f"// {F}, how many unites have touched i's component (merging or not): its edges, if each unite is an edge",
-              I + "int edgeCount(int i) { return edges[find(i)]; }", "",
-              I + f"// {F}, true if i's component has no cycle: exactly size - 1 edges",
-              I + "bool isTree(int i) {",
-              I * 2 + "int r = find(i);",
-              I * 2 + "return edges[r] == sz[r] - 1;",
-              I + "}", ""]
-    if has("potential"):
-        L += [I + f"// {F}, value[j] - value[i] from the unites so far, nullopt if i and j aren't together",
-              I + "optional<long long> diff(int i, int j) {",
-              I * 2 + "auto [ri, wi] = rootAndWeight(i);",
-              I * 2 + "auto [rj, wj] = rootAndWeight(j);",
-              I * 2 + "if (ri != rj) return nullopt;",
-              I * 2 + "return wj - wi;",
-              I + "}", ""]
-    if has("time"):
-        L += [I + "// O(log n), how many unites (failed ones too) it took for i and j to end up together: 0 if i == j, -1 if",
-              I + "// they still aren't. Climbs from both ends, always moving the one that got its parent first",
-              I + "int firstConnectedTime(int i, int j) {",
-              I * 2 + "if (find(i) != find(j)) return -1;",
-              I * 2 + "int last = -1;",
-              I * 2 + "while (i != j) {",
-              I * 3 + "if (tm[i] < tm[j]) last = max(last, tm[i]), i = par[i];",
-              I * 3 + "else last = max(last, tm[j]), j = par[j];",
-              I * 2 + "}",
-              I * 2 + "return last + 1;",
-              I + "}", "",
-              I + "// O(log n), were i and j together after the first t unites",
-              I + "bool connectedAt(int i, int j, int t) {",
-              I * 2 + "int f = firstConnectedTime(i, j);",
-              I * 2 + "return f != -1 && f <= t;",
-              I + "}", ""]
     if has("grow"):
         L += [I + "// O(1), adds a new element in its own component and returns its index",
               I + "int add(const T& val) {",
@@ -839,17 +534,9 @@ def cpp(mode, feats):
             L += [I * 2 + "data.push_back(baseFn(val, i));"]
         if has("members"):
             L += [I * 2 + "nxt.push_back(i);"]
-        if has("edges"):
-            L += [I * 2 + "edges.push_back(0);"]
-        if has("potential"):
-            L += [I * 2 + "pot.push_back(0);"]
-        if has("time"):
-            L += [I * 2 + "tm.push_back(INT_MAX);"]
         L += [I * 2 + "return i;", I + "}", ""]
     while L[-1] == "":
         L.pop()
-    if nc:
-        L = forced_notes(L, "//", "uniteAUnderBWeighted" if has("potential") else "uniteAUnderB")
     L.append("};")
     return "\n".join(L) + "\n"
 
@@ -1121,16 +808,14 @@ def write(path, text):
 
 
 HDLT_HEADER = [
-    "@operations: areUnioned componentId elementsInGroup groups numComponents removeEdge removeEdgeBetween roots size sizes unite",
+    "@operations: areUnioned elementsInGroup groups numComponents removeEdge roots size sizes unite",
     "@data-structure-type: hdlt",
     "@complexities:",
     "  areUnioned: log(N)",
-    "  componentId: log(N)",
     "  elementsInGroup: N*log(N)",
     "  groups: N*log(N)",
     "  numComponents: 1",
     "  removeEdge: log^2(N) amortized",
-    "  removeEdgeBetween: log^2(N) amortized",
     "  roots: N*log(N)",
     "  size: log(N)",
     "  sizes: N*log(N)",
@@ -1143,44 +828,100 @@ HDLT_HEADER = [
     "  other: vals[1*N]",
     "  note: about log N levels, each an Euler-tour treap of up to 3N nodes, plus a few arrays per edge: n = 1e5 is roughly 80 MB in C++",
 ]
-HDLT_PY_ALIASES = '''
+HDLT_PY_ALIASES = """
 
-    # same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
-    # returns its id for removeEdge
+    # O(log^2 n) amortized, adds an edge between u and v (even if they're already together, and even a second copy of
+    # the same edge); True if it joined two components
     def unite(self, u, v):
-        return self.addEdge(u, v)
+        merged = not self.areConnected(u, v)
+        self._addEdge(u, v)
+        return merged
+
+    # O(log^2 n) amortized, removes one edge between u and v (with several copies, one of them); True if its component
+    # split in two. Raises KeyError if there is no edge between u and v
+    def removeEdge(self, u, v):
+        ids = self._byPair.get(self._pairKey(u, v))
+        if not ids:
+            raise KeyError(f"removeEdge: no edge between {u} and {v}")
+        return self._removeEdgeById(ids[-1])
 
     # same as areConnected (the name the other union finds use)
     def areUnioned(self, u, v):
         return self.areConnected(u, v)
-'''
-HDLT_CPP_ALIASES = '''
-    // same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
-    // returns its id for removeEdge
-    int unite(int u, int v) { return addEdge(u, v); }
+"""
+HDLT_CPP_ALIASES = """
+    // O(log^2 n) amortized, adds an edge between u and v (even if they're already together, and even a second copy of
+    // the same edge); true if it joined two components
+    bool unite(int u, int v) {
+        bool merged = !areConnected(u, v);
+        addEdgeId(u, v);
+        return merged;
+    }
+
+    // O(log^2 n) amortized, removes one edge between u and v (with several copies, one of them); true if its component
+    // split in two. Throws out_of_range if there is no edge between u and v
+    bool removeEdge(int u, int v) {
+        auto it = byPair.find({min(u, v), max(u, v)});
+        if (it == byPair.end() || it->second.empty()) throw out_of_range("removeEdge: no edge between u and v");
+        return removeEdgeById(it->second.back());
+    }
 
     // same as areConnected (the name the other union finds use)
     bool areUnioned(int u, int v) { return areConnected(u, v); }
-
-    // same as removeEdge(u, v) (the name the Python version uses)
-    bool removeEdgeBetween(int u, int v) { return removeEdge(u, v); }
 };
-'''
+"""
 
 
 def hdlt():
-    """templates/union-find/hdlt.* with the picker header, the C++ prelude, and unite / areUnioned (C++: also removeEdgeBetween) added at the end"""
+    """templates/union-find/hdlt.* with the picker header and the C++ prelude. Edges are named by their two ends only:
+    the id-based addEdge / removeEdge(e) and componentId become internal (_addEdge / _removeEdgeById, addEdgeId / removeEdgeById), and
+    unite(u, v) / removeEdge(u, v) / areUnioned are added at the end"""
     py_src = open(os.path.join(HDLT, "hdlt.py")).read().rstrip("\n")
     cpp_src = open(os.path.join(HDLT, "hdlt.cpp")).read().rstrip("\n")
     assert cpp_src.endswith("};") and "#include" not in cpp_src
+
+    def swap(src, pairs):
+        for old, new in pairs:
+            assert src.count(old) == 1, old
+            src = src.replace(old, new)
+        return src
+
+    py_src = swap(py_src, [
+        ("    # O(log^2 n) amortized, returns an edge id you hand back to removeEdge\n    def addEdge(self, u, v):",
+         "    # O(log^2 n) amortized, adds an edge and returns its internal id (unite is the public way in)\n    def _addEdge(self, u, v):"),
+        ("    # O(log^2 n) amortized, true if the component actually split in two\n    def removeEdge(self, e):",
+         "    # O(log^2 n) amortized, removes the edge with this internal id; true if the component actually split in two\n    def _removeEdgeById(self, e):"),
+    ])
+    k = py_src.index("    # O(log^2 n) amortized, removes one edge between u and v, false if there was none\n    def removeEdgeBetween(")
+    j = py_src.index("\n\n", k)
+    py_src = py_src[:k] + py_src[j + 2:]
+    py_src = py_src.replace("Public: addEdge, removeEdge, removeEdgeBetween,", "Public: unite, removeEdge,")
+    # componentId (an internal label, not an element) is only a helper for roots / groups / sizes / elementsInGroup
+    py_src = py_src.replace("componentId, roots, groups,", "roots, groups,")
+    py_src = py_src.replace("def componentId(", "def _componentId(").replace("self.componentId(", "self._componentId(")
+    assert "removeEdgeBetween" not in py_src and "def addEdge" not in py_src and "self.addEdge(" not in py_src
+    assert "self.removeEdge(" not in py_src
+
+    cpp_src = swap(cpp_src, [
+        ("    // O(log^2 n) amortized, returns an edge id you hand back to removeEdge\n    int addEdge(int u, int v) {",
+         "    // O(log^2 n) amortized, adds an edge and returns its internal id (unite is the public way in)\n    int addEdgeId(int u, int v) {"),
+        ("    // O(log^2 n) amortized, true if the component actually split in two\n    bool removeEdge(int e) {",
+         "    // O(log^2 n) amortized, removes the edge with this internal id; true if the component actually split in two\n    bool removeEdgeById(int e) {"),
+    ])
+    k = cpp_src.index("    // O(log^2 n) amortized, removes one edge between u and v, false if there was none\n    bool removeEdge(int u, int v) {")
+    j = cpp_src.index("\n\n", k)
+    cpp_src = cpp_src[:k] + cpp_src[j + 2:]
+    cpp_src = cpp_src.replace("componentId(", "componentKey(")
+    assert "removeEdge(" not in cpp_src and "addEdge(" not in cpp_src, [l for l in cpp_src.split("\n") if "removeEdge(" in l or "addEdge(" in l]
 
     def top(cm, f):
         return (f"{cm} Template by https://github.com/ishaanbuildsthings\n{cm} {URL}/hdlt/{f}\n" +
                 "".join(f"{cm} {x}\n" for x in HDLT_HEADER))
 
-    py_out = top("#", "template.py") + "# (templates/union-find/hdlt.py, plus unite / areUnioned at the end)\n\n" + py_src + HDLT_PY_ALIASES
+    note = "(templates/union-find/hdlt.{}, with edges named by their two ends: unite / removeEdge / areUnioned at the end)"
+    py_out = top("#", "template.py") + "# " + note.format("py") + "\n\n" + py_src + HDLT_PY_ALIASES
     cpp_out = (top("//", "template.cpp") + "#include <bits/stdc++.h>\nusing namespace std;\nusing ll = long long;\n\n" +
-               "// (templates/union-find/hdlt.cpp, plus unite / areUnioned at the end)\n" + cpp_src[:-2].rstrip("\n") + "\n" + HDLT_CPP_ALIASES)
+               "// " + note.format("cpp") + "\n" + cpp_src[:-2].rstrip("\n") + "\n" + HDLT_CPP_ALIASES)
     return py_out, cpp_out
 
 

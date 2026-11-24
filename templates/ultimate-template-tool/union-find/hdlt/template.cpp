@@ -1,15 +1,13 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/hdlt/template.cpp
-// @operations: areUnioned componentId elementsInGroup groups numComponents removeEdge removeEdgeBetween roots size sizes unite
+// @operations: areUnioned elementsInGroup groups numComponents removeEdge roots size sizes unite
 // @data-structure-type: hdlt
 // @complexities:
 //   areUnioned: log(N)
-//   componentId: log(N)
 //   elementsInGroup: N*log(N)
 //   groups: N*log(N)
 //   numComponents: 1
 //   removeEdge: log^2(N) amortized
-//   removeEdgeBetween: log^2(N) amortized
 //   roots: N*log(N)
 //   size: log(N)
 //   sizes: N*log(N)
@@ -25,7 +23,7 @@
 using namespace std;
 using ll = long long;
 
-// (templates/union-find/hdlt.cpp, plus unite / areUnioned at the end)
+// (templates/union-find/hdlt.cpp, with edges named by their two ends: unite / removeEdge / areUnioned at the end)
 // Fully dynamic connectivity (Holm-de Lichtenberg-Thorup, JACM 2001).
 // Online edge insert + edge delete + connectivity query. Unlike DSU, deletions are allowed.
 // Takes an array of vals (can be strings, tuples, etc) since it operates based on indices
@@ -295,8 +293,8 @@ struct DynamicConnectivity {
         return l > 0 ? replace(l - 1, u, v) : false;
     }
 
-    // O(log^2 n) amortized, returns an edge id you hand back to removeEdge
-    int addEdge(int u, int v) {
+    // O(log^2 n) amortized, adds an edge and returns its internal id (unite is the public way in)
+    int addEdgeId(int u, int v) {
         int e = newId();
         eu[e] = u, ev[e] = v, elevel[e] = 0, slot[e] = -1;
         auto& ids = byPair[{min(u, v), max(u, v)}];
@@ -312,8 +310,8 @@ struct DynamicConnectivity {
         return e;
     }
 
-    // O(log^2 n) amortized, true if the component actually split in two
-    bool removeEdge(int e) {
+    // O(log^2 n) amortized, removes the edge with this internal id; true if the component actually split in two
+    bool removeEdgeById(int e) {
         int u = eu[e], v = ev[e], l = elevel[e], s = slot[e];
         bool split = false;
         if (s != -1) {
@@ -337,14 +335,6 @@ struct DynamicConnectivity {
         return split;
     }
 
-    // O(log^2 n) amortized, removes one edge between u and v, false if there was none
-    bool removeEdge(int u, int v) {
-        auto it = byPair.find({min(u, v), max(u, v)});
-        if (it == byPair.end() || it->second.empty()) return false;
-        removeEdge(it->second.back());
-        return true;
-    }
-
     // O(log n), true if u and v are in the same component
     bool areConnected(int u, int v) { return forest[0].sameTree(u, v); }
 
@@ -355,12 +345,12 @@ struct DynamicConnectivity {
     int numComponents() { return comps; }
 
     // O(log n), opaque handle shared by exactly the vertices of u's component, invalidated by the next update
-    int componentId(int u) { return forest[0].rootOf(u); }
+    int componentKey(int u) { return forest[0].rootOf(u); }
 
     // O(n log n), one vertex index per component
     vector<int> roots() {
         map<int, int> rep;
-        for (int u = 0; u < n; u++) rep.emplace(componentId(u), u);
+        for (int u = 0; u < n; u++) rep.emplace(componentKey(u), u);
         vector<int> res;
         for (auto& [k, u] : rep) res.push_back(u);
         return res;
@@ -369,7 +359,7 @@ struct DynamicConnectivity {
     // O(n log n), the values grouped by component
     vector<vector<T>> groups() {
         map<int, vector<T>> g;
-        for (int u = 0; u < n; u++) g[componentId(u)].push_back(vals[u]);
+        for (int u = 0; u < n; u++) g[componentKey(u)].push_back(vals[u]);
         vector<vector<T>> res;
         for (auto& [k, v] : g) res.push_back(v);
         return res;
@@ -378,7 +368,7 @@ struct DynamicConnectivity {
     // O(n log n), the sizes of all components, biggest first, e.g. [4, 2, 1]
     vector<int> sizes() {
         map<int, int> cnt;
-        for (int u = 0; u < n; u++) cnt[componentId(u)]++;
+        for (int u = 0; u < n; u++) cnt[componentKey(u)]++;
         vector<int> res;
         for (auto& [k, c] : cnt) res.push_back(c);
         sort(res.rbegin(), res.rend());
@@ -387,20 +377,29 @@ struct DynamicConnectivity {
 
     // O(n log n), the values of every element sitting in the same component as index u
     vector<T> elementsInGroup(int u) {
-        int r = componentId(u);
+        int r = componentKey(u);
         vector<T> res;
         for (int j = 0; j < n; j++)
-            if (componentId(j) == r) res.push_back(vals[j]);
+            if (componentKey(j) == r) res.push_back(vals[j]);
         return res;
     }
 
-    // same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
-    // returns its id for removeEdge
-    int unite(int u, int v) { return addEdge(u, v); }
+    // O(log^2 n) amortized, adds an edge between u and v (even if they're already together, and even a second copy of
+    // the same edge); true if it joined two components
+    bool unite(int u, int v) {
+        bool merged = !areConnected(u, v);
+        addEdgeId(u, v);
+        return merged;
+    }
+
+    // O(log^2 n) amortized, removes one edge between u and v (with several copies, one of them); true if its component
+    // split in two. Throws out_of_range if there is no edge between u and v
+    bool removeEdge(int u, int v) {
+        auto it = byPair.find({min(u, v), max(u, v)});
+        if (it == byPair.end() || it->second.empty()) throw out_of_range("removeEdge: no edge between u and v");
+        return removeEdgeById(it->second.back());
+    }
 
     // same as areConnected (the name the other union finds use)
     bool areUnioned(int u, int v) { return areConnected(u, v); }
-
-    // same as removeEdge(u, v) (the name the Python version uses)
-    bool removeEdgeBetween(int u, int v) { return removeEdge(u, v); }
 };

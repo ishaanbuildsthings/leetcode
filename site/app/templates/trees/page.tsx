@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { TREES } from "@/lib/trees";
+import { TREE_CENTROIDS, TREE_EDGE_LISTS, TREE_HASHING } from "@/lib/trees";
 import { REROOT } from "@/lib/reroot";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -32,8 +32,10 @@ export default async function TreeTemplatesPage() {
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
         <MiscTemplates title="Tree helper templates" sections={[
-            { title: "Trees", items: TREES },
+            { title: "Edge lists", items: TREE_EDGE_LISTS },
+            { title: "Centroid", items: TREE_CENTROIDS },
             { title: "Reroot DP", items: REROOT },
+            { title: "Hashing", items: TREE_HASHING },
           ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>

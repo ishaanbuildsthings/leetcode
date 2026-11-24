@@ -1,10 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/rollback-values/template.py
-# @operations: areUnioned checkpoint componentMax componentMin componentSum elementsInGroup find groups largestSize numComponents rollbackLastUnion rollbackTo roots size sizes unite
+# @operations: areUnioned componentMax componentMin componentSum elementsInGroup find groups largestSize numComponents parent rollbackLastUnion roots size sizes unite
 # @data-structure-type: dsu-rollback
 # @complexities:
 #   areUnioned: log(N)
-#   checkpoint: 1
 #   componentMax: log(N)
 #   componentMin: log(N)
 #   componentSum: log(N)
@@ -13,8 +12,8 @@
 #   groups: N*log(N)
 #   largestSize: 1
 #   numComponents: 1
+#   parent: 1
 #   rollbackLastUnion: 1
-#   rollbackTo: 1 amortized
 #   roots: N
 #   size: log(N)
 #   sizes: N*log(N)
@@ -90,14 +89,10 @@ class RollbackDSU:
         self.cmin[i] = lo
         self.cmax[i] = hi
 
-    # O(1), a point to roll back to later: how many unites can be undone right now
-    def checkpoint(self):
-        return len(self.stk)
-
-    # O(1) per unite undone, undoes every unite made since checkpoint() returned k
-    def rollbackTo(self, k):
-        while len(self.stk) > k:
-            self.rollbackLastUnion()
+    # O(1), i's parent pointer (i itself if it's a root): without path compression the pointers never change
+    # once set (until rolled back), so you can walk them and keep your own data per pointer
+    def parent(self, i):
+        return self.par[i]
 
     # O(log n), True if i and j are in the same component
     def areUnioned(self, i, j):

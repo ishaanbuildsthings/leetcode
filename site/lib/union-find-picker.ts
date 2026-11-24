@@ -15,14 +15,11 @@ export const UNION_FIND_TYPE_LABELS: Record<UnionFindType, string> = {
   hdlt: "Fully dynamic connectivity (HDLT)",
 };
 
-// what each extra in a folder name (compress-values-edges, ...) is called on a card
+// what each extra in a folder name (compress-values-members, ...) is called on a card
 export const UNION_FIND_EXTRA_LABELS: Record<string, string> = {
   values: "sum / min / max",
   merge: "your own merge",
   members: "member list",
-  edges: "edge counts",
-  potential: "weighted",
-  time: "time queries",
   grow: "add elements",
 };
 
@@ -77,17 +74,7 @@ export const UNION_FIND_OP_GROUPS: PickerOpGroup[] = [
           {
             id: "unite",
             signature: "unite(i, j)",
-            description: "Merge i's and j's components (in HDLT: adds an edge and returns its id, for removeEdge)",
-          },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
-          {
-            id: "uniteAUnderB",
-            signature: "uniteAUnderB(a, b)",
-            description: "Merge with b's root staying the root: no union by size, so you pick which side survives",
+            description: "Merge i's and j's components",
           },
         ],
       },
@@ -107,21 +94,9 @@ export const UNION_FIND_OP_GROUPS: PickerOpGroup[] = [
           },
           {
             id: "removeEdge",
-            signature: "removeEdge(e)",
-            description: "Delete an edge (by the id unite returned): its component can split in two",
+            signature: "removeEdge(i, j)",
+            description: "Delete one edge between i and j: its component can split in two",
           },
-          {
-            id: "removeEdgeBetween",
-            signature: "removeEdgeBetween(u, v)",
-            description: "Delete one edge between u and v: its component can split in two",
-          },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
-          { id: "checkpoint", signature: "checkpoint()", description: "A point to roll back to later" },
-          { id: "rollbackTo", signature: "rollbackTo(k)", description: "Undo every unite since checkpoint() returned k" },
         ],
       },
     ],
@@ -138,20 +113,15 @@ export const UNION_FIND_OP_GROUPS: PickerOpGroup[] = [
           { id: "numComponents", signature: "numComponents()", description: "How many components there are" },
           { id: "largestSize", signature: "largestSize()", description: "Size of the biggest component" },
           { id: "find", signature: "find(i)", description: "The representative (root) of i's component" },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
+          {
+            id: "parent",
+            signature: "parent(i)",
+            description: "i's parent pointer, to walk the merge tree yourself (only in union finds without path compression)",
+          },
           { id: "elementsInGroup", signature: "elementsInGroup(i)", description: "Every element in i's component" },
           { id: "groups", signature: "groups()", description: "Every component's elements" },
           { id: "sizes", signature: "sizes()", description: "Every component's size, biggest first" },
           { id: "roots", signature: "roots()", description: "One representative per component" },
-          {
-            id: "componentId",
-            signature: "componentId(u)",
-            description: "A handle shared by exactly u's component (good until the next change)",
-          },
         ],
       },
     ],
@@ -167,72 +137,9 @@ export const UNION_FIND_OP_GROUPS: PickerOpGroup[] = [
           { id: "componentMin", signature: "componentMin(i)", description: "Smallest value in i's component" },
           { id: "componentMax", signature: "componentMax(i)", description: "Largest value in i's component" },
           {
-            id: "edgeCount",
-            signature: "edgeCount(i)",
-            description: "How many unites touched i's component, merging or not (its edges)",
-          },
-          { id: "isTree", signature: "isTree(i)", description: "Does i's component have no cycle (edges = size − 1)" },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
-          {
             id: "componentData",
             signature: "componentData(i)",
             description: "Your own Node per component: fill in baseFn and combine, like the generic seg tree",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "weighted",
-    title: "Weighted (potential)",
-    tiers: [
-      {
-        kind: "common",
-        ops: [
-          {
-            id: "uniteWeighted",
-            signature: "uniteWeighted(i, j, w)",
-            description: "Merge, recording value[j] − value[i] = w",
-          },
-          {
-            id: "diff",
-            signature: "diff(i, j)",
-            description: "value[j] − value[i] from what's been recorded, or none if not together",
-          },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
-          {
-            id: "uniteAUnderBWeighted",
-            signature: "uniteAUnderBWeighted(a, b, w)",
-            description: "uniteAUnderB, recording value[b] − value[a] = w",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "history",
-    title: "History",
-    tiers: [
-      {
-        kind: "common",
-        ops: [
-          {
-            id: "firstConnectedTime",
-            signature: "firstConnectedTime(i, j)",
-            description: "After how many unites i and j first ended up together",
-          },
-          {
-            id: "connectedAt",
-            signature: "connectedAt(i, j, t)",
-            description: "Were i and j together after the first t unites",
           },
         ],
       },
@@ -262,11 +169,6 @@ export const UNION_FIND_OP_GROUPS: PickerOpGroup[] = [
           { id: "largestLtX", signature: "largestLtX(x)", description: "Largest value < x still in the set, from any x" },
           { id: "contains", signature: "contains(x)", description: "Is x still in the set" },
           { id: "popInValRange", signature: "popInValRange(lo, hi)", description: "Remove every value in [lo, hi] and return them in order" },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
           { id: "min", signature: "min()", description: "Smallest value still in the set" },
           { id: "max", signature: "max()", description: "Largest value still in the set" },
           { id: "popMin", signature: "popMin()", description: "Remove and return the smallest value" },

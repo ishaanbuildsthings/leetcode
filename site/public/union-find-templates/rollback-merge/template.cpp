@@ -1,18 +1,17 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/rollback-merge/template.cpp
-// @operations: areUnioned checkpoint componentData elementsInGroup find groups largestSize numComponents rollbackLastUnion rollbackTo roots size sizes unite
+// @operations: areUnioned componentData elementsInGroup find groups largestSize numComponents parent rollbackLastUnion roots size sizes unite
 // @data-structure-type: dsu-rollback
 // @complexities:
 //   areUnioned: log(N)
-//   checkpoint: 1
 //   componentData: log(N)
 //   elementsInGroup: N*log(N)
 //   find: log(N)
 //   groups: N*log(N)
 //   largestSize: 1
 //   numComponents: 1
+//   parent: 1
 //   rollbackLastUnion: 1
-//   rollbackTo: 1 amortized
 //   roots: N
 //   size: log(N)
 //   sizes: N*log(N)
@@ -114,13 +113,9 @@ struct RollbackDSU {
         data[i] = move(f.data);
     }
 
-    // O(1), a point to roll back to later: how many unites can be undone right now
-    int checkpoint() { return stk.size(); }
-
-    // O(1) per unite undone, undoes every unite made since checkpoint() returned k
-    void rollbackTo(int k) {
-        while ((int)stk.size() > k) rollbackLastUnion();
-    }
+    // O(1), i's parent pointer (i itself if it's a root): without path compression the pointers never change
+    // once set (until rolled back), so you can walk them and keep your own data per pointer
+    int parent(int i) { return par[i]; }
 
     // O(log n), true if i and j are in the same component
     bool areUnioned(int i, int j) { return find(i) == find(j); }

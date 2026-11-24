@@ -1,15 +1,13 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/hdlt/template.py
-# @operations: areUnioned componentId elementsInGroup groups numComponents removeEdge removeEdgeBetween roots size sizes unite
+# @operations: areUnioned elementsInGroup groups numComponents removeEdge roots size sizes unite
 # @data-structure-type: hdlt
 # @complexities:
 #   areUnioned: log(N)
-#   componentId: log(N)
 #   elementsInGroup: N*log(N)
 #   groups: N*log(N)
 #   numComponents: 1
 #   removeEdge: log^2(N) amortized
-#   removeEdgeBetween: log^2(N) amortized
 #   roots: N*log(N)
 #   size: log(N)
 #   sizes: N*log(N)
@@ -21,7 +19,7 @@
 #   tags: none
 #   other: vals[1*N]
 #   note: about log N levels, each an Euler-tour treap of up to 3N nodes, plus a few arrays per edge: n = 1e5 is roughly 80 MB in C++
-# (templates/union-find/hdlt.py, plus unite / areUnioned at the end)
+# (templates/union-find/hdlt.py, with edges named by their two ends: unite / removeEdge / areUnioned at the end)
 
 import random
 from collections import defaultdict
@@ -206,8 +204,8 @@ class DynamicConnectivity:
     Takes an array of vals (can be strings, tuples, etc) since it operates based on indices.
         dc = DynamicConnectivity(vals)
 
-    Public: addEdge, removeEdge, removeEdgeBetween, areConnected, size, numComponents,
-            componentId, roots, groups, sizes, elementsInGroup, and the .vals / .n fields.
+    Public: unite, removeEdge, areConnected, size, numComponents,
+            roots, groups, sizes, elementsInGroup, and the .vals / .n fields.
     Everything else is prefixed with _ and is internal bookkeeping.
 
     Python constant factor is brutal; treat this as the readable reference and use the C++ one under contest limits."""
@@ -341,8 +339,8 @@ class DynamicConnectivity:
             return True
         return self._replace(l - 1, u, v) if l > 0 else False
 
-    # O(log^2 n) amortized, returns an edge id you hand back to removeEdge
-    def addEdge(self, u, v):
+    # O(log^2 n) amortized, adds an edge and returns its internal id (unite is the public way in)
+    def _addEdge(self, u, v):
         e = self._newId()
         self._eu[e], self._ev[e], self._elevel[e], self._slot[e] = u, v, 0, -1
         key = self._pairKey(u, v)
@@ -361,8 +359,8 @@ class DynamicConnectivity:
             self._addArc(2 * e + 1, 0)
         return e
 
-    # O(log^2 n) amortized, true if the component actually split in two
-    def removeEdge(self, e):
+    # O(log^2 n) amortized, removes the edge with this internal id; true if the component actually split in two
+    def _removeEdgeById(self, e):
         u, v, l, s = self._eu[e], self._ev[e], self._elevel[e], self._slot[e]
         split = False
         if s != -1:
@@ -389,14 +387,6 @@ class DynamicConnectivity:
         self._freeIds.append(e)
         return split
 
-    # O(log^2 n) amortized, removes one edge between u and v, false if there was none
-    def removeEdgeBetween(self, u, v):
-        ids = self._byPair.get(self._pairKey(u, v))
-        if not ids:
-            return False
-        self.removeEdge(ids[-1])
-        return True
-
     # O(log n), true if u and v are in the same component
     def areConnected(self, u, v):
         return self._forest[0].sameTree(u, v)
@@ -410,39 +400,49 @@ class DynamicConnectivity:
         return self._comps
 
     # O(log n), opaque handle shared by exactly the vertices of u's component, invalidated by the next update
-    def componentId(self, u):
+    def _componentId(self, u):
         return self._forest[0].rootOf(u)
 
     # O(n log n), one vertex index per component
     def roots(self):
         rep = {}
         for u in range(self.n):
-            rep.setdefault(self.componentId(u), u)
+            rep.setdefault(self._componentId(u), u)
         return list(rep.values())
 
     # O(n log n), the values grouped by component
     def groups(self):
         g = defaultdict(list)
         for u in range(self.n):
-            g[self.componentId(u)].append(self.vals[u])
+            g[self._componentId(u)].append(self.vals[u])
         return list(g.values())
 
     # O(n log n), the sizes of all components, biggest first, e.g. [4, 2, 1]
     def sizes(self):
         cnt = defaultdict(int)
         for u in range(self.n):
-            cnt[self.componentId(u)] += 1
+            cnt[self._componentId(u)] += 1
         return sorted(cnt.values(), reverse=True)
 
     # O(n log n), the values of every element sitting in the same component as index u
     def elementsInGroup(self, u):
-        r = self.componentId(u)
-        return [self.vals[j] for j in range(self.n) if self.componentId(j) == r]
+        r = self._componentId(u)
+        return [self.vals[j] for j in range(self.n) if self._componentId(j) == r]
 
-    # same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
-    # returns its id for removeEdge
+    # O(log^2 n) amortized, adds an edge between u and v (even if they're already together, and even a second copy of
+    # the same edge); True if it joined two components
     def unite(self, u, v):
-        return self.addEdge(u, v)
+        merged = not self.areConnected(u, v)
+        self._addEdge(u, v)
+        return merged
+
+    # O(log^2 n) amortized, removes one edge between u and v (with several copies, one of them); True if its component
+    # split in two. Raises KeyError if there is no edge between u and v
+    def removeEdge(self, u, v):
+        ids = self._byPair.get(self._pairKey(u, v))
+        if not ids:
+            raise KeyError(f"removeEdge: no edge between {u} and {v}")
+        return self._removeEdgeById(ids[-1])
 
     # same as areConnected (the name the other union finds use)
     def areUnioned(self, u, v):

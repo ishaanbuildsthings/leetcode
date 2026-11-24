@@ -5,6 +5,8 @@ import { MiscTemplates } from "@/components/TemplatePicker";
 import { BUBBLE_SORT } from "@/lib/bubble-sort";
 import { CHESS } from "@/lib/chess";
 import { BISECTS } from "@/lib/bisects";
+import { STACKS } from "@/lib/stacks";
+import { MOS } from "@/lib/mos";
 import { NEXT_PERMUTATION } from "@/lib/next-permutation";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -37,6 +39,8 @@ export default async function MiscTemplatesPage() {
             { title: "Bubble Sort", items: BUBBLE_SORT },
             { title: "Next Permutation", items: NEXT_PERMUTATION },
             { title: "Bisects", items: BISECTS },
+            { title: "Stacks", items: STACKS },
+            { title: "Mo's", items: MOS },
             { title: "Chess", items: CHESS },
           ]} publicBase="/range-query-templates" />
       </div>

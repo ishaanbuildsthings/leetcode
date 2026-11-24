@@ -212,13 +212,8 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "tuple values with a custom comparator",
     "interval tree",
     "multiset hashing",
-    "centroid decomposition",
-    "custom hash tables",
-    "Mo's page, Mo's with updates",
-    "all prime / prime factor stuff",
     "DnC DP golden",
     "alien trick golden",
-    "LIS things",
   ],
 };
 

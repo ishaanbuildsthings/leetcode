@@ -212,6 +212,12 @@ for (const name of ["KnightDistance.py", "KnightDistance.cpp"]) fs.copyFileSync(
 const bisectsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bisects");
 fs.mkdirSync(path.join(publicDir, "_bisects"));
 for (const name of ["bisects.py", "bisects.cpp"]) fs.copyFileSync(path.join(bisectsDir, name), path.join(publicDir, "_bisects", name));
+const stacksDir = path.resolve(siteDir, "../templates/ultimate-template-tool/stacks");
+fs.mkdirSync(path.join(publicDir, "_stacks"));
+for (const name of ["monotonicStack.py", "monotonicStack.cpp"]) fs.copyFileSync(path.join(stacksDir, name), path.join(publicDir, "_stacks", name));
+const mosDir = path.resolve(siteDir, "../templates/ultimate-template-tool/mos");
+fs.mkdirSync(path.join(publicDir, "_mos"));
+for (const name of ["mosAndHilbert.py", "mosAndHilbert.cpp"]) fs.copyFileSync(path.join(mosDir, name), path.join(publicDir, "_mos", name));
 
 // the combinatorics templates (the Combinatorics tab)
 const combinatoricsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/combinatorics");

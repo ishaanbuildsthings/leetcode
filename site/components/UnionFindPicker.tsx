@@ -56,7 +56,7 @@ const UNION_FIND_CATALOG: PickerCatalog<UnionFindTemplate> = {
     ...(t.memory.other.arrays.length ? [{ id: "other" as const, label: "Extra arrays" }] : []),
   ],
   layoutLabel: () => null,
-  updateOps: new Set(["rollbackLastUnion", "rollbackTo"]),
+  updateOps: new Set(["rollbackLastUnion"]),
   varName: (t) => (t.dataStructureType === "remove-only-set" ? "s" : "dsu"),
   ctorNotes: CTOR_ARG_NOTES,
   ctorComments: (t) =>

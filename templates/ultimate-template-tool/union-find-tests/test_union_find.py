@@ -51,9 +51,6 @@ class Brute:
         n = len(vals)
         self.vals = list(vals)
         self.comp = list(range(n))  # a label per element
-        self.val = [0] * n  # the potentials, made consistent
-        self.edges = {i: 0 for i in range(n)}
-        self.hist = [self.comp[:]]  # comp after each unite call
         self.snaps = []
 
     def n(self):
@@ -62,48 +59,24 @@ class Brute:
     def members(self, i):
         return [k for k in range(self.n()) if self.comp[k] == self.comp[i]]
 
-    def unite(self, i, j, w, roll):
+    def unite(self, i, j, roll):
         if roll:
-            self.snaps.append((self.comp[:], self.val[:], dict(self.edges)))
-        merged = self.comp[i] != self.comp[j]
-        if not merged:
-            self.edges[self.comp[i]] += 1
-        else:
-            ci, cj, shift = self.comp[i], self.comp[j], self.val[i] + w - self.val[j]
-            for k in range(self.n()):
-                if self.comp[k] == cj:
-                    self.comp[k] = ci
-                    self.val[k] += shift
-            self.edges[ci] += self.edges.pop(cj) + 1
-        self.hist.append(self.comp[:])
-        return merged
+            self.snaps.append(self.comp[:])
+        ci, cj = self.comp[i], self.comp[j]
+        if ci == cj:
+            return False
+        self.comp = [ci if c == cj else c for c in self.comp]
+        return True
 
     def rollback(self):
-        comp, val, edges = self.snaps.pop()
-        m = len(comp)
-        self.comp = comp + list(range(m, self.n()))  # (elements added since: back on their own)
-        self.val = val + [0] * (self.n() - m)
-        self.edges = edges
-        for k in range(m, self.n()):
-            self.edges[k] = 0
+        comp = self.snaps.pop()
+        self.comp = comp + list(range(len(comp), self.n()))  # (elements added since: back on their own)
 
     def add(self, v):
         k = self.n()
         self.vals.append(v)
         self.comp.append(k)
-        self.val.append(0)
-        self.edges[k] = 0
         return k
-
-    def first_time(self, i, j):
-        if i == j:
-            return 0
-        if self.comp[i] != self.comp[j]:
-            return -1
-        for t, c in enumerate(self.hist):
-            if i < len(c) and j < len(c) and c[i] == c[j]:
-                return t
-        raise AssertionError("never connected")
 
 
 def fmt(x):
@@ -136,20 +109,14 @@ def script(name, seed):
     lines, outs = [], []
     roll = mode == "rollback"
     ops = ["unite"] * 6 + ["find", "areUnioned", "size", "numComponents", "largestSize", "roots", "sizes", "groups", "elementsInGroup"]
-    if mode == "nocompress":
-        ops += ["uniteAUnderB"] * 2
     if roll:
-        ops += ["rollback"] * 3 + ["checkpoint", "rollbackTo"]
+        ops += ["rollback"] * 3
     if has("values"):
         ops += ["componentSum", "componentMin", "componentMax"]
     if has("merge"):
         ops += ["componentData"]
-    if has("edges"):
-        ops += ["edgeCount", "isTree"]
-    if has("potential"):
-        ops += ["diff"] * 2
-    if has("time"):
-        ops += ["firstConnectedTime", "connectedAt"]
+    if mode != "compress":
+        ops += ["parent"]
     if has("grow"):
         ops += ["add"] * 2
     for _ in range(rnd.randint(40, 160)):
@@ -160,14 +127,12 @@ def script(name, seed):
         if op in ("rollback",) and not b.snaps:
             op = "unite" if n else "numComponents"
         i, j = (rnd.randrange(n), rnd.randrange(n)) if n else (0, 0)
-        w = rnd.randint(-9, 9)
         what = f"{op} {i} {j}"
         members = b.members(i) if n else []
         mv = [b.vals[k] for k in members]
-        if op in ("unite", "uniteAUnderB"):
-            what += f" {w}" if has("potential") else ""
-            got = getattr(d, op + ("Weighted" if has("potential") else ""))(*((i, j, w) if has("potential") else (i, j)))
-            want = b.unite(i, j, w, roll and op == "unite")
+        if op == "unite":
+            got = d.unite(i, j)
+            want = b.unite(i, j, roll)
             assert (got is not None and got is not False) == want, (name, what, got, want)
         elif op == "find":
             what = f"find {i}"
@@ -203,41 +168,16 @@ def script(name, seed):
         elif op in ("componentSum", "componentMin", "componentMax"):
             what, got = f"{op} {i}", getattr(d, op)(i)
             assert got == {"componentSum": sum, "componentMin": min, "componentMax": max}[op](mv), (name, what, got)
+        elif op == "parent":
+            what, got = f"parent {i}", d.parent(i)
+            assert (got == i) == (d.find(i) == i) and b.comp[got] == b.comp[i], (name, what, got)
         elif op == "componentData":
             what, got = f"componentData {i}", d.componentData(i)
             assert got == (sum(mv), max(mv)), (name, what, got)
-        elif op == "edgeCount":
-            what, got = f"edgeCount {i}", d.edgeCount(i)
-            assert got == b.edges[b.comp[i]], (name, what, got)
-        elif op == "isTree":
-            what, got = f"isTree {i}", d.isTree(i)
-            assert got == (b.edges[b.comp[i]] == len(members) - 1), (name, what, got)
-        elif op == "diff":
-            got = d.diff(i, j)
-            assert got == (b.val[j] - b.val[i] if b.comp[i] == b.comp[j] else None), (name, what, got)
-        elif op == "firstConnectedTime":
-            got = d.firstConnectedTime(i, j)
-            assert got == b.first_time(i, j), (name, what, got, b.first_time(i, j))
-        elif op == "connectedAt":
-            t = rnd.randint(0, len(b.hist) + 1)
-            what += f" {t}"
-            got = d.connectedAt(i, j, t)
-            f = b.first_time(i, j)
-            assert got == (f != -1 and f <= t), (name, what, got)
         elif op == "rollback":
             what = op
             d.rollbackLastUnion()
             b.rollback()
-            got = "ok"
-        elif op == "checkpoint":
-            what, got = op, d.checkpoint()
-            assert got == len(b.snaps), (name, what, got)
-        elif op == "rollbackTo":
-            k = rnd.randint(0, len(b.snaps))
-            what = f"rollbackTo {k}"
-            d.rollbackTo(k)
-            while len(b.snaps) > k:
-                b.rollback()
             got = "ok"
         elif op == "add":
             v = rnd.randint(-20, 20)
@@ -246,8 +186,10 @@ def script(name, seed):
         lines.append(what)
         outs.append(fmt(got))
     if roll:  # rolling all the way back leaves every element alone again
-        d.rollbackTo(0)
-        assert d.numComponents() == b.n() and all(d.find(k) == k for k in range(b.n())), (name, "rollbackTo 0")
+        while b.snaps:
+            d.rollbackLastUnion()
+            b.rollback()
+        assert d.numComponents() == b.n() and all(d.find(k) == k for k in range(b.n())), (name, "rolled back to the start")
     text = f"{n0}\n{' '.join(map(str, vals))}\n" + "\n".join(lines) + "\n"
     return text, outs
 
@@ -266,13 +208,13 @@ def brute_labels(n, pairs):
 
 
 def hdlt_script(seed, stress=False):
-    """random adds / removes (stress: hundreds of copies of a few pairs, removed one by one), every answer checked
-    against connectivity recomputed from the live edges; returns (C++ driver input, printed lines)"""
+    """random unites / removeEdges (stress: hundreds of copies of a few pairs, removed one by one), every answer
+    checked against connectivity recomputed from the live edges; returns (C++ driver input, printed lines)"""
     rnd = random.Random(seed)
     ns = load_py("hdlt")
     n = rnd.randint(2, 5) if stress else rnd.randint(1, 9)
     d = ns["DynamicConnectivity"](list(range(n)))
-    live = {}  # edge id -> (a, b)
+    live = []  # the edges still in, as (a, b); copies of a pair appear several times
     lines, outs = [], []
 
     def pick():
@@ -280,12 +222,12 @@ def hdlt_script(seed, stress=False):
             return rnd.choice([(0, 1), (1, 0), (0, n - 1), (1, 1)])
         return rnd.randrange(n), rnd.randrange(n)
 
-    def removedBy(a, b):  # the id removeEdgeBetween is about to take, read off the template
-        ids = d._byPair.get(d._pairKey(a, b))
-        return ids[-1] if ids else None
+    def together(a, b):
+        lab = brute_labels(n, live)
+        return lab[a] == lab[b]
 
     def check(where):
-        lab = brute_labels(n, live.values())
+        lab = brute_labels(n, live)
         assert d.numComponents() == len(set(lab)), (seed, where, "numComponents")
         for x in range(n):
             for y in range(n):
@@ -294,41 +236,45 @@ def hdlt_script(seed, stress=False):
 
     if stress:
         plan = ["add"] * rnd.randint(200, 400)
-        plan += [rnd.choice(["rm", "rmb"]) for _ in range(len(plan) + 5)]
+        plan += ["rm"] * (len(plan) + 5)
     else:
-        plan = [rnd.choice(["add"] * 4 + ["rm"] * 2 + ["rmb", "conn", "size", "comps", "sizes", "groups"]) for _ in range(150)]
+        plan = [rnd.choice(["add"] * 4 + ["rm"] * 3 + ["missing", "conn", "size", "comps", "sizes", "groups"]) for _ in range(150)]
     k = 0
     while k < len(plan):
         op = plan[k]
         k += 1
         if stress and k == len(plan) and live:
-            plan.append(rnd.choice(["rm", "rmb"]))  # keep removing until every copy is gone
-        before = d.numComponents()
+            plan.append("rm")  # keep removing until every copy is gone
         if op == "add":
             a, b = pick()
-            e = d.addEdge(a, b)
-            assert e not in live, (seed, "id reused while live")
-            live[e] = (a, b)
+            want = not together(a, b)
+            got = d.unite(a, b)
+            assert got == want, (seed, k, "unite result")
+            live.append((a, b))
             lines.append(f"add {a} {b}")
-            outs.append(str(e))
+            outs.append(fmt(got))
         elif op == "rm":
             if not live:
                 continue
-            e = rnd.choice(sorted(live))
-            split = d.removeEdge(e)
-            del live[e]
-            assert split == (d.numComponents() == before + 1), (seed, k, "removeEdge split")
-            lines.append(f"rm {e}")
-            outs.append(fmt(split))
-        elif op == "rmb":
-            a, b = pick() if (rnd.random() < 0.3 or not live) else live[rnd.choice(sorted(live))]
-            e = removedBy(a, b)
-            got = d.removeEdgeBetween(a, b)
-            assert got == (e is not None), (seed, k, "removeEdgeBetween result")
-            if e is not None:
-                assert sorted(live.pop(e)) == sorted((a, b)), (seed, k, "removeEdgeBetween took an edge of another pair")
-            lines.append(f"rmb {a} {b}")
+            a, b = rnd.choice(live)
+            if rnd.random() < 0.5:
+                a, b = b, a
+            live.remove((a, b) if (a, b) in live else (b, a))
+            want = not together(a, b)
+            got = d.removeEdge(a, b)
+            assert got == want, (seed, k, "removeEdge split")
+            lines.append(f"rm {a} {b}")
             outs.append(fmt(got))
+        elif op == "missing":  # no edge between them: has to raise, and change nothing
+            a, b = pick()
+            if (a, b) in live or (b, a) in live:
+                continue
+            try:
+                d.removeEdge(a, b)
+            except KeyError:
+                pass
+            else:
+                raise AssertionError((seed, k, "removeEdge on a missing edge should raise"))
         elif op == "conn":
             a, b = rnd.randrange(n), rnd.randrange(n)
             lines.append(f"conn {a} {b}")
@@ -341,12 +287,12 @@ def hdlt_script(seed, stress=False):
             lines.append("comps")
             outs.append(str(d.numComponents()))
         elif op == "sizes":
-            lab = brute_labels(n, live.values())
+            lab = brute_labels(n, live)
             assert d.sizes() == sorted((lab.count(r) for r in set(lab)), reverse=True), (seed, k, "sizes")
             lines.append("sizes")
             outs.append(fmt(d.sizes()))
         elif op == "groups":
-            lab = brute_labels(n, live.values())
+            lab = brute_labels(n, live)
             want = sorted(sorted(x for x in range(n) if lab[x] == r) for r in set(lab))
             assert sorted(sorted(g) for g in d.groups()) == want, (seed, k, "groups")
             lines.append("groups")
@@ -362,9 +308,8 @@ int main() {
     DynamicConnectivity<long long> d(a);
     string op;
     while (cin >> op) {
-        if (op == "add") { int x, y; cin >> x >> y; cout << d.unite(x, y) << "\\n"; }
-        else if (op == "rm") { int e; cin >> e; cout << (int)d.removeEdge(e) << "\\n"; }
-        else if (op == "rmb") { int x, y; cin >> x >> y; cout << (int)d.removeEdgeBetween(x, y) << "\\n"; }
+        if (op == "add") { int x, y; cin >> x >> y; cout << (int)d.unite(x, y) << "\\n"; }
+        else if (op == "rm") { int x, y; cin >> x >> y; cout << (int)d.removeEdge(x, y) << "\\n"; }
         else if (op == "conn") { int x, y; cin >> x >> y; cout << (int)d.areUnioned(x, y) << "\\n"; }
         else if (op == "size") { int x; cin >> x; cout << d.size(x) << "\\n"; }
         else if (op == "comps") cout << d.numComponents() << "\\n";
@@ -379,6 +324,9 @@ int main() {
         }
         else { cerr << "unknown op " << op << "\\n"; return 1; }
     }
+    try { for (int t = 0; t < 100000; t++) d.removeEdge(0, 0); } catch (const out_of_range&) { return 0; }  // (removes the copies left, then throws)
+    cerr << "removeEdge on a missing edge should throw\\n";
+    return 1;
 }
 """
 
@@ -484,12 +432,8 @@ def driver(name):
     mode, feats = parse(name)
     has = feats.__contains__
     cls = CLASS[mode] + ("" if has("merge") else "<long long>")
-    W = ", w" if has("potential") else ""
-    rw = " >> w" if has("potential") else ""
-    decl = " long long w;" if has("potential") else ""
-    U, UB = ("uniteWeighted", "uniteAUnderBWeighted") if has("potential") else ("unite", "uniteAUnderB")
     vec = 'for (size_t k = 0; k < x.size(); k++) cout << (k ? " " : "") << x[k]; cout << "\\n";'
-    c = [f"    if (op == \"unite\") {{ int i, j;{decl} cin >> i >> j{rw}; auto x = d.{U}(i, j{W}); " +
+    c = ["    if (op == \"unite\") { int i, j; cin >> i >> j; auto x = d.unite(i, j); " +
          ('if (x.first < 0) cout << "none\\n"; else cout << x.first << " " << x.second << "\\n"; }' if mode == "nocompress" else "cout << (int)x << \"\\n\"; }"),
          "    else if (op == \"find\") { int i; cin >> i; cout << d.find(i) << \"\\n\"; }",
          "    else if (op == \"areUnioned\") { int i, j; cin >> i >> j; cout << (int)d.areUnioned(i, j) << \"\\n\"; }",
@@ -501,24 +445,14 @@ def driver(name):
          "    else if (op == \"groups\") { auto g = d.groups(); for (size_t a = 0; a < g.size(); a++) { if (a) cout << \"|\"; "
          "for (size_t k = 0; k < g[a].size(); k++) cout << (k ? \" \" : \"\") << g[a][k]; } cout << \"\\n\"; }",
          f"    else if (op == \"elementsInGroup\") {{ int i; cin >> i; auto x = d.elementsInGroup(i); {vec} }}"]
-    if mode == "nocompress":
-        c.append(f"    else if (op == \"uniteAUnderB\") {{ int i, j;{decl} cin >> i >> j{rw}; cout << (int)d.{UB}(i, j{W}) << \"\\n\"; }}")
     if mode == "rollback":
-        c += ["    else if (op == \"rollback\") { d.rollbackLastUnion(); cout << \"ok\\n\"; }",
-              "    else if (op == \"checkpoint\") cout << d.checkpoint() << \"\\n\";",
-              "    else if (op == \"rollbackTo\") { int k; cin >> k; d.rollbackTo(k); cout << \"ok\\n\"; }"]
+        c += ["    else if (op == \"rollback\") { d.rollbackLastUnion(); cout << \"ok\\n\"; }"]
+    if mode != "compress":
+        c.append("    else if (op == \"parent\") { int i; cin >> i; cout << d.parent(i) << \"\\n\"; }")
     if has("values"):
         c += [f"    else if (op == \"{f}\") {{ int i; cin >> i; cout << d.{f}(i) << \"\\n\"; }}" for f in ("componentSum", "componentMin", "componentMax")]
     if has("merge"):
         c.append("    else if (op == \"componentData\") { int i; cin >> i; auto x = d.componentData(i); cout << x.tot << \" \" << x.mx << \"\\n\"; }")
-    if has("edges"):
-        c += ["    else if (op == \"edgeCount\") { int i; cin >> i; cout << d.edgeCount(i) << \"\\n\"; }",
-              "    else if (op == \"isTree\") { int i; cin >> i; cout << (int)d.isTree(i) << \"\\n\"; }"]
-    if has("potential"):
-        c.append("    else if (op == \"diff\") { int i, j; cin >> i >> j; auto x = d.diff(i, j); if (!x) cout << \"none\\n\"; else cout << *x << \"\\n\"; }")
-    if has("time"):
-        c += ["    else if (op == \"firstConnectedTime\") { int i, j; cin >> i >> j; cout << d.firstConnectedTime(i, j) << \"\\n\"; }",
-              "    else if (op == \"connectedAt\") { int i, j, t; cin >> i >> j >> t; cout << (int)d.connectedAt(i, j, t) << \"\\n\"; }"]
     if has("grow"):
         c.append("    else if (op == \"add\") { long long v; cin >> v; cout << d.add(v) << \"\\n\"; }")
     c.append("    else { cerr << \"unknown op \" << op << \"\\n\"; return 1; }")

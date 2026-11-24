@@ -176,6 +176,8 @@ export type FillIn = {
   variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "title" | "file" | "ops">> };
   // rewrites the loaded file before it's shown and copied (the Eertree picker keeps only the ticked ops' code)
   transform?: (code: string) => string;
+  // golden references to read alongside it: a button each under the drawer's title, opening it in a drawer on top
+  references?: FillIn[];
 };
 
 // a section of a templates tab without a picker
@@ -868,6 +870,7 @@ export function FillInDrawer({
   const code = raw && fillIn.transform ? fillIn.transform(raw) : raw;
   // how to construct it, read from the code on show (so every example level and version gets its own line)
   const construct = code ? fillInConstruct(code, lang, fillIn.ops) : null;
+  const [reference, setReference] = useState<FillIn | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -880,10 +883,11 @@ export function FillInDrawer({
   }, [url]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // (with a reference open on top, Escape closes only that one)
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !reference && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, reference]);
 
   const chooseLang = setLang;
   const chooseLevel = setLevel;
@@ -901,6 +905,20 @@ export function FillInDrawer({
         <div className="flex items-start justify-between gap-4 border-b border-border p-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{fillIn.label}</p>
+            {base.references && base.references.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {base.references.map((r) => (
+                  <button
+                    key={`${r.folder}/${r.file}`}
+                    type="button"
+                    onClick={() => setReference(r)}
+                    className="rounded-md border border-border px-2 py-0.5 text-xs text-foreground hover:bg-muted"
+                  >
+                    Golden reference: {r.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-border text-xs" role="group" aria-label="Language">
@@ -1014,6 +1032,7 @@ export function FillInDrawer({
           </pre>
         </div>
       </div>
+      {reference && <FillInDrawer catalog={catalog} fillIn={reference} onClose={() => setReference(null)} />}
     </div>
   );
 }

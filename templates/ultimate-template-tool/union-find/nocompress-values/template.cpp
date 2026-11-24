@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/nocompress-values/template.cpp
-// @operations: areUnioned componentMax componentMin componentSum elementsInGroup find groups largestSize numComponents roots size sizes unite uniteAUnderB
+// @operations: areUnioned componentMax componentMin componentSum elementsInGroup find groups largestSize numComponents parent roots size sizes unite
 // @data-structure-type: dsu-nocompress
 // @complexities:
 //   areUnioned: log(N)
@@ -12,18 +12,17 @@
 //   groups: N*log(N)
 //   largestSize: 1
 //   numComponents: 1
+//   parent: 1
 //   roots: N
 //   size: log(N)
 //   sizes: N*log(N)
 //   unite: log(N)
-//   uniteAUnderB: log(N)
 //   build: N
 // @memory:
 //   layout: none
 //   node: par[1*N] sz[1*N]
 //   tags: none
 //   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N]
-//   note: uniteAUnderB skips union by size, so it can build a chain N deep: every log(N) above (and the N*log(N) of groups / elementsInGroup) holds only if you never call it, otherwise those calls are O(N) (O(N^2))
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -51,15 +50,14 @@ struct DSUNoCompress {
     }
 
     // O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    // merge only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
+    // merge
     int find(int i) {
         while (par[i] != i) i = par[i];
         return i;
     }
 
     // O(log n), merges the two components, returns {winner, loser}: the new root and the old root now under it,
-    // or {-1, -1} if they were already together only O(log n) if you never call uniteAUnderB: forced unions can build a
-    // chain, then this is O(n)
+    // or {-1, -1} if they were already together
     pair<int, int> unite(int i, int j) {
         i = find(i), j = find(j);
         if (i == j) {
@@ -76,28 +74,14 @@ struct DSUNoCompress {
         return {i, j};
     }
 
-    // O(log n), forces a's root under b's root, false if already together
-    // skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
-    // walks up is O(n); their O(log n) holds only if you never force unions
-    bool uniteAUnderB(int a, int b) {
-        a = find(a), b = find(b);
-        if (a == b) return false;
-        par[a] = b;
-        sz[b] += sz[a];
-        comps--;
-        mx = max(mx, sz[b]);
-        csum[b] += csum[a];
-        cmin[b] = min(cmin[b], cmin[a]);
-        cmax[b] = max(cmax[b], cmax[a]);
-        return true;
-    }
+    // O(1), i's parent pointer (i itself if it's a root): without path compression the pointers never change
+    // once set, so you can walk them and keep your own data per pointer
+    int parent(int i) { return par[i]; }
 
     // O(log n), true if i and j are in the same component
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     bool areUnioned(int i, int j) { return find(i) == find(j); }
 
     // O(log n), how many elements are in i's component
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     int size(int i) { return sz[find(i)]; }
 
     // O(1), how many components exist right now
@@ -124,7 +108,6 @@ struct DSUNoCompress {
     }
 
     // O(n log n), groupsArr[rt] = values whose root is rt, empty if rt is not a root
-    // only O(n log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n^2)
     vector<vector<T>> groups() {
         int n = par.size();
         vector<vector<T>> groupsArr(n);
@@ -133,7 +116,6 @@ struct DSUNoCompress {
     }
 
     // O(n log n), the values of every element sitting in the same group as index i
-    // only O(n log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n^2)
     vector<T> elementsInGroup(int i) {
         int rt = find(i);
         vector<T> res;
@@ -143,14 +125,11 @@ struct DSUNoCompress {
     }
 
     // O(log n), the sum of the values in i's component
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     long long componentSum(int i) { return csum[find(i)]; }
 
     // O(log n), the smallest value in i's component
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     T componentMin(int i) { return cmin[find(i)]; }
 
     // O(log n), the largest value in i's component
-    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     T componentMax(int i) { return cmax[find(i)]; }
 };
