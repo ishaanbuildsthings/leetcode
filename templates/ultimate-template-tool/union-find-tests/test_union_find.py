@@ -7,6 +7,7 @@ C++ template (built with sanitizers), which has to print exactly what the Python
     python3 test_union_find.py rollback     # folders whose name contains one of these
     python3 test_union_find.py --budget 150 # stop starting C++ builds after this many seconds (rerun to continue)
 
+remove-only-set gets its own scripts too: random removes and searches (x often outside 0..n-1) against a plain set.
 hdlt (fully dynamic connectivity) gets its own scripts: edges added and removed at random, many parallel copies of the
 same pair among them, checked against connectivity recomputed from the live edges, then replayed on the C++ one.
 """
@@ -389,6 +390,104 @@ def hdlt_scripts():
 
 
 # ------------------------------------------------------------------------------------------------ C++ driver
+# ------------------------------------------------------------------------------------------------ remove-only set
+ROS_OPS = ["contains", "size", "remove", "smallestGteX", "smallestGtX", "largestLteX", "largestLtX", "min", "max",
+           "popMin", "popMax", "popInValRange"]
+
+
+def ros_script(seed):
+    """remove-only-set: random ops (x often outside 0..n-1) checked against a plain Python set"""
+    rnd = random.Random(seed)
+    ns = load_py("remove-only-set")
+    if rnd.random() < 0.5:
+        n = rnd.choice([0, 1, 2, rnd.randint(3, 12), rnd.randint(30, 80)])
+        start, second = list(range(n)), f"all {n}"
+        s = ns["RemoveOnlySet"](n)
+    else:
+        lo = rnd.randint(-40, 10)
+        start = [rnd.randint(lo, lo + rnd.choice([0, 3, 15, 60])) for _ in range(rnd.choice([0, 1, rnd.randint(2, 50)]))]
+        second = f"some {len(start)} " + " ".join(map(str, start))
+        s = ns["RemoveOnlySet"](values=start)
+    b = set(start)
+    span = (min(b, default=0) - 3, max(b, default=0) + 3)
+    lines, outs = [], []
+
+    def pick():
+        return rnd.randint(*span)
+
+    for _ in range(rnd.randint(20, 4 * len(b) + 40)):
+        op = rnd.choice(ROS_OPS + ["remove"] * 4)
+        if op in ("min", "max", "popMin", "popMax") and not b:
+            try:
+                getattr(s, op)()
+            except IndexError:
+                continue
+            raise AssertionError(f"{op} on an empty set should raise")
+        if op in ("size", "min", "max", "popMin", "popMax"):
+            what, got = op, getattr(s, op)()
+            want = {"size": len(b), "min": min(b, default=None), "max": max(b, default=None),
+                    "popMin": min(b, default=None), "popMax": max(b, default=None)}[op]
+            if op in ("popMin", "popMax"):
+                b.discard(want)
+        elif op == "popInValRange":
+            lo, hi = pick(), pick()
+            what, got = f"{op} {lo} {hi}", getattr(s, op)(lo, hi)
+            gone = sorted(x for x in b if lo <= x <= hi)
+            b -= set(gone)
+            want = gone
+        else:
+            x = pick()
+            what, got = f"{op} {x}", getattr(s, op)(x)
+            above = [y for y in b if y > x]
+            below = [y for y in b if y < x]
+            want = {"contains": x in b, "remove": int(x in b),
+                    "smallestGteX": x if x in b else min(above, default=None), "smallestGtX": min(above, default=None),
+                    "largestLteX": x if x in b else max(below, default=None), "largestLtX": max(below, default=None)}[op]
+            if op == "remove":
+                b.discard(x)
+        assert got == want, (what, got, want)
+        lines.append(what)
+        outs.append(fmt(got))
+    return f"{second}\n\n" + "\n".join(lines) + "\n", outs
+
+
+ROS_DRIVER = """
+int main() {
+    string mode; int k; cin >> mode >> k;
+    vector<int> values;
+    if (mode == "some") { values.resize(k); for (auto& x : values) cin >> x; }
+    RemoveOnlySet s = mode == "all" ? RemoveOnlySet(k) : RemoveOnlySet(values);
+    auto one = [&](int x) { if (x == s.NONE) cout << "none\\n"; else cout << x << "\\n"; };
+    string op;
+    while (cin >> op) {
+        int x = 0, y = 0;
+        if (op == "size") cout << s.size() << "\\n";
+        else if (op == "min") one(s.min());
+        else if (op == "max") one(s.max());
+        else if (op == "popMin") one(s.popMin());
+        else if (op == "popMax") one(s.popMax());
+        else if (op == "popInValRange") {
+            cin >> x >> y; auto r = s.popInValRange(x, y);
+            for (size_t k = 0; k < r.size(); k++) cout << (k ? " " : "") << r[k];
+            cout << "\\n";
+        }
+        else if (op == "contains") { cin >> x; cout << (int)s.contains(x) << "\\n"; }
+        else if (op == "remove") { cin >> x; cout << s.remove(x) << "\\n"; }
+        else if (op == "smallestGteX") { cin >> x; one(s.smallestGteX(x)); }
+        else if (op == "smallestGtX") { cin >> x; one(s.smallestGtX(x)); }
+        else if (op == "largestLteX") { cin >> x; one(s.largestLteX(x)); }
+        else if (op == "largestLtX") { cin >> x; one(s.largestLtX(x)); }
+        else { cerr << "unknown op " << op << "\\n"; return 1; }
+    }
+    try { RemoveOnlySet e(0); e.min(); cerr << "min on empty should throw\\n"; return 1; } catch (const out_of_range&) {}
+}
+"""
+
+
+def ros_scripts():
+    return [(seed, ros_script(seed)) for seed in range(40)]
+
+
 def driver(name):
     mode, feats = parse(name)
     has = feats.__contains__
@@ -439,6 +538,8 @@ def cpp_source(name):
     text = open(os.path.join(DIR, name, "template.cpp")).read()
     if name == "hdlt":
         return text + HDLT_DRIVER
+    if name == "remove-only-set":
+        return text + ROS_DRIVER
     mode, _ = parse(name)
     k = text.index(f"struct {CLASS[mode]} {{")
     k = text.rfind("\n", 0, text.rfind("template <typename T>", 0, k) if "template <typename T>" in text[:k] else k)
@@ -474,10 +575,17 @@ def main():
     args = sys.argv[1:]
     budget = float(args[args.index("--budget") + 1]) if "--budget" in args else 1e9
     want = [a for k, a in enumerate(args) if not a.startswith("--") and (k == 0 or args[k - 1] != "--budget")]
-    names = sorted(d for d in os.listdir(DIR) if (d.split("-")[0] in CLASS or d == "hdlt") and (not want or any(w in d for w in want)))
+    names = sorted(d for d in os.listdir(DIR) if (d.split("-")[0] in CLASS or d in ("hdlt", "remove-only-set")) and (not want or any(w in d for w in want)))
     start = time.time()
     scripts = {}
     for name in names:
+        if name == "remove-only-set":
+            try:
+                scripts[name] = ros_scripts()
+            except AssertionError as e:
+                print(f"FAIL  remove-only-set [py]: {e}")
+                sys.exit(1)
+            continue
         if name == "hdlt":
             try:
                 scripts[name] = hdlt_scripts()

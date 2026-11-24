@@ -17,7 +17,7 @@ const publicDir = path.join(siteDir, "public/union-find-templates");
 const manifestPath = path.join(siteDir, "lib/generated/union-find-templates.ts");
 
 const TAGS = ["operations", "data-structure-type", "complexities", "memory"];
-const TYPES = ["dsu", "dsu-nocompress", "dsu-rollback", "next-free", "hdlt"];
+const TYPES = ["dsu", "dsu-nocompress", "dsu-rollback", "remove-only-set", "hdlt"];
 
 const errors = [];
 const entries = [];

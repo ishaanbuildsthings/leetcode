@@ -4,14 +4,14 @@
 import type { MemoryBreakdown, PickerOpGroup, PickerTemplate, TemplateLang } from "@/lib/template-picker";
 
 // lightest constant factor first (the picker's tie-breaker)
-export const UNION_FIND_TYPES = ["dsu", "dsu-nocompress", "dsu-rollback", "next-free", "hdlt"] as const;
+export const UNION_FIND_TYPES = ["dsu", "dsu-nocompress", "dsu-rollback", "remove-only-set", "hdlt"] as const;
 export type UnionFindType = (typeof UNION_FIND_TYPES)[number];
 
 export const UNION_FIND_TYPE_LABELS: Record<UnionFindType, string> = {
   dsu: "Union find",
   "dsu-nocompress": "Union find, no path compression",
   "dsu-rollback": "Rollback union find",
-  "next-free": "Next free index",
+  "remove-only-set": "Remove-only set (starts full)",
   hdlt: "Fully dynamic connectivity (HDLT)",
 };
 
@@ -28,7 +28,7 @@ export const UNION_FIND_EXTRA_LABELS: Record<string, string> = {
 
 export interface UnionFindTemplate extends PickerTemplate {
   dataStructureType: UnionFindType;
-  // the extras in its folder name (none for next free and HDLT)
+  // the extras in its folder name (none for the remove-only set and HDLT)
   extras: string[];
 }
 
@@ -249,17 +249,28 @@ export const UNION_FIND_OP_GROUPS: PickerOpGroup[] = [
     ],
   },
   {
-    id: "next-free",
-    title: "Next free index",
+    id: "remove-only-set",
+    title: "Remove-only set (starts full)",
     tiers: [
       {
         kind: "common",
         ops: [
-          { id: "nextFree", signature: "nextFree(i)", description: "Smallest index ≥ i not taken yet" },
-          { id: "prevFree", signature: "prevFree(i)", description: "Largest index ≤ i not taken yet" },
-          { id: "take", signature: "take(i)", description: "Mark i taken" },
-          { id: "takeRange", signature: "takeRange(l, r)", description: "Take every free index in l..r and return them" },
-          { id: "isFree", signature: "isFree(i)", description: "Is i still free" },
+          { id: "remove", signature: "remove(x)", description: "Remove x; 1 if it was there, else 0" },
+          { id: "smallestGteX", signature: "smallestGteX(x)", description: "Smallest value ≥ x still in the set, from any x" },
+          { id: "smallestGtX", signature: "smallestGtX(x)", description: "Smallest value > x still in the set, from any x" },
+          { id: "largestLteX", signature: "largestLteX(x)", description: "Largest value ≤ x still in the set, from any x" },
+          { id: "largestLtX", signature: "largestLtX(x)", description: "Largest value < x still in the set, from any x" },
+          { id: "contains", signature: "contains(x)", description: "Is x still in the set" },
+          { id: "popInValRange", signature: "popInValRange(lo, hi)", description: "Remove every value in [lo, hi] and return them in order" },
+        ],
+      },
+      {
+        kind: "uncommon",
+        ops: [
+          { id: "min", signature: "min()", description: "Smallest value still in the set" },
+          { id: "max", signature: "max()", description: "Largest value still in the set" },
+          { id: "popMin", signature: "popMin()", description: "Remove and return the smallest value" },
+          { id: "popMax", signature: "popMax()", description: "Remove and return the largest value" },
         ],
       },
     ],

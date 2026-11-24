@@ -313,7 +313,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   updateOps: ReadonlySet<string>;
   // usage panel: the variable name, notes per constructor argument name, comment lines before a constructor, a note
   // appended to a query's comment, and ops that return a pair to unpack
-  varName: string;
+  // (a function when it depends on the template)
+  varName: string | ((t: V) => string);
   // per constructor argument name; a function when they depend on the template (range queries: letters versions)
   // inCall: an optional argument shown in the example call anyway (e.g. the initial array), with "leave it out" in its note
   ctorNotes: Record<string, CtorNote> | ((t: V) => Record<string, CtorNote>);
@@ -1085,7 +1086,7 @@ function UsagePanel<V extends PickerTemplate>({
   ].sort((a, b) => a - b);
   const varOf = (k: number) =>
     neededClasses.length === 1
-      ? catalog.varName
+      ? (typeof catalog.varName === "function" ? catalog.varName(template) : catalog.varName)
       : usage.classes[k].className[0].toLowerCase() +
         usage.classes[k].className.slice(1);
   const typeOf = (ret = "") =>
@@ -1118,7 +1119,7 @@ function UsagePanel<V extends PickerTemplate>({
     const comments = [
       ...(afterArgs ? [] : extraComments),
       ...requiredParams.flatMap((p) =>
-        notes[p.name] && !["mod", "bits"].includes(p.name)
+        notes[p.name]?.[lang] && !["mod", "bits"].includes(p.name)
           ? [notes[p.name][lang] + (shownOptional(p) ? " (optional: leave it out to start empty)" : "")]
           : [],
       ),

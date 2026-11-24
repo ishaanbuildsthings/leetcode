@@ -12,7 +12,7 @@
                  grow         add(val): a new element in its own component
 
 Writes templates/ultimate-template-tool/union-find/<mode>[-extra...]/template.py and template.cpp (folder name: the
-mode, then the extras in the order above), the next-free-index DSU in union-find/next-free/, and union-find/hdlt/:
+mode, then the extras in the order above), the remove-only set (a union find over its range) in union-find/remove-only-set/, and union-find/hdlt/:
 templates/union-find/hdlt.* plus unite / areUnioned, the names the others use. Every file carries the picker header
 (@operations / @complexities / @memory); site/scripts/build-union-find-templates.mjs reads them for the Union find tab.
 
@@ -854,170 +854,318 @@ def cpp(mode, feats):
     return "\n".join(L) + "\n"
 
 
-# ------------------------------------------------------------------------------------------------ next free index
-NEXT_FREE_PY = '''# Template by https://github.com/ishaanbuildsthings
-# {URL}/next-free/template.py
-# @operations: isFree nextFree prevFree take takeRange
-# @data-structure-type: next-free
+# ------------------------------------------------------------------------------------------------ remove-only set
+REMOVE_ONLY_PY = '''# Template by https://github.com/ishaanbuildsthings
+# {URL}/remove-only-set/template.py
+# @operations: contains largestLtX largestLteX max min popInValRange popMax popMin remove smallestGtX smallestGteX
+# @data-structure-type: remove-only-set
 # @complexities:
-#   isFree: α(N) amortized
-#   nextFree: α(N) amortized
-#   prevFree: α(N) amortized
-#   take: α(N) amortized
-#   takeRange: α(N) amortized
+#   contains: 1
+#   largestLtX: α(N) amortized
+#   largestLteX: α(N) amortized
+#   max: α(N) amortized
+#   min: α(N) amortized
+#   popInValRange: α(N) amortized
+#   popMax: α(N) amortized
+#   popMin: α(N) amortized
+#   remove: α(N) amortized
+#   smallestGtX: α(N) amortized
+#   smallestGteX: α(N) amortized
 #   build: N
 # @memory:
 #   layout: none
-#   node: nxt[1*N] prv[1*N]
+#   node: par[1*N] lo[1*N] hi[1*N]
 #   tags: none
-#   other: none
-#   note: takeRange costs α(N) amortized per index it takes, so O(N α(N)) over every call together
+#   other: present[1*N]
+#   note: N = the range it covers: n, or max(values) - min(values) + 1. popInValRange costs α(N) per value they remove, and a value is only removed once, so O(N α(N)) over every call together
 
-# nf = NextFree(n)
-# Indices 0..n-1 start free; take(i) / takeRange(l, r) use them up, and nextFree / prevFree jump straight to the
-# nearest index still free (painting intervals, "assign each query to the first unused slot", ...)
+# s = RemoveOnlySet(10)                   # holds 0, 1, 2, ..., 9
+# s = RemoveOnlySet(values=[1, 4, 7])     # holds 1, 4, 7
+# s = RemoveOnlySet(values=[-50, 3, 99])  # any ints (negatives too); memory is max - min + 1
+# A set that only ever loses values: nothing can be added back. smallestGteX / largestLteX jump to the nearest value
+# still in it from any x, present or not.
+# Union find underneath: each run of removed values is grouped with the value just after it, groups linked by size.
 
 
-class NextFree:
-    # O(n), every index 0..n-1 starts free
-    def __init__(self, n):
-        self.n = n
-        self.nxt = list(range(n + 1))  # follow nxt to the first free index >= i (n: none)
-        self.prv = list(range(n + 1))  # follow prv to (the last free index <= i - 1) + 1, shifted so 0 means none
+class RemoveOnlySet:
+    # O(N) -- pass exactly one: n (holds 0..n-1) or values (holds just those: any ints, duplicates are fine)
+    def __init__(self, n=None, values=None):
+        if (n is None) == (values is None):
+            raise TypeError("RemoveOnlySet: pass n (holds 0..n-1) or values=[...] (holds just those), exactly one")
+        if values is None:
+            self.base, size = 0, n
+            present = bytearray([1]) * n
+        else:
+            values = list(values)
+            self.base = min(values, default=0)
+            size = max(values) - self.base + 1 if values else 0
+            present = bytearray(size)
+            for x in values:
+                present[x - self.base] = 1
+        self.n = size
+        self.cnt = sum(present)
+        present.append(1)  # index n: a stand-in that never leaves, so every group ends in something present
+        self.present = present
+        # each group: a run of removed values plus the present value right after it; its root knows both ends
+        par = self.par = list(range(size + 1))
+        lo = self.lo = list(range(size + 1))
+        self.hi = list(range(size + 1))
+        start = 0
+        for i in range(size + 1):
+            if present[i]:
+                for j in range(start, i):
+                    par[j] = i
+                lo[i] = start
+                start = i + 1
 
-    def _up(self, i):
-        nxt = self.nxt
-        while nxt[i] != i:
-            nxt[i] = nxt[nxt[i]]
-            i = nxt[i]
+    def _find(self, i):
+        par = self.par
+        while par[i] != i:
+            par[i] = par[par[i]]
+            i = par[i]
         return i
 
-    def _down(self, i):
-        prv = self.prv
-        while prv[i] != i:
-            prv[i] = prv[prv[i]]
-            i = prv[i]
-        return i
+    # O(1) -- True if x is in the set (any x is fine)
+    def contains(self, x):
+        i = x - self.base
+        return 0 <= i < self.n and self.present[i] == 1
 
-    # O(α(n)) amortized, the smallest free index >= i, n if there's none; needs 0 <= i <= n, else IndexError
-    def nextFree(self, i):
-        if not 0 <= i <= self.n:
-            raise IndexError(f"nextFree: needs 0 <= i <= n, got i = {i}, n = {self.n}")
-        return self._up(i)
+    # O(1) -- how many values are still in the set
+    def size(self):
+        return self.cnt
 
-    # O(α(n)) amortized, the largest free index <= i, -1 if there's none; needs -1 <= i < n, else IndexError
-    def prevFree(self, i):
-        if not -1 <= i < self.n:
-            raise IndexError(f"prevFree: needs -1 <= i < n, got i = {i}, n = {self.n}")
-        return self._down(i + 1) - 1
+    # O(α(N)) amortized -- remove x; returns 1 if it was there, else 0 (any x is fine)
+    def remove(self, x):
+        i = x - self.base
+        if not 0 <= i < self.n or not self.present[i]:
+            return 0
+        self.present[i] = 0
+        self.cnt -= 1
+        left = self._find(i)
+        right = self._find(i + 1)
+        lo, hi = self.lo, self.hi
+        if hi[left] - lo[left] > hi[right] - lo[right]:
+            self.par[right] = left
+            hi[left] = hi[right]
+        else:
+            self.par[left] = right
+            lo[right] = lo[left]
+        return 1
 
-    # O(α(n)) amortized, True if i hasn't been taken; needs 0 <= i < n, else IndexError
-    def isFree(self, i):
-        if not 0 <= i < self.n:
-            raise IndexError(f"isFree: needs 0 <= i < n, got i = {i}, n = {self.n}")
-        return self._up(i) == i
+    # O(α(N)) amortized -- smallest value >= x; None if there is none (any x is fine)
+    def smallestGteX(self, x):
+        i = x - self.base
+        if i >= self.n:
+            return None
+        found = self.hi[self._find(max(i, 0))]
+        return None if found == self.n else found + self.base
 
-    # O(α(n)) amortized, uses up index i (nothing if it was already taken); needs 0 <= i < n, else IndexError
-    def take(self, i):
-        if not 0 <= i < self.n:
-            raise IndexError(f"take: needs 0 <= i < n, got i = {i}, n = {self.n}")
-        if self._up(i) == i:
-            self.nxt[i] = i + 1
-            self.prv[i + 1] = i
+    # O(α(N)) amortized -- smallest value > x; None if there is none (any x is fine)
+    def smallestGtX(self, x):
+        return self.smallestGteX(x + 1)
 
-    # O((how many were free) * α(n)) amortized, so O(n α(n)) over every call: uses up every free index in l..r and
-    # returns them in order; needs 0 <= l <= r < n, else IndexError
-    def takeRange(self, l, r):
-        if not 0 <= l <= r < self.n:
-            raise IndexError(f"takeRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+    # O(α(N)) amortized -- largest value <= x; None if there is none (any x is fine)
+    def largestLteX(self, x):
+        i = min(x - self.base, self.n - 1)
+        if i < 0:
+            return None
+        if self.present[i]:
+            return i + self.base
+        found = self.lo[self._find(i)] - 1
+        return None if found < 0 else found + self.base
+
+    # O(α(N)) amortized -- largest value < x; None if there is none (any x is fine)
+    def largestLtX(self, x):
+        return self.largestLteX(x - 1)
+
+    # O(α(N)) amortized -- the smallest value; raises IndexError if empty
+    def min(self):
+        if not self.cnt:
+            raise IndexError("min: the set is empty")
+        return self.smallestGteX(self.base)
+
+    # O(α(N)) amortized -- the largest value; raises IndexError if empty
+    def max(self):
+        if not self.cnt:
+            raise IndexError("max: the set is empty")
+        return self.largestLteX(self.base + self.n - 1)
+
+    # O(α(N)) amortized -- remove and return the smallest value; raises IndexError if empty
+    def popMin(self):
+        if not self.cnt:
+            raise IndexError("popMin: the set is empty")
+        x = self.smallestGteX(self.base)
+        self.remove(x)
+        return x
+
+    # O(α(N)) amortized -- remove and return the largest value; raises IndexError if empty
+    def popMax(self):
+        if not self.cnt:
+            raise IndexError("popMax: the set is empty")
+        x = self.largestLteX(self.base + self.n - 1)
+        self.remove(x)
+        return x
+
+    # O(α(N)) per value removed, amortized -- remove every value in [lo, hi] and return them in increasing order
+    # ([] if lo > hi)
+    def popInValRange(self, lo, hi):
         res = []
-        i = self._up(l)
-        while i <= r:
-            res.append(i)
-            self.nxt[i] = i + 1
-            self.prv[i + 1] = i
-            i = self._up(i + 1)
+        x = self.smallestGteX(lo)
+        while x is not None and x <= hi:
+            self.remove(x)
+            res.append(x)
+            x = self.smallestGteX(x + 1)
         return res
 '''
 
-NEXT_FREE_CPP = '''// Template by https://github.com/ishaanbuildsthings
-// {URL}/next-free/template.cpp
-// @operations: isFree nextFree prevFree take takeRange
-// @data-structure-type: next-free
+REMOVE_ONLY_CPP = '''// Template by https://github.com/ishaanbuildsthings
+// {URL}/remove-only-set/template.cpp
+// @operations: contains largestLtX largestLteX max min popInValRange popMax popMin remove smallestGtX smallestGteX
+// @data-structure-type: remove-only-set
 // @complexities:
-//   isFree: α(N) amortized
-//   nextFree: α(N) amortized
-//   prevFree: α(N) amortized
-//   take: α(N) amortized
-//   takeRange: α(N) amortized
+//   contains: 1
+//   largestLtX: α(N) amortized
+//   largestLteX: α(N) amortized
+//   max: α(N) amortized
+//   min: α(N) amortized
+//   popInValRange: α(N) amortized
+//   popMax: α(N) amortized
+//   popMin: α(N) amortized
+//   remove: α(N) amortized
+//   smallestGtX: α(N) amortized
+//   smallestGteX: α(N) amortized
 //   build: N
 // @memory:
 //   layout: none
-//   node: nxt[1*N] prv[1*N]
+//   node: par[1*N] lo[1*N] hi[1*N]
 //   tags: none
-//   other: none
-//   note: takeRange costs α(N) amortized per index it takes, so O(N α(N)) over every call together
+//   other: present[1*N]
+//   note: N = the range it covers: n, or max(values) - min(values) + 1. popInValRange costs α(N) per value they remove, and a value is only removed once, so O(N α(N)) over every call together
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
 
-// NextFree nf(n);
-// Indices 0..n-1 start free; take(i) / takeRange(l, r) use them up, and nextFree / prevFree jump straight to the
-// nearest index still free (painting intervals, "assign each query to the first unused slot", ...)
-struct NextFree {
-    int n;
-    vector<int> nxt;  // follow nxt to the first free index >= i (n: none)
-    vector<int> prv;  // follow prv to (the last free index <= i - 1) + 1, shifted so 0 means none
+// RemoveOnlySet s(10);                        // holds 0, 1, 2, ..., 9
+// RemoveOnlySet s(vector<int>{1, 4, 7});      // holds 1, 4, 7
+// RemoveOnlySet s(vector<int>{-50, 3, 99});   // any ints (negatives too); memory is max - min + 1
+// A set that only ever loses values: nothing can be added back. smallestGteX / largestLteX jump to the nearest value
+// still in it from any x, present or not.
+// Union find underneath: each run of removed values is grouped with the value just after it, groups linked by size.
+// Searches that find nothing return s.NONE: -1 when no value is negative (always, built from n), else min - 1.
+struct RemoveOnlySet {
+    int n = 0, cnt = 0, base = 0, NONE = -1;
+    vector<int> par, lo, hi;  // each group: a run of removed values plus the present value right after it; its root knows both ends
+    vector<char> present;     // present[n] = 1: a stand-in that never leaves, so every group ends in something present
 
-    // O(n), every index 0..n-1 starts free
-    explicit NextFree(int n) : n(n), nxt(n + 1), prv(n + 1) {
-        iota(nxt.begin(), nxt.end(), 0);
-        iota(prv.begin(), prv.end(), 0);
-    }
+    // O(n) -- holds 0, 1, ..., n-1
+    explicit RemoveOnlySet(int n) : n(n), present(n + 1, 1) { build(); }
 
-    int up(int i) {
-        while (nxt[i] != i) i = nxt[i] = nxt[nxt[i]];
-        return i;
-    }
-
-    int down(int i) {
-        while (prv[i] != i) i = prv[i] = prv[prv[i]];
-        return i;
-    }
-
-    // O(α(n)) amortized, the smallest free index >= i, n if there's none; needs 0 <= i <= n, else out_of_range
-    int nextFree(int i) {
-        if (i < 0 || i > n) throw out_of_range("nextFree: needs 0 <= i <= n");
-        return up(i);
-    }
-
-    // O(α(n)) amortized, the largest free index <= i, -1 if there's none; needs -1 <= i < n, else out_of_range
-    int prevFree(int i) {
-        if (i < -1 || i >= n) throw out_of_range("prevFree: needs -1 <= i < n");
-        return down(i + 1) - 1;
-    }
-
-    // O(α(n)) amortized, true if i hasn't been taken; needs 0 <= i < n, else out_of_range
-    bool isFree(int i) {
-        if (i < 0 || i >= n) throw out_of_range("isFree: needs 0 <= i < n");
-        return up(i) == i;
-    }
-
-    // O(α(n)) amortized, uses up index i (nothing if it was already taken); needs 0 <= i < n, else out_of_range
-    void take(int i) {
-        if (i < 0 || i >= n) throw out_of_range("take: needs 0 <= i < n");
-        if (up(i) == i) nxt[i] = i + 1, prv[i + 1] = i;
-    }
-
-    // O((how many were free) * α(n)) amortized, so O(n α(n)) over every call: uses up every free index in l..r and
-    // returns them in order; needs 0 <= l <= r < n, else out_of_range
-    vector<int> takeRange(int l, int r) {
-        if (l < 0 || l > r || r >= n) throw out_of_range("takeRange: needs 0 <= l <= r < n");
-        vector<int> res;
-        for (int i = up(l); i <= r; i = up(i + 1)) {
-            res.push_back(i);
-            nxt[i] = i + 1, prv[i + 1] = i;
+    // O(max - min) -- holds just these values: any ints, duplicates are fine
+    explicit RemoveOnlySet(const vector<int>& values) {
+        if (!values.empty()) {
+            auto [mn, mx] = minmax_element(values.begin(), values.end());
+            base = *mn, n = *mx - *mn + 1;
+            if (base < 0) NONE = base - 1;
         }
+        present.assign(n + 1, 0);
+        for (int x : values) present[x - base] = 1;
+        present[n] = 1;
+        build();
+    }
+
+    void build() {
+        par.resize(n + 1), lo.resize(n + 1), hi.resize(n + 1);
+        iota(par.begin(), par.end(), 0), iota(lo.begin(), lo.end(), 0), iota(hi.begin(), hi.end(), 0);
+        int start = 0;
+        for (int i = 0; i <= n; i++) {
+            if (!present[i]) continue;
+            for (int j = start; j < i; j++) par[j] = i;
+            lo[i] = start;
+            start = i + 1;
+            if (i < n) cnt++;
+        }
+    }
+
+    int find(int i) {
+        while (par[i] != i) i = par[i] = par[par[i]];
+        return i;
+    }
+
+    // O(1) -- true if x is in the set (any x is fine)
+    bool contains(int x) {
+        ll i = (ll)x - base;
+        return i >= 0 && i < n && present[i];
+    }
+
+    // O(1) -- how many values are still in the set
+    int size() { return cnt; }
+
+    // O(α(N)) amortized -- remove x; returns 1 if it was there, else 0 (any x is fine)
+    int remove(int x) {
+        if (!contains(x)) return 0;
+        int i = x - base;
+        present[i] = 0;
+        cnt--;
+        int left = find(i), right = find(i + 1);
+        if (hi[left] - lo[left] > hi[right] - lo[right]) par[right] = left, hi[left] = hi[right];
+        else par[left] = right, lo[right] = lo[left];
+        return 1;
+    }
+
+    // O(α(N)) amortized -- smallest value >= x; NONE if there is none (any x is fine)
+    int smallestGteX(int x) {
+        ll i = (ll)x - base;
+        if (i >= n) return NONE;
+        int found = hi[find((int)std::max(i, 0LL))];
+        return found == n ? NONE : found + base;
+    }
+
+    // O(α(N)) amortized -- smallest value > x; NONE if there is none (any x is fine)
+    int smallestGtX(int x) { return x == INT_MAX ? NONE : smallestGteX(x + 1); }
+
+    // O(α(N)) amortized -- largest value <= x; NONE if there is none (any x is fine)
+    int largestLteX(int x) {
+        ll i = std::min((ll)x - base, (ll)n - 1);
+        if (i < 0) return NONE;
+        if (present[i]) return (int)i + base;
+        int found = lo[find((int)i)] - 1;
+        return found < 0 ? NONE : found + base;
+    }
+
+    // O(α(N)) amortized -- largest value < x; NONE if there is none (any x is fine)
+    int largestLtX(int x) { return x == INT_MIN ? NONE : largestLteX(x - 1); }
+
+    // O(α(N)) amortized -- the smallest value; out_of_range if empty
+    int min() {
+        if (!cnt) throw out_of_range("min: the set is empty");
+        return smallestGteX(base);
+    }
+
+    // O(α(N)) amortized -- the largest value; out_of_range if empty
+    int max() {
+        if (!cnt) throw out_of_range("max: the set is empty");
+        return largestLteX(base + n - 1);
+    }
+
+    // O(α(N)) amortized -- remove and return the smallest value; out_of_range if empty
+    int popMin() {
+        int x = min();
+        remove(x);
+        return x;
+    }
+
+    // O(α(N)) amortized -- remove and return the largest value; out_of_range if empty
+    int popMax() {
+        int x = max();
+        remove(x);
+        return x;
+    }
+
+    // O(α(N)) per value removed, amortized -- remove every value in [lo, hi] and return them in increasing order
+    // (empty if lo > hi)
+    vector<int> popInValRange(int lo, int hi) {
+        vector<int> res;
+        for (int x = smallestGteX(lo); x != NONE && x <= hi; x = smallestGtX(x)) remove(x), res.push_back(x);
         return res;
     }
 };
@@ -1098,21 +1246,21 @@ def hdlt():
 
 def main():
     written = count = 0
-    keep = {"next-free", "hdlt"}
+    keep = {"remove-only-set", "hdlt"}
     for mode, feats in combos():
         name = folder(mode, feats)
         keep.add(name)
         written += write(os.path.join(DIR, name, "template.py"), py(mode, feats))
         written += write(os.path.join(DIR, name, "template.cpp"), cpp(mode, feats))
         count += 1
-    written += write(os.path.join(DIR, "next-free", "template.py"), NEXT_FREE_PY.replace("{URL}", URL))
-    written += write(os.path.join(DIR, "next-free", "template.cpp"), NEXT_FREE_CPP.replace("{URL}", URL))
+    written += write(os.path.join(DIR, "remove-only-set", "template.py"), REMOVE_ONLY_PY.replace("{URL}", URL))
+    written += write(os.path.join(DIR, "remove-only-set", "template.cpp"), REMOVE_ONLY_CPP.replace("{URL}", URL))
     py_h, cpp_h = hdlt()
     written += write(os.path.join(DIR, "hdlt", "template.py"), py_h)
     written += write(os.path.join(DIR, "hdlt", "template.cpp"), cpp_h)
     stale = [d for d in os.listdir(DIR) if d not in keep]
     assert not stale, f"folders no combination makes any more (delete them): {stale[:5]}"
-    print(f"{count} union finds + next free + HDLT, {written} files written (then npm run gen:union-find in site/)")
+    print(f"{count} union finds + remove-only set + HDLT, {written} files written (then npm run gen:union-find in site/)")
 
 
 if __name__ == "__main__":
