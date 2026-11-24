@@ -13,7 +13,7 @@
 # eulerPathUndirected([(1, 2), (2, 3), (3, 1), (1, 4)]) -> [1, 3, 2, 1, 4]
 # eulerPathUndirected([(1, 2), (2, 3)], start=3) -> [3, 2, 1]
 # eulerPathUndirected([(1, 2), (1, 3), (1, 4)]) -> None
-# O(N + M) time and space, N = largest label, M = number of edges
+# O(V + E) time and space, V = largest label, E = number of edges
 def eulerPathUndirected(edges, start=None, end=None):
     if not edges:
         if start is not None and end is not None and start != end:

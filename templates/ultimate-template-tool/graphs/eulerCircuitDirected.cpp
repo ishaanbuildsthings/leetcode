@@ -13,7 +13,7 @@ using namespace std;
 // eulerCircuitDirected({{1, 2}, {2, 3}, {3, 1}}) -> {1, 2, 3, 1}
 // eulerCircuitDirected({{1, 2}, {2, 3}, {3, 1}}, 2) -> {2, 3, 1, 2}
 // eulerCircuitDirected({{1, 2}, {2, 3}}) -> {}
-// O(N + M) time and space, N = largest label, M = number of edges
+// O(V + E) time and space, V = largest label, E = number of edges
 vector<int> eulerCircuitDirected(const vector<pair<int, int>>& edges, int start = -1) {
     if (edges.empty()) return start == -1 ? vector<int>{} : vector<int>{start};
     int size = start + 1;

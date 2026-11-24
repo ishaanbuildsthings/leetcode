@@ -5,35 +5,35 @@ const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templat
 
 export const EULER: FillIn[] = [
   {
-    label: "Euler circuit, directed O(N + M)",
+    label: "Euler circuit, directed O(V + E)",
     title: "A walk over an [a, b] edge list (a -> b) using every edge once and ending where it started, or None / {} if there isn't one. Optional start; labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerCircuitDirected",
-    ops: [["eulerCircuitDirected(edges, start?) -> [node, ...] (len(edges) + 1, first == last), or None", "N+M"]],
+    ops: [["eulerCircuitDirected(edges, start?) -> [node, ...] (len(edges) + 1, first == last), or None", "V+E"]],
     githubUrl: GITHUB,
   },
   {
-    label: "Euler path, directed O(N + M)",
+    label: "Euler path, directed O(V + E)",
     title: "A walk over an [a, b] edge list (a -> b) using every edge once, or None / {} if there isn't one. Optional start and end, picked from the degrees if left out; a circuit counts. Labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerPathDirected",
-    ops: [["eulerPathDirected(edges, start?, end?) -> [node, ...] (len(edges) + 1), or None", "N+M"]],
+    ops: [["eulerPathDirected(edges, start?, end?) -> [node, ...] (len(edges) + 1), or None", "V+E"]],
     githubUrl: GITHUB,
   },
   {
-    label: "Euler circuit, undirected O(N + M)",
+    label: "Euler circuit, undirected O(V + E)",
     title: "A walk over an undirected [a, b] edge list using every edge once and ending where it started, or None / {} if there isn't one. Optional start; labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerCircuitUndirected",
-    ops: [["eulerCircuitUndirected(edges, start?) -> [node, ...] (len(edges) + 1, first == last), or None", "N+M"]],
+    ops: [["eulerCircuitUndirected(edges, start?) -> [node, ...] (len(edges) + 1, first == last), or None", "V+E"]],
     githubUrl: GITHUB,
   },
   {
-    label: "Euler path, undirected O(N + M)",
+    label: "Euler path, undirected O(V + E)",
     title: "A walk over an undirected [a, b] edge list using every edge once, or None / {} if there isn't one. Optional start and end, picked from the odd-degree nodes if left out; a circuit counts. Labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerPathUndirected",
-    ops: [["eulerPathUndirected(edges, start?, end?) -> [node, ...] (len(edges) + 1), or None", "N+M"]],
+    ops: [["eulerPathUndirected(edges, start?, end?) -> [node, ...] (len(edges) + 1), or None", "V+E"]],
     githubUrl: GITHUB,
   },
 ];

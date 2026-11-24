@@ -11,7 +11,7 @@
 # eulerCircuitUndirected([(1, 2), (2, 3), (3, 1)]) -> [1, 3, 2, 1]
 # eulerCircuitUndirected([(1, 2), (2, 3), (3, 1)], start=2) -> [2, 3, 1, 2]
 # eulerCircuitUndirected([(1, 2), (2, 3)]) -> None
-# O(N + M) time and space, N = largest label, M = number of edges
+# O(V + E) time and space, V = largest label, E = number of edges
 def eulerCircuitUndirected(edges, start=None):
     if not edges:
         return [] if start is None else [start]
