@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "../providers";
@@ -140,6 +141,12 @@ function ProblemsTab() {
   const [showCsesForm, setShowCsesForm] = useState(false);
   const [showQuantQuestionsForm, setShowQuantQuestionsForm] = useState(false);
   const [editingProblem, setEditingProblem] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 250);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   return (
     <div className="space-y-6">
@@ -274,10 +281,20 @@ function ProblemsTab() {
       {showCsesForm && <CreateCsesProblemForm onSuccess={() => setShowCsesForm(false)} />}
       {showQuantQuestionsForm && <CreateQuantQuestionsProblemForm onSuccess={() => setShowQuantQuestionsForm(false)} />}
       {showDatabaseForm && <CreateDatabaseLeetcodeProblemForm onSuccess={() => setShowDatabaseForm(false)} />}
+      <div className="relative">
+        <input
+          type="search"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search problems: title, number, tag, platform, notes..."
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
       <ProblemsList
         editingProblem={editingProblem}
         onEdit={setEditingProblem}
         onCloseEdit={() => setEditingProblem(null)}
+        search={search}
       />
     </div>
   );
@@ -2955,7 +2972,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
 const PROBLEMS_PER_PAGE = 20;
 
 
-function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem: string | null; onEdit: (id: string) => void; onCloseEdit: () => void }) {
+function ProblemsList({ editingProblem, onEdit, onCloseEdit, search }: { editingProblem: string | null; onEdit: (id: string) => void; onCloseEdit: () => void; search: string }) {
   const utils = trpc.useUtils();
   const { data: allTags } = trpc.tag.list.useQuery();
   const { data: allPlatforms } = trpc.platform.list.useQuery();
@@ -2973,6 +2990,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
   const [platformFilterId, setPlatformFilterId] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
   const [sortMode, setSortMode] = useState<"newest" | "idAsc" | "idDesc">("newest");
+  useEffect(() => setPage(1), [search]);
 
   const listInput = {
     page,
@@ -2987,8 +3005,10 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     tagRoles: tagFilterId ? tagFilterRoles : undefined,
     sortBy: sortMode === "newest" ? undefined : ("problemId" as const),
     sortDir: sortMode === "idDesc" ? ("desc" as const) : ("asc" as const),
+    search: search || undefined,
   };
-  const { data: pageData, isLoading } = trpc.problem.listPaged.useQuery(listInput);
+  // (keeps the current list on screen while a new search loads, instead of flashing "Loading problems...")
+  const { data: pageData, isLoading } = trpc.problem.listPaged.useQuery(listInput, { placeholderData: keepPreviousData });
 
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
@@ -3026,7 +3046,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
   if (totalProblems === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-        No problems match the current filters.
+        No problems match the current {search ? "search and filters" : "filters"}.
       </div>
     );
   }
@@ -3037,6 +3057,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
         {fullView
           ? `Showing all ${totalProblems}`
           : `Showing ${totalProblems === 0 ? 0 : startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, totalProblems)} of ${totalProblems}`}
+        {search && <span className="ml-2 text-purple-700">(search: {search})</span>}
         {greatOnly && <span className="ml-2 text-yellow-700">(great only)</span>}
         {leetgoat222Only && <span className="ml-2 text-indigo-700">(LeetGoat 222 only)</span>}
         {leetgoatAdvancedOnly && <span className="ml-2 text-indigo-700">(LeetGoat Advanced only)</span>}

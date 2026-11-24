@@ -113,8 +113,28 @@ export async function unsafe_listProblemsPaged(opts: {
   tagRoles?: { core?: boolean; secondary?: boolean; mention?: boolean };
   sortBy?: "createdAt" | "problemId";
   sortDir?: "asc" | "desc";
+  search?: string;
 }) {
   const where: Prisma.problemsWhereInput = {};
+  // omnibox: every word must show up somewhere (title, problem id, url, notes, statement, platform or tag name)
+  const terms = (opts.search ?? "").trim().split(/\s+/).filter(Boolean);
+  if (terms.length) {
+    where.AND = terms.map((term) => {
+      const contains = { contains: term, mode: "insensitive" as const };
+      return {
+        OR: [
+          { title: contains },
+          { platform_problem_id: contains },
+          { url: contains },
+          { notes: contains },
+          { simplified_statement: contains },
+          { drill_notes: contains },
+          { platforms: { name: contains } },
+          { problem_tags: { some: { tags: { OR: [{ name: contains }, { slug: contains }] } } } },
+        ],
+      };
+    });
+  }
   if (opts.greatOnly) where.is_great_problem = true;
   if (opts.leetgoat222Only) where.is_leetgoat_222 = true;
   if (opts.leetgoatAdvancedOnly) where.is_leetgoat_advanced = true;

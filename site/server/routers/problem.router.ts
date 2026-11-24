@@ -31,6 +31,7 @@ export const problemRouter = router({
           .optional(),
         sortBy: z.enum(["createdAt", "problemId"]).optional(),
         sortDir: z.enum(["asc", "desc"]).optional(),
+        search: z.string().max(200).optional(),
       })
     )
     .query(async ({ input }) => {
