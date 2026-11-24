@@ -2,7 +2,9 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/golden-references/MailDelivery.cpp
 // Euler circuit (Hierholzer) on an undirected graph, as a full solution to CSES "Mail Delivery"
 // (https://cses.fi/problemset/task/1691).
-// A circuit exists when every node has even degree and every node with edges is in one component.
+// A circuit exists when every node has even degree and every edge is reachable. The reachability part is checked
+// after the dfs instead of with a separate component search: if the path doesn't hold every edge (m + 1 nodes), some
+// edges were in a piece the start never reaches.
 // Undirected twist: each edge sits in both endpoints' lists, so edges carry an id and a used flag, and the dfs skips
 // the copy that was already walked from the other side.
 // O(n + m) time and space.
@@ -27,23 +29,6 @@ int main() {
         }
     }
 
-    // check if one component
-    vector<bool> seen(n + 1, false);
-    auto explore = [&](auto&& self, int node) -> void {
-        seen[node] = true;
-        for (auto [adjN, id] : g[node]) {
-            if (seen[adjN]) continue;
-            self(self, adjN);
-        }
-    };
-    explore(explore, 1);
-    for (int node = 1; node <= n; node++) {
-        if (!seen[node] && g[node].size()) {
-            cout << "IMPOSSIBLE" << endl;
-            return 0;
-        }
-    }
-
     deque<int> path;
     vector<bool> usedEdges(m + 1, false);
 
@@ -57,6 +42,11 @@ int main() {
         path.push_front(node);
     };
     dfs(dfs, 1);
+
+    if (path.size() != m + 1) {
+        cout << "IMPOSSIBLE" << endl;
+        return 0;
+    }
 
     for (auto x : path) cout << x << " ";
     cout << endl;

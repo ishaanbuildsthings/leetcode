@@ -19,23 +19,6 @@ int main() {
         }
     }
 
-    // check if one component
-    vector<bool> seen(n + 1, false);
-    auto explore = [&](auto&& self, int node) -> void {
-        seen[node] = true;
-        for (auto [adjN, id] : g[node]) {
-            if (seen[adjN]) continue;
-            self(self, adjN);
-        }
-    };
-    explore(explore, 1);
-    for (int node = 1; node <= n; node++) {
-        if (!seen[node] && g[node].size()) {
-            cout << "IMPOSSIBLE" << endl;
-            return 0;
-        }
-    }
-
     deque<int> path;
     vector<bool> usedEdges(m + 1, false);
 
@@ -49,6 +32,11 @@ int main() {
         path.push_front(node);
     };
     dfs(dfs, 1);
+
+    if (path.size() != m + 1) {
+        cout << "IMPOSSIBLE" << endl;
+        return 0;
+    }
 
     for (auto x : path) cout << x << " ";
     cout << endl;

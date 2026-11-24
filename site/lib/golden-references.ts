@@ -65,7 +65,7 @@ export const GOLDEN_EULER_CIRCUITS: FillIn[] = [
   {
     label: "Euler circuit on an undirected graph (CSES Mail Delivery)",
     title:
-      "Worked example of Hierholzer on an undirected graph: check even degrees and one component, then dfs with edge ids and a used array so each edge's second copy is skipped",
+      "Worked example of Hierholzer on an undirected graph: check even degrees, then dfs with edge ids and a used array so each edge's second copy is skipped, then check the path holds all m + 1 nodes",
     folder: "_golden-references",
     file: "MailDelivery",
     langs: ["cpp"],
