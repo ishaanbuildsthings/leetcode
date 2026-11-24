@@ -72,6 +72,16 @@ export const GOLDEN_EULER_CIRCUITS: FillIn[] = [
     ops: [],
     githubUrl: GITHUB,
   },
+  {
+    label: "Euler path on a directed graph (CSES Teleporters Path)",
+    title:
+      "Worked example of Hierholzer for a directed Euler path: check start has out = in + 1, end has in = out + 1, all others balanced, then dfs from the start and check the path holds all m + 1 nodes",
+    folder: "_golden-references",
+    file: "TeleportersPath",
+    langs: ["cpp"],
+    ops: [],
+    githubUrl: GITHUB,
+  },
 ];
 
 // the Golden References page, section by section
