@@ -20,46 +20,23 @@
 #   node: par[1*N] lo[1*N] hi[1*N]
 #   tags: none
 #   other: present[1*N]
-#   note: N = the range it covers: n, or max(values) - min(values) + 1. popInValRange costs α(N) per value they remove, and a value is only removed once, so O(N α(N)) over every call together
+#   note: popInValRange costs α(N) per value it removes, and a value is only removed once, so O(N α(N)) over every call together
 
-# s = RemoveOnlySet(10)                   # holds 0, 1, 2, ..., 9
-# s = RemoveOnlySet(values=[1, 4, 7])     # holds 1, 4, 7
-# s = RemoveOnlySet(values=[-50, 3, 99])  # any ints (negatives too); memory is max - min + 1
-# A set that only ever loses values: nothing can be added back. smallestGteX / largestLteX jump to the nearest value
-# still in it from any x, present or not.
-# Union find underneath: each run of removed values is grouped with the value just after it, groups linked by size.
+# s = RemoveOnlySet(10)  # holds 0, 1, 2, ..., 9
+# A set of 0..n-1 that only ever loses values: nothing can be added back. smallestGteX / largestLteX jump to the
+# nearest value still in it from any x, present or not.
+# Union find underneath: a removed value joins the group to its right, so each group is a run of removed values plus
+# the one present value at its right end; the root keeps the group's two ends, and groups are linked by size.
 
 
 class RemoveOnlySet:
-    # O(N) -- pass exactly one: n (holds 0..n-1) or values (holds just those: any ints, duplicates are fine)
-    def __init__(self, n=None, values=None):
-        if (n is None) == (values is None):
-            raise TypeError("RemoveOnlySet: pass n (holds 0..n-1) or values=[...] (holds just those), exactly one")
-        if values is None:
-            self.base, size = 0, n
-            present = bytearray([1]) * n
-        else:
-            values = list(values)
-            self.base = min(values, default=0)
-            size = max(values) - self.base + 1 if values else 0
-            present = bytearray(size)
-            for x in values:
-                present[x - self.base] = 1
-        self.n = size
-        self.cnt = sum(present)
-        present.append(1)  # index n: a stand-in that never leaves, so every group ends in something present
-        self.present = present
-        # each group: a run of removed values plus the present value right after it; its root knows both ends
-        par = self.par = list(range(size + 1))
-        lo = self.lo = list(range(size + 1))
-        self.hi = list(range(size + 1))
-        start = 0
-        for i in range(size + 1):
-            if present[i]:
-                for j in range(start, i):
-                    par[j] = i
-                lo[i] = start
-                start = i + 1
+    # O(n) -- holds 0, 1, ..., n-1
+    def __init__(self, n):
+        self.n = self.cnt = n
+        self.present = bytearray([1]) * (n + 1)  # index n: a stand-in that never leaves, so every group has a right end
+        self.par = list(range(n + 1))
+        self.lo = list(range(n + 1))  # at a root: the group's smallest value
+        self.hi = list(range(n + 1))  # at a root: the group's largest value, the only one still present
 
     def _find(self, i):
         par = self.par
@@ -70,8 +47,7 @@ class RemoveOnlySet:
 
     # O(1) -- True if x is in the set (any x is fine)
     def contains(self, x):
-        i = x - self.base
-        return 0 <= i < self.n and self.present[i] == 1
+        return 0 <= x < self.n and self.present[x] == 1
 
     # O(1) -- how many values are still in the set
     def size(self):
@@ -79,13 +55,12 @@ class RemoveOnlySet:
 
     # O(α(N)) amortized -- remove x; returns 1 if it was there, else 0 (any x is fine)
     def remove(self, x):
-        i = x - self.base
-        if not 0 <= i < self.n or not self.present[i]:
+        if not self.contains(x):
             return 0
-        self.present[i] = 0
+        self.present[x] = 0
         self.cnt -= 1
-        left = self._find(i)
-        right = self._find(i + 1)
+        left = self._find(x)
+        right = self._find(x + 1)
         lo, hi = self.lo, self.hi
         if hi[left] - lo[left] > hi[right] - lo[right]:
             self.par[right] = left
@@ -97,11 +72,10 @@ class RemoveOnlySet:
 
     # O(α(N)) amortized -- smallest value >= x; None if there is none (any x is fine)
     def smallestGteX(self, x):
-        i = x - self.base
-        if i >= self.n:
+        if x >= self.n:
             return None
-        found = self.hi[self._find(max(i, 0))]
-        return None if found == self.n else found + self.base
+        found = self.hi[self._find(max(x, 0))]
+        return None if found == self.n else found
 
     # O(α(N)) amortized -- smallest value > x; None if there is none (any x is fine)
     def smallestGtX(self, x):
@@ -109,13 +83,13 @@ class RemoveOnlySet:
 
     # O(α(N)) amortized -- largest value <= x; None if there is none (any x is fine)
     def largestLteX(self, x):
-        i = min(x - self.base, self.n - 1)
-        if i < 0:
+        x = min(x, self.n - 1)
+        if x < 0:
             return None
-        if self.present[i]:
-            return i + self.base
-        found = self.lo[self._find(i)] - 1
-        return None if found < 0 else found + self.base
+        if self.present[x]:
+            return x
+        found = self.lo[self._find(x)] - 1
+        return None if found < 0 else found
 
     # O(α(N)) amortized -- largest value < x; None if there is none (any x is fine)
     def largestLtX(self, x):
@@ -125,27 +99,23 @@ class RemoveOnlySet:
     def min(self):
         if not self.cnt:
             raise IndexError("min: the set is empty")
-        return self.smallestGteX(self.base)
+        return self.smallestGteX(0)
 
     # O(α(N)) amortized -- the largest value; raises IndexError if empty
     def max(self):
         if not self.cnt:
             raise IndexError("max: the set is empty")
-        return self.largestLteX(self.base + self.n - 1)
+        return self.largestLteX(self.n - 1)
 
     # O(α(N)) amortized -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
-        if not self.cnt:
-            raise IndexError("popMin: the set is empty")
-        x = self.smallestGteX(self.base)
+        x = self.min()
         self.remove(x)
         return x
 
     # O(α(N)) amortized -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
-        if not self.cnt:
-            raise IndexError("popMax: the set is empty")
-        x = self.largestLteX(self.base + self.n - 1)
+        x = self.max()
         self.remove(x)
         return x
 

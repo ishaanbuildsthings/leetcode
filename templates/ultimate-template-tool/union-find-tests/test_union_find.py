@@ -399,17 +399,11 @@ def ros_script(seed):
     """remove-only-set: random ops (x often outside 0..n-1) checked against a plain Python set"""
     rnd = random.Random(seed)
     ns = load_py("remove-only-set")
-    if rnd.random() < 0.5:
-        n = rnd.choice([0, 1, 2, rnd.randint(3, 12), rnd.randint(30, 80)])
-        start, second = list(range(n)), f"all {n}"
-        s = ns["RemoveOnlySet"](n)
-    else:
-        lo = rnd.randint(-40, 10)
-        start = [rnd.randint(lo, lo + rnd.choice([0, 3, 15, 60])) for _ in range(rnd.choice([0, 1, rnd.randint(2, 50)]))]
-        second = f"some {len(start)} " + " ".join(map(str, start))
-        s = ns["RemoveOnlySet"](values=start)
-    b = set(start)
-    span = (min(b, default=0) - 3, max(b, default=0) + 3)
+    n = rnd.choice([0, 1, 2, rnd.randint(3, 12), rnd.randint(30, 80)])
+    second = f"{n}"
+    s = ns["RemoveOnlySet"](n)
+    b = set(range(n))
+    span = (-3, n + 2)
     lines, outs = [], []
 
     def pick():
@@ -453,11 +447,9 @@ def ros_script(seed):
 
 ROS_DRIVER = """
 int main() {
-    string mode; int k; cin >> mode >> k;
-    vector<int> values;
-    if (mode == "some") { values.resize(k); for (auto& x : values) cin >> x; }
-    RemoveOnlySet s = mode == "all" ? RemoveOnlySet(k) : RemoveOnlySet(values);
-    auto one = [&](int x) { if (x == s.NONE) cout << "none\\n"; else cout << x << "\\n"; };
+    int n; cin >> n;
+    RemoveOnlySet s(n);
+    auto one = [](int x) { if (x == -1) cout << "none\\n"; else cout << x << "\\n"; };
     string op;
     while (cin >> op) {
         int x = 0, y = 0;
