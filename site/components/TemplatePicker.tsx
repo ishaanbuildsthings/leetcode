@@ -36,6 +36,7 @@ const PICKER_PAGES = [
   { href: "/templates/strings", label: "Strings" },
   { href: "/templates/tree-queries", label: "Tree queries" },
   { href: "/templates/trees", label: "Tree helpers" },
+  { href: "/templates/graphs", label: "Graphs" },
   { href: "/templates/matrices", label: "Matrices" },
   { href: "/templates/combinatorics", label: "Combinatorics" },
   { href: "/templates/bitset", label: "Bit ops & Bitset" },

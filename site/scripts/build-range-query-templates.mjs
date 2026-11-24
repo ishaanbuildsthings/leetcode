@@ -227,6 +227,11 @@ const treesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/tree
 fs.mkdirSync(path.join(publicDir, "_trees"));
 for (const name of fs.readdirSync(treesDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(treesDir, name), path.join(publicDir, "_trees", name));
 
+// the graph templates (the Graphs tab)
+const graphsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/graphs");
+fs.mkdirSync(path.join(publicDir, "_graphs"));
+for (const name of fs.readdirSync(graphsDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(graphsDir, name), path.join(publicDir, "_graphs", name));
+
 // the bitset templates (the Bitset tab)
 const bitsetDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bitset");
 fs.mkdirSync(path.join(publicDir, "_bitset"));
