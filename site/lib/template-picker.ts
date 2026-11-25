@@ -139,6 +139,10 @@ const FACTOR_VALUES: Record<string, number> = {
   // (a tree path over a log^2 range op: the tree query templates)
   "log^3(N)": Math.log2(SIZES.N) ** 3,
   "sqrt(N)": Math.sqrt(SIZES.N),
+  // graphs: V nodes, E edges
+  V: SIZES.N,
+  E: SIZES.N,
+  "log(E)": Math.log2(SIZES.N),
   // Mo's: Q queries, F = the cost of one add / remove you write
   "sqrt(Q)": Math.sqrt(SIZES.Q),
   F: 1,
@@ -261,6 +265,9 @@ const PRETTY_FACTORS: Record<string, string> = {
   "log^3(N)": "log³N",
   "sqrt(N)": "√N",
   "sqrt(Q)": "√Q",
+  V: "V",
+  E: "E",
+  "log(E)": "logE",
   F: "F",
   "sqrt(NlogN)": "√(NlogN)",
   "sqrt(N/logN)": "√(N/logN)",
@@ -296,6 +303,10 @@ const PRETTY_FACTORS: Record<string, string> = {
   "sqrt(M)": "√M",
   // the combinatorics templates
   "log(e)": "log e",
+  "log(items)": "log items",
+  buckets: "buckets",
+  "log(exponent)": "log exponent",
+  "log(mod)": "log mod",
   "log(MOD)": "log MOD",
   "log(x)": "log x",
   // the bit operation templates: B = number of bits in the largest value

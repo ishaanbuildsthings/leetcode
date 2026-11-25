@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { EULER } from "@/lib/graphs";
+import { DIJKSTRA, EULER, SCC } from "@/lib/graphs";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -30,7 +30,11 @@ export default async function GraphTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Graph templates" sections={[{ title: "Euler Paths & Circuits", items: EULER }]} publicBase="/range-query-templates" />
+        <MiscTemplates title="Graph templates" sections={[
+            { title: "Shortest Paths", items: DIJKSTRA },
+            { title: "Strongly Connected Components", items: SCC },
+            { title: "Euler Paths & Circuits", items: EULER },
+          ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

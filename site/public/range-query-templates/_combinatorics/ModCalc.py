@@ -1,169 +1,133 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/ModCalc.py
-# template by: https://github.com/agrawalishaan/leetcode
 
-# n in the constructor is basically the biggest number we will operate on. So for instance finding n! % MOD.
-# But also things like interleaving two sequences of length 500 and length 700 would require n=1200.
-# To be safe, can always just put a big number like 1e5. n may be >= primeMod: x! % MOD is 0 from x = MOD on, 1/x!
-# doesn't exist there, and nChooseK / nPermuteK / interleave still give the right answer
+# calc = ModCalc()                  # mod 10**9 + 7
+# calc = ModCalc(mod=998244353)     # your own mod (the ops marked "mod must be prime" need a prime)
+# @if nChooseKWithMod
+# calc.nChooseKWithMod(5, 2) -> 10
+# @endif
+# @if waysToPutIdenticalItemsIntoDistinctBucketsWithMod
+# calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, allowEmptyBuckets=True)   -> 4
+# calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, allowEmptyBuckets=False)  -> 2
+# @endif
+# No size to pick: the factorial tables grow on demand (doubling), so every call just works and later calls, or later
+# test cases sharing one instance, reuse what's built. Growing costs O(largest x ever asked for) in total.
+
+
 class ModCalc:
-    def __init__(self, n, primeMod):
-        self.n = n
-        self.mod = primeMod # If this is not prime, anything using modInv may break (fermat's little theorem)
-        # O(n) time to build a factorial mod array
-        self.factorialsWithMod = self._buildFactorialsWithMod()
-        # O(n) time to build an inverse factorial mod array
-        self.inverseFactorialsWithMod = self._buildInverseFactorialsWithMod()
+    # O(1) -- the ops that divide (marked "mod must be prime") get inverses from Fermat's little theorem
+    def __init__(self, mod=10**9 + 7):
+        self.mod = mod
+        # @if getFactorialWithMod getInverseFactorialWithMod nChooseKWithMod nPermuteKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+        self.fact = [1]  # fact[x] = x! % mod
+        self.invFact = [1]  # invFact[x] = 1 / x! % mod (0 from x = mod on: no inverse there)
+        # @endif
 
-    # ********** STUFF WITH FACTORIALS **********
+    # @if getFactorialWithMod getInverseFactorialWithMod nChooseKWithMod nPermuteKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+    def _grow(self, x):
+        # afterwards the tables cover 0..x (at least doubling, so each value is built once over the instance's life)
+        old = len(self.fact)
+        if x < old:
+            return
+        size = max(x + 1, 2 * old)
+        mod, fact, invFact = self.mod, self.fact, self.invFact
+        for i in range(old, size):
+            fact.append(fact[-1] * i % mod)
+        invFact.extend([0] * (size - old))
+        top = min(size - 1, mod - 1)
+        if top >= old:
+            invFact[top] = pow(fact[top], mod - 2, mod)
+            for i in range(top, old, -1):
+                invFact[i - 1] = invFact[i] * i % mod
 
-    # O(n) time to build a factorial mod array
-    def _buildFactorialsWithMod(self):
-        factorialsWithMod = [1] # 0 factorial is 1
-        for factorial in range(1, self.n + 1):
-            factorialsWithMod.append(factorialsWithMod[-1] * factorial % self.mod)
-        return factorialsWithMod
+    # @endif
+    # @if getFactorialWithMod
+    # O(1) amortized -- x! % mod (0 once x >= mod)
+    def getFactorialWithMod(self, x):
+        if x >= self.mod:
+            return 0
+        self._grow(x)
+        return self.fact[x]
 
-    # O(n) time to build an inverse factorial mod array
-    def _buildInverseFactorialsWithMod(self):
-        inverseFactorialsWithMod = [1] * (self.n + 1)
-        top = min(self.n, self.mod - 1)  # from MOD on, x! % MOD is 0 and has no inverse
-        inverseFactorialsWithMod[top] = self.modInv(self.factorialsWithMod[top])
-        for i in range(top - 1, 0, -1):
-            inverseFactorialsWithMod[i] = inverseFactorialsWithMod[i + 1] * (i + 1) % self.mod
-        return inverseFactorialsWithMod
+    # @endif
+    # @if getInverseFactorialWithMod
+    # O(1) amortized -- 1 / x! % mod; needs x < mod (x! has no inverse after that); mod must be prime
+    def getInverseFactorialWithMod(self, x):
+        if x >= self.mod:
+            raise ValueError(f"getInverseFactorialWithMod: {x}! has no inverse mod {self.mod}")
+        self._grow(x)
+        return self.invFact[x]
 
-    # Gets (x! % MOD)
-    # O(1) time
-    def getFactorialWithMod(self, factorial):
-        return self.factorialsWithMod[factorial]
-
-    # Gets (1/x! % MOD), which only exists for x < MOD
-    # O(1) time
-    def getInverseFactorialWithMod(self, inverseFactorial):
-        return self.inverseFactorialsWithMod[inverseFactorial]
-
-    # Given two sequences of length X and Y, such as "123" and "4567", find the # of ways to interleave them.
-    # Note we don't care about the actual items in each sequence, we just care about the # of ways we can interleave
-    # the two. We don't even get the actual sequences themselves, just their lengths.
-    # O(1) time (O(log n) if length1 + length2 >= MOD)
-    def interleaveTwoSequencesWithMod(self, length1, length2):
-        # Interleaving a sequence of length 3 and 4 would be like 7!/(3!4!), which is 7! * (1/3!) * (1/4!)
-        combinedLength = length1 + length2
-        if combinedLength >= len(self.factorialsWithMod):
-            raise ValueError(
-                f"To interleave {length1} and {length2} items, we need at least {combinedLength + 1} items "
-                "in the factorial array."
-            )
-        return self.nChooseKWithMod(combinedLength, length1)
-
-
-    # Calculates the # of ways to select k items from n unique items. Order does not matter.
-    # Formula for C(n, k) = n! / (k!(n-k)!)
-    # Denominator is 1/k! * 1/(n-k)!
-    # O(1) time (O(log n) if n >= MOD: Lucas, since those factorials have no inverse)
+    # @endif
+    # @if nChooseKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+    # O(1) amortized (O(log n) once n >= mod: Lucas) -- ways to choose k of n distinct items, order ignored;
+    # 0 if k < 0 or k > n; mod must be prime
     def nChooseKWithMod(self, n, k):
         if k < 0 or k > n:
             return 0
         if n >= self.mod:
-            return self.modMultiply(self.nChooseKWithMod(n % self.mod, k % self.mod),
-                                    self.nChooseKWithMod(n // self.mod, k // self.mod))
-        numerator = self.getFactorialWithMod(n)
-        denominator1 = self.getInverseFactorialWithMod(k)
-        denominator2 = self.getInverseFactorialWithMod(n - k)
-        return self.modMultiply(numerator, denominator1, denominator2)
+            return self.nChooseKWithMod(n % self.mod, k % self.mod) * self.nChooseKWithMod(n // self.mod,
+                k // self.mod) % self.mod
+        self._grow(n)
+        return self.fact[n] * self.invFact[k] % self.mod * self.invFact[n - k] % self.mod
 
-    # Calculates the # of ways to select k items from n unique items. Order matters.
-    # Formula for P(n, k) = n! / (n-k)!
-    # Denominator is 1/(n-k)!
-    # O(1) time
+    # @endif
+    # @if nPermuteKWithMod
+    # O(1) amortized -- ways to choose k of n distinct items in order; 0 if k < 0 or k > n; mod must be prime
     def nPermuteKWithMod(self, n, k):
         if k < 0 or k > n:
             return 0
         if n >= self.mod:
-            # k consecutive numbers: 0 if one is a multiple of MOD, else the same as starting from n % MOD
+            # k consecutive numbers: 0 if one is a multiple of mod, else the same as starting from n % mod
             if k > n % self.mod:
                 return 0
             n %= self.mod
-        numerator = self.getFactorialWithMod(n)
-        denominator = self.getInverseFactorialWithMod(n - k)
-        return self.modMultiply(numerator, denominator)
+        self._grow(n)
+        return self.fact[n] * self.invFact[n - k] % self.mod
 
-    # Calculate the # of ways to distribute n identical items into k distinct buckets (relates to stars and bars)
-    # Formula for allowing empty buckets is C(n+k-1, k-1), which is: (n+k-1)! * 1/n! * 1/(k-1)!
-    # Formula for NOT allowing empty buckets is C(n-1, k-1), which is: (n-1)! * 1/(n-k)! * 1/(k-1)!
-    # O(1) time
-    def waysToPutIdenticalItemsIntoDistinctBucketsWithMod(self, items, buckets, allowEmptyBuckets=True):
+    # @endif
+    # @if interleaveTwoSequencesWithMod
+    # O(1) amortized -- ways to interleave a sequence of length1 items with one of length2, keeping each one's order;
+    # mod must be prime
+    def interleaveTwoSequencesWithMod(self, length1, length2):
+        return self.nChooseKWithMod(length1 + length2, length1)
+
+    # @endif
+    # @if waysToPutIdenticalItemsIntoDistinctBucketsWithMod
+    # O(1) amortized -- identical items into distinct buckets (stars and bars); allowEmptyBuckets (required, no
+    # default): may a bucket stay empty; mod must be prime
+    def waysToPutIdenticalItemsIntoDistinctBucketsWithMod(self, items, buckets, allowEmptyBuckets: bool):
         if buckets == 0:
             return 1 % self.mod if items == 0 else 0
         if allowEmptyBuckets:
             return self.nChooseKWithMod(items + buckets - 1, buckets - 1)
         return self.nChooseKWithMod(items - 1, buckets - 1)
 
-    # Putting n distinct items into k distinct buckets is just k options for the first item, k for the second, etc,
-    # so k^n. This is if we allow empty buckets. If we don't allow empty buckets, we need Stirling numbers of the
-    # second kind.
-    # O(log items) time due to modPow, but modPow can be cached
-    def waysToPutDistinctItemsIntoDistinctBucketsAllowingEmptyWithMod(self, items, buckets):
-        return self.modPow(buckets, items)
+    # @endif
+    # @if waysToPutDistinctItemsIntoDistinctBucketsWithMod
+    # O(log items) with allowEmptyBuckets, else O(buckets * log items) -- distinct items into distinct buckets;
+    # allowEmptyBuckets (required, no default): may a bucket stay empty (then it's buckets^items and works for any mod;
+    # otherwise mod must be prime)
+    def waysToPutDistinctItemsIntoDistinctBucketsWithMod(self, items, buckets, allowEmptyBuckets: bool):
+        if allowEmptyBuckets:
+            return pow(buckets, items, self.mod)
+        total = 0  # inclusion-exclusion over the buckets left empty
+        for empty in range(buckets + 1):
+            term = self.nChooseKWithMod(buckets, empty) * pow(buckets - empty, items, self.mod) % self.mod
+            total += -term if empty % 2 else term
+        return total % self.mod
 
-    # ********** NO FACTORIALS NEEDED **********
-
-    # Multiples k numbers together
-    # O(k) time
-    def modMultiply(self, *args):
-        result = 1
-        for num in args:
-            result = (result * num) % self.mod
-        return result
-
-    # Calculates base^exponent % MOD
-    # Can add caching if we are using the same base a lot. But if we are using one instance of the ModCalc class
-    # across all test cases, maybe that would MLE? I think no cache by default is better, since it is very fast already.
-    # O(log exponent) time (even without caching)
-    # @cache # uncomment to cache
+    # @endif
+    # @if modPow
+    # O(log exponent) -- base^exponent % mod; works for any mod
     def modPow(self, base, exponent):
         return pow(base, exponent, self.mod)
 
-    # Gets 1/x % MOD
-    # Could cache this, if we are calling the same range of numbers a lot. If this class is created once across all
-    # test cases, could maybe MLE? Also num needs to be coprime to MOD.
-    # O(log MOD) time
-    # @cache # uncomment to cache
-    def modInv(self, num):
-        return self.modPow(num, self.mod - 2)
-
-
-class MoreAdvancedStirlingStuff:
-    def __init__(self, maxPossibleDistinctItemCount, maxPossibleBucketCount, mod):
-        self.maxPossibleDistinctItemCount = maxPossibleDistinctItemCount
-        self.maxPossibleBucketCount = maxPossibleBucketCount
-        self.mod = mod
-
-        # # Build a basic modCalc so we can get factorial mods
-        self.modCalc = ModCalc(maxPossibleBucketCount, mod)
-
-        # O(maxPossibleDistinctItemCount * maxPossibleBucketCount) build time
-        self.stirling2Dp = self._buildStirling2Dp()
-
-    def _buildStirling2Dp(self):
-        dp = [[0] * (self.maxPossibleBucketCount + 1) for _ in range(self.maxPossibleDistinctItemCount + 1)]
-        dp[0][0] = 1
-        for i in range(1, self.maxPossibleDistinctItemCount + 1):
-            for j in range(1, self.maxPossibleBucketCount + 1):
-                dp[i][j] = (dp[i - 1][j - 1] + j * dp[i - 1][j]) % self.mod
-        return dp
-
-    # Calculate the # of ways to distribute n distinct items into k identical non-empty buckets. For instance with
-    # items 'A' and 'B' and 2 buckets, there's only one way, since the buckets are identical.
-    # This is stirling2 numbers.
-    # O(1) time
-    def waysToPutDistinctItemsIntoIdenticalNonemptyBucketsWithMod(self, items, buckets):
-        return self.stirling2Dp[items][buckets]
-
-    # Calculate the # of ways to distribute n distinct items into k distinct non-empty buckets.
-    # O(1) time
-    def waysToPutDistinctItemsIntoDistinctNonemptyBucketsWithMod(self, items, buckets):
-        waysAssumingIdenticalBuckets = self.stirling2Dp[items][buckets]
-        bucketOrderings = self.modCalc.getFactorialWithMod(buckets)
-        return self.modCalc.modMultiply(waysAssumingIdenticalBuckets, bucketOrderings)
+    # @endif
+    # @if modInv
+    # O(log mod) -- 1 / x % mod; x must not be a multiple of mod; mod must be prime
+    def modInv(self, x):
+        if x % self.mod == 0:
+            raise ValueError(f"modInv: {x} has no inverse mod {self.mod}")
+        return pow(x, self.mod - 2, self.mod)
+    # @endif

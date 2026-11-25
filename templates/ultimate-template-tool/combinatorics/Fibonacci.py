@@ -1,7 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/Fibonacci.py
+# @if isFib
 from math import isqrt
+# @endif
 
+# @if getFibList
 # returns a list of all fibs <= n example: n=10 -> [0, 1, 1, 2, 3, 5, 8]
 # O(log(n)) time and space
 def getFibList(n):
@@ -13,7 +16,9 @@ def getFibList(n):
         fibs.append(nxt)
         nxt = fibs[-1] + fibs[-2] if len(fibs) >= 2 else 1
     return fibs
+# @endif
 
+# @if isFib
 # O(1) time
 # x is fibonacci number exactly when 5x^2 + 4 or 5x^2 - 4 is a perfect square
 def isFib(x):
@@ -24,7 +29,9 @@ def isFib(x):
         if root * root == candidate:
             return True
     return False
+# @endif
 
+# @if getXthFib
 # gets the xth fibonacci number
 # getXthFib(1) -> 0
 # getXthFib(2) -> 1
@@ -43,7 +50,9 @@ def getXthFib(x):
         odd = a * a + b * b
         return (odd, even + odd) if k & 1 else (even, odd)
     return pair(x - 1)[0]
+# @endif
 
+# @if getXthFibMod
 # same as above with mod
 def getXthFibMod(x, mod):
     if x < 1:
@@ -56,3 +65,4 @@ def getXthFibMod(x, mod):
         odd = (a * a + b * b) % mod
         return (odd, (even + odd) % mod) if k & 1 else (even, odd)
     return pair(x - 1)[0]
+# @endif

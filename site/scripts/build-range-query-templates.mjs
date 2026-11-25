@@ -218,11 +218,17 @@ for (const name of ["monotonicStack.py", "monotonicStack.cpp"]) fs.copyFileSync(
 const mosDir = path.resolve(siteDir, "../templates/ultimate-template-tool/mos");
 fs.mkdirSync(path.join(publicDir, "_mos"));
 for (const name of ["mosAndHilbert.py", "mosAndHilbert.cpp"]) fs.copyFileSync(path.join(mosDir, name), path.join(publicDir, "_mos", name));
+const hashTablesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/hash-tables");
+fs.mkdirSync(path.join(publicDir, "_hash-tables"));
+for (const name of ["hashSet.cpp", "hashMap.cpp"]) fs.copyFileSync(path.join(hashTablesDir, name), path.join(publicDir, "_hash-tables", name));
+const lisDir = path.resolve(siteDir, "../templates/ultimate-template-tool/lis");
+fs.mkdirSync(path.join(publicDir, "_lis"));
+for (const name of ["lis.py", "lis.cpp"]) fs.copyFileSync(path.join(lisDir, name), path.join(publicDir, "_lis", name));
 
 // the combinatorics templates (the Combinatorics tab)
 const combinatoricsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/combinatorics");
 fs.mkdirSync(path.join(publicDir, "_combinatorics"));
-for (const name of fs.readdirSync(combinatoricsDir).filter((name) => /^(ModCalc|Fibonacci)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(combinatoricsDir, name), path.join(publicDir, "_combinatorics", name));
+for (const name of fs.readdirSync(combinatoricsDir).filter((name) => /^(ModCalc|Fibonacci|Stirling)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(combinatoricsDir, name), path.join(publicDir, "_combinatorics", name));
 
 const goldenDir = path.resolve(siteDir, "../templates/ultimate-template-tool/golden-references");
 fs.mkdirSync(path.join(publicDir, "_golden-references"));

@@ -7,6 +7,8 @@ import { CHESS } from "@/lib/chess";
 import { BISECTS } from "@/lib/bisects";
 import { STACKS } from "@/lib/stacks";
 import { MOS } from "@/lib/mos";
+import { LIS } from "@/lib/lis";
+import { HASH_TABLES } from "@/lib/hash-tables";
 import { NEXT_PERMUTATION } from "@/lib/next-permutation";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -36,11 +38,13 @@ export default async function MiscTemplatesPage() {
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
         <MiscTemplates title="Misc. templates" sections={[
-            { title: "Bubble Sort", items: BUBBLE_SORT },
-            { title: "Next Permutation", items: NEXT_PERMUTATION },
-            { title: "Bisects", items: BISECTS },
+            { title: "Hash Tables", items: HASH_TABLES },
             { title: "Stacks", items: STACKS },
+            { title: "Bisects", items: BISECTS },
             { title: "Mo's", items: MOS },
+            { title: "Longest Increasing Subsequence", items: LIS },
+            { title: "Next Permutation", items: NEXT_PERMUTATION },
+            { title: "Bubble Sort", items: BUBBLE_SORT },
             { title: "Chess", items: CHESS },
           ]} publicBase="/range-query-templates" />
       </div>

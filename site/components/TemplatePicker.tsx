@@ -38,7 +38,7 @@ const PICKER_PAGES = [
   { href: "/templates/trees", label: "Tree helpers" },
   { href: "/templates/graphs", label: "Graphs" },
   { href: "/templates/matrices", label: "Matrices" },
-  { href: "/templates/combinatorics", label: "Combinatorics" },
+  { href: "/templates/math", label: "Math" },
   { href: "/templates/bitset", label: "Bit ops & Bitset" },
   { href: "/templates/geometry", label: "Geometry" },
   { href: "/templates/misc", label: "Misc." },
@@ -178,6 +178,9 @@ export type FillIn = {
   transform?: (code: string) => string;
   // golden references to read alongside it: a button each under the drawer's title, opening it in a drawer on top
   references?: FillIn[];
+  // (optional) hand-written usage code per language, shown as the drawer's "Usage" block (instead of the line read
+  // from the class): for templates used through their own syntax, like the hash tables
+  usage?: Partial<Record<TemplateLang, string>>;
 };
 
 // a section of a templates tab without a picker
@@ -1016,7 +1019,15 @@ export function FillInDrawer({
             {lang === "cpp" && fillIn.cppNote && <p className="mt-2 text-muted-foreground">{fillIn.cppNote}</p>}
           </div>
           )}
-          {construct && (
+          {fillIn.usage?.[lang] && (
+            <div className="border-b border-border px-4 py-3 text-xs">
+              <p className="mb-1.5 font-semibold text-foreground">Usage</p>
+              <pre className="overflow-x-auto rounded-md bg-card p-3 font-mono text-[11px] leading-relaxed text-foreground">
+                {fillIn.usage[lang]}
+              </pre>
+            </div>
+          )}
+          {!fillIn.usage?.[lang] && construct && (
             <div className="border-b border-border px-4 py-3 text-xs">
               <p className="mb-1.5 font-semibold text-foreground">Usage</p>
               <pre className="overflow-x-auto rounded-md bg-card p-3 font-mono text-[11px] leading-relaxed text-foreground">
@@ -1047,7 +1058,9 @@ function fillInConstruct(code: string, lang: TemplateLang, ops: [string, string]
   if (!cls) return null;
   const cpp = lang === "cpp";
   const name = cls.className;
-  const variable = /Seg/.test(name) ? "seg" : /Treap/.test(name) ? "treap" : /Table/.test(name) ? "table" : "ds";
+  const variable = /ModCalc|Stirling/.test(name)
+    ? "calc"
+    : /Seg/.test(name) ? "seg" : /Treap/.test(name) ? "treap" : /Table/.test(name) ? "table" : "ds";
   // the starting values are written in the call even when they can be left out
   const startsEmpty = (p: UsageParam) => p.default !== undefined && STARTING_VALUES.includes(p.name);
   const inCall = cls.ctor.filter((p) => p.default === undefined || startsEmpty(p));

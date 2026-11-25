@@ -2,8 +2,8 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/Fibonacci.cpp
 #include <bits/stdc++.h>
 using namespace std;
-// by ishaanbuildsthings
 
+// @if getFibList
 // returns a list of all fibs <= n example: n=10 -> [0, 1, 1, 2, 3, 5, 8]
 // O(log(n)) time and space
 vector<long long> getFibList(long long n) {
@@ -19,7 +19,9 @@ vector<long long> getFibList(long long n) {
     }
     return fibs;
 }
+// @endif
 
+// @if isFib
 // O(1) time: only 93 fibonacci numbers fit in a long long, so this walks them
 // (the 5x^2 +- 4 perfect square test overflows __int128 from x around 6e18, F92 included)
 bool isFib(long long x) {
@@ -34,7 +36,9 @@ bool isFib(long long x) {
     }
     return a == (unsigned long long)x;
 }
+// @endif
 
+// @if getXthFib
 // gets the xth fibonacci number
 // getXthFib(1) -> 0
 // getXthFib(2) -> 1
@@ -58,7 +62,9 @@ unsigned long long getXthFib(long long x) {
     };
     return fibPair(fibPair, x - 1).first;
 }
+// @endif
 
+// @if getXthFibMod
 // same as above with mod, any mod that fits in a long long
 long long getXthFibMod(long long x, long long mod) {
     if (x < 1) throw invalid_argument("getXthFibMod: x is 1-indexed, needs x >= 1");
@@ -76,3 +82,4 @@ long long getXthFibMod(long long x, long long mod) {
     };
     return fibPair(fibPair, x - 1).first;
 }
+// @endif

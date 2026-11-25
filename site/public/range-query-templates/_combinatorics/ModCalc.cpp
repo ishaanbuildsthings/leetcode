@@ -1,190 +1,140 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/ModCalc.cpp
-// template by: https://github.com/agrawalishaan/leetcode
-
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
-// n in the constructor is basically the biggest number we will operate on. So for instance finding n! % MOD.
-// But also things like interleaving two sequences of length 500 and length 700 would require n=1200.
-// To be safe, can always just put a big number like 1e5. n may be >= primeMod: x! % MOD is 0 from x = MOD on, 1/x!
-// doesn't exist there, and nChooseK / nPermuteK / interleave still give the right answer
-class ModCalc {
-public:
-    // O(n) time, O(n) space (two arrays of length n+1)
-    // primeMod must be prime, otherwise anything using modInv may break (fermat's little theorem)
-    ModCalc(int n, long long primeMod) : n(n), mod(primeMod) {
-        buildFactorialsWithMod();
-        buildInverseFactorialsWithMod();
+// ModCalc calc;                // mod 1e9 + 7
+// ModCalc calc(998244353);     // your own mod (the ops marked "mod must be prime" need a prime)
+// @if nChooseKWithMod
+// calc.nChooseKWithMod(5, 2) -> 10
+// @endif
+// @if waysToPutIdenticalItemsIntoDistinctBucketsWithMod
+// calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, true)   -> 4   (allowEmptyBuckets = true)
+// calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, false)  -> 2
+// @endif
+// No size to pick: the factorial tables grow on demand (doubling), so every call just works and later calls reuse
+// what's built (make it static / global to share it across test cases). Growing costs O(largest x ever asked for).
+struct ModCalc {
+    ll mod;
+    // @if getFactorialWithMod getInverseFactorialWithMod nChooseKWithMod nPermuteKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+    vector<ll> fact{1};     // fact[x] = x! % mod
+    vector<ll> invFact{1};  // invFact[x] = 1 / x! % mod (0 from x = mod on: no inverse there)
+    // @endif
+
+    // O(1) -- the ops that divide (marked "mod must be prime") get inverses from Fermat's little theorem
+    explicit ModCalc(ll mod = 1000000007) : mod(mod) {}
+
+    ll power(ll base, ll exponent) const {
+        ll result = 1 % mod;
+        base %= mod;
+        if (base < 0) base += mod;
+        for (; exponent > 0; exponent >>= 1, base = base * base % mod)
+            if (exponent & 1) result = result * base % mod;
+        return result;
     }
 
-    // ********** STUFF WITH FACTORIALS **********
-
-    // Gets (x! % MOD)
-    // O(1) time
-    long long getFactorialWithMod(int factorial) const {
-        assert(0 <= factorial && factorial <= n);
-        return factorialsWithMod[factorial];
+    // @if getFactorialWithMod getInverseFactorialWithMod nChooseKWithMod nPermuteKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+    void grow(ll x) {
+        // afterwards the tables cover 0..x (at least doubling, so each value is built once over the instance's life)
+        ll old = fact.size();
+        if (x < old) return;
+        ll size = max(x + 1, 2 * old);
+        fact.resize(size), invFact.resize(size, 0);
+        for (ll i = old; i < size; i++) fact[i] = fact[i - 1] * (i % mod) % mod;
+        ll top = min(size - 1, mod - 1);
+        if (top >= old) {
+            invFact[top] = power(fact[top], mod - 2);
+            for (ll i = top; i > old; i--) invFact[i - 1] = invFact[i] * (i % mod) % mod;
+        }
     }
 
-    // Gets (1/x! % MOD), which only exists for x < MOD
-    // O(1) time
-    long long getInverseFactorialWithMod(int inverseFactorial) const {
-        assert(0 <= inverseFactorial && inverseFactorial <= n && inverseFactorial < mod);
-        return inverseFactorialsWithMod[inverseFactorial];
+    // @endif
+    // @if getFactorialWithMod
+    // O(1) amortized -- x! % mod (0 once x >= mod)
+    ll getFactorialWithMod(ll x) {
+        if (x >= mod) return 0;
+        grow(x);
+        return fact[x];
     }
 
-    // Given two sequences of length X and Y, such as "123" and "4567", find the # of ways to interleave them.
-    // Note we don't care about the actual items in each sequence, we just care about the # of ways we can interleave
-    // the two. We don't even get the actual sequences themselves, just their lengths.
-    // O(1) time (O(log n) if length1 + length2 >= MOD)
-    long long interleaveTwoSequencesWithMod(int length1, int length2) const {
-        // Interleaving a sequence of length 3 and 4 would be like 7!/(3!4!), which is 7! * (1/3!) * (1/4!)
-        int combinedLength = length1 + length2;
-        assert(combinedLength <= n); // need the factorial array to reach combinedLength
-        return nChooseKWithMod(combinedLength, length1);
+    // @endif
+    // @if getInverseFactorialWithMod
+    // O(1) amortized -- 1 / x! % mod; needs x < mod (x! has no inverse after that), else invalid_argument; mod must be
+    // prime
+    ll getInverseFactorialWithMod(ll x) {
+        if (x >= mod) throw invalid_argument("getInverseFactorialWithMod: x! has no inverse");
+        grow(x);
+        return invFact[x];
     }
 
-    // Calculates the # of ways to select k items from n unique items. Order does not matter.
-    // Formula for C(n, k) = n! / (k!(n-k)!)
-    // O(1) time (O(log n) if n >= MOD: Lucas, since those factorials have no inverse)
-    long long nChooseKWithMod(int n, int k) const {
+    // @endif
+    // @if nChooseKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+    // O(1) amortized (O(log n) once n >= mod: Lucas) -- ways to choose k of n distinct items, order ignored;
+    // 0 if k < 0 or k > n; mod must be prime
+    ll nChooseKWithMod(ll n, ll k) {
         if (k < 0 || k > n) return 0;
-        if (n >= mod) return modMultiply(nChooseKWithMod(n % mod, k % mod), nChooseKWithMod(n / mod, k / mod));
-        return modMultiply(getFactorialWithMod(n),
-                           getInverseFactorialWithMod(k),
-                           getInverseFactorialWithMod(n - k));
+        if (n >= mod) return nChooseKWithMod(n % mod, k % mod) * nChooseKWithMod(n / mod, k / mod) % mod;
+        grow(n);
+        return fact[n] * invFact[k] % mod * invFact[n - k] % mod;
     }
 
-    // Calculates the # of ways to select k items from n unique items. Order matters.
-    // Formula for P(n, k) = n! / (n-k)!
-    // O(1) time
-    long long nPermuteKWithMod(int n, int k) const {
+    // @endif
+    // @if nPermuteKWithMod
+    // O(1) amortized -- ways to choose k of n distinct items in order; 0 if k < 0 or k > n; mod must be prime
+    ll nPermuteKWithMod(ll n, ll k) {
         if (k < 0 || k > n) return 0;
-        if (n >= mod) {  // k consecutive numbers: 0 if one is a multiple of MOD, else the same as starting from n % MOD
+        if (n >= mod) {
+            // k consecutive numbers: 0 if one is a multiple of mod, else the same as starting from n % mod
             if (k > n % mod) return 0;
             n %= mod;
         }
-        return modMultiply(getFactorialWithMod(n), getInverseFactorialWithMod(n - k));
+        grow(n);
+        return fact[n] * invFact[n - k] % mod;
     }
 
-    // Calculate the # of ways to distribute n identical items into k distinct buckets (relates to stars and bars)
-    // Formula for allowing empty buckets is C(n+k-1, k-1)
-    // Formula for NOT allowing empty buckets is C(n-1, k-1)
-    // O(1) time
-    long long waysToPutIdenticalItemsIntoDistinctBucketsWithMod(int items, int buckets,
-                                                                bool allowEmptyBuckets = true) const {
+    // @endif
+    // @if interleaveTwoSequencesWithMod
+    // O(1) amortized -- ways to interleave a sequence of length1 items with one of length2, keeping each one's order;
+    // mod must be prime
+    ll interleaveTwoSequencesWithMod(ll length1, ll length2) { return nChooseKWithMod(length1 + length2, length1); }
+
+    // @endif
+    // @if waysToPutIdenticalItemsIntoDistinctBucketsWithMod
+    // O(1) amortized -- identical items into distinct buckets (stars and bars); allowEmptyBuckets (required, no
+    // default): may a bucket stay empty; mod must be prime
+    ll waysToPutIdenticalItemsIntoDistinctBucketsWithMod(ll items, ll buckets, bool allowEmptyBuckets) {
         if (buckets == 0) return items == 0 ? 1 % mod : 0;
-        if (allowEmptyBuckets) return nChooseKWithMod(items + buckets - 1, buckets - 1);
-        return nChooseKWithMod(items - 1, buckets - 1);
+        return allowEmptyBuckets ? nChooseKWithMod(items + buckets - 1, buckets - 1) : nChooseKWithMod(items - 1,
+            buckets - 1);
     }
 
-    // Putting n distinct items into k distinct buckets is just k options for the first item, k for the second, etc,
-    // so k^n. This is if we allow empty buckets. If we don't allow empty buckets, we need Stirling numbers of the
-    // second kind.
-    // O(log items) time
-    long long waysToPutDistinctItemsIntoDistinctBucketsAllowingEmptyWithMod(int items, int buckets) const {
-        return modPow(buckets, items);
-    }
-
-    // ********** NO FACTORIALS NEEDED **********
-
-    // Multiplies k numbers together. Handles negative inputs.
-    // O(k) time
-    template <typename... Args>
-    long long modMultiply(Args... nums) const {
-        long long result = 1;
-        ((result = result * normalize(nums) % mod), ...);
-        return result;
-    }
-
-    // Calculates base^exponent % MOD
-    // O(log exponent) time
-    long long modPow(long long base, long long exponent) const {
-        long long result = 1, cur = normalize(base);
-        while (exponent > 0) {
-            if (exponent & 1) result = result * cur % mod;
-            cur = cur * cur % mod;
-            exponent >>= 1;
+    // @endif
+    // @if waysToPutDistinctItemsIntoDistinctBucketsWithMod
+    // O(log items) with allowEmptyBuckets, else O(buckets * log items) -- distinct items into distinct buckets;
+    // allowEmptyBuckets (required, no default): may a bucket stay empty (then it's buckets^items and works for any mod;
+    // otherwise mod must be prime)
+    ll waysToPutDistinctItemsIntoDistinctBucketsWithMod(ll items, ll buckets, bool allowEmptyBuckets) {
+        if (allowEmptyBuckets) return power(buckets, items);
+        ll total = 0;  // inclusion-exclusion over the buckets left empty
+        for (ll empty = 0; empty <= buckets; empty++) {
+            ll term = nChooseKWithMod(buckets, empty) * power(buckets - empty, items) % mod;
+            total = (empty % 2 ? total - term + mod : total + term) % mod;
         }
-        return result;
+        return total;
     }
 
-    // Gets 1/x % MOD. num must be coprime to MOD.
-    // O(log MOD) time
-    long long modInv(long long num) const { return modPow(num, mod - 2); }
+    // @endif
+    // @if modPow
+    // O(log exponent) -- base^exponent % mod; works for any mod
+    ll modPow(ll base, ll exponent) const { return power(base, exponent); }
 
-private:
-    int n;
-    long long mod;
-    vector<long long> factorialsWithMod;
-    vector<long long> inverseFactorialsWithMod;
-
-    long long normalize(long long x) const {
-        x %= mod;
-        return x < 0 ? x + mod : x;
+    // @endif
+    // @if modInv
+    // O(log mod) -- 1 / x % mod; x must not be a multiple of mod, else invalid_argument; mod must be prime
+    ll modInv(ll x) const {
+        if (x % mod == 0) throw invalid_argument("modInv: x has no inverse");
+        return power(x, mod - 2);
     }
-
-    // O(n) time to build a factorial mod array
-    void buildFactorialsWithMod() {
-        factorialsWithMod.assign(n + 1, 1); // 0 factorial is 1
-        for (int factorial = 1; factorial <= n; factorial++) {
-            factorialsWithMod[factorial] = factorialsWithMod[factorial - 1] * factorial % mod;
-        }
-    }
-
-    // O(n) time to build an inverse factorial mod array
-    void buildInverseFactorialsWithMod() {
-        inverseFactorialsWithMod.assign(n + 1, 1);
-        int top = (int)min((long long)n, mod - 1);  // from MOD on, x! % MOD is 0 and has no inverse
-        inverseFactorialsWithMod[top] = modInv(factorialsWithMod[top]);
-        for (int i = top - 1; i >= 0; i--) {
-            inverseFactorialsWithMod[i] = inverseFactorialsWithMod[i + 1] * (i + 1) % mod;
-        }
-    }
-};
-
-class MoreAdvancedStirlingStuff {
-public:
-    // O(maxPossibleDistinctItemCount * maxPossibleBucketCount) time and space
-    MoreAdvancedStirlingStuff(int maxPossibleDistinctItemCount, int maxPossibleBucketCount, long long mod)
-        : maxPossibleDistinctItemCount(maxPossibleDistinctItemCount),
-          maxPossibleBucketCount(maxPossibleBucketCount),
-          mod(mod),
-          modCalc(maxPossibleBucketCount, mod) {
-        buildStirling2Dp();
-    }
-
-    // Calculate the # of ways to distribute n distinct items into k identical non-empty buckets. For instance with
-    // items 'A' and 'B' and 2 buckets, there's only one way, since the buckets are identical.
-    // This is stirling2 numbers.
-    // O(1) time
-    long long waysToPutDistinctItemsIntoIdenticalNonemptyBucketsWithMod(int items, int buckets) const {
-        return stirling2Dp[items][buckets];
-    }
-
-    // Calculate the # of ways to distribute n distinct items into k distinct non-empty buckets.
-    // O(1) time
-    long long waysToPutDistinctItemsIntoDistinctNonemptyBucketsWithMod(int items, int buckets) const {
-        long long waysAssumingIdenticalBuckets = stirling2Dp[items][buckets];
-        long long bucketOrderings = modCalc.getFactorialWithMod(buckets);
-        return modCalc.modMultiply(waysAssumingIdenticalBuckets, bucketOrderings);
-    }
-
-private:
-    int maxPossibleDistinctItemCount;
-    int maxPossibleBucketCount;
-    long long mod;
-    ModCalc modCalc; // built so we can get factorial mods
-    vector<vector<long long>> stirling2Dp;
-
-    void buildStirling2Dp() {
-        stirling2Dp.assign(maxPossibleDistinctItemCount + 1, vector<long long>(maxPossibleBucketCount + 1, 0));
-        stirling2Dp[0][0] = 1;
-        for (int i = 1; i <= maxPossibleDistinctItemCount; i++) {
-            for (int j = 1; j <= maxPossibleBucketCount; j++) {
-                stirling2Dp[i][j] = (stirling2Dp[i - 1][j - 1] + j * stirling2Dp[i - 1][j]) % mod;
-            }
-        }
-    }
+    // @endif
 };

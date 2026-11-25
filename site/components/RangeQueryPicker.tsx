@@ -207,14 +207,6 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     trisect: ["left", "mid", "right"],
   } satisfies Partial<Record<OpId, string[]>>,
   fillIns: GENERIC_SEG_TREES,
-  planned: [
-    "persistent seg tree queries",
-    "tuple values with a custom comparator",
-    "interval tree",
-    "multiset hashing",
-    "DnC DP golden",
-    "alien trick golden",
-  ],
 };
 
 // The rolling-hash constructors take an optional base and mod: shown as the constructions, not as "optional" notes.
