@@ -98,6 +98,20 @@ export const GOLDEN_FLOYD_WARSHALL: FillIn[] = [
   },
 ];
 
+// 0-1 BFS: a full solution kept as a copy in golden-references/
+export const GOLDEN_ZERO_ONE_BFS: FillIn[] = [
+  {
+    label: "0-1 BFS (LeetCode 2290, Minimum Obstacle Removal to Reach Corner)",
+    title:
+      "Worked example of 0-1 BFS: Dijkstra with a deque instead of a heap, 0-cost moves pushed to the front and 1-cost moves to the back; relax on push, skip stale entries on pop",
+    folder: "_golden-references",
+    file: "ZeroOneBfsMinimumObstacleRemoval",
+    langs: ["py"],
+    ops: [],
+    githubUrl: GITHUB,
+  },
+];
+
 // the Golden References page, section by section
 export const GOLDEN_SECTIONS: MiscSection[] = [
   { title: "Persistent Segment Tree", items: GOLDEN_REFERENCES },
@@ -105,4 +119,5 @@ export const GOLDEN_SECTIONS: MiscSection[] = [
   { title: "Euler Tour Path Queries", items: GOLDEN_EULER_PATHS },
   { title: "Euler Paths & Circuits", items: GOLDEN_EULER_CIRCUITS },
   { title: "Floyd-Warshall", items: GOLDEN_FLOYD_WARSHALL },
+  { title: "0-1 BFS", items: GOLDEN_ZERO_ONE_BFS },
 ];
