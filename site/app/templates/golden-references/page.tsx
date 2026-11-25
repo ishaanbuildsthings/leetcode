@@ -30,7 +30,7 @@ export default async function GoldenReferencesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Golden References" sections={GOLDEN_SECTIONS} publicBase="/range-query-templates" planned={["Seg tree beats"]} />
+        <MiscTemplates title="Golden References" sections={GOLDEN_SECTIONS} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

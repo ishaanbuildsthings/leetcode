@@ -84,10 +84,25 @@ export const GOLDEN_EULER_CIRCUITS: FillIn[] = [
   },
 ];
 
+// Floyd-Warshall: a full solution kept as a copy in golden-references/
+export const GOLDEN_FLOYD_WARSHALL: FillIn[] = [
+  {
+    label: "Floyd-Warshall (LeetCode 1334, Find the City With the Smallest Number of Neighbors at a Threshold Distance)",
+    title:
+      "Worked example of all-pairs shortest paths as a recurrence over which cities may be middle stops: the best route using stops 0..k either avoids k, or goes through k once and splits into two routes that only use stops 0..k-1",
+    folder: "_golden-references",
+    file: "FloydWarshallFindTheCity",
+    langs: ["py"],
+    ops: [],
+    githubUrl: GITHUB,
+  },
+];
+
 // the Golden References page, section by section
 export const GOLDEN_SECTIONS: MiscSection[] = [
   { title: "Persistent Segment Tree", items: GOLDEN_REFERENCES },
   { title: "Mo's on Tree", items: GOLDEN_MOS_ON_TREE },
   { title: "Euler Tour Path Queries", items: GOLDEN_EULER_PATHS },
   { title: "Euler Paths & Circuits", items: GOLDEN_EULER_CIRCUITS },
+  { title: "Floyd-Warshall", items: GOLDEN_FLOYD_WARSHALL },
 ];
