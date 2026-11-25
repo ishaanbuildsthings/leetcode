@@ -35,3 +35,17 @@ class Solution:
                     res += thirdEdge in edgeMap[node]
 
         return res
+
+
+class Solution:
+    def numberOfPaths(self, n: int, corridors: List[List[int]]) -> int:
+        adj = [0] * (n + 1)
+        for room1, room2 in corridors:
+            adj[room1] |= 1 << room2
+            adj[room2] |= 1 << room1
+
+        res = 0
+        for a, b in corridors:
+            res += (adj[a] & adj[b]).bit_count()
+
+        return res // 3
