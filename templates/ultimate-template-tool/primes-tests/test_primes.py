@@ -17,7 +17,7 @@ from eertree_strip import strip  # noqa: E402
 
 SRC = os.path.join(os.path.dirname(HERE), "primes")
 OPS = ["isPrime", "primeFactorize", "allFactors", "sieveIsPrime", "sieveSmallestPrimeFactor", "sieveFactorize",
-       "sieveFactorizeUpToNSquared", "sievePrimes", "primesUpTo", "forEachPrimeUpTo", "primesInRange", "countPrimes"]
+       "sieveFactorizeUpToNSquared", "sievePrimes", "primesUpTo", "primesInRange", "countPrimes"]
 SIEVE_N = 3000
 rnd = random.Random(2)
 
@@ -37,7 +37,14 @@ def trial(x):
     return res
 
 
-PLAIN = [x for x in range(200001) if x >= 2 and all(x % p for p in range(2, isqrt(x) + 1))]
+LIMIT = 600000  # (brute force: a plain sieve, written separately from the template's)
+_flags = [True] * (LIMIT + 1)
+_flags[0] = _flags[1] = False
+for _i in range(2, isqrt(LIMIT) + 1):
+    if _flags[_i]:
+        for _j in range(_i * _i, LIMIT + 1, _i):
+            _flags[_j] = False
+PLAIN = [x for x in range(LIMIT + 1) if _flags[x]]
 PLAIN_SET = set(PLAIN)
 # big values: known primes, Carmichael numbers, semiprimes of big primes, prime powers, products near 2^64
 BIG_PRIMES = [2**61 - 1, 1000000000000000003, 999999999989, 18446744073709551557, 4294967291, 1000000007]
@@ -69,7 +76,7 @@ def cases(op):
         out += [((x,), trial(x)) for x in xs]
     elif op == "sievePrimes":
         out.append(((), [p for p in PLAIN if p <= SIEVE_N]))
-    elif op in ("primesUpTo", "forEachPrimeUpTo"):
+    elif op == "primesUpTo":
         for n in [0, 1, 2, 3, 10, 100, 1000, 200000, rnd.randint(0, 200000), 2**18 + 1, 2 * 2**18 + 5]:
             out.append(((n,), [p for p in PLAIN if p <= n]))
     elif op == "primesInRange":
@@ -101,10 +108,6 @@ def run_py(ns, op, args):
         method = {"sieveIsPrime": "isPrime", "sieveSmallestPrimeFactor": "smallestPrimeFactor", "sieveFactorize": "factorize",
                   "sieveFactorizeUpToNSquared": "factorizeUpToNSquared"}[op]
         return getattr(s, method)(*args)
-    if op == "forEachPrimeUpTo":
-        got = []
-        ns[op](*args, got.append)
-        return got
     return ns[op](*args)
 
 
@@ -127,7 +130,6 @@ CPP_CALL = {
     "sieveFactorizeUpToNSquared": lambda a: f"{{ auto r = sieve.factorizeUpToNSquared({a[0]}LL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i].first << \"^\" << r[i].second; }}",
     "sievePrimes": lambda a: "{ for (size_t i = 0; i < sieve.primes.size(); i++) cout << (i ? \" \" : \"\") << sieve.primes[i]; }",
     "primesUpTo": lambda a: f"{{ auto r = primesUpTo({a[0]}LL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i]; }}",
-    "forEachPrimeUpTo": lambda a: f"{{ bool first = true; forEachPrimeUpTo({a[0]}LL, [&](ll p) {{ cout << (first ? \"\" : \" \") << p; first = false; }}); }}",
     "primesInRange": lambda a: f"{{ auto r = primesInRange({a[0]}LL, {a[1]}LL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i]; }}",
     "countPrimes": lambda a: f"cout << countPrimes({a[0]}LL);",
 }
@@ -147,7 +149,9 @@ def main():
         exec(strip(py, set(chosen)), ns)
         lines, expected = [], []
         for op in chosen:
-            for args, exact in cases(op):
+            # (the whole-file trim only has to show everything compiles and agrees together: a sample per op is enough,
+            # and keeps its sanitizer build small)
+            for args, exact in cases(op)[: (40 if len(chosen) > 1 else None)]:
                 got = run_py(ns, op, args)
                 if op == "primeFactorize":
                     checkFactor(args[0], got)
@@ -161,7 +165,7 @@ def main():
                     else:
                         assert got == sorted(got) and all(x % d == 0 for d in got) and got[0] == 1 and got[-1] == x
                 else:
-                    assert got == exact, (op, args, got, exact)
+                    assert got == exact, (op, args, str(got)[:200], str(exact)[:200])
                 lines.append(CPP_CALL[op](args) + ' cout << "\\n";')
                 expected.append(fmt2(got))
                 total += 1

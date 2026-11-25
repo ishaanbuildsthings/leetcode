@@ -39,6 +39,7 @@ const PICKER_PAGES = [
   { href: "/templates/graphs", label: "Graphs" },
   { href: "/templates/matrices", label: "Matrices" },
   { href: "/templates/math", label: "Math" },
+  { href: "/templates/primes", label: "Primes" },
   { href: "/templates/bitset", label: "Bit ops & Bitset" },
   { href: "/templates/geometry", label: "Geometry" },
   { href: "/templates/misc", label: "Misc." },

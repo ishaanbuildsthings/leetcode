@@ -11,7 +11,7 @@
 # allFactors(12) -> [1, 2, 3, 4, 6, 12]
 # @endif
 # @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
-# sieve = PrimeSieve(10**6)                  # O(N) once; then every sieve.* call below is fast
+# sieve = PrimeSieve(10**6)                  # build: sieves every x in 0..10**6 (both ends), O(N log log N)
 # @endif
 # @if sieveIsPrime
 # sieve.isPrime(97) -> True                  # needs x <= N
@@ -31,9 +31,6 @@
 # @if primesUpTo
 # primesUpTo(20) -> [2, 3, 5, 7, 11, 13, 17, 19]
 # @endif
-# @if forEachPrimeUpTo
-# forEachPrimeUpTo(20, print)                # calls print(2), print(3), ..., print(19) without storing the list
-# @endif
 # @if primesInRange
 # primesInRange(10**12, 10**12 + 100) -> [1000000000039, 1000000000061, 1000000000063, 1000000000091]
 # @endif
@@ -51,7 +48,9 @@ from math import gcd
 from array import array
 # @endif
 
+# @if isPrime primeFactorize allFactors
 # ============================================================== ONE BIG NUMBER (no setup, any x < 2^64)
+# @endif
 # @if isPrime primeFactorize allFactors
 _SMALL = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
 
@@ -132,10 +131,12 @@ def allFactors(x):
 
 
 # @endif
+# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
 # ============================================================== MANY SMALL NUMBERS (sieve once up to N)
+# @endif
 # @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
 class PrimeSieve:
-    # O(N log log N), memory about 5N bytes -- sieves 0..N (Python: N = 10^7 takes ~0.4s)
+    # O(N log log N), memory about 5N bytes -- sieves every number 0..N, N included (Python: N = 10^7 takes ~0.4s)
     def __init__(self, n):
         self.n = n
         flags = bytearray([1]) * (n + 1)
@@ -214,9 +215,12 @@ class PrimeSieve:
 
 
 # @endif
+# @if primesUpTo primesInRange countPrimes
 # ============================================================== LISTING AND COUNTING PRIMES
+# @endif
 # @if primesUpTo
-# O(N log log N), memory about N bytes plus the list -- every prime <= N, increasing (Python: N = 10^8 takes ~2.5s)
+# O(N log log N), memory about N bytes plus the list -- every prime <= N (N included), increasing (Python: N = 10^8
+# takes ~2.5s)
 def primesUpTo(n):
     if n < 2:
         return []
@@ -229,36 +233,10 @@ def primesUpTo(n):
 
 
 # @endif
-# @if forEachPrimeUpTo
-# O(N log log N) time, O(sqrt(N)) memory (segmented) -- calls f(p) for every prime p <= N in increasing order, without
-# ever storing them (Python: N = 10^8 takes ~1s; the C++ version does 10^9 in ~0.7s)
-def forEachPrimeUpTo(n, f):
-    if n < 2:
-        return
-    r = isqrt(n)
-    small = bytearray([1]) * (r + 1)
-    base = []
-    for p in range(2, r + 1):
-        if small[p]:
-            base.append(p)
-            small[p * p :: p] = bytes(len(range(p * p, r + 1, p)))
-    size = 1 << 18
-    for lo in range(2, n + 1, size):
-        hi = min(n, lo + size - 1)
-        block = bytearray([1]) * (hi - lo + 1)
-        for p in base:
-            if p * p > hi:
-                break
-            start = max(p * p, (lo + p - 1) // p * p)
-            block[start - lo :: p] = bytes(len(range(start, hi + 1, p)))
-        for p in compress(range(lo, hi + 1), block):
-            f(p)
-
-
-# @endif
 # @if primesInRange
-# O((hi - lo) log log hi + sqrt(hi)) -- every prime in [lo, hi], increasing; hi can be ~10^12 as long as hi - lo is
-# about 10^7 or less
+# O((hi - lo) log log hi + sqrt(hi)) -- every prime in [lo, hi] (both ends included), increasing. A segmented
+# sieve: it crosses off multiples of the primes up to sqrt(hi) inside just that window, so hi can be ~10^12 as long as
+# hi - lo is about 10^7 or less
 def primesInRange(lo, hi):
     lo = max(lo, 2)
     if lo > hi:

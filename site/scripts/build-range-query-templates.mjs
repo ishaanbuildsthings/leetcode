@@ -221,6 +221,9 @@ for (const name of ["mosAndHilbert.py", "mosAndHilbert.cpp"]) fs.copyFileSync(pa
 const hashTablesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/hash-tables");
 fs.mkdirSync(path.join(publicDir, "_hash-tables"));
 for (const name of ["hashSet.cpp", "hashMap.cpp"]) fs.copyFileSync(path.join(hashTablesDir, name), path.join(publicDir, "_hash-tables", name));
+const primesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/primes");
+fs.mkdirSync(path.join(publicDir, "_primes"));
+for (const name of ["Primes.py", "Primes.cpp"]) fs.copyFileSync(path.join(primesDir, name), path.join(publicDir, "_primes", name));
 const lisDir = path.resolve(siteDir, "../templates/ultimate-template-tool/lis");
 fs.mkdirSync(path.join(publicDir, "_lis"));
 for (const name of ["lis.py", "lis.cpp"]) fs.copyFileSync(path.join(lisDir, name), path.join(publicDir, "_lis", name));
