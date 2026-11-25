@@ -3,6 +3,8 @@
 
 # For every node, the farthest OTHER node (by edge count) and its distance
 # edges = [[a, b], [c, d], ...]: an unrooted tree with at least 2 nodes
+# no edges (a single node) returns []: the edge list can't say what the lone node is called, so handle
+# that case yourself (e.g. LeetCode 310 with n = 1)
 # labels can be 0..n-1 or 1..n, no flag needed: the output is sized to the largest label
 #   0-indexed -> length n
 #   1-indexed -> length n + 1, index 0 is an unused dummy holding (-1, -1)
@@ -11,6 +13,8 @@
 # ties go to the smallest node id
 # O(n) time and space, iterative (no recursion limit issues)
 def farthestNodes(edges):
+    if not edges:
+        return []
     size = max(max(a, b) for a, b in edges) + 1
     adj = [[] for _ in range(size)]
     for a, b in edges:

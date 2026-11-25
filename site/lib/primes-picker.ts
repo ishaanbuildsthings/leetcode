@@ -35,7 +35,7 @@ export const PRIMES_GROUPS: PickerOpGroup[] = [
     ],
   },
   {
-    title: "Many small numbers: sieve = PrimeSieve(N) once (0..N, N included), O(N), then",
+    title: "Many small numbers: build sieve = PrimeSieve(N) once, O(N log log N) (sieves 0..N, N included), then",
     ops: [
       {
         id: "sieveIsPrime",
@@ -87,23 +87,15 @@ export const PRIMES_GROUPS: PickerOpGroup[] = [
         call: "primesUpTo(N)",
         returns: "every prime <= N, increasing",
         example: "primesUpTo(20) -> [2, 3, 5, 7, 11, 13, 17, 19]",
-        note: "stores all of them (~N / ln N): fine to 10^8; up to 10^9 that's 50,847,534 primes (~200 MB in C++)",
-        cost: "N*log(log(N))",
-      },
-      {
-        id: "forEachPrimeUpTo",
-        call: "forEachPrimeUpTo(N, f)",
-        returns: "calls f(p) for every prime p <= N, in order",
-        example: "forEachPrimeUpTo(20, print) prints 2, 3, 5, ..., 19",
-        note: "segmented: only O(sqrt N) memory, nothing stored. C++: N = 10^9 in ~0.7s; Python: 10^8 in ~1s",
+        note: "C++: a segmented sieve (one cache-sized block at a time), N = 10^9 in ~1s, its 50,847,534 primes ~200 MB. Python: a plain sieve, N = 10^8 in ~2.5s",
         cost: "N*log(log(N))",
       },
       {
         id: "primesInRange",
-        call: "primesInRange(lo, hi)",
-        returns: "every prime in [lo, hi], increasing",
+        call: "primesInRange(lo, hi)  (segmented sieve)",
+        returns: "every prime in [lo, hi] (both ends included), increasing",
         example: "primesInRange(10**12, 10**12 + 100) -> [1000000000039, 1000000000061, 1000000000063, 1000000000091]",
-        note: "segmented: hi can be ~10^12 as long as hi - lo is ~10^7 or less",
+        note: "segmented sieve: crosses off multiples of the primes up to sqrt(hi) inside just that window, so hi can be ~10^12 as long as hi - lo is ~10^7 or less",
         cost: "(hi-lo)*log(log(hi))+sqrt(hi)",
       },
     ],

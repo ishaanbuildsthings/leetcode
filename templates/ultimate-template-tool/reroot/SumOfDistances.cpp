@@ -5,6 +5,8 @@ using namespace std;
 
 // For every node, the sum of its distances (by edge count) to all other nodes
 // edges = {{a, b}, {c, d}, ...}: an unrooted tree with at least 2 nodes
+// no edges (a single node) returns {}: the edge list can't say what the lone node is called, so handle
+// that case yourself (e.g. LeetCode 310 with n = 1)
 // labels can be 0..n-1 or 1..n, no flag needed: the output is sized to the largest label
 //   0-indexed -> size n
 //   1-indexed -> size n + 1, index 0 is an unused dummy holding -1
@@ -12,6 +14,7 @@ using namespace std;
 //   edges {{0, 1}, {1, 2}, {1, 3}} -> res {5, 3, 5, 5}
 // O(n) time and space, iterative
 vector<long long> sumOfDistances(const vector<vector<int>>& edges) {
+    if (edges.empty()) return {};
     int size = 0;
     for (auto& e : edges) {
         size = max({size, e[0] + 1, e[1] + 1});

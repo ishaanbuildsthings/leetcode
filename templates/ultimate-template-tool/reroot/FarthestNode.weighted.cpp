@@ -5,6 +5,8 @@ using namespace std;
 
 // For every node, the farthest OTHER node (by total edge weight) and its distance
 // edges = {{a, b, w}, {c, d, w}, ...}: an unrooted tree with at least 2 nodes, any int weights (negative and 0 ok)
+// no edges (a single node) returns {}: the edge list can't say what the lone node is called, so handle
+// that case yourself (e.g. LeetCode 310 with n = 1)
 // labels can be 0..n-1 or 1..n, no flag needed: the output is sized to the largest label
 //   0-indexed -> size n
 //   1-indexed -> size n + 1, index 0 is an unused dummy holding {-1, -1}
@@ -13,6 +15,7 @@ using namespace std;
 // ties go to the smallest node id
 // O(n) time and space, iterative
 vector<pair<long long, int>> farthestNodes(const vector<vector<int>>& edges) {
+    if (edges.empty()) return {};
     int size = 0;
     for (auto& e : edges) {
         size = max({size, e[0] + 1, e[1] + 1});

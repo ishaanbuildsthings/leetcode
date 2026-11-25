@@ -15,7 +15,7 @@ using u64 = unsigned long long;
 // allFactors(12) -> {1, 2, 3, 4, 6, 12}
 // @endif
 // @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
-// PrimeSieve sieve(1000000);                // sieves 0..1000000, both ends included: O(N) once, then the calls below
+// PrimeSieve sieve(1000000);                // build: sieves every x in 0..1000000 (both ends), O(N log log N)
 // @endif
 // @if sieveIsPrime
 // sieve.isPrime(97) -> true                 // needs x <= N
@@ -34,9 +34,6 @@ using u64 = unsigned long long;
 // @endif
 // @if primesUpTo
 // primesUpTo(20) -> {2, 3, 5, 7, 11, 13, 17, 19}
-// @endif
-// @if forEachPrimeUpTo
-// forEachPrimeUpTo(20, [](ll p) { cout << p << " "; });    // calls it with 2, 3, ..., 19 without storing them
 // @endif
 // @if primesInRange
 // primesInRange(1000000000000, 1000000000100) -> {1000000000039, 1000000000061, 1000000000063, 1000000000091}
@@ -151,14 +148,13 @@ struct PrimeSieve {
     vector<int> spf;     // spf[x] = smallest prime factor of x (0 for x < 2)
     vector<int> primes;  // every prime <= N, increasing
 
-    // O(N) (linear sieve), memory about 4N bytes -- sieves every number 0..N, N included (N = 10^8 takes ~0.3s)
+    // O(N log log N), memory about 4N bytes -- sieves every number 0..N, N included (N = 10^8 takes ~0.65s)
     explicit PrimeSieve(int n) : n(n), spf(n + 1, 0) {
-        for (int i = 2; i <= n; i++) {
-            if (spf[i] == 0) spf[i] = i, primes.push_back(i);
-            for (int p : primes) {
-                if (p > spf[i] || (ll)i * p > n) break;
-                spf[i * p] = p;
-            }
+        for (int p = 2; p <= n; p++) {
+            if (spf[p]) continue;
+            spf[p] = p, primes.push_back(p);
+            for (ll j = (ll)p * p; j <= n; j += p)
+                if (!spf[j]) spf[j] = p;
         }
     }
 
@@ -210,16 +206,19 @@ struct PrimeSieve {
 };
 
 // @endif
-// @if primesUpTo forEachPrimeUpTo primesInRange countPrimes
+// @if primesUpTo primesInRange countPrimes
 // ============================================================== LISTING AND COUNTING PRIMES
 // @endif
-// @if primesUpTo forEachPrimeUpTo
-// O(N log log N) time, O(sqrt(N)) memory (segmented, odd numbers only) -- calls f(p) for every prime p <= N in
-// increasing order, without ever storing them; N = 10^9 takes ~0.7s
-template <class F>
-void forEachPrimeUpTo(ll n, F f) {
-    if (n < 2) return;
-    f(2LL);
+// @if primesUpTo
+// O(N log log N) time, O(sqrt(N)) extra memory besides the result -- every prime <= N (N included), increasing, for
+// N up to 2^31 - 1. A segmented sieve over the odd numbers, one cache-sized block at a time: 10^9 takes ~1s, and its
+// 50,847,534 primes take ~200 MB
+vector<int> primesUpTo(ll n) {
+    vector<int> res;
+    if (n < 2) return res;
+    if (n > INT_MAX) throw invalid_argument("primesUpTo: needs N <= 2^31 - 1");
+    res.reserve(n / max(1.0, log((double)n) - 1.1) + 10);
+    res.push_back(2);
     ll r = sqrtl(n);
     while (r * r > n) r--;
     while ((r + 1) * (r + 1) <= n) r++;
@@ -241,24 +240,16 @@ void forEachPrimeUpTo(ll n, F f) {
             next[k] = j;
         }
         for (ll i = 0; lo + 2 * i <= hi; i++)
-            if (block[i]) f(lo + 2 * i);
+            if (block[i]) res.push_back(lo + 2 * i);
     }
-}
-
-// @endif
-// @if primesUpTo
-// O(N log log N), memory about 4 bytes per prime (N / ln N of them) -- every prime <= N, increasing; up to 10^9 that's
-// 50,847,534 primes (~200 MB), so for big N prefer forEachPrimeUpTo
-vector<ll> primesUpTo(ll n) {
-    vector<ll> res;
-    forEachPrimeUpTo(n, [&](ll p) { res.push_back(p); });
     return res;
 }
 
 // @endif
 // @if primesInRange
-// O((hi - lo) log log hi + sqrt(hi)) -- every prime in [lo, hi], increasing; hi can be ~10^12 as long as hi - lo is
-// about 10^7 or less
+// O((hi - lo) log log hi + sqrt(hi)) -- every prime in [lo, hi] (both ends included), increasing. A segmented
+// sieve: it crosses off multiples of the primes up to sqrt(hi) inside just that window, so hi can be ~10^12 as long as
+// hi - lo is about 10^7 or less
 vector<ll> primesInRange(ll lo, ll hi) {
     lo = max(lo, 2LL);
     if (lo > hi) return {};
