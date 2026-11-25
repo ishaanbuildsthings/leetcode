@@ -165,8 +165,6 @@ TODO PROPERLY:
 using iterative
 1063: https://leetcode.com/problems/number-of-valid-subarrays/description/
 redo stack solution
-847: https://leetcode.com/problems/shortest-path-visiting-all-nodes/?envType=daily-question&envId=2023-09-17
-learn the infinity cache trick PROPERLY
 I think this can also use the infinity cache trick: https://leetcode.com/problems/minimum-cost-to-buy-apples/
 880: https://leetcode.com/problems/decoded-string-at-index/description/
 930: https://leetcode.com/problems/binary-subarrays-with-sum/description/
