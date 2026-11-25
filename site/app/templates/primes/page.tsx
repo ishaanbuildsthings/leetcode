@@ -45,7 +45,7 @@ export default async function PrimeTemplatesPage() {
                   file="Primes"
                   githubUrl={PRIMES_GITHUB}
                   groups={PRIMES_GROUPS}
-                  note="One big number needs no setup; the sieve ops need PrimeSieve(N) built first, O(N log log N)."
+                  note="One big number needs no setup; the sieve ops need the sieve built first, O(N · log(log N))."
                   publicBase="/range-query-templates"
                 />
               ),

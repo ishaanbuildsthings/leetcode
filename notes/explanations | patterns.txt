@@ -175,8 +175,6 @@ I think this can also use the infinity cache trick: https://leetcode.com/problem
 2355: https://leetcode.com/problems/maximum-number-of-books-you-can-take/
 341: https://leetcode.com/problems/flatten-nested-list-iterator/description/
 1361: https://leetcode.com/problems/validate-binary-tree-nodes/
-382: https://leetcode.com/problems/linked-list-random-node/
-learn reservoir smapling
 2050: https://leetcode.com/problems/parallel-courses-iii/description/
 1425: https://leetcode.com/problems/constrained-subsequence-sum/description/
 779: https://leetcode.com/problems/k-th-symbol-in-grammar/description/
@@ -192,10 +190,8 @@ https://leetcode.com/problems/largest-divisible-subset/description/
 2402: https://leetcode.com/problems/meeting-rooms-iii/description/
 2092: https://leetcode.com/problems/find-all-people-with-secret/
 1171
-621 - tag this with "spacing out / arranging things" on notion
 1669
 2444
-2802 (just review)
 2505
 1915
 834

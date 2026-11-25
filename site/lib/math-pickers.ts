@@ -9,6 +9,7 @@ const PRIME = "mod must be prime";
 export const MODCALC_GROUPS: PickerOpGroup[] = [
   {
     title: "Factorials and choosing",
+    setup: { call: "calc = ModCalc()  or  calc = ModCalc(mod=998244353)", returns: "mod 10^9 + 7 unless you pass one; nothing built up front", cost: "1" },
     ops: [
       { id: "getFactorialWithMod", call: "getFactorialWithMod(x)", returns: "x! % mod", example: "getFactorialWithMod(5) -> 120", note: "0 once x >= mod; works for any mod", cost: "1 amortized" },
       { id: "getInverseFactorialWithMod", call: "getInverseFactorialWithMod(x)", returns: "1 / x! % mod", example: "getInverseFactorialWithMod(5) -> 808333339 (that times 120 is 1 mod 1e9 + 7)", note: `needs x < mod; ${PRIME}`, cost: "1 amortized" },
@@ -19,6 +20,7 @@ export const MODCALC_GROUPS: PickerOpGroup[] = [
   },
   {
     title: "Putting items into buckets (no Stirling)",
+    setup: { call: "calc = ModCalc()  or  calc = ModCalc(mod=998244353)", returns: "mod 10^9 + 7 unless you pass one; nothing built up front", cost: "1" },
     ops: [
       {
         id: "waysToPutIdenticalItemsIntoDistinctBucketsWithMod",
@@ -40,6 +42,7 @@ export const MODCALC_GROUPS: PickerOpGroup[] = [
   },
   {
     title: "Mod arithmetic",
+    setup: { call: "calc = ModCalc()  or  calc = ModCalc(mod=998244353)", returns: "mod 10^9 + 7 unless you pass one; nothing built up front", cost: "1" },
     ops: [
       { id: "modPow", call: "modPow(base, exponent)", returns: "base^exponent % mod", example: "modPow(2, 10) -> 1024", note: "works for any mod", cost: "log(exponent)" },
       { id: "modInv", call: "modInv(x)", returns: "1 / x % mod", example: "modInv(2) -> 500000004 (that times 2 is 1 mod 1e9 + 7)", note: `x must not be a multiple of mod; ${PRIME}`, cost: "log(mod)" },
@@ -76,6 +79,7 @@ const BOTH = [
 export const STIRLING_GROUPS: PickerOpGroup[] = [
   {
     title: "StirlingByFormula: nothing built, every call pays",
+    setup: { call: "calc = StirlingByFormula()  or  calc = StirlingByFormula(mod=998244353)", returns: "mod 10^9 + 7 unless you pass one (must be prime)", cost: "1" },
     ops: BOTH.map((o) => ({
       id: `formula${o.suffix}`,
       call: `${o.method}(items, buckets, allowEmptyBuckets: bool — required)`,
@@ -87,6 +91,7 @@ export const STIRLING_GROUPS: PickerOpGroup[] = [
   },
   {
     title: "StirlingByTable: builds once, then every call is a lookup",
+    setup: { call: "calc = StirlingByTable()  or  calc = StirlingByTable(mod=1000)", returns: "mod 10^9 + 7 unless you pass one (any mod); the table grows on demand", cost: "1" },
     ops: BOTH.map((o) => ({
       id: `table${o.suffix}`,
       call: `${o.method}(items, buckets, allowEmptyBuckets: bool — required)`,

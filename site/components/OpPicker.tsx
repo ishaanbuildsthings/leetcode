@@ -8,7 +8,8 @@ import { keepTickedOps } from "@/lib/eertree-picker";
 // One op of a file whose parts sit between "@if <id>" marker lines (the Eertree's rules: lib/eertree-picker.ts):
 // how it's called, what it returns, a worked example, a note, and its cost
 export type PickerOp = { id: string; call: string; returns: string; example?: string; note?: string; cost: string };
-export type PickerOpGroup = { title: string; ops: PickerOp[] };
+// setup: the constructor the group's ops need, listed first in the drawer whenever one of them is shown
+export type PickerOpGroup = { title: string; ops: PickerOp[]; setup?: { call: string; returns: string; cost: string } };
 
 // the trimmed file without the blank lines the removed blocks leave behind
 const tidy = (code: string) => code.replace(/\n{3,}/g, "\n\n").replace(/\n\n(\s*\};)/g, "\n$1").replace(/\s+$/, "\n");
@@ -53,7 +54,17 @@ export function OpPicker({
     folder,
     file,
     githubUrl,
-    ops: shown.map((op) => [`${op.call} -> ${op.returns}`, op.cost]),
+    ops: [
+      // each constructor the shown ops need, once, before them
+      ...[
+        ...new Map(
+          groups
+            .filter((g) => g.setup && g.ops.some((op) => keep.has(op.id)))
+            .map((g) => [g.setup!.call, [`${g.setup!.call} -> ${g.setup!.returns}`, g.setup!.cost] as [string, string]]),
+        ).values(),
+      ],
+      ...shown.map((op): [string, string] => [`${op.call} -> ${op.returns}`, op.cost]),
+    ],
     note,
     transform: (code: string) => tidy(keepTickedOps(code, keep)),
   };

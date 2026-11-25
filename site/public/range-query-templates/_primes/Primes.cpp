@@ -12,10 +12,10 @@ using u64 = unsigned long long;
 // primeFactorize(360) -> {{2, 3}, {3, 2}, {5, 1}}        primeFactorize(1) -> {}
 // @endif
 // @if allFactors
-// allFactors(12) -> {1, 2, 3, 4, 6, 12}
+// allFactors(12) -> {1, 2, 4, 3, 6, 12}               // unsorted
 // @endif
-// @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
-// PrimeSieve sieve(1000000);                // build: sieves every x in 0..1000000 (both ends), O(N log log N)
+// @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors sievePrimes
+// PrimeSieve sieve(1000000);                // build: O(N log(log N)); then x can be anything from 0 up to 1000000
 // @endif
 // @if sieveIsPrime
 // sieve.isPrime(97) -> true                 // needs x <= N
@@ -24,10 +24,13 @@ using u64 = unsigned long long;
 // sieve.smallestPrimeFactor(91) -> 7        // needs 2 <= x <= N
 // @endif
 // @if sieveFactorize
-// sieve.factorize(360) -> {{2, 3}, {3, 2}, {5, 1}}                     // needs 1 <= x <= N
+// sieve.primeFactorize(360) -> {{2, 3}, {3, 2}, {5, 1}}                     // needs 1 <= x <= N
+// @endif
+// @if sieveAllFactors
+// sieve.allFactors(12) -> {1, 2, 4, 3, 6, 12}          // unsorted; needs 1 <= x <= N
 // @endif
 // @if sieveFactorizeUpToNSquared
-// sieve.factorizeUpToNSquared(999962000357) -> {{999979, 1}, {999983, 1}}    // needs 1 <= x <= N^2
+// sieve.primeFactorizeUpToNSquared(999962000357) -> {{999979, 1}, {999983, 1}}    // needs 1 <= x <= N^2
 // @endif
 // @if sievePrimes
 // sieve.primes -> {2, 3, 5, 7, ...}         // every prime <= N
@@ -123,7 +126,8 @@ vector<pair<u64, int>> primeFactorize(u64 x) {
 
 // @endif
 // @if allFactors
-// primeFactorize cost + D log D (D = number of divisors) -- every positive divisor of x, increasing
+// primeFactorize cost + D (D = number of divisors) -- every positive divisor of x, UNSORTED (sort it yourself if you
+// need an order, D log D)
 vector<u64> allFactors(u64 x) {
     vector<u64> res = {1};
     for (auto [p, e] : primeFactorize(x)) {
@@ -134,21 +138,20 @@ vector<u64> allFactors(u64 x) {
             for (int i = 0; i < size; i++) res.push_back(res[i] * power);
         }
     }
-    sort(res.begin(), res.end());
     return res;
 }
 
 // @endif
-// @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
+// @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors sievePrimes
 // ============================================================== MANY SMALL NUMBERS (sieve once up to N)
 // @endif
-// @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
+// @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors sievePrimes
 struct PrimeSieve {
     int n;
     vector<int> spf;     // spf[x] = smallest prime factor of x (0 for x < 2)
     vector<int> primes;  // every prime <= N, increasing
 
-    // O(N log log N), memory about 4N bytes -- sieves every number 0..N, N included (N = 10^8 takes ~0.65s)
+    // O(N log(log N)), memory about 4N bytes -- sieves every number from 0 up to N (N = 10^8 takes ~0.65s)
     explicit PrimeSieve(int n) : n(n), spf(n + 1, 0) {
         for (int p = 2; p <= n; p++) {
             if (spf[p]) continue;
@@ -171,9 +174,9 @@ struct PrimeSieve {
     }
 
     // @endif
-    // @if sieveFactorize sieveFactorizeUpToNSquared
+    // @if sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors
     // O(log x) -- {{prime, exponent}, ...} sorted by prime; needs 1 <= x <= N
-    vector<pair<ll, int>> factorize(ll x) const {
+    vector<pair<ll, int>> primeFactorize(ll x) const {
         vector<pair<ll, int>> res;
         while (x > 1) {
             int p = spf[x], e = 0;
@@ -184,12 +187,28 @@ struct PrimeSieve {
     }
 
     // @endif
+    // @if sieveAllFactors
+    // O(log x + D) (D = number of divisors) -- every positive divisor of x, UNSORTED; needs 1 <= x <= N
+    vector<ll> allFactors(ll x) const {
+        vector<ll> res = {1};
+        for (auto [p, e] : primeFactorize(x)) {
+            int size = res.size();
+            ll power = 1;
+            for (int k = 1; k <= e; k++) {
+                power *= p;
+                for (int i = 0; i < size; i++) res.push_back(res[i] * power);
+            }
+        }
+        return res;
+    }
+
+    // @endif
     // @if sieveFactorizeUpToNSquared
-    // O(number of primes <= sqrt(x)) -- like factorize, but x can go up to N^2: trial division by the sieved primes;
-    // whatever is left after the primes up to sqrt(x) is 1 or a single prime above sqrt(x)
-    vector<pair<ll, int>> factorizeUpToNSquared(ll x) const {
-        if (x <= n) return factorize(x);
-        if (x > (ll)n * n) throw invalid_argument("factorizeUpToNSquared: needs x <= N^2");
+    // O(number of primes <= sqrt(x)) -- like primeFactorize, but x can go up to N^2: trial division by the sieved
+    // primes; whatever is left after the primes up to sqrt(x) is 1 or a single prime above sqrt(x)
+    vector<pair<ll, int>> primeFactorizeUpToNSquared(ll x) const {
+        if (x <= n) return primeFactorize(x);
+        if (x > (ll)n * n) throw invalid_argument("primeFactorizeUpToNSquared: needs x <= N^2");
         vector<pair<ll, int>> res;
         for (int p : primes) {
             if ((ll)p * p > x) break;
@@ -210,7 +229,7 @@ struct PrimeSieve {
 // ============================================================== LISTING AND COUNTING PRIMES
 // @endif
 // @if primesUpTo
-// O(N log log N) time, O(sqrt(N)) extra memory besides the result -- every prime <= N (N included), increasing, for
+// O(N log(log N)) time, O(sqrt(N)) extra memory besides the result -- every prime <= N, increasing, for
 // N up to 2^31 - 1. A segmented sieve over the odd numbers, one cache-sized block at a time: 10^9 takes ~1s, and its
 // 50,847,534 primes take ~200 MB
 vector<int> primesUpTo(ll n) {
@@ -247,7 +266,7 @@ vector<int> primesUpTo(ll n) {
 
 // @endif
 // @if primesInRange
-// O((hi - lo) log log hi + sqrt(hi)) -- every prime in [lo, hi] (both ends included), increasing. A segmented
+// O((hi - lo) log(log hi) + sqrt(hi)) -- every prime p with lo <= p <= hi, increasing. A segmented
 // sieve: it crosses off multiples of the primes up to sqrt(hi) inside just that window, so hi can be ~10^12 as long as
 // hi - lo is about 10^7 or less
 vector<ll> primesInRange(ll lo, ll hi) {

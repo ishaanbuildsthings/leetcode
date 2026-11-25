@@ -8,10 +8,10 @@
 # primeFactorize(360) -> [(2, 3), (3, 2), (5, 1)]        primeFactorize(1) -> []
 # @endif
 # @if allFactors
-# allFactors(12) -> [1, 2, 3, 4, 6, 12]
+# allFactors(12) -> [1, 2, 4, 3, 6, 12]               # unsorted
 # @endif
-# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
-# sieve = PrimeSieve(10**6)                  # build: sieves every x in 0..10**6 (both ends), O(N log log N)
+# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors sievePrimes
+# sieve = PrimeSieve(10**6)                  # build: O(N log(log N)); then x can be anything from 0 up to 10**6
 # @endif
 # @if sieveIsPrime
 # sieve.isPrime(97) -> True                  # needs x <= N
@@ -20,10 +20,13 @@
 # sieve.smallestPrimeFactor(91) -> 7         # needs 2 <= x <= N
 # @endif
 # @if sieveFactorize
-# sieve.factorize(360) -> [(2, 3), (3, 2), (5, 1)]                  # needs 1 <= x <= N
+# sieve.primeFactorize(360) -> [(2, 3), (3, 2), (5, 1)]                  # needs 1 <= x <= N
+# @endif
+# @if sieveAllFactors
+# sieve.allFactors(12) -> [1, 2, 4, 3, 6, 12]          # unsorted; needs 1 <= x <= N
 # @endif
 # @if sieveFactorizeUpToNSquared
-# sieve.factorizeUpToNSquared(999962000357) -> [(999979, 1), (999983, 1)]    # needs 1 <= x <= N^2
+# sieve.primeFactorizeUpToNSquared(999962000357) -> [(999979, 1), (999983, 1)]    # needs 1 <= x <= N^2
 # @endif
 # @if sievePrimes
 # sieve.primes -> [2, 3, 5, 7, ...]          # every prime <= N
@@ -44,7 +47,7 @@ from math import isqrt
 import random
 from math import gcd
 # @endif
-# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
+# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors sievePrimes
 from array import array
 # @endif
 
@@ -122,21 +125,25 @@ def primeFactorize(x):
 
 # @endif
 # @if allFactors
-# primeFactorize cost + D log D (D = number of divisors) -- every positive divisor of x, increasing
+# primeFactorize cost + D (D = number of divisors) -- every positive divisor of x, UNSORTED (sort it yourself if you
+# need an order, D log D)
 def allFactors(x):
     res = [1]
     for p, e in primeFactorize(x):
-        res = [d * p ** k for d in res for k in range(e + 1)]
-    return sorted(res)
+        size, power = len(res), 1
+        for _ in range(e):
+            power *= p
+            res += [res[i] * power for i in range(size)]
+    return res
 
 
 # @endif
-# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
+# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors sievePrimes
 # ============================================================== MANY SMALL NUMBERS (sieve once up to N)
 # @endif
-# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sievePrimes
+# @if sieveIsPrime sieveSmallestPrimeFactor sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors sievePrimes
 class PrimeSieve:
-    # O(N log log N), memory about 5N bytes -- sieves every number 0..N, N included (Python: N = 10^7 takes ~0.4s)
+    # O(N log(log N)), memory about 5N bytes -- sieves every number from 0 up to N (Python: N = 10^7 takes ~0.4s)
     def __init__(self, n):
         self.n = n
         flags = bytearray([1]) * (n + 1)
@@ -176,9 +183,9 @@ class PrimeSieve:
         return self._spf[x]
 
     # @endif
-    # @if sieveFactorize sieveFactorizeUpToNSquared
+    # @if sieveFactorize sieveFactorizeUpToNSquared sieveAllFactors
     # O(log x) -- [(prime, exponent), ...] sorted by prime; needs 1 <= x <= N
-    def factorize(self, x):
+    def primeFactorize(self, x):
         res = []
         while x > 1:
             p = self._spf[x]
@@ -190,14 +197,26 @@ class PrimeSieve:
         return res
 
     # @endif
+    # @if sieveAllFactors
+    # O(log x + D) (D = number of divisors) -- every positive divisor of x, UNSORTED; needs 1 <= x <= N
+    def allFactors(self, x):
+        res = [1]
+        for p, e in self.primeFactorize(x):
+            size, power = len(res), 1
+            for _ in range(e):
+                power *= p
+                res += [res[i] * power for i in range(size)]
+        return res
+
+    # @endif
     # @if sieveFactorizeUpToNSquared
-    # O(number of primes <= sqrt(x)) -- like factorize, but x can go up to N^2: trial division by the sieved primes;
-    # whatever is left after the primes up to sqrt(x) is 1 or a single prime above sqrt(x)
-    def factorizeUpToNSquared(self, x):
+    # O(number of primes <= sqrt(x)) -- like primeFactorize, but x can go up to N^2: trial division by the sieved
+    # primes; whatever is left after the primes up to sqrt(x) is 1 or a single prime above sqrt(x)
+    def primeFactorizeUpToNSquared(self, x):
         if x <= self.n:
-            return self.factorize(x)
+            return self.primeFactorize(x)
         if x > self.n * self.n:
-            raise ValueError(f"factorizeUpToNSquared: needs x <= N^2 = {self.n * self.n}, got {x}")
+            raise ValueError(f"primeFactorizeUpToNSquared: needs x <= N^2 = {self.n * self.n}, got {x}")
         res = []
         for p in self.primes:
             if p * p > x:
@@ -219,7 +238,7 @@ class PrimeSieve:
 # ============================================================== LISTING AND COUNTING PRIMES
 # @endif
 # @if primesUpTo
-# O(N log log N), memory about N bytes plus the list -- every prime <= N (N included), increasing (Python: N = 10^8
+# O(N log(log N)), memory about N bytes plus the list -- every prime <= N, increasing (Python: N = 10^8
 # takes ~2.5s)
 def primesUpTo(n):
     if n < 2:
@@ -234,7 +253,7 @@ def primesUpTo(n):
 
 # @endif
 # @if primesInRange
-# O((hi - lo) log log hi + sqrt(hi)) -- every prime in [lo, hi] (both ends included), increasing. A segmented
+# O((hi - lo) log(log hi) + sqrt(hi)) -- every prime p with lo <= p <= hi, increasing. A segmented
 # sieve: it crosses off multiples of the primes up to sqrt(hi) inside just that window, so hi can be ~10^12 as long as
 # hi - lo is about 10^7 or less
 def primesInRange(lo, hi):

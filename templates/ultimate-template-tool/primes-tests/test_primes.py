@@ -17,7 +17,7 @@ from eertree_strip import strip  # noqa: E402
 
 SRC = os.path.join(os.path.dirname(HERE), "primes")
 OPS = ["isPrime", "primeFactorize", "allFactors", "sieveIsPrime", "sieveSmallestPrimeFactor", "sieveFactorize",
-       "sieveFactorizeUpToNSquared", "sievePrimes", "primesUpTo", "primesInRange", "countPrimes"]
+       "sieveFactorizeUpToNSquared", "sieveAllFactors", "sievePrimes", "primesUpTo", "primesInRange", "countPrimes"]
 SIEVE_N = 3000
 rnd = random.Random(2)
 
@@ -71,6 +71,8 @@ def cases(op):
         out += [((x,), trial(x)[0][0]) for x in range(2, SIEVE_N + 1)]
     elif op == "sieveFactorize":
         out += [((x,), trial(x)) for x in range(1, SIEVE_N + 1)]
+    elif op == "sieveAllFactors":
+        out += [((x,), None) for x in range(1, SIEVE_N + 1)]
     elif op == "sieveFactorizeUpToNSquared":
         xs = list(range(1, 200)) + [rnd.randint(1, SIEVE_N * SIEVE_N) for _ in range(300)] + [SIEVE_N * SIEVE_N, 2999 * 2999, 2999 * 2]
         out += [((x,), trial(x)) for x in xs]
@@ -105,8 +107,8 @@ def run_py(ns, op, args):
         s = ns["PrimeSieve"](SIEVE_N)
         if op == "sievePrimes":
             return s.primes
-        method = {"sieveIsPrime": "isPrime", "sieveSmallestPrimeFactor": "smallestPrimeFactor", "sieveFactorize": "factorize",
-                  "sieveFactorizeUpToNSquared": "factorizeUpToNSquared"}[op]
+        method = {"sieveIsPrime": "isPrime", "sieveSmallestPrimeFactor": "smallestPrimeFactor", "sieveFactorize": "primeFactorize",
+                  "sieveFactorizeUpToNSquared": "primeFactorizeUpToNSquared", "sieveAllFactors": "allFactors"}[op]
         return getattr(s, method)(*args)
     return ns[op](*args)
 
@@ -126,8 +128,9 @@ CPP_CALL = {
     "allFactors": lambda a: f"{{ auto r = allFactors({a[0]}ULL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i]; }}",
     "sieveIsPrime": lambda a: f"cout << sieve.isPrime({a[0]});",
     "sieveSmallestPrimeFactor": lambda a: f"cout << sieve.smallestPrimeFactor({a[0]});",
-    "sieveFactorize": lambda a: f"{{ auto r = sieve.factorize({a[0]}); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i].first << \"^\" << r[i].second; }}",
-    "sieveFactorizeUpToNSquared": lambda a: f"{{ auto r = sieve.factorizeUpToNSquared({a[0]}LL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i].first << \"^\" << r[i].second; }}",
+    "sieveFactorize": lambda a: f"{{ auto r = sieve.primeFactorize({a[0]}); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i].first << \"^\" << r[i].second; }}",
+    "sieveFactorizeUpToNSquared": lambda a: f"{{ auto r = sieve.primeFactorizeUpToNSquared({a[0]}LL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i].first << \"^\" << r[i].second; }}",
+    "sieveAllFactors": lambda a: f"{{ auto r = sieve.allFactors({a[0]}); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i]; }}",
     "sievePrimes": lambda a: "{ for (size_t i = 0; i < sieve.primes.size(); i++) cout << (i ? \" \" : \"\") << sieve.primes[i]; }",
     "primesUpTo": lambda a: f"{{ auto r = primesUpTo({a[0]}LL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i]; }}",
     "primesInRange": lambda a: f"{{ auto r = primesInRange({a[0]}LL, {a[1]}LL); for (size_t i = 0; i < r.size(); i++) cout << (i ? \" \" : \"\") << r[i]; }}",
@@ -155,15 +158,16 @@ def main():
                 got = run_py(ns, op, args)
                 if op == "primeFactorize":
                     checkFactor(args[0], got)
-                elif op == "allFactors":
+                elif op in ("allFactors", "sieveAllFactors"):
+                    # unsorted: compare as a sorted copy (C++ must still match Python's order exactly below)
                     x = args[0]
                     if x < 10**7:
                         divs = [1]
                         for q, e in trial(x):
                             divs = [d * q**k for d in divs for k in range(e + 1)]
-                        assert got == sorted(divs), (x, got)
+                        assert sorted(got) == sorted(divs), (x, got)
                     else:
-                        assert got == sorted(got) and all(x % d == 0 for d in got) and got[0] == 1 and got[-1] == x
+                        assert len(set(got)) == len(got) and all(x % d == 0 for d in got) and 1 in got and x in got
                 else:
                     assert got == exact, (op, args, str(got)[:200], str(exact)[:200])
                 lines.append(CPP_CALL[op](args) + ' cout << "\\n";')
