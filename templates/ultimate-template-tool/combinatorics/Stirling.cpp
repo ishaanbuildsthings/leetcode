@@ -17,9 +17,11 @@ using ll = long long;
 //                      already covers is O(1). Best for many calls. Works for any mod.
 // @endif
 // @if formulaIdentical formulaDistinct
+// StirlingByFormula calc;                // mod 10^9 + 7
 // StirlingByFormula calc(998244353);     // your own mod (must be prime here)
 // @endif
 // @if tableIdentical tableDistinct
+// StirlingByTable calc;                  // mod 10^9 + 7
 // StirlingByTable calc(1000);            // your own mod (any mod)
 // @endif
 // @if formulaIdentical tableIdentical

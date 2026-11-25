@@ -3,13 +3,15 @@
 
 # Distinct items into buckets (Stirling numbers of the second kind):
 # @if formulaIdentical formulaDistinct
-#   StirlingByFormula: no setup or memory, but every call costs O(buckets * log items). Best for a few calls, or huge
-#                      item counts. mod must be prime.
+#   StirlingByFormula: every call costs O(buckets * log items). Best for a few calls, or huge item counts. mod must be
+#                      prime. Grows lazily, but only a little: a factorial list up to the largest buckets you call
+#                      with, already inside each call's cost.
 # @endif
 # @if tableIdentical tableDistinct
-#   StirlingByTable:   every call is O(1) once the table covers it; the table grows on demand (doubling), so building
-#                      costs O(largest items * largest buckets) in total, and that much memory. Best for many calls.
-#                      Works for any mod.
+#   StirlingByTable:   GROWS LAZILY. The constructor builds nothing; the table grows inside the calls you make, to
+#                      the largest items and buckets you ask for (each side doubles when it grows). Over all calls
+#                      that costs O(largest items * largest buckets) in total, and that much memory; a call the table
+#                      already covers is O(1). Best for many calls. Works for any mod.
 # @endif
 # @if formulaIdentical formulaDistinct
 # calc = StirlingByFormula()                  # mod 10**9 + 7
@@ -31,7 +33,7 @@
 
 # @if formulaIdentical formulaDistinct
 class StirlingByFormula:
-    # O(1) -- mod must be prime
+    # O(1) -- builds nothing yet (the factorial list grows lazily inside the calls); mod must be prime
     def __init__(self, mod=10**9 + 7):
         self.mod = mod
         self.fact = [1]
@@ -94,7 +96,7 @@ class StirlingByFormula:
 # @endif
 # @if tableIdentical tableDistinct
 class StirlingByTable:
-    # O(1) -- any mod
+    # O(1) -- builds nothing yet: the table grows lazily inside the calls below; any mod
     def __init__(self, mod=10**9 + 7):
         self.mod = mod
         self.table = [[1 % mod]]  # table[i][j] = ways to put i distinct items into j identical non-empty buckets
@@ -129,16 +131,17 @@ class StirlingByTable:
             fact.append(fact[-1] * len(fact) % mod)
 
     # @if tableIdentical
-    # O(1) once the table covers (items, buckets) -- distinct items into identical buckets; allowEmptyBuckets (required,
-    # no default): may a bucket stay empty
+    # O(1) amortized; lazily grows the table when called with bigger items or bigger buckets than before (see the
+    # top) -- distinct items into identical buckets; allowEmptyBuckets (required, no default): may a bucket stay empty
     def waysToPutDistinctItemsIntoIdenticalBucketsWithMod(self, items, buckets, allowEmptyBuckets: bool):
         self._grow(items, buckets)
         return self.prefix[items][buckets] if allowEmptyBuckets else self.table[items][buckets]
 
     # @endif
     # @if tableDistinct
-    # O(1) once the table covers (items, buckets) (O(log items) with allowEmptyBuckets) -- distinct items into distinct
-    # buckets; allowEmptyBuckets (required, no default): may a bucket stay empty
+    # O(1) amortized; lazily grows the table when called with bigger items or bigger buckets than before (see the
+    # top). O(log items) with allowEmptyBuckets, which never touches the table -- distinct items into distinct buckets;
+    # allowEmptyBuckets (required, no default): may a bucket stay empty
     def waysToPutDistinctItemsIntoDistinctBucketsWithMod(self, items, buckets, allowEmptyBuckets: bool):
         if allowEmptyBuckets:
             return pow(buckets, items, self.mod)

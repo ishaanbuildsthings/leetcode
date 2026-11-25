@@ -6,18 +6,22 @@ using ll = long long;
 
 // Distinct items into buckets (Stirling numbers of the second kind):
 // @if formulaIdentical formulaDistinct
-//   StirlingByFormula: no setup or memory, but every call costs O(buckets * log items). Best for a few calls, or huge
-//                      item counts. mod must be prime.
+//   StirlingByFormula: every call costs O(buckets * log items). Best for a few calls, or huge item counts. mod must be
+//                      prime. Grows lazily, but only a little: a factorial list up to the largest buckets you call
+//                      with, already inside each call's cost.
 // @endif
 // @if tableIdentical tableDistinct
-//   StirlingByTable:   every call is O(1) once the table covers it; the table grows on demand (doubling), so building
-//                      costs O(largest items * largest buckets) in total, and that much memory. Best for many calls.
-//                      Works for any mod.
+//   StirlingByTable:   GROWS LAZILY. The constructor builds nothing; the table grows inside the calls you make, to
+//                      the largest items and buckets you ask for (each side doubles when it grows). Over all calls
+//                      that costs O(largest items * largest buckets) in total, and that much memory; a call the table
+//                      already covers is O(1). Best for many calls. Works for any mod.
 // @endif
 // @if formulaIdentical formulaDistinct
+// StirlingByFormula calc;                // mod 10^9 + 7
 // StirlingByFormula calc(998244353);     // your own mod (must be prime here)
 // @endif
 // @if tableIdentical tableDistinct
+// StirlingByTable calc;                  // mod 10^9 + 7
 // StirlingByTable calc(1000);            // your own mod (any mod)
 // @endif
 // @if formulaIdentical tableIdentical
@@ -34,7 +38,7 @@ struct StirlingByFormula {
     ll mod;
     vector<ll> fact{1}, invFact{1};
 
-    // O(1) -- mod must be prime
+    // O(1) -- builds nothing yet (the factorial list grows lazily inside the calls); mod must be prime
     explicit StirlingByFormula(ll mod = 1000000007) : mod(mod) {}
 
     ll power(ll base, ll exponent) const {
@@ -104,7 +108,7 @@ struct StirlingByTable {
     vector<vector<ll>> prefix;  // prefix[i][j] = table[i][0] + ... + table[i][j]: up to j buckets used
     vector<ll> fact;           // fact[j] = j! % mod, the orderings of j distinct buckets
 
-    // O(1) -- any mod
+    // O(1) -- builds nothing yet: the table grows lazily inside the calls below; any mod
     explicit StirlingByTable(ll mod = 1000000007) : mod(mod), table{{1 % mod}}, prefix{{1 % mod}}, fact{1 % mod} {}
 
     void grow(int items, int buckets) {
@@ -125,8 +129,8 @@ struct StirlingByTable {
     }
 
     // @if tableIdentical
-    // O(1) once the table covers (items, buckets) -- distinct items into identical buckets; allowEmptyBuckets
-    // (required, no default): may a bucket stay empty
+    // O(1) amortized; lazily grows the table when called with bigger items or bigger buckets than before (see the
+    // top) -- distinct items into identical buckets; allowEmptyBuckets (required, no default): may a bucket stay empty
     ll waysToPutDistinctItemsIntoIdenticalBucketsWithMod(int items, int buckets, bool allowEmptyBuckets) {
         grow(items, buckets);
         return allowEmptyBuckets ? prefix[items][buckets] : table[items][buckets];
@@ -134,8 +138,9 @@ struct StirlingByTable {
 
     // @endif
     // @if tableDistinct
-    // O(1) once the table covers (items, buckets) (O(log items) with allowEmptyBuckets) -- distinct items into distinct
-    // buckets; allowEmptyBuckets (required, no default): may a bucket stay empty
+    // O(1) amortized; lazily grows the table when called with bigger items or bigger buckets than before (see the
+    // top). O(log items) with allowEmptyBuckets, which never touches the table -- distinct items into distinct buckets;
+    // allowEmptyBuckets (required, no default): may a bucket stay empty
     ll waysToPutDistinctItemsIntoDistinctBucketsWithMod(int items, int buckets, bool allowEmptyBuckets) {
         if (allowEmptyBuckets) {
             ll result = 1 % mod, base = buckets % mod;

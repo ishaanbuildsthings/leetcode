@@ -7,7 +7,9 @@ import { keepTickedOps } from "@/lib/eertree-picker";
 
 // One op of a file whose parts sit between "@if <id>" marker lines (the Eertree's rules: lib/eertree-picker.ts):
 // how it's called, what it returns, a worked example, a note, and its cost
-export type PickerOp = { id: string; call: string; returns: string; example?: string; note?: string; cost: string };
+// grows: (optional) for ops that lazily grow a table, what makes them grow ("bigger n"), shown under the cost as
+// "lazily grows when called with bigger n"
+export type PickerOp = { id: string; call: string; returns: string; example?: string; note?: string; cost: string; grows?: string };
 // setup: the constructor the group's ops need, listed first in the drawer whenever one of them is shown
 export type PickerOpGroup = { title: string; ops: PickerOp[]; setup?: { call: string; returns: string; cost: string } };
 
@@ -63,7 +65,10 @@ export function OpPicker({
             .map((g) => [g.setup!.call, [`${g.setup!.call} -> ${g.setup!.returns}`, g.setup!.cost] as [string, string]]),
         ).values(),
       ],
-      ...shown.map((op): [string, string] => [`${op.call} -> ${op.returns}`, op.cost]),
+      ...shown.map((op): [string, string] => [
+        `${op.call} -> ${op.returns}${op.grows ? ` (lazily grows when called with ${op.grows})` : ""}`,
+        op.cost,
+      ]),
     ],
     note,
     transform: (code: string) => tidy(keepTickedOps(code, keep)),
@@ -95,7 +100,14 @@ export function OpPicker({
           {op.example && <span className="block font-mono text-[11px] text-muted-foreground">e.g. {op.example}</span>}
           {op.note && <span className="block text-[11px] leading-snug text-muted-foreground">{op.note}</span>}
         </span>
-        <span className="whitespace-nowrap text-[11px] text-foreground">{formatCost(op.cost)}</span>
+        <span className="text-right text-[11px] text-foreground">
+          <span className="whitespace-nowrap">{formatCost(op.cost)}</span>
+          {op.grows && (
+            <span className="block max-w-[11rem] text-[11px] leading-snug text-muted-foreground">
+              lazily grows when called with {op.grows}
+            </span>
+          )}
+        </span>
       </button>
     );
   };

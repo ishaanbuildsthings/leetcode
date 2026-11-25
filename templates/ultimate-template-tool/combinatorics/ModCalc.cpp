@@ -13,8 +13,12 @@ using ll = long long;
 // calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, true)   -> 4   (allowEmptyBuckets = true)
 // calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, false)  -> 2
 // @endif
-// No size to pick: the factorial tables grow on demand (doubling), so every call just works and later calls reuse
-// what's built (make it static / global to share it across test cases). Growing costs O(largest x ever asked for).
+// @if getFactorialWithMod getInverseFactorialWithMod nChooseKWithMod nPermuteKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+// GROWS LAZILY: no size to pick. The constructor builds nothing; the factorial tables grow inside the calls you make
+// (doubling), so every call just works and later calls reuse what's built (make it static / global to share it across
+// test cases). Each op below says which of its arguments makes the tables grow; growing costs O(the largest such value)
+// in total.
+// @endif
 struct ModCalc {
     ll mod;
     // @if getFactorialWithMod getInverseFactorialWithMod nChooseKWithMod nPermuteKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
@@ -51,7 +55,8 @@ struct ModCalc {
 
     // @endif
     // @if getFactorialWithMod
-    // O(1) amortized -- x! % mod (0 once x >= mod)
+    // O(1) amortized, lazily grows the factorial tables when called with a bigger x than before (see the top) -- x! %
+    // mod (0 once x >= mod)
     ll getFactorialWithMod(ll x) {
         if (x >= mod) return 0;
         grow(x);
@@ -60,8 +65,8 @@ struct ModCalc {
 
     // @endif
     // @if getInverseFactorialWithMod
-    // O(1) amortized -- 1 / x! % mod; needs x < mod (x! has no inverse after that), else invalid_argument; mod must be
-    // prime
+    // O(1) amortized, lazily grows the factorial tables when called with a bigger x than before (see the top) -- 1 / x!
+    // % mod; needs x < mod (x! has no inverse after that), else invalid_argument; mod must be prime
     ll getInverseFactorialWithMod(ll x) {
         if (x >= mod) throw invalid_argument("getInverseFactorialWithMod: x! has no inverse");
         grow(x);
@@ -70,7 +75,8 @@ struct ModCalc {
 
     // @endif
     // @if nChooseKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
-    // O(1) amortized (O(log n) once n >= mod: Lucas) -- ways to choose k of n distinct items, order ignored;
+    // O(1) amortized, lazily grows the factorial tables when called with a bigger n (k doesn't matter) than before (see
+    // the top); O(log n) once n >= mod (Lucas) -- ways to choose k of n distinct items, order ignored;
     // 0 if k < 0 or k > n; mod must be prime
     ll nChooseKWithMod(ll n, ll k) {
         if (k < 0 || k > n) return 0;
@@ -81,7 +87,8 @@ struct ModCalc {
 
     // @endif
     // @if nPermuteKWithMod
-    // O(1) amortized -- ways to choose k of n distinct items in order; 0 if k < 0 or k > n; mod must be prime
+    // O(1) amortized, lazily grows the factorial tables when called with a bigger n (k doesn't matter) than before (see
+    // the top) -- ways to choose k of n distinct items in order; 0 if k < 0 or k > n; mod must be prime
     ll nPermuteKWithMod(ll n, ll k) {
         if (k < 0 || k > n) return 0;
         if (n >= mod) {
@@ -95,14 +102,16 @@ struct ModCalc {
 
     // @endif
     // @if interleaveTwoSequencesWithMod
-    // O(1) amortized -- ways to interleave a sequence of length1 items with one of length2, keeping each one's order;
+    // O(1) amortized, lazily grows the factorial tables when called with a bigger length1 + length2 than before (see
+    // the top) -- ways to interleave a sequence of length1 items with one of length2, keeping each one's order;
     // mod must be prime
     ll interleaveTwoSequencesWithMod(ll length1, ll length2) { return nChooseKWithMod(length1 + length2, length1); }
 
     // @endif
     // @if waysToPutIdenticalItemsIntoDistinctBucketsWithMod
-    // O(1) amortized -- identical items into distinct buckets (stars and bars); allowEmptyBuckets (required, no
-    // default): may a bucket stay empty; mod must be prime
+    // O(1) amortized, lazily grows the factorial tables when called with a bigger items + buckets than before (see the
+    // top) -- identical items into distinct buckets (stars and bars); allowEmptyBuckets (required, no default): may a
+    // bucket stay empty; mod must be prime
     ll waysToPutIdenticalItemsIntoDistinctBucketsWithMod(ll items, ll buckets, bool allowEmptyBuckets) {
         if (buckets == 0) return items == 0 ? 1 % mod : 0;
         return allowEmptyBuckets ? nChooseKWithMod(items + buckets - 1, buckets - 1) : nChooseKWithMod(items - 1,
@@ -111,7 +120,8 @@ struct ModCalc {
 
     // @endif
     // @if waysToPutDistinctItemsIntoDistinctBucketsWithMod
-    // O(log items) with allowEmptyBuckets, else O(buckets * log items) -- distinct items into distinct buckets;
+    // O(log items) with allowEmptyBuckets, else O(buckets * log items) (that also lazily grows the factorial tables
+    // when called with a bigger buckets than before, already inside this cost) -- distinct items into distinct buckets;
     // allowEmptyBuckets (required, no default): may a bucket stay empty (then it's buckets^items and works for any mod;
     // otherwise mod must be prime)
     ll waysToPutDistinctItemsIntoDistinctBucketsWithMod(ll items, ll buckets, bool allowEmptyBuckets) {

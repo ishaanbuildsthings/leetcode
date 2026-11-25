@@ -10,8 +10,11 @@
 # calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, allowEmptyBuckets=True)   -> 4
 # calc.waysToPutIdenticalItemsIntoDistinctBucketsWithMod(3, 2, allowEmptyBuckets=False)  -> 2
 # @endif
-# No size to pick: the factorial tables grow on demand (doubling), so every call just works and later calls, or later
-# test cases sharing one instance, reuse what's built. Growing costs O(largest x ever asked for) in total.
+# @if getFactorialWithMod getInverseFactorialWithMod nChooseKWithMod nPermuteKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
+# GROWS LAZILY: no size to pick. The constructor builds nothing; the factorial tables grow inside the calls you make
+# (doubling), so every call just works and later calls, or later test cases sharing one instance, reuse what's built.
+# Each op below says which of its arguments makes the tables grow; growing costs O(the largest such value) in total.
+# @endif
 
 
 class ModCalc:
@@ -42,7 +45,8 @@ class ModCalc:
 
     # @endif
     # @if getFactorialWithMod
-    # O(1) amortized -- x! % mod (0 once x >= mod)
+    # O(1) amortized, lazily grows the factorial tables when called with a bigger x than before (see the top) -- x! %
+    # mod (0 once x >= mod)
     def getFactorialWithMod(self, x):
         if x >= self.mod:
             return 0
@@ -51,7 +55,8 @@ class ModCalc:
 
     # @endif
     # @if getInverseFactorialWithMod
-    # O(1) amortized -- 1 / x! % mod; needs x < mod (x! has no inverse after that); mod must be prime
+    # O(1) amortized, lazily grows the factorial tables when called with a bigger x than before (see the top) -- 1 / x!
+    # % mod; needs x < mod (x! has no inverse after that); mod must be prime
     def getInverseFactorialWithMod(self, x):
         if x >= self.mod:
             raise ValueError(f"getInverseFactorialWithMod: {x}! has no inverse mod {self.mod}")
@@ -60,7 +65,8 @@ class ModCalc:
 
     # @endif
     # @if nChooseKWithMod interleaveTwoSequencesWithMod waysToPutIdenticalItemsIntoDistinctBucketsWithMod waysToPutDistinctItemsIntoDistinctBucketsWithMod
-    # O(1) amortized (O(log n) once n >= mod: Lucas) -- ways to choose k of n distinct items, order ignored;
+    # O(1) amortized, lazily grows the factorial tables when called with a bigger n (k doesn't matter) than before (see
+    # the top); O(log n) once n >= mod (Lucas) -- ways to choose k of n distinct items, order ignored;
     # 0 if k < 0 or k > n; mod must be prime
     def nChooseKWithMod(self, n, k):
         if k < 0 or k > n:
@@ -73,7 +79,8 @@ class ModCalc:
 
     # @endif
     # @if nPermuteKWithMod
-    # O(1) amortized -- ways to choose k of n distinct items in order; 0 if k < 0 or k > n; mod must be prime
+    # O(1) amortized, lazily grows the factorial tables when called with a bigger n (k doesn't matter) than before (see
+    # the top) -- ways to choose k of n distinct items in order; 0 if k < 0 or k > n; mod must be prime
     def nPermuteKWithMod(self, n, k):
         if k < 0 or k > n:
             return 0
@@ -87,15 +94,17 @@ class ModCalc:
 
     # @endif
     # @if interleaveTwoSequencesWithMod
-    # O(1) amortized -- ways to interleave a sequence of length1 items with one of length2, keeping each one's order;
+    # O(1) amortized, lazily grows the factorial tables when called with a bigger length1 + length2 than before (see the
+    # top) -- ways to interleave a sequence of length1 items with one of length2, keeping each one's order;
     # mod must be prime
     def interleaveTwoSequencesWithMod(self, length1, length2):
         return self.nChooseKWithMod(length1 + length2, length1)
 
     # @endif
     # @if waysToPutIdenticalItemsIntoDistinctBucketsWithMod
-    # O(1) amortized -- identical items into distinct buckets (stars and bars); allowEmptyBuckets (required, no
-    # default): may a bucket stay empty; mod must be prime
+    # O(1) amortized, lazily grows the factorial tables when called with a bigger items + buckets than before (see the
+    # top) -- identical items into distinct buckets (stars and bars); allowEmptyBuckets (required, no default): may a
+    # bucket stay empty; mod must be prime
     def waysToPutIdenticalItemsIntoDistinctBucketsWithMod(self, items, buckets, allowEmptyBuckets: bool):
         if buckets == 0:
             return 1 % self.mod if items == 0 else 0
@@ -105,7 +114,8 @@ class ModCalc:
 
     # @endif
     # @if waysToPutDistinctItemsIntoDistinctBucketsWithMod
-    # O(log items) with allowEmptyBuckets, else O(buckets * log items) -- distinct items into distinct buckets;
+    # O(log items) with allowEmptyBuckets, else O(buckets * log items) (that also lazily grows the factorial tables
+    # when called with a bigger buckets than before, already inside this cost) -- distinct items into distinct buckets;
     # allowEmptyBuckets (required, no default): may a bucket stay empty (then it's buckets^items and works for any mod;
     # otherwise mod must be prime)
     def waysToPutDistinctItemsIntoDistinctBucketsWithMod(self, items, buckets, allowEmptyBuckets: bool):

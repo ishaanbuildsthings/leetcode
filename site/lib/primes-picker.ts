@@ -10,18 +10,18 @@ export const PRIMES_GROUPS: PickerOpGroup[] = [
     ops: [
       {
         id: "isPrime",
-        call: "isPrime(x)",
+        call: "isPrime(x)  (deterministic Miller-Rabin)",
         returns: "True if x is prime",
         example: "isPrime(10**18 + 9) -> True, isPrime(561) -> False",
-        note: "deterministic Miller-Rabin: exact, not probabilistic",
+        note: "exact, not probabilistic: a fixed set of witnesses that is proven to work for every x < 2^64",
         cost: "log(x)",
       },
       {
         id: "primeFactorize",
-        call: "primeFactorize(x)",
+        call: "primeFactorize(x)  (Pollard rho)",
         returns: "[(prime, exponent), ...] sorted by prime",
         example: "primeFactorize(360) -> [(2, 3), (3, 2), (5, 1)]; primeFactorize(1) -> []",
-        note: "Pollard rho, randomized: about x^(1/4) expected, fine for any 64-bit x. The largest prime factor is the last pair",
+        note: "randomized: about x^(1/4) expected, fine for any 64-bit x. The largest prime factor is the last pair",
         cost: "x^(1/4)",
       },
       {
@@ -93,7 +93,7 @@ export const PRIMES_GROUPS: PickerOpGroup[] = [
     ops: [
       {
         id: "primesUpTo",
-        call: "primesUpTo(N)",
+        call: "primesUpTo(N)  (C++: segmented sieve)",
         returns: "every prime <= N, increasing",
         example: "primesUpTo(20) -> [2, 3, 5, 7, 11, 13, 17, 19]",
         note: "just the list, without the sieve's smallest-prime-factor table, so it needs far less memory: C++ reaches N = 10^9 in ~1s (its 50,847,534 primes ~200 MB; a PrimeSieve that big would need ~4 GB). Python: N = 10^8 in ~2.5s",
@@ -114,10 +114,10 @@ export const PRIMES_GROUPS: PickerOpGroup[] = [
     ops: [
       {
         id: "countPrimes",
-        call: "countPrimes(n)",
+        call: "countPrimes(n)  (Lucy_Hedgehog)",
         returns: "how many primes are <= n",
         example: "countPrimes(100) -> 25; countPrimes(10**9) -> 50847534",
-        note: "Lucy_Hedgehog, O(sqrt n) memory. C++: n = 10^12 in ~0.2s, 10^13 in ~1s; Python: 10^10 in ~1s",
+        note: "O(sqrt n) memory. C++: n = 10^12 in ~0.2s, 10^13 in ~1s; Python: 10^10 in ~1s",
         cost: "n^(3/4)",
       },
     ],
