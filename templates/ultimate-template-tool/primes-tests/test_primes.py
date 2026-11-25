@@ -2,7 +2,8 @@
 trimmed to the ticked ops (string-tests/eertree_strip.py, the site's rules), checked against brute force (trial
 division, a plain sieve, known prime counts), and the C++ trim, built with sanitizers, must print what Python does.
 
-    python3 test_primes.py
+    python3 test_primes.py               # every trim
+    python3 test_primes.py countPrimes   # just these trims ("all" = the whole file)
 """
 import os
 import random
@@ -136,12 +137,15 @@ def main():
     py = open(os.path.join(SRC, "Primes.py")).read()
     cpp = open(os.path.join(SRC, "Primes.cpp")).read()
     sets = [[op] for op in OPS] + [OPS]
+    want = [a for a in sys.argv[1:]]  # optional: only these trims ("all" for the full file)
+    if want:
+        sets = [c for c in sets if (c[0] if len(c) == 1 else "all") in want]
     os.makedirs("/tmp/primes-test", exist_ok=True)
     total = 0
     for chosen in sets:
         ns = {}
         exec(strip(py, set(chosen)), ns)
-        lines, want = [], []
+        lines, expected = [], []
         for op in chosen:
             for args, exact in cases(op):
                 got = run_py(ns, op, args)
@@ -159,7 +163,7 @@ def main():
                 else:
                     assert got == exact, (op, args, got, exact)
                 lines.append(CPP_CALL[op](args) + ' cout << "\\n";')
-                want.append(fmt2(got))
+                expected.append(fmt2(got))
                 total += 1
         name = chosen[0] if len(chosen) == 1 else "all"
         path = f"/tmp/primes-test/{name}"
@@ -170,9 +174,9 @@ def main():
         if r.returncode or "warning" in r.stderr:
             sys.exit(f"FAIL cpp {name}: compile\n{r.stderr[:2000]}")
         got = subprocess.run([path], capture_output=True, text=True, timeout=300).stdout.split("\n")[:-1]
-        if got != want:
-            k = next(k for k in range(len(want)) if k >= len(got) or got[k] != want[k])
-            sys.exit(f"FAIL cpp {name}: line {k} '{lines[k][:80]}' gave {got[k][:80] if k < len(got) else 'nothing'}, python {want[k][:80]}")
+        if got != expected:
+            k = next(k for k in range(len(expected)) if k >= len(got) or got[k] != expected[k])
+            sys.exit(f"FAIL cpp {name}: line {k} '{lines[k][:80]}' gave {got[k][:80] if k < len(got) else 'nothing'}, python {expected[k][:80]}")
         print(f"PASS {name}", flush=True)
     print(f"all trims: python matches brute force and C++ matches python ({total} calls)")
 
