@@ -135,6 +135,7 @@ run generic-brute-py python3 range-query-tests/test_generic_brute.py
 run matrices-py python3 matrices/tests/test_matrices.py
 run geometry python3 geometry/tests/test_geometry.py  # (Python and C++)
 run graphs python3 graphs/tests/test_euler.py  # (Python and C++)
+run graphs-topo python3 graphs/tests/test_topo_sort.py  # (Python and C++)
 run bubble-sort python3 range-query-tests/test_bubble_sort.py
 if [[ " ${LANGS[*]} " == *" --cpp "* ]]; then
     run bit-operations bash bit-operations-tests/run_tests.sh

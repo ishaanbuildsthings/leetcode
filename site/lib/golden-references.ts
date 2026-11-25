@@ -112,6 +112,20 @@ export const GOLDEN_ZERO_ONE_BFS: FillIn[] = [
   },
 ];
 
+// Topological sort: a full solution kept as a copy in golden-references/
+export const GOLDEN_TOPO_SORT: FillIn[] = [
+  {
+    label: "Topological sort, Kahn's algorithm (LeetCode 207, Course Schedule)",
+    title:
+      "Worked example of Kahn's algorithm: count each course's unfinished prerequisites, start from the courses with none, finishing a course lowers the count of every course that needs it; fewer than n finished means a cycle",
+    folder: "_golden-references",
+    file: "TopoSortCourseSchedule",
+    langs: ["py"],
+    ops: [],
+    githubUrl: GITHUB,
+  },
+];
+
 // the Golden References page, section by section
 export const GOLDEN_SECTIONS: MiscSection[] = [
   { title: "Persistent Segment Tree", items: GOLDEN_REFERENCES },
@@ -120,4 +134,5 @@ export const GOLDEN_SECTIONS: MiscSection[] = [
   { title: "Euler Paths & Circuits", items: GOLDEN_EULER_CIRCUITS },
   { title: "Floyd-Warshall", items: GOLDEN_FLOYD_WARSHALL },
   { title: "0-1 BFS", items: GOLDEN_ZERO_ONE_BFS },
+  { title: "Topological Sort", items: GOLDEN_TOPO_SORT },
 ];

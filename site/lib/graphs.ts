@@ -70,3 +70,17 @@ const dijkstra = (kind: "Directed" | "Undirected"): FillIn => ({
   githubUrl: GITHUB,
 });
 export const DIJKSTRA: FillIn[] = [dijkstra("Directed"), dijkstra("Undirected")];
+
+// Topological sort / DAG check (topoSort.*)
+export const TOPO_SORT: FillIn[] = [
+  {
+    label: "Topological sort + DAG check O(V + E)",
+    title: "Directed [a, b] edge list (a -> b, a must come before b), plus n and whether labels start at 1 (both required: a node with no edges still has to be in the order). Returns None (C++: {}) if there's a cycle, else every node once with a before b for every edge a -> b: nodes with no incoming edges first",
+    folder: "_graphs",
+    file: "topoSort",
+    ops: [
+      ["topoSort(edges, n, oneIndexed: bool) -> [node, ...] sources first, or None if not a DAG (C++: {})", "V+E"],
+    ],
+    githubUrl: GITHUB,
+  },
+];
