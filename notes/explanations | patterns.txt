@@ -174,7 +174,6 @@ I think this can also use the infinity cache trick: https://leetcode.com/problem
 1048: https://leetcode.com/problems/longest-string-chain/
 2355: https://leetcode.com/problems/maximum-number-of-books-you-can-take/
 341: https://leetcode.com/problems/flatten-nested-list-iterator/description/
-1793: https://leetcode.com/problems/maximum-score-of-a-good-subarray/
 1361: https://leetcode.com/problems/validate-binary-tree-nodes/
 382: https://leetcode.com/problems/linked-list-random-node/
 learn reservoir smapling
