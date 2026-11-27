@@ -195,3 +195,16 @@ export const CYCLE_CHECKS: FillIn[] = [
     githubUrl: GITHUB,
   },
 ];
+
+// Minimum spanning tree (minimumSpanningTree.*)
+export const MST: FillIn[] = [
+  {
+    label: "Minimum spanning tree O(E log E)",
+    title: "Undirected weighted [node1, node2, weight] edge list, sized from the largest label. Returns the tree's edges, cheapest first: minimum total weight, and the tree path between any two nodes has the smallest possible biggest edge. Does NOT minimize distances",
+    folder: "_graphs",
+    file: "minimumSpanningTree",
+    usage: GRAPH_USAGE["minimumSpanningTree"],
+    ops: [["minimumSpanningTree(edges) -> [[node1, node2, weight], ...] cheapest first (one tree per component if disconnected)", "E*log(E)"]],
+    githubUrl: GITHUB,
+  },
+];

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { CYCLE_CHECKS, DIJKSTRA, EULER, FLOYD_WARSHALL, FUNCTIONAL_GRAPH, SCC, TOPO_SORT, UNDIRECTED_COMPONENTS } from "@/lib/graphs";
+import { CYCLE_CHECKS, DIJKSTRA, EULER, FLOYD_WARSHALL, FUNCTIONAL_GRAPH, MST, SCC, TOPO_SORT, UNDIRECTED_COMPONENTS } from "@/lib/graphs";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -33,6 +33,7 @@ export default async function GraphTemplatesPage() {
         <MiscTemplates title="Graph templates" sections={[
             { title: "Connected Components", items: UNDIRECTED_COMPONENTS },
             { title: "Cycle Checks", items: CYCLE_CHECKS },
+            { title: "Minimum Spanning Tree", items: MST },
             { title: "Shortest Paths", items: DIJKSTRA },
             { title: "All-Pairs Shortest Paths", items: FLOYD_WARSHALL },
             { title: "Strongly Connected Components", items: SCC },

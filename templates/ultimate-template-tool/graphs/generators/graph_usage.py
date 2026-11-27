@@ -339,6 +339,42 @@ def hasCycle(kind, cpp):
     return lines
 
 
+# ---------------------------------------------------------------- minimum spanning tree
+def minimumSpanningTree(cpp):
+    fn = "minimumSpanningTree"
+    edges = [(1, 2, 2), (2, 3, 2), (1, 3, 3), (3, 4, 1)]
+    tree = run(fn, fn, edges)
+    total = sum(e[2] for e in tree)
+    assert total == 5 and sorted(map(tuple, tree)) == sorted([(3, 4, 1), (1, 2, 2), (2, 3, 2)])
+    return [
+        (f"vector<array<ll, 3>> tree = {fn}(edges);" if cpp else f"tree = {fn}(edges)"),
+        "  edges is a list of undirected weighted edges " + shape(False, True, cpp) + "; negative",
+        "  weights, repeated edges and self-loops are fine",
+        "  The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed",
+        "  (a node with no edges can't be in the tree, so how many nodes there are doesn't matter)",
+        f"  For example: {fn}({edgeList(edges, cpp)})",
+        "",
+        f"tree -> the edges of a minimum spanning tree, cheapest first, e.g. {edgeList(tree, cpp)}",
+        "  Each edge is written exactly as you gave it. Adding up the weights gives the tree's total",
+        f"  weight, here {total}",
+        "",
+        "  What it minimizes:",
+        "  - the total weight, over every way of picking edges that connects all the nodes",
+        "  - the biggest edge you have to cross between any two nodes: the path through the tree has the",
+        "    smallest possible biggest edge of any path between them in the whole graph. Here 1 to 3",
+        "    through the tree crosses edges of weight 2 and 2, while the direct edge weighs 3",
+        "",
+        "  What it does NOT minimize: the distance between two nodes. 1 to 3 through the tree costs",
+        "  2 + 2 = 4, but the direct edge costs 3. For distances use Dijkstra or Floyd-Warshall",
+        "",
+        "  If several trees tie, you get one of them. If the graph isn't connected, you get one tree per",
+        "  component: with numNodes nodes, the graph is connected exactly when the tree has",
+        "  numNodes - 1 edges",
+        "",
+        "O(E log E) time, O(V + E) space, V = largest label, E = number of edges",
+    ]
+
+
 def allUsages():
     out = {}
     for lang in ("py", "cpp"):
@@ -352,6 +388,7 @@ def allUsages():
         out.setdefault("topoSort", {})[lang] = topoSort(cpp)
         out.setdefault("scc", {})[lang] = scc(cpp)
         out.setdefault("undirectedComponents", {})[lang] = undirectedComponents(cpp)
+        out.setdefault("minimumSpanningTree", {})[lang] = minimumSpanningTree(cpp)
         for kind in ("Directed", "Undirected"):
             out.setdefault(f"hasCycle{kind}", {})[lang] = hasCycle(kind, cpp)
     return out
