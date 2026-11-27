@@ -1,19 +1,20 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/topoSort.py
 
-# Topological sort of a directed graph (Kahn's algorithm), which doubles as the "is it a DAG?" check.
-# edges: [(a, b), ...] meaning a -> b ("a must come before b", e.g. a is a prerequisite of b); repeated edges are fine,
-# a self-loop is a cycle.
-# n, oneIndexed (both required): the nodes are 0..n-1, or 1..n when oneIndexed is True. A node with no edges never
-# shows up in the edge list but still has to appear in the order. Every edge must stay in that range.
-# Returns None if the graph has a cycle (not a DAG). Otherwise every node exactly once, ordered so that for every edge
-# a -> b, a comes BEFORE b: nodes with no incoming edges come first, the order you could take courses in. Reverse it
-# for "everything a node points to comes first".
-#   topoSort([(1, 3), (2, 3)], 3, oneIndexed=True)          -> [1, 2, 3]
-#   topoSort([(0, 1)], 3, oneIndexed=False)                 -> [0, 2, 1]     (node 2 has no edges)
-#   topoSort([(1, 2), (2, 3), (3, 1)], 3, oneIndexed=True)  -> None          (cycle)
-#   isDag = topoSort(edges, n, oneIndexed) is not None
-# O(V + E) time and space, V = n, E = number of edges
+# order = topoSort(edges, n, oneIndexed)
+#   edges is a list of directed edges [[from, to], ...], meaning from has to come before to
+#   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is True
+#   (a node with no edges never shows up in edges, but it still has to be in the order)
+#   For example: topoSort([[1, 3], [2, 3], [3, 4]], 4, True)
+#
+# order -> every node exactly once, with from before to for every edge, e.g. [1, 2, 3, 4]
+#   Nodes with nothing pointing to them come first, like an order you could take courses in.
+#   Reverse it if you want everything a node points to to come first
+#
+#   None if the graph has a cycle, since then no order works. So this is also the
+#   "is it a DAG?" check: isDag = topoSort(edges, n, oneIndexed) is not None
+#
+# O(V + E) time and space
 
 
 def topoSort(edges, n, oneIndexed: bool):

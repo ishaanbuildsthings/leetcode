@@ -117,3 +117,9 @@ for kind in ("Directed", "Undirected"):
                 "        }", "    }",
                 "    return dist;", "}", ""]
         open(os.path.join(OUT, file + ".cpp"), "w").write("\n".join(cpp))
+
+# the headers come from the shared usage text (graph_usage.py), same as the Usage panels
+import sys
+sys.path.insert(0, HERE)
+from graph_usage import rewriteAll
+rewriteAll()

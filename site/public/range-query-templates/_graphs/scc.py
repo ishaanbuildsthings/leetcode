@@ -1,23 +1,28 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/scc.py
 
-# Strongly connected components of a directed graph (iterative Tarjan): groups of nodes that can all reach each other.
-# edges: [(a, b), ...] meaning a -> b; repeated edges and self-loops are fine.
-# n, oneIndexed (both required): the nodes are 0..n-1, or 1..n when oneIndexed is True. The edges alone can't say this:
-# a node with no edges never shows up in them, yet it's still a component by itself, so leaving it out would give
-# the wrong count. And whether labels start at 0 or 1 decides which node is the missing one. Every edge must stay in
-# that range.
-#   scc = buildScc([(1, 2), (2, 3), (3, 1), (4, 3)], 5, oneIndexed=True)     # nodes 1..5; node 5 has no edges
-#   scc = buildScc([(0, 1), (1, 0)], 3, oneIndexed=False)                     # nodes 0..2; node 2 has no edges
-# The returned fields (node ids are your labels, component ids are 0..numComponents-1):
-#   scc.numComponents       3
-#   scc.nodeToComponentId   [-1, 0, 0, 0, 1, 2]       indexed by node (oneIndexed: slot 0 is unused, -1)
-#   scc.componentNodes      [[1, 2, 3], [4], [5]]     indexed by component id, nodes increasing
-#   scc.componentAdj        [[], [0], []]             indexed by component id: out-neighbor components (always acyclic);
-#                                                     edges inside a component dropped, repeats kept
-# Component ids come out in reverse topological order: every edge compA -> compB has compA > compB, so looping ids
-# 0..numComponents-1 visits a component only after everything it can reach.
-# O(V + E) time and space, V = n, E = number of edges
+# scc = buildScc(edges, n, oneIndexed)
+#   A strongly connected component is a group of nodes that can all reach each other
+#   edges is a list of directed edges [[from, to], ...]; repeated edges and self-loops are fine
+#   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is True
+#   (a node with no edges is still its own component, so n has to be passed)
+#   For example: buildScc([[1, 2], [2, 3], [3, 1], [4, 3]], 5, True)   (node 5 has no edges)
+#
+# scc.numComponents -> how many components there are, e.g. 3
+#
+# scc.nodeToComponentId[node] -> which component node is in, e.g. [-1, 0, 0, 0, 1, 2]
+#   Component ids go from 0 to numComponents - 1. With oneIndexed, slot 0 isn't a node and is -1
+#
+# scc.componentNodes[componentId] -> that component's nodes, increasing, e.g. [[1, 2, 3], [4], [5]]
+#
+# scc.componentAdj[componentId] -> the components it has edges into, e.g. [[], [0], []]
+#   Here component 1 (node 4) has an edge into component 0 (nodes 1, 2, 3). Edges inside a component are
+#   dropped, repeats are kept, and following these never loops back
+#
+#   Ids come out in reverse topological order: every edge goes from a bigger id to a smaller one,
+#   so going through ids 0, 1, 2, ... handles a component only after everything it can reach
+#
+# O(V + E) time and space
 
 
 class Scc:

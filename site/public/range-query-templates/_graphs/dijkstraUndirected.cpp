@@ -4,23 +4,23 @@
 using namespace std;
 using ll = long long;
 
-// Dijkstra, undirected graph: shortest distance from source to every node, plus the previous node on a shortest route.
-// edges: {{a, b, w}, ...} meaning a <-> b (both ways) with weight w >= 0; repeated edges and self-loops are
-// fine.
-// n, oneIndexed (both required): the nodes are 0..n-1, or 1..n when oneIndexed is true. A node with no
-// edges never shows up in the edge list, so n says how many there are; oneIndexed says where the labels start.
-// Returns two lists, both indexed by your node labels:
-//   dist[node]  the shortest distance from source to node; -1 if node can't be reached
-//   prev[node]  the node a shortest route to node comes from, one step before it; -1 for the source itself and
-//               for nodes that can't be reached
-// With oneIndexed, index 0 isn't a node: dist[0] and prev[0] are just -1 placeholders, ignore them.
-// To get the route itself, start at the target and keep stepping to prev until you reach the source (that walks it
-// backwards).
-// Example, 1-indexed: edges 1-2 (4), 1-3 (1), 3-2 (2), 2-4 (5), source 1
-//   auto [dist, prev] = dijkstraUndirected({{1, 2, 4}, {1, 3, 1}, {3, 2, 2}, {2, 4, 5}}, 4, true, 1);
-//   dist -> {-1, 0, 3, 1, 8}      dist[4] = 8: the best route to 4 costs 1 + 2 + 5
-//   prev -> {-1, -1, 3, 1, 2}   prev[4] = 2, prev[2] = 3, prev[3] = 1: the route is 1 -> 3 -> 2 -> 4
-// O((V + E) log E) time, O(V + E) space, V = n, E = number of edges. Negative weights throw invalid_argument.
+// auto [dist, prev] = dijkstraUndirected(edges, n, oneIndexed, source);
+//   edges is a list of undirected weighted edges {{from, to, weight}, ...}, usable both ways, weights >= 0
+//   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is true
+//   (a node with no edges never shows up in edges, so n has to be passed)
+//   source is the node every distance is measured from
+//   For example: dijkstraUndirected({{1, 2, 4}, {1, 3, 1}, {3, 2, 2}, {2, 4, 5}}, 4, true, 1)
+//
+// dist -> the shortest distance from source to every node, e.g. {-1, 0, 3, 1, 8}
+//   dist[node] is -1 if node can't be reached from source. With oneIndexed, dist[0] isn't a
+//   node and is always -1. Here the best route to 4 costs 8
+//
+// prev -> the node right before each node on a shortest route from source, e.g. {-1, -1, 3, 1, 2}
+//   Only needed to rebuild the route itself: start at the target and keep stepping to prev until
+//   you reach source, then reverse. Here the route to 4 is 1 -> 3 -> 2 -> 4.
+//   -1 for source itself and for nodes that can't be reached
+//
+// O((V + E) log E) time, O(V + E) space. Negative weights throw invalid_argument
 pair<vector<ll>, vector<int>> dijkstraUndirected(const vector<array<ll, 3>>& edges, int n, bool oneIndexed,
                                                  int source) {
     int firstNode = oneIndexed ? 1 : 0, size = firstNode + n;

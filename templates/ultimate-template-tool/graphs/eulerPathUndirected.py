@@ -1,18 +1,24 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/eulerPathUndirected.py
 
-# Euler path on an undirected graph: a walk that uses every edge exactly once. It may end where it started (a circuit
-# counts as a path).
-# edges: [(a, b), ...], labels 0..n-1 or 1..n (sized to the largest label, nothing to pass); repeated edges and
-# self-loops are fine.
-# start, end (optional): the nodes the path must start / end at. Left out, they're picked for you: with two odd-degree
-# nodes the path runs between them (smaller label first); with none it's a circuit from any node with edges.
-# Returns the nodes in walk order (len(edges) + 1 of them), or None if no such path exists (degrees don't allow one,
-# edges not all reachable from the start, or a start / end that doesn't fit).
-# No edges: [start] or [end] if one was given (None if both were given and differ), else [].
-# eulerPathUndirected([(1, 2), (2, 3), (3, 1), (1, 4)]) -> [1, 3, 2, 1, 4]
-# eulerPathUndirected([(1, 2), (2, 3)], start=3) -> [3, 2, 1]
-# eulerPathUndirected([(1, 2), (1, 3), (1, 4)]) -> None
+# walk = eulerPathUndirected(edges, start=None, end=None)
+#   edges is a list of undirected edges [[from, to], ...]; repeated edges and self-loops are fine
+#   The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed
+#   start and end are optional: the nodes the walk has to start and end at. Left out, they're
+#   picked for you: with two odd-degree nodes, the path runs from one to the other.
+#   If every node has even degree, the walk is a circuit from any node with edges
+#   For example: eulerPathUndirected([[1, 2], [2, 3], [3, 1], [1, 4]])
+#
+# walk -> the nodes in walking order, using every edge exactly once, e.g. [1, 3, 2, 1, 4]
+#   It has len(edges) + 1 nodes and may end where it started (a circuit counts)
+#
+#   None if there's no such walk: the degrees don't allow one, some edge can't be reached
+#   from the start, or the start / end you gave doesn't fit
+#   With no edges at all: just the start or end if you gave one, else []
+#
+#   eulerPathUndirected([[1, 2], [2, 3]], start=3) -> [3, 2, 1]
+#   eulerPathUndirected([[1, 2], [1, 3], [1, 4]]) -> None
+#
 # O(V + E) time and space, V = largest label, E = number of edges
 def eulerPathUndirected(edges, start=None, end=None):
     if not edges:

@@ -3,16 +3,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Euler circuit on an undirected graph: a walk that uses every edge exactly once and ends where it started.
-// edges: {{a, b}, ...}, labels 0..n-1 or 1..n (sized to the largest label, nothing to pass); repeated edges and
-// self-loops are fine.
-// start (optional, -1 = not given): the node the circuit must start and end at; any node with edges if left out.
-// Returns the nodes in walk order (edges.size() + 1 of them, first == last), or {} if no circuit exists (some node
-// has odd degree, edges not all reachable from the start, or a start that has no edges).
-// No edges: {start} if a start was given, else {}.
-// eulerCircuitUndirected({{1, 2}, {2, 3}, {3, 1}}) -> {1, 3, 2, 1}
-// eulerCircuitUndirected({{1, 2}, {2, 3}, {3, 1}}, 2) -> {2, 3, 1, 2}
-// eulerCircuitUndirected({{1, 2}, {2, 3}}) -> {}
+// vector<int> walk = eulerCircuitUndirected(edges, start);   // start optional (-1 = not given)
+//   edges is a list of undirected edges {{from, to}, ...}; repeated edges and self-loops are fine
+//   The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed
+//   start is optional: the node the circuit has to start and end at. Left out, any node with edges
+//   For example: eulerCircuitUndirected({{1, 2}, {2, 3}, {3, 1}})
+//
+// walk -> the nodes in walking order, using every edge exactly once, e.g. {1, 3, 2, 1}
+//   It has edges.size() + 1 nodes, and the first and last are the same node
+//
+//   {} if there's no circuit: some node has odd degree, some edge can't be reached
+//   from the start, or the start you gave has no edges
+//   With no edges at all: just the start if you gave one, else {}
+//
+//   eulerCircuitUndirected({{1, 2}, {2, 3}, {3, 1}}, 2) -> {2, 3, 1, 2}
+//   eulerCircuitUndirected({{1, 2}, {2, 3}}) -> {}
+//
 // O(V + E) time and space, V = largest label, E = number of edges
 vector<int> eulerCircuitUndirected(const vector<pair<int, int>>& edges, int start = -1) {
     if (edges.empty()) return start == -1 ? vector<int>{} : vector<int>{start};

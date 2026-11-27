@@ -1,22 +1,23 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/dijkstraDirected.py
 
-# Dijkstra, directed graph: shortest distance from source to every node, plus the previous node on a shortest route.
-# edges: [(a, b, w), ...] meaning a -> b with weight w >= 0 (ints or floats); repeated edges and self-loops are fine.
-# n, oneIndexed (both required): the nodes are 0..n-1, or 1..n when oneIndexed is True. A node with no
-# edges never shows up in the edge list, so n says how many there are; oneIndexed says where the labels start.
-# Returns two lists, both indexed by your node labels:
-#   dist[node]  the shortest distance from source to node; None if node can't be reached
-#   prev[node]  the node a shortest route to node comes from, one step before it; None for the source itself and
-#               for nodes that can't be reached
-# With oneIndexed, index 0 isn't a node: dist[0] and prev[0] are just None placeholders, ignore them.
-# To get the route itself, start at the target and keep stepping to prev until you reach the source (that walks it
-# backwards).
-# Example, 1-indexed: edges 1->2 (4), 1->3 (1), 3->2 (2), 2->4 (5), source 1
-#   dist, prev = dijkstraDirected([(1, 2, 4), (1, 3, 1), (3, 2, 2), (2, 4, 5)], 4, oneIndexed=True, source=1)
-#   dist -> [None, 0, 3, 1, 8]      dist[4] = 8: the best route to 4 costs 1 + 2 + 5
-#   prev -> [None, None, 3, 1, 2]   prev[4] = 2, prev[2] = 3, prev[3] = 1: the route is 1 -> 3 -> 2 -> 4
-# O((V + E) log E) time, O(V + E) space, V = n, E = number of edges. Negative weights raise ValueError.
+# dist, prev = dijkstraDirected(edges, n, oneIndexed, source)
+#   edges is a list of directed weighted edges [[from, to, weight], ...], weights >= 0
+#   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is True
+#   (a node with no edges never shows up in edges, so n has to be passed)
+#   source is the node every distance is measured from
+#   For example: dijkstraDirected([[1, 2, 4], [1, 3, 1], [3, 2, 2], [2, 4, 5]], 4, True, 1)
+#
+# dist -> the shortest distance from source to every node, e.g. [None, 0, 3, 1, 8]
+#   dist[node] is None if node can't be reached from source. With oneIndexed, dist[0] isn't a
+#   node and is always None. Here the best route to 4 costs 8
+#
+# prev -> the node right before each node on a shortest route from source, e.g. [None, None, 3, 1, 2]
+#   Only needed to rebuild the route itself: start at the target and keep stepping to prev until
+#   you reach source, then reverse. Here the route to 4 is 1 -> 3 -> 2 -> 4.
+#   None for source itself and for nodes that can't be reached
+#
+# O((V + E) log E) time, O(V + E) space. Negative weights raise ValueError
 import heapq
 
 

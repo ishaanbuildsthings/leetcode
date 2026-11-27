@@ -1,4 +1,5 @@
 import type { FillIn } from "@/components/TemplatePicker";
+import { GRAPH_USAGE } from "@/lib/generated/graph-usage";
 import { FUNCTIONAL_GRAPH_USAGE, FUNCTIONAL_GRAPH_USAGE_ONE_INDEXED } from "@/lib/generated/functional-graph-usage";
 
 // The graph templates (templates/ultimate-template-tool/graphs/): one function each, on the Graphs tab.
@@ -10,6 +11,7 @@ export const EULER: FillIn[] = [
     title: "A walk over an [a, b] edge list (a -> b) using every edge once and ending where it started, or None / {} if there isn't one. Optional start; labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerCircuitDirected",
+    usage: GRAPH_USAGE["eulerCircuitDirected"],
     ops: [["eulerCircuitDirected(edges, start?) -> [node, ...] (len(edges) + 1, first == last), or None", "V+E"]],
     githubUrl: GITHUB,
   },
@@ -18,6 +20,7 @@ export const EULER: FillIn[] = [
     title: "A walk over an [a, b] edge list (a -> b) using every edge once, or None / {} if there isn't one. Optional start and end, picked from the degrees if left out; a circuit counts. Labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerPathDirected",
+    usage: GRAPH_USAGE["eulerPathDirected"],
     ops: [["eulerPathDirected(edges, start?, end?) -> [node, ...] (len(edges) + 1), or None", "V+E"]],
     githubUrl: GITHUB,
   },
@@ -26,6 +29,7 @@ export const EULER: FillIn[] = [
     title: "A walk over an undirected [a, b] edge list using every edge once and ending where it started, or None / {} if there isn't one. Optional start; labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerCircuitUndirected",
+    usage: GRAPH_USAGE["eulerCircuitUndirected"],
     ops: [["eulerCircuitUndirected(edges, start?) -> [node, ...] (len(edges) + 1, first == last), or None", "V+E"]],
     githubUrl: GITHUB,
   },
@@ -34,6 +38,7 @@ export const EULER: FillIn[] = [
     title: "A walk over an undirected [a, b] edge list using every edge once, or None / {} if there isn't one. Optional start and end, picked from the odd-degree nodes if left out; a circuit counts. Labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerPathUndirected",
+    usage: GRAPH_USAGE["eulerPathUndirected"],
     ops: [["eulerPathUndirected(edges, start?, end?) -> [node, ...] (len(edges) + 1), or None", "V+E"]],
     githubUrl: GITHUB,
   },
@@ -46,6 +51,7 @@ export const SCC: FillIn[] = [
     title: "Directed [a, b] edge list (a -> b), plus n and whether labels start at 1 (both required: a node with no edges never shows up in the edge list but is still its own component). Returns each node's component, each component's nodes, and the condensation DAG, ids in reverse topological order",
     folder: "_graphs",
     file: "scc",
+    usage: GRAPH_USAGE["scc"],
     ops: [
       ["buildScc(edges, n, oneIndexed: bool) -> scc", "V+E"],
       ["scc.numComponents -> how many components", "1"],
@@ -63,6 +69,7 @@ const dijkstra = (kind: "Directed" | "Undirected"): FillIn => ({
   title: `Shortest distances from a source over a weighted [a, b, w] edge list (${kind === "Directed" ? "a -> b" : "both ways"}, w >= 0), plus the previous node on a shortest path. n and oneIndexed are required: a node with no edges never shows up in the edge list`,
   folder: "_graphs",
   file: `dijkstra${kind}`,
+  usage: GRAPH_USAGE[`dijkstra${kind}`],
   ops: [
     [`dijkstra${kind}(edges, n, oneIndexed: bool, source) -> (dist, prev)`, "V*log(E)+E*log(E)"],
     ["dist[node] -> shortest distance from source to node. None (C++: -1) if node can't be reached. With oneIndexed, dist[0] is an unused placeholder", "1"],
@@ -79,6 +86,7 @@ export const TOPO_SORT: FillIn[] = [
     title: "Directed [a, b] edge list (a -> b, a must come before b), plus n and whether labels start at 1 (both required: a node with no edges still has to be in the order). Returns None (C++: {}) if there's a cycle, else every node once with a before b for every edge a -> b: nodes with no incoming edges first",
     folder: "_graphs",
     file: "topoSort",
+    usage: GRAPH_USAGE["topoSort"],
     ops: [
       ["topoSort(edges, n, oneIndexed: bool) -> [node, ...] sources first, or None if not a DAG (C++: {})", "V+E"],
     ],
@@ -95,6 +103,7 @@ const floydWarshall = (kind: "Directed" | "Undirected"): FillIn => {
     title: `Shortest distance between every pair of nodes over a weighted [a, b, w] edge list (${edgeWord}, w >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 0..numNodes-1`,
     folder: "_graphs",
     file: fn,
+    usage: GRAPH_USAGE[fn],
     ops: [
       [`${fn}(numNodes, edges) -> dist, a numNodes x numNodes matrix`, "V^3+E"],
       ["dist[a][b] -> shortest distance from a to b. INF if b can't be reached from a (Python: float('inf'), C++: LLONG_MAX / 4), 0 for a to itself", "1"],
@@ -106,6 +115,7 @@ const floydWarshall = (kind: "Directed" | "Undirected"): FillIn => {
       on: {
         title: `Shortest distance between every pair of nodes over a weighted [a, b, w] edge list (${edgeWord}, w >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 1..numNodes`,
         file: `${fn}.oneIndexed`,
+        usage: GRAPH_USAGE[`${fn}.oneIndexed`],
         ops: [
           [`${fn}(numNodes, edges) -> dist, a (numNodes + 1) x (numNodes + 1) matrix`, "V^3+E"],
           ["dist[a][b] -> shortest distance from a to b. INF if b can't be reached from a (Python: float('inf'), C++: LLONG_MAX / 4), 0 for a to itself. Row 0 and column 0 are unused (all INF)", "1"],

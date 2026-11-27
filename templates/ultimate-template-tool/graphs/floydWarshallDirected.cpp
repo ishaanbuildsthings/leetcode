@@ -4,18 +4,22 @@
 using namespace std;
 using ll = long long;
 
-// Floyd-Warshall, directed graph, 0-indexed: shortest distance between every pair of nodes.
-// numNodes: how many nodes there are; the nodes are 0..numNodes - 1. (A node with no edges never shows up
-// in the edge list, so the count has to be passed.)
-// edges: [a, b, w] meaning a -> b, with weight w >= 0. Repeated edges keep the cheapest; self-loops
-// are ignored. A negative weight is an error (a negative loop would make some distances meaningless).
-// Returns dist, a numNodes x numNodes matrix: dist[a][b] = the shortest distance from a to b, INF if b
-// can't be reached from a, 0 for a to itself.
-// Example:
-//   auto dist = floydWarshallDirected(4, {{0, 1, 4}, {0, 2, 1}, {2, 1, 2}});
-//   dist[0] -> {0, 3, 1, INF}    0 -> 1 costs 3 (through 2); node 3 has no edges, so it's INF
-//   dist[1] -> {INF, 0, INF, INF}  nothing leaves 1
-// O(V^3 + E) time, O(V^2) space, V = numNodes, E = number of edges. Negative weights throw invalid_argument.
+// auto dist = floydWarshallDirected(numNodes, edges);
+//   edges is a list of directed weighted edges {{from, to, weight}, ...}, weights >= 0
+//   Repeated edges keep the cheapest; self-loops are ignored
+//   numNodes is how many nodes there are: the nodes are 0..numNodes-1
+//   (a node with no edges never shows up in edges, so numNodes has to be passed)
+//   For example: floydWarshallDirected(4, {{0, 1, 4}, {0, 2, 1}, {2, 1, 2}})   (node 3 has no edges)
+//
+// dist[a][b] -> the shortest distance from a to b, e.g. dist[0] = {0, 3, 1, INF}
+//   INF if b can't be reached from a, and 0 from a node to itself.
+//   Here 0 -> 1 costs 3 by going through 2, instead of 4 directly
+//   dist is a numNodes x numNodes matrix
+//
+// INF -> LLONG_MAX / 4, set at the top of the file: change it there if you need to
+//
+// O(V^3 + E) time, O(V^2) space. Negative weights throw invalid_argument
+// (a loop with negative total weight would make distances meaningless)
 
 const ll INF = LLONG_MAX / 4;  // what unreachable pairs hold (/ 4 so adding two distances can't overflow)
 

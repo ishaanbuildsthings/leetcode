@@ -1,20 +1,23 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/floydWarshallUndirected.oneIndexed.py
 
-# Floyd-Warshall, undirected graph, 1-indexed: shortest distance between every pair of nodes.
-# numNodes: how many nodes there are; the nodes are 1..numNodes. (A node with no edges never shows up
-# in the edge list, so the count has to be passed.)
-# edges: [a, b, w] meaning a <-> b, usable both ways, with weight w >= 0. Repeated edges keep the cheapest; self-loops
-# are ignored. A negative weight is an error (a negative loop would make some distances meaningless).
-# Returns dist, a (numNodes + 1) x (numNodes + 1) matrix indexed by your labels: dist[a][b] = the shortest
-# distance from a to b, INF if b can't be reached from a, 0 for a to itself.
-# Node 0 doesn't exist: row 0 and column 0 are unused (all INF), ignore them.
-# Example:
-#   dist = floydWarshallUndirected(4, [(1, 2, 4), (1, 3, 1), (3, 2, 2)])
-#   dist[1] -> [INF, 0, 3, 1, INF]    1 -> 2 costs 3 (through 3); node 4 has no edges, so it's INF
-#   dist[2] -> [INF, 3, 0, 2, INF]
-#   dist[0] -> [INF, INF, INF, INF, INF]  row 0 is unused
-# O(V^3 + E) time, O(V^2) space, V = numNodes, E = number of edges. Negative weights raise ValueError.
+# dist = floydWarshallUndirected(numNodes, edges)
+#   edges is a list of undirected weighted edges [[from, to, weight], ...], usable both ways, weights >= 0
+#   Repeated edges keep the cheapest; self-loops are ignored
+#   numNodes is how many nodes there are: the nodes are 1..numNodes
+#   (a node with no edges never shows up in edges, so numNodes has to be passed)
+#   For example: floydWarshallUndirected(4, [[1, 2, 4], [1, 3, 1], [3, 2, 2]])   (node 4 has no edges)
+#
+# dist[a][b] -> the shortest distance from a to b, e.g. dist[1] = [INF, 0, 3, 1, INF]
+#   INF if b can't be reached from a, and 0 from a node to itself.
+#   Here 1 -> 2 costs 3 by going through 3, instead of 4 directly
+#   dist is a (numNodes + 1) x (numNodes + 1) matrix: node 0 doesn't exist, so row 0 and
+#   column 0 are unused (all INF)
+#
+# INF -> float('inf'), set at the top of the file
+#
+# O(V^3 + E) time, O(V^2) space. Negative weights raise ValueError
+# (a loop with negative total weight would make distances meaningless)
 
 INF = float('inf')  # what unreachable pairs hold
 
