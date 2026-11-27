@@ -3,30 +3,20 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Functional graph breakdown, 1-indexed.
+// FunctionalGraph fg({{1, 2}, {2, 3}, {3, 4}, {4, 2}, {5, 3}, {6, 5}, {7, 1}, {8, 8}, {9, 8}});
+//   edges {a, b} mean a -> b, in any order; the nodes are 1..edges.size(), each the start of exactly one edge (node 0 doesn't exist)
 //
-// In a functional graph every node has exactly one outgoing edge, so each component is exactly one cycle,
-// with trees of tails feeding into it. Several tails can enter the cycle at different cycle nodes, and
-// tails can branch.
-//
-// edges: [a, b] meaning a -> b, in any order. The nodes are 1..len(edges): there's one edge per node,
-// so no node count is passed. Every node must be the start of exactly one edge, else it errors.
-// Node 0 doesn't exist: never pass it.
-//
-// Example (8 -> 8 is a self-loop, so it's a cycle of length 1):
-//   FunctionalGraph fg({{1, 2}, {2, 3}, {3, 4}, {4, 2}, {5, 3}, {6, 5}, {7, 1}, {8, 8}, {9, 8}});
-//
-//   fg.cycles()                      -> {{2, 3, 4}, {8}}
-//   fg.componentId(6)                -> 0
-//   fg.numEdgesToCrossBeforeCycle(6) -> 2
-//   fg.firstCycleNodeHit(6)          -> 3
-//   fg.kthNext(6, 4)                 -> 2    6 -> 5 -> 3 -> 4 -> 2
-//   fg.stepsFromTo(7, 4)             -> 4
-//   fg.stepsFromTo(5, 1)             -> -1   5 never passes through 1
-//   fg.components()[0].cycle         -> {2, 3, 4}
-//   fg.components()[0].tails         -> {{6, 5, 3}, {7, 1, 2}}
-//   fg.components()[1].cycle         -> {8}
-//   fg.components()[1].tails         -> {{9, 8}}
+// fg.cycles()                      -> {{2, 3, 4}, {8}}
+// fg.componentId(6)                -> 0
+// fg.numEdgesToCrossBeforeCycle(6) -> 2
+// fg.firstCycleNodeHit(6)          -> 3
+// fg.kthNext(6, 4)                 -> 2    6 -> 5 -> 3 -> 4 -> 2
+// fg.stepsFromTo(7, 4)             -> 4
+// fg.stepsFromTo(5, 1)             -> -1   5 never passes through 1
+// fg.components()[0].cycle         -> {2, 3, 4}
+// fg.components()[0].tails         -> {{6, 5, 3}, {7, 1, 2}}
+// fg.components()[1].cycle         -> {8}
+// fg.components()[1].tails         -> {{9, 8}}
 //
 // Build: O(V) time and space, V = number of nodes. Invalid nodes or a negative k throw invalid_argument.
 
