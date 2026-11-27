@@ -51,8 +51,7 @@ Node combine(Node big, const Node& small) {
 
 
 // DSU dsu(vals);
-// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val)
-// appends more
+// vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val) appends more
 struct DSU {
     using T = RawVal;
     vector<T> vals;
@@ -124,11 +123,20 @@ struct DSU {
         return res;
     }
 
-    // O(n), groupsArr[rt] = values whose root is rt, empty if rt is not a root
+    // O(n), one vector of values per component (no empty ones), e.g. vals {10, 20, 30, 40} with 0-2 and 1-3
+    // united -> {{10, 30}, {20, 40}}; components ordered by their smallest index, values in index order
     vector<vector<T>> groups() {
         int n = par.size();
-        vector<vector<T>> groupsArr(n);
-        for (int i = 0; i < n; i++) groupsArr[find(i)].push_back(vals[i]);
+        vector<int> slot(n, -1);  // slot[rt] = where root rt's vector sits in groupsArr
+        vector<vector<T>> groupsArr;
+        for (int i = 0; i < n; i++) {
+            int rt = find(i);
+            if (slot[rt] == -1) {
+                slot[rt] = groupsArr.size();
+                groupsArr.emplace_back();
+            }
+            groupsArr[slot[rt]].push_back(vals[i]);
+        }
         return groupsArr;
     }
 

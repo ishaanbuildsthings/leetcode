@@ -119,7 +119,7 @@ export const UNION_FIND_OP_GROUPS: PickerOpGroup[] = [
             description: "i's parent pointer, to walk the merge tree yourself (only in union finds without path compression)",
           },
           { id: "elementsInGroup", signature: "elementsInGroup(i)", description: "Every element in i's component" },
-          { id: "groups", signature: "groups()", description: "Every component's elements" },
+          { id: "groups", signature: "groups()", description: "One list per component, e.g. [[10, 30], [20, 40]]" },
           { id: "sizes", signature: "sizes()", description: "Every component's size, biggest first" },
           { id: "roots", signature: "roots()", description: "One representative per component" },
         ],

@@ -42,8 +42,7 @@ class _Forest:
         self.sz = [1] * cap
         self.eid = [-1] * cap
         self.pri = [random.getrandbits(30) for _ in range(cap)]
-        # bit 0 = tree edge living at this level, bit 1 = vertex owns an incident non-tree edge at this level
-        self.mk = [0] * cap
+        self.mk = [0] * cap   # bit 0 = tree edge living at this level, bit 1 = vertex owns an incident non-tree edge at this level
         self.ag = [0] * cap
         self.sz[0] = 0
         self.pool = []
@@ -289,8 +288,7 @@ class DynamicConnectivity:
     # the heart of HDLT: hunt for an edge that reconnects the two halves
     def _replace(self, l, u, v):
         f = self._forest[l]
-        # always walk the smaller half, so a promotion doubles a component
-        a = u if f.treeSize(u) <= f.treeSize(v) else v
+        a = u if f.treeSize(u) <= f.treeSize(v) else v  # always walk the smaller half, so a promotion doubles a component
         ra = f.rootOf(a)
 
         # every level-l tree edge of the smaller half moves up to level l + 1
@@ -410,7 +408,7 @@ class DynamicConnectivity:
             rep.setdefault(self._componentId(u), u)
         return list(rep.values())
 
-    # O(n log n), the values grouped by component
+    # O(n log n), one list of values per component (no empty lists), e.g. [[10, 30], [20, 40]]
     def groups(self):
         g = defaultdict(list)
         for u in range(self.n):

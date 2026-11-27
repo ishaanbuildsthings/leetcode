@@ -42,7 +42,8 @@ Node baseFn(const RawVal& v, int i) {
 }
 
 // called once per merge: big is the bigger component's Node (on a tie, either one). big is moved in, so adding small's
-// items into big and returning it costs O(size of small) (small-to-large: O(n log n) in total) rollback keeps a copy of
+// items into big and returning it costs O(size of small) (small-to-large: O(n log n) in total)
+// rollback keeps a copy of
 // the bigger Node every unite, so keep Nodes small here
 Node combine(Node big, const Node& small) {
     // Node res;
@@ -146,11 +147,20 @@ struct RollbackDSU {
         return res;
     }
 
-    // O(n log n), groupsArr[rt] = values whose root is rt, empty if rt is not a root
+    // O(n log n), one vector of values per component (no empty ones), e.g. vals {10, 20, 30, 40} with 0-2 and 1-3
+    // united -> {{10, 30}, {20, 40}}; components ordered by their smallest index, values in index order
     vector<vector<T>> groups() {
         int n = par.size();
-        vector<vector<T>> groupsArr(n);
-        for (int i = 0; i < n; i++) groupsArr[find(i)].push_back(vals[i]);
+        vector<int> slot(n, -1);  // slot[rt] = where root rt's vector sits in groupsArr
+        vector<vector<T>> groupsArr;
+        for (int i = 0; i < n; i++) {
+            int rt = find(i);
+            if (slot[rt] == -1) {
+                slot[rt] = groupsArr.size();
+                groupsArr.emplace_back();
+            }
+            groupsArr[slot[rt]].push_back(vals[i]);
+        }
         return groupsArr;
     }
 

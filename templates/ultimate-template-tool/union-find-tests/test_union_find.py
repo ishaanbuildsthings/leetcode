@@ -158,8 +158,12 @@ def script(name, seed):
             assert got == sorted((b.comp.count(c) for c in set(b.comp)), reverse=True), (name, what, got)
         elif op == "groups":
             what, got = op, d.groups()
-            want = sorted(sorted(b.vals[k] for k in range(n) if b.comp[k] == c) for c in set(b.comp))
-            assert sorted(sorted(g) for g in got if g) == want, (name, what, got)
+            firstSeen = list(dict.fromkeys(b.comp))  # components by their smallest index
+            want = [[b.vals[k] for k in range(n) if b.comp[k] == c] for c in firstSeen]
+            if name.startswith("hdlt"):
+                assert sorted(map(sorted, got)) == sorted(map(sorted, want)), (name, what, got)
+            else:
+                assert [list(g) for g in got] == want, (name, what, got)
         elif op == "elementsInGroup":
             what, got = f"elementsInGroup {i}", d.elementsInGroup(i)
             assert sorted(got) == sorted(mv), (name, what, got)
