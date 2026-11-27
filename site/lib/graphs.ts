@@ -84,3 +84,34 @@ export const TOPO_SORT: FillIn[] = [
     githubUrl: GITHUB,
   },
 ];
+
+// Floyd-Warshall (floydWarshallDirected.* / floydWarshallUndirected.*, each with a .oneIndexed twin behind the checkbox)
+const floydWarshall = (kind: "Directed" | "Undirected"): FillIn => {
+  const fn = `floydWarshall${kind}`;
+  const edgeWord = kind === "Directed" ? "a -> b" : "both ways";
+  return {
+    label: `Floyd-Warshall, ${kind.toLowerCase()} O(V^3)`,
+    title: `Shortest distance between every pair of nodes over a weighted [a, b, w] edge list (${edgeWord}, w >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 0..numNodes-1`,
+    folder: "_graphs",
+    file: fn,
+    ops: [
+      [`${fn}(numNodes, edges) -> dist, a numNodes x numNodes matrix`, "V^3+E"],
+      ["dist[a][b] -> shortest distance from a to b. INF if b can't be reached from a (Python: float('inf'), C++: LLONG_MAX / 4), 0 for a to itself", "1"],
+    ],
+    variant: {
+      label: "1-indexed",
+      title: "Nodes are 1..numNodes instead of 0..numNodes-1. The matrix is (numNodes + 1) x (numNodes + 1) and node 0's row and column are unused (all INF)",
+      storageKey: `templatePicker.oneIndexed.${fn}`,
+      on: {
+        title: `Shortest distance between every pair of nodes over a weighted [a, b, w] edge list (${edgeWord}, w >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 1..numNodes`,
+        file: `${fn}.oneIndexed`,
+        ops: [
+          [`${fn}(numNodes, edges) -> dist, a (numNodes + 1) x (numNodes + 1) matrix`, "V^3+E"],
+          ["dist[a][b] -> shortest distance from a to b. INF if b can't be reached from a (Python: float('inf'), C++: LLONG_MAX / 4), 0 for a to itself. Row 0 and column 0 are unused (all INF)", "1"],
+        ],
+      },
+    },
+    githubUrl: GITHUB,
+  };
+};
+export const FLOYD_WARSHALL: FillIn[] = [floydWarshall("Directed"), floydWarshall("Undirected")];

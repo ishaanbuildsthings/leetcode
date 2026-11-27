@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { DIJKSTRA, EULER, SCC, TOPO_SORT } from "@/lib/graphs";
+import { DIJKSTRA, EULER, FLOYD_WARSHALL, SCC, TOPO_SORT } from "@/lib/graphs";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -32,6 +32,7 @@ export default async function GraphTemplatesPage() {
         <Nav isDev={isDev} />
         <MiscTemplates title="Graph templates" sections={[
             { title: "Shortest Paths", items: DIJKSTRA },
+            { title: "All-Pairs Shortest Paths", items: FLOYD_WARSHALL },
             { title: "Strongly Connected Components", items: SCC },
             { title: "Topological Sort", items: TOPO_SORT },
             { title: "Euler Paths & Circuits", items: EULER },
