@@ -13,7 +13,8 @@ using namespace std;
 //
 // fg.componentId(node) -> which component node is in, e.g. 1
 //   Works for every node, on a cycle or not. It's an index into fg.cycles(), from 0 up to
-//   fg.cycles().size() - 1: here 1 means node ends up on the cycle {2}
+//   fg.cycles().size() - 1. So a node can have componentId 0 and be in the 0th cycle's
+//   component without being on that cycle itself
 //
 // fg.numEdgesToCrossBeforeCycle(node) -> edges node crosses before it's inside a cycle, e.g. 2
 //   0 if node is already on a cycle
@@ -27,13 +28,20 @@ using namespace std;
 // fg.stepsFromTo(a, b) -> how many steps it takes to walk from a to b, e.g. 4
 //   -1 if a never reaches b, 0 if a == b
 //
-// fg.components() -> one {cycle, tails} per component, in componentId order, e.g.
-//   components()[0].cycle -> {1, 3, 9}   components()[0].tails -> {{5, 6, 3}, {7, 6}}
+// fg.components() -> the full structure of the cycles and their tails
+//   Returns one {cycle, tails} per component, in componentId order, e.g.
+//   components()[0].cycle -> {1, 3, 9}   components()[0].tails -> {{5, 6, 3}, {7, 3}}
 //   components()[1].cycle -> {2}         components()[1].tails -> {{0, 2}}
 //   components()[2].cycle -> {4, 10}     components()[2].tails -> {{8, 4}}
-//   .cycle is the same list as fg.cycles()[componentId]. Each of .tails is a walk that starts
-//   at a node nothing points to and follows edges until it reaches a node already listed, which
-//   is included: {5, 6, 3} is 5 -> 6 -> 3, and {7, 6} is 7 -> 6, joining that walk at 6
+//
+//   First comes .cycle, exactly as fg.cycles() gives it: {1, 3, 9}
+//
+//   Then .tails. A tail is a walk starting at a node nothing points to, following edges
+//   until it hits a cycle node, which is included. Above, the first cycle is 1 -> 3 -> 9 and two
+//   tails feed into it, both entering at 3: {5, 6, 3} is 5 -> 6 -> 3 and {7, 3} is 7 -> 3
+//
+//   If a tail runs into an earlier tail before reaching the cycle, it stops at that node instead,
+//   so no node is listed twice: with one more edge 11 -> 6, its tail would be {11, 6}
 //
 // Build O(V) time and space. Every method is O(1) except kthNext, which is O(log V) when k
 // stops before reaching the cycle. Invalid nodes or a negative k throw invalid_argument

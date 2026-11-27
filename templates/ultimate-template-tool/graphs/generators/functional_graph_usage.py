@@ -5,15 +5,15 @@ def usageText(one, cpp):
     cyc = L(L(1, 3, 9), L(2), L(4, 10))
     t2 = "" if one else L(0, 2)
     if cpp:
-        rows = [(L(1, 3, 9), L(L(5, 6, 3), L(7, 6))), (L(2), L(t2) if t2 else "{}"), (L(4, 10), L(L(8, 4)))]
+        rows = [(L(1, 3, 9), L(L(5, 6, 3), L(7, 3))), (L(2), L(t2) if t2 else "{}"), (L(4, 10), L(L(8, 4)))]
         w = max(len(c) for c, _ in rows)
         compsEx = [f"  components()[{i}].cycle -> {c.ljust(w)}   components()[{i}].tails -> {t}" for i, (c, t) in enumerate(rows)]
-        compsHead = "fg.components() -> one {cycle, tails} per component, in componentId order, e.g."
-        compsBody = "  .cycle is the same list as fg.cycles()[componentId]. Each of .tails is a walk that starts"
+        compsRet = "  Returns one {cycle, tails} per component, in componentId order, e.g."
+        cycleWord, tailsWord = ".cycle", ".tails"
     else:
-        compsEx = [f"  [({L(1, 3, 9)}, {L(L(5, 6, 3), L(7, 6))}), ({L(2)}, {L(t2) if t2 else '[]'}), ({L(4, 10)}, {L(L(8, 4))})]"]
-        compsHead = "fg.components() -> one (cycle, tails) per component, in componentId order, e.g."
-        compsBody = "  cycle is the same list as fg.cycles()[componentId]. Each tail is a walk that starts at a"
+        compsEx = [f"  [({L(1, 3, 9)}, {L(L(5, 6, 3), L(7, 3))}), ({L(2)}, {L(t2) if t2 else '[]'}), ({L(4, 10)}, {L(L(8, 4))})]"]
+        compsRet = "  Returns one (cycle, tails) per component, in componentId order, e.g."
+        cycleWord, tailsWord = "the cycle", "the list of tails"
     ctor = ("FunctionalGraph fg(edges);" if cpp else "fg = FunctionalGraph(edges)")
     edgesType = "vector<array<int, 2>> {{from, to}, ...}" if cpp else "[[from, to], ...]"
     lines = [
@@ -27,7 +27,8 @@ def usageText(one, cpp):
         "",
         "fg.componentId(node) -> which component node is in, e.g. 1",
         "  Works for every node, on a cycle or not. It's an index into fg.cycles(), from 0 up to",
-        f"  {'fg.cycles().size()' if cpp else 'len(fg.cycles())'} - 1: here 1 means node ends up on the cycle {L(2)}",
+        f"  {'fg.cycles().size()' if cpp else 'len(fg.cycles())'} - 1. So a node can have componentId 0 and be in the 0th cycle's",
+        "  component without being on that cycle itself",
         "",
         "fg.numEdgesToCrossBeforeCycle(node) -> edges node crosses before it's inside a cycle, e.g. 2",
         "  0 if node is already on a cycle",
@@ -41,16 +42,19 @@ def usageText(one, cpp):
         "fg.stepsFromTo(a, b) -> how many steps it takes to walk from a to b, e.g. 4",
         f"  {none} if a never reaches b, 0 if a == b",
         "",
-        compsHead,
+        "fg.components() -> the full structure of the cycles and their tails",
+        compsRet,
     ] + compsEx + [
-        compsBody,
+        "",
+        f"  First comes {cycleWord}, exactly as fg.cycles() gives it: {L(1, 3, 9)}",
+        "",
+        f"  Then {tailsWord}. A tail is a walk starting at a node nothing points to, following edges",
+        "  until it hits a cycle node, which is included. Above, the first cycle is 1 -> 3 -> 9 and two",
+        f"  tails feed into it, both entering at 3: {L(5, 6, 3)} is 5 -> 6 -> 3 and {L(7, 3)} is 7 -> 3",
+        "",
+        "  If a tail runs into an earlier tail before reaching the cycle, it stops at that node instead,",
+        f"  so no node is listed twice: with one more edge 11 -> 6, its tail would be {L(11, 6)}",
     ]
-    if cpp:
-        lines += ["  at a node nothing points to and follows edges until it reaches a node already listed, which",
-                  "  is included: {5, 6, 3} is 5 -> 6 -> 3, and {7, 6} is 7 -> 6, joining that walk at 6"]
-    else:
-        lines += ["  node nothing points to and follows edges until it reaches a node already listed, which is",
-                  "  included: [5, 6, 3] is 5 -> 6 -> 3, and [7, 6] is 7 -> 6, joining that walk at 6"]
     lines += ["",
               "Build O(V) time and space. Every method is O(1) except kthNext, which is O(log V) when k",
               "stops before reaching the cycle. " + ("Invalid nodes or a negative k throw invalid_argument" if cpp
@@ -59,5 +63,5 @@ def usageText(one, cpp):
 
 # the example graph behind the text, to check it
 def exampleEdges(one):
-    e = [(1, 3), (3, 9), (9, 1), (2, 2), (4, 10), (10, 4), (5, 6), (6, 3), (7, 6), (8, 4)]
+    e = [(1, 3), (3, 9), (9, 1), (2, 2), (4, 10), (10, 4), (5, 6), (6, 3), (7, 3), (8, 4)]
     return e if one else e + [(0, 2)]
