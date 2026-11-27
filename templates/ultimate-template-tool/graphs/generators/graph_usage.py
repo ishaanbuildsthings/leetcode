@@ -254,6 +254,82 @@ def floydWarshall(kind, one, cpp):
     return lines
 
 
+# ---------------------------------------------------------------- undirected components
+def undirectedComponents(cpp):
+    edges = [(1, 2), (2, 3), (4, 5)]
+    comps = run("undirectedComponents", "undirectedComponents", edges, 6, oneIndexed=True)
+    lines = [
+        ("vector<Component> components = undirectedComponents(edges, numNodes, oneIndexed);" if cpp
+         else "components = undirectedComponents(edges, numNodes, oneIndexed)"),
+        "  edges is a list of undirected edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]")
+        + "; repeated edges and self-loops are fine",
+        "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
+        f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
+        f"  For example: undirectedComponents({edgeList(edges, cpp)}, 6, {boolWord(True, cpp)})   (node 6 has no edges)",
+        "",
+    ]
+    if cpp:
+        w = max(len(lst(cpp, *n)) for n, _ in comps)
+        lines += ["components -> one {nodes, edges} per component, e.g."]
+        lines += [f"  components[{i}].nodes -> {lst(cpp, *n).ljust(w)}   components[{i}].edges -> {edgeList(e, cpp)}"
+                  for i, (n, e) in enumerate(comps)]
+    else:
+        lines += ["components -> one (nodes, edges) per component, e.g.",
+                  "  [" + ", ".join(f"({lst(False, *n)}, {edgeList(e, False)})" for n, e in comps) + "]"]
+    lines += [
+        "  nodes are increasing, and edges are that component's edges in the order you gave them.",
+        "  A node with no edges is a component by itself, with no edges",
+        "",
+        "  Components are ordered by their smallest node, and "
+        + ("components.size()" if cpp else "len(components)") + " is how many there are",
+        "",
+        "O((V + E) α(V)) time (union-find, so practically linear), O(V + E) space",
+    ]
+    return lines
+
+
+# ---------------------------------------------------------------- cycle checks
+def hasCycle(kind, cpp):
+    directed = kind == "Directed"
+    fn = f"hasCycle{kind}"
+    ex = [(1, 2), (2, 3), (3, 1)]
+    if directed:
+        no, yes2 = [(1, 2), (1, 3), (2, 3)], [(1, 2), (2, 1)]
+    else:
+        no, yes2 = [(1, 2), (2, 3)], [(1, 2), (2, 1)]
+    assert run(fn, fn, ex) is True and run(fn, fn, no) is False and run(fn, fn, yes2) is True
+    T, F = boolWord(True, cpp), boolWord(False, cpp)
+    lines = [
+        (f"bool hasCycle = {fn}(edges);" if cpp else f"hasCycle = {fn}(edges)"),
+        f"  edges is a list of {'directed' if directed else 'undirected'} edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]"),
+        "  The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed",
+        "  (a node with no edges can't be on a cycle, so how many nodes there are doesn't matter)",
+        f"  For example: {fn}({edgeList(ex, cpp)})",
+        "",
+    ]
+    if directed:
+        lines += [
+            f"hasCycle -> {T} if you can start at some node, follow edges, and get back to it, e.g. {T}",
+            "  A self-loop counts as a cycle. 1 -> 2 with 2 -> 1 is a cycle, but 1 -> 2, 1 -> 3, 2 -> 3 is not,",
+            "  since you can't get back to where you started",
+        ]
+    else:
+        lines += [
+            f"hasCycle -> {T} if there's a loop anywhere in the graph, e.g. {T}",
+            "  A self-loop counts as a cycle, and so do two copies of the same edge, since you can go out",
+            "  along one and come back along the other",
+        ]
+    lines += [
+        "",
+        f"  {fn}({edgeList(no, cpp)}) -> {F}",
+        f"  {fn}({edgeList(yes2, cpp)}) -> {T}" + ("" if directed else "    (the same edge twice)"),
+        "",
+        ("O(V + E) time and space, V = largest label, E = number of edges" if directed
+         else "O(V + E α(V)) time (union-find, so practically linear), O(V) space, V = largest label"),
+    ]
+    return lines
+
+
 def allUsages():
     out = {}
     for lang in ("py", "cpp"):
@@ -266,6 +342,9 @@ def allUsages():
                 out.setdefault(f"floydWarshall{kind}" + (".oneIndexed" if one else ""), {})[lang] = floydWarshall(kind, one, cpp)
         out.setdefault("topoSort", {})[lang] = topoSort(cpp)
         out.setdefault("scc", {})[lang] = scc(cpp)
+        out.setdefault("undirectedComponents", {})[lang] = undirectedComponents(cpp)
+        for kind in ("Directed", "Undirected"):
+            out.setdefault(f"hasCycle{kind}", {})[lang] = hasCycle(kind, cpp)
     return out
 
 

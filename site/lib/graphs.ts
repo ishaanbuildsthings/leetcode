@@ -158,3 +158,40 @@ export const FUNCTIONAL_GRAPH: FillIn[] = [
     githubUrl: GITHUB,
   },
 ];
+
+// Undirected connected components (undirectedComponents.*)
+export const UNDIRECTED_COMPONENTS: FillIn[] = [
+  {
+    label: "Connected components, undirected O(V + E)",
+    title: "Undirected [a, b] edge list plus numNodes and oneIndexed (a node with no edges is still its own component). Returns each component's nodes and its edges",
+    folder: "_graphs",
+    file: "undirectedComponents",
+    usage: GRAPH_USAGE["undirectedComponents"],
+    ops: [
+      ["undirectedComponents(edges, numNodes, oneIndexed: bool) -> one (nodes, edges) per component, ordered by smallest node", "V+E"],
+    ],
+    githubUrl: GITHUB,
+  },
+];
+
+// Cycle checks (hasCycleDirected.* / hasCycleUndirected.*)
+export const CYCLE_CHECKS: FillIn[] = [
+  {
+    label: "Has a cycle, directed O(V + E)",
+    title: "Directed [a, b] edge list (a -> b), sized from the largest label. True if you can follow edges from some node back to itself",
+    folder: "_graphs",
+    file: "hasCycleDirected",
+    usage: GRAPH_USAGE["hasCycleDirected"],
+    ops: [["hasCycleDirected(edges) -> True / False", "V+E"]],
+    githubUrl: GITHUB,
+  },
+  {
+    label: "Has a cycle, undirected O(V + E)",
+    title: "Undirected [a, b] edge list, sized from the largest label. True if there's a loop anywhere (a self-loop or the same edge twice counts)",
+    folder: "_graphs",
+    file: "hasCycleUndirected",
+    usage: GRAPH_USAGE["hasCycleUndirected"],
+    ops: [["hasCycleUndirected(edges) -> True / False", "V+E"]],
+    githubUrl: GITHUB,
+  },
+];
