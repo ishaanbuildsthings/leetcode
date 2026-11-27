@@ -49,8 +49,8 @@ def dijkstra(kind, cpp):
     none = "-1" if cpp else "None"
     edges = [(1, 2, 4), (1, 3, 1), (3, 2, 2), (2, 4, 5)]
     dist, prev = run(fn, fn, edges, 4, oneIndexed=True, source=1)
-    call = (f"auto [dist, prev] = {fn}(edges, n, oneIndexed, source);" if cpp
-            else f"dist, prev = {fn}(edges, n, oneIndexed, source)")
+    call = (f"auto [dist, prev] = {fn}(edges, numNodes, oneIndexed, source);" if cpp
+            else f"dist, prev = {fn}(edges, numNodes, oneIndexed, source)")
     exCall = f"{fn}({edgeList(edges, cpp)}, 4, {boolWord(True, cpp)}, 1)"
     route = [4]
     while prev[route[-1]] is not None:
@@ -61,8 +61,8 @@ def dijkstra(kind, cpp):
         f"  edges is a list of {'directed' if directed else 'undirected'} weighted edges "
         + ("{{from, to, weight}, ...}" if cpp else "[[from, to, weight], ...]")
         + ("" if directed else ", usable both ways") + ", weights >= 0",
-        f"  n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is {boolWord(True, cpp)}",
-        "  (a node with no edges never shows up in edges, so n has to be passed)",
+        "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
+        f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
         "  source is the node every distance is measured from",
         f"  For example: {exCall}",
         "",
@@ -88,11 +88,11 @@ def topoSort(cpp):
     cyc = run("topoSort", "topoSort", [(1, 2), (2, 1)], 2, oneIndexed=True)
     assert cyc is None
     return [
-        ("vector<int> order = topoSort(edges, n, oneIndexed);" if cpp else "order = topoSort(edges, n, oneIndexed)"),
+        ("vector<int> order = topoSort(edges, numNodes, oneIndexed);" if cpp else "order = topoSort(edges, numNodes, oneIndexed)"),
         "  edges is a list of directed edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]")
         + ", meaning from has to come before to",
-        f"  n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is {boolWord(True, cpp)}",
-        "  (a node with no edges never shows up in edges, but it still has to be in the order)",
+        "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
+        f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
         f"  For example: topoSort({edgeList(edges, cpp)}, 4, {boolWord(True, cpp)})",
         "",
         f"order -> every node exactly once, with from before to for every edge, e.g. {show(order, cpp, none)}",
@@ -100,8 +100,8 @@ def topoSort(cpp):
         "  Reverse it if you want everything a node points to to come first",
         "",
         f"  {none} if the graph has a cycle, since then no order works. So this is also the",
-        "  \"is it a DAG?\" check: " + ("isDag = !topoSort(edges, n, oneIndexed).empty()  (for n >= 1)" if cpp
-                                       else "isDag = topoSort(edges, n, oneIndexed) is not None"),
+        "  \"is it a DAG?\" check: " + ("isDag = !topoSort(edges, numNodes, oneIndexed).empty()  (for numNodes >= 1)" if cpp
+                                       else "isDag = topoSort(edges, numNodes, oneIndexed) is not None"),
         "",
         "O(V + E) time and space",
     ]
@@ -114,12 +114,12 @@ def scc(cpp):
     big = max(range(s.numComponents), key=lambda c: len(s.componentNodes[c]))
     four = s.nodeToComponentId[4]
     return [
-        ("Scc scc = buildScc(edges, n, oneIndexed);" if cpp else "scc = buildScc(edges, n, oneIndexed)"),
+        ("Scc scc = buildScc(edges, numNodes, oneIndexed);" if cpp else "scc = buildScc(edges, numNodes, oneIndexed)"),
         "  A strongly connected component is a group of nodes that can all reach each other",
         "  edges is a list of directed edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]")
         + "; repeated edges and self-loops are fine",
-        f"  n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is {boolWord(True, cpp)}",
-        "  (a node with no edges is still its own component, so n has to be passed)",
+        "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
+        f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
         f"  For example: buildScc({edgeList(edges, cpp)}, 5, {boolWord(True, cpp)})   (node 5 has no edges)",
         "",
         f"scc.numComponents -> how many components there are, e.g. {s.numComponents}",
@@ -231,8 +231,7 @@ def floydWarshall(kind, one, cpp):
         + ("{{from, to, weight}, ...}" if cpp else "[[from, to, weight], ...]")
         + ("" if directed else ", usable both ways") + ", weights >= 0",
         "  Repeated edges keep the cheapest; self-loops are ignored",
-        "  numNodes is how many nodes there are: the nodes are " + ("1..numNodes" if one else "0..numNodes-1"),
-        "  (a node with no edges never shows up in edges, so numNodes has to be passed)",
+        "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
         f"  For example: {fn}(4, {edgeList(edges, cpp)})   (node {s(3)} has no edges)",
         "",
         f"dist[a][b] -> the shortest distance from a to b, e.g. dist[{rowA}] = {show(dist[rowA], cpp, '')}",

@@ -7,8 +7,7 @@ using ll = long long;
 // auto dist = floydWarshallDirected(numNodes, edges);
 //   edges is a list of directed weighted edges {{from, to, weight}, ...}, weights >= 0
 //   Repeated edges keep the cheapest; self-loops are ignored
-//   numNodes is how many nodes there are: the nodes are 0..numNodes-1
-//   (a node with no edges never shows up in edges, so numNodes has to be passed)
+//   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
 //   For example: floydWarshallDirected(4, {{0, 1, 4}, {0, 2, 1}, {2, 1, 2}})   (node 3 has no edges)
 //
 // dist[a][b] -> the shortest distance from a to b, e.g. dist[0] = {0, 3, 1, INF}

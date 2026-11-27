@@ -3,11 +3,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Scc scc = buildScc(edges, n, oneIndexed);
+// Scc scc = buildScc(edges, numNodes, oneIndexed);
 //   A strongly connected component is a group of nodes that can all reach each other
 //   edges is a list of directed edges {{from, to}, ...}; repeated edges and self-loops are fine
-//   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is true
-//   (a node with no edges is still its own component, so n has to be passed)
+//   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
+//   oneIndexed is true when the nodes are 1..numNodes, false when they're 0..numNodes-1
 //   For example: buildScc({{1, 2}, {2, 3}, {3, 1}, {4, 3}}, 5, true)   (node 5 has no edges)
 //
 // scc.numComponents -> how many components there are, e.g. 3
@@ -32,14 +32,14 @@ struct Scc {
     int numComponents;
 };
 
-Scc buildScc(const vector<pair<int, int>>& edges, int n, bool oneIndexed) {
-    if (n < 0) throw invalid_argument("buildScc: needs n >= 0");
-    int firstNode = oneIndexed ? 1 : 0, lastNode = firstNode + n - 1;
+Scc buildScc(const vector<pair<int, int>>& edges, int numNodes, bool oneIndexed) {
+    if (numNodes < 0) throw invalid_argument("buildScc: needs numNodes >= 0");
+    int firstNode = oneIndexed ? 1 : 0, lastNode = firstNode + numNodes - 1;
     int size = lastNode + 1;
     vector<vector<int>> adj(size);
     for (auto [a, b] : edges) {
         if (a < firstNode || a > lastNode || b < firstNode || b > lastNode)
-            throw out_of_range("buildScc: an edge is outside the nodes 0..n-1 (or 1..n)");
+            throw out_of_range("buildScc: an edge is outside the nodes 0..numNodes-1 (or 1..numNodes)");
         adj[a].push_back(b);
     }
     vector<int> num(size, 0), low(size, 0), nodeToComponentId(size, -1), stk;

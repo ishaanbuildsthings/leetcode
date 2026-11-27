@@ -1,10 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/topoSort.py
 
-# order = topoSort(edges, n, oneIndexed)
+# order = topoSort(edges, numNodes, oneIndexed)
 #   edges is a list of directed edges [[from, to], ...], meaning from has to come before to
-#   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is True
-#   (a node with no edges never shows up in edges, but it still has to be in the order)
+#   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
+#   oneIndexed is True when the nodes are 1..numNodes, False when they're 0..numNodes-1
 #   For example: topoSort([[1, 3], [2, 3], [3, 4]], 4, True)
 #
 # order -> every node exactly once, with from before to for every edge, e.g. [1, 2, 3, 4]
@@ -12,16 +12,16 @@
 #   Reverse it if you want everything a node points to to come first
 #
 #   None if the graph has a cycle, since then no order works. So this is also the
-#   "is it a DAG?" check: isDag = topoSort(edges, n, oneIndexed) is not None
+#   "is it a DAG?" check: isDag = topoSort(edges, numNodes, oneIndexed) is not None
 #
 # O(V + E) time and space
 
 
-def topoSort(edges, n, oneIndexed: bool):
-    if n < 0:
-        raise ValueError(f"topoSort: needs n >= 0, got {n}")
+def topoSort(edges, numNodes, oneIndexed: bool):
+    if numNodes < 0:
+        raise ValueError(f"topoSort: needs numNodes >= 0, got {numNodes}")
     firstNode = 1 if oneIndexed else 0
-    lastNode = firstNode + n - 1
+    lastNode = firstNode + numNodes - 1
     size = lastNode + 1
     adj = [[] for _ in range(size)]
     inDegree = [0] * size
@@ -39,4 +39,4 @@ def topoSort(edges, n, oneIndexed: bool):
             inDegree[node2] -= 1
             if not inDegree[node2]:
                 order.append(node2)
-    return order if len(order) == n else None
+    return order if len(order) == numNodes else None

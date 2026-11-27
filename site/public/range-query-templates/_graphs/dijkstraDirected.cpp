@@ -4,10 +4,10 @@
 using namespace std;
 using ll = long long;
 
-// auto [dist, prev] = dijkstraDirected(edges, n, oneIndexed, source);
+// auto [dist, prev] = dijkstraDirected(edges, numNodes, oneIndexed, source);
 //   edges is a list of directed weighted edges {{from, to, weight}, ...}, weights >= 0
-//   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is true
-//   (a node with no edges never shows up in edges, so n has to be passed)
+//   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
+//   oneIndexed is true when the nodes are 1..numNodes, false when they're 0..numNodes-1
 //   source is the node every distance is measured from
 //   For example: dijkstraDirected({{1, 2, 4}, {1, 3, 1}, {3, 2, 2}, {2, 4, 5}}, 4, true, 1)
 //
@@ -21,14 +21,14 @@ using ll = long long;
 //   -1 for source itself and for nodes that can't be reached
 //
 // O((V + E) log E) time, O(V + E) space. Negative weights throw invalid_argument
-pair<vector<ll>, vector<int>> dijkstraDirected(const vector<array<ll, 3>>& edges, int n, bool oneIndexed,
+pair<vector<ll>, vector<int>> dijkstraDirected(const vector<array<ll, 3>>& edges, int numNodes, bool oneIndexed,
                                                int source) {
-    int firstNode = oneIndexed ? 1 : 0, size = firstNode + n;
+    int firstNode = oneIndexed ? 1 : 0, size = firstNode + numNodes;
     if (source < firstNode || source >= size) throw out_of_range("dijkstraDirected: source is outside the nodes");
     vector<vector<pair<int, ll>>> adj(size);
     for (auto [a, b, w] : edges) {
         if (a < firstNode || a >= size || b < firstNode || b >= size)
-            throw out_of_range("dijkstraDirected: an edge is outside the nodes 0..n-1 (or 1..n)");
+            throw out_of_range("dijkstraDirected: an edge is outside the nodes 0..numNodes-1 (or 1..numNodes)");
         if (w < 0) throw invalid_argument("dijkstraDirected: negative edge weight");
         adj[a].push_back({b, w});
     }

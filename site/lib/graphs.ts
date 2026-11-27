@@ -48,12 +48,12 @@ export const EULER: FillIn[] = [
 export const SCC: FillIn[] = [
   {
     label: "Strongly connected components O(V + E)",
-    title: "Directed [a, b] edge list (a -> b), plus n and whether labels start at 1 (both required: a node with no edges never shows up in the edge list but is still its own component). Returns each node's component, each component's nodes, and the condensation DAG, ids in reverse topological order",
+    title: "Directed [a, b] edge list (a -> b), plus numNodes and whether labels start at 1 (both required: a node with no edges never shows up in the edge list but is still its own component). Returns each node's component, each component's nodes, and the condensation DAG, ids in reverse topological order",
     folder: "_graphs",
     file: "scc",
     usage: GRAPH_USAGE["scc"],
     ops: [
-      ["buildScc(edges, n, oneIndexed: bool) -> scc", "V+E"],
+      ["buildScc(edges, numNodes, oneIndexed: bool) -> scc", "V+E"],
       ["scc.numComponents -> how many components", "1"],
       ["scc.nodeToComponentId[node] -> its component id", "1"],
       ["scc.componentNodes[compId] -> its nodes, increasing", "1"],
@@ -66,12 +66,12 @@ export const SCC: FillIn[] = [
 // Dijkstra (dijkstraDirected.* / dijkstraUndirected.*)
 const dijkstra = (kind: "Directed" | "Undirected"): FillIn => ({
   label: `Dijkstra, ${kind.toLowerCase()} O((V + E) log E)`,
-  title: `Shortest distances from a source over a weighted [a, b, w] edge list (${kind === "Directed" ? "a -> b" : "both ways"}, w >= 0), plus the previous node on a shortest path. n and oneIndexed are required: a node with no edges never shows up in the edge list`,
+  title: `Shortest distances from a source over a weighted [a, b, w] edge list (${kind === "Directed" ? "a -> b" : "both ways"}, w >= 0), plus the previous node on a shortest path. numNodes and oneIndexed are required: a node with no edges never shows up in the edge list`,
   folder: "_graphs",
   file: `dijkstra${kind}`,
   usage: GRAPH_USAGE[`dijkstra${kind}`],
   ops: [
-    [`dijkstra${kind}(edges, n, oneIndexed: bool, source) -> (dist, prev)`, "V*log(E)+E*log(E)"],
+    [`dijkstra${kind}(edges, numNodes, oneIndexed: bool, source) -> (dist, prev)`, "V*log(E)+E*log(E)"],
     ["dist[node] -> shortest distance from source to node. None (C++: -1) if node can't be reached. With oneIndexed, dist[0] is an unused placeholder", "1"],
     ["prev[node] -> only for tracing the route itself: the node one step before node on a shortest route. None (C++: -1) for the source and unreachable nodes; prev[0] unused with oneIndexed", "1"],
   ],
@@ -83,12 +83,12 @@ export const DIJKSTRA: FillIn[] = [dijkstra("Directed"), dijkstra("Undirected")]
 export const TOPO_SORT: FillIn[] = [
   {
     label: "Topological sort + DAG check O(V + E)",
-    title: "Directed [a, b] edge list (a -> b, a must come before b), plus n and whether labels start at 1 (both required: a node with no edges still has to be in the order). Returns None (C++: {}) if there's a cycle, else every node once with a before b for every edge a -> b: nodes with no incoming edges first",
+    title: "Directed [a, b] edge list (a -> b, a must come before b), plus numNodes and whether labels start at 1 (both required: a node with no edges still has to be in the order). Returns None (C++: {}) if there's a cycle, else every node once with a before b for every edge a -> b: nodes with no incoming edges first",
     folder: "_graphs",
     file: "topoSort",
     usage: GRAPH_USAGE["topoSort"],
     ops: [
-      ["topoSort(edges, n, oneIndexed: bool) -> [node, ...] sources first, or None if not a DAG (C++: {})", "V+E"],
+      ["topoSort(edges, numNodes, oneIndexed: bool) -> [node, ...] sources first, or None if not a DAG (C++: {})", "V+E"],
     ],
     githubUrl: GITHUB,
   },

@@ -1,11 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/scc.py
 
-# scc = buildScc(edges, n, oneIndexed)
+# scc = buildScc(edges, numNodes, oneIndexed)
 #   A strongly connected component is a group of nodes that can all reach each other
 #   edges is a list of directed edges [[from, to], ...]; repeated edges and self-loops are fine
-#   n is how many nodes there are: the nodes are 0..n-1, or 1..n when oneIndexed is True
-#   (a node with no edges is still its own component, so n has to be passed)
+#   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
+#   oneIndexed is True when the nodes are 1..numNodes, False when they're 0..numNodes-1
 #   For example: buildScc([[1, 2], [2, 3], [3, 1], [4, 3]], 5, True)   (node 5 has no edges)
 #
 # scc.numComponents -> how many components there are, e.g. 3
@@ -33,11 +33,11 @@ class Scc:
         self.numComponents = numComponents
 
 
-def buildScc(edges, n, oneIndexed: bool):
-    if n < 0:
-        raise ValueError(f"buildScc: needs n >= 0, got {n}")
+def buildScc(edges, numNodes, oneIndexed: bool):
+    if numNodes < 0:
+        raise ValueError(f"buildScc: needs numNodes >= 0, got {numNodes}")
     firstNode = 1 if oneIndexed else 0
-    lastNode = firstNode + n - 1
+    lastNode = firstNode + numNodes - 1
     size = lastNode + 1
     adj = [[] for _ in range(size)]
     for a, b in edges:
