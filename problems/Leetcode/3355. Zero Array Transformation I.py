@@ -16,4 +16,3 @@ class Solution:
         return all(
         finalDecs[i] >= nums[i] for i in range(len(nums)))
         
-        
