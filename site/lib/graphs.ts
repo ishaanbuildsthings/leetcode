@@ -115,3 +115,33 @@ const floydWarshall = (kind: "Directed" | "Undirected"): FillIn => {
   };
 };
 export const FLOYD_WARSHALL: FillIn[] = [floydWarshall("Directed"), floydWarshall("Undirected")];
+
+// Functional graph breakdown (functionalGraph.*, with a .oneIndexed twin behind the checkbox)
+export const FUNCTIONAL_GRAPH: FillIn[] = [
+  {
+    label: "Functional graph breakdown O(V)",
+    title: "Every node has exactly one outgoing edge, so each component is one cycle with tails feeding in. Directed [a, b] edge list (a -> b), one edge per node, so no node count. Nodes 0..len(edges)-1",
+    folder: "_graphs",
+    file: "functionalGraph",
+    ops: [
+      ["FunctionalGraph(edges) -> fg", "V"],
+      ["fg.cycles() -> every cycle, only the nodes on it, in walking order ([1, 2, 3] is 1 -> 2 -> 3 -> 1), each starting at its smallest node, sorted by that node", "1"],
+      ["fg.componentId(node) -> which component node is in, for any node: an index into cycles(), 0..len(cycles())-1", "1"],
+      ["fg.numEdgesToCrossBeforeCycle(node) -> edges node crosses before being part of a cycle, 0 if it's on one", "1"],
+      ["fg.firstCycleNodeHit(node) -> the first cycle node node's walk reaches, itself if it's on a cycle", "1"],
+      ["fg.kthNext(node, k) -> where node is after k steps, any k >= 0. O(1) once k reaches the cycle, else O(log V)", "log(V)"],
+      ["fg.stepsFromTo(a, b) -> steps to get from a to b, or None (C++: -1) if a never reaches b", "1"],
+      ["fg.components() -> per component in componentId order: (cycle, tails), each tail a walk from a node nothing points to, stopping at the first node already listed (included). O(V) total", "1"],
+    ],
+    variant: {
+      label: "1-indexed",
+      title: "Nodes are 1..len(edges) instead of 0..len(edges)-1",
+      storageKey: "templatePicker.oneIndexed.functionalGraph",
+      on: {
+        title: "Every node has exactly one outgoing edge, so each component is one cycle with tails feeding in. Directed [a, b] edge list (a -> b), one edge per node, so no node count. Nodes 1..len(edges)",
+        file: "functionalGraph.oneIndexed",
+      },
+    },
+    githubUrl: GITHUB,
+  },
+];

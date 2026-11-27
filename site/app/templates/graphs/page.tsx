@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { DIJKSTRA, EULER, FLOYD_WARSHALL, SCC, TOPO_SORT } from "@/lib/graphs";
+import { DIJKSTRA, EULER, FLOYD_WARSHALL, FUNCTIONAL_GRAPH, SCC, TOPO_SORT } from "@/lib/graphs";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -34,6 +34,7 @@ export default async function GraphTemplatesPage() {
             { title: "Shortest Paths", items: DIJKSTRA },
             { title: "All-Pairs Shortest Paths", items: FLOYD_WARSHALL },
             { title: "Strongly Connected Components", items: SCC },
+            { title: "Functional Graphs", items: FUNCTIONAL_GRAPH },
             { title: "Topological Sort", items: TOPO_SORT },
             { title: "Euler Paths & Circuits", items: EULER },
           ]} publicBase="/range-query-templates" />
