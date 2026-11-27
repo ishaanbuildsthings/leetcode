@@ -5,7 +5,7 @@ using namespace std;
 using ll = long long;
 
 // auto [dist, prev] = dijkstraUndirected(edges, numNodes, oneIndexed, source);
-//   edges is a list of undirected weighted edges {{from, to, weight}, ...}, usable both ways, weights >= 0
+//   edges is a list of undirected weighted edges {{node1, node2, weight}, ...}, usable both ways, weights >= 0
 //   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
 //   oneIndexed is true when the nodes are 1..numNodes, false when they're 0..numNodes-1
 //   source is the node every distance is measured from

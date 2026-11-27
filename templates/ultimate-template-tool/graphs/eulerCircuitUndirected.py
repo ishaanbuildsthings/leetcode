@@ -2,7 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/eulerCircuitUndirected.py
 
 # walk = eulerCircuitUndirected(edges, start=None)
-#   edges is a list of undirected edges [[from, to], ...]; repeated edges and self-loops are fine
+#   edges is a list of undirected edges [[node1, node2], ...]; repeated edges and self-loops are fine
 #   The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed
 #   start is optional: the node the circuit has to start and end at. Left out, any node with edges
 #   For example: eulerCircuitUndirected([[1, 2], [2, 3], [3, 1]])

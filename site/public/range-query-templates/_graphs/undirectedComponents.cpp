@@ -4,16 +4,16 @@
 using namespace std;
 
 // vector<Component> components = undirectedComponents(edges, numNodes, oneIndexed);
-//   edges is a list of undirected edges {{from, to}, ...}; repeated edges and self-loops are fine
+//   edges is a list of undirected edges {{node1, node2}, ...}; repeated edges and self-loops are fine
 //   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
 //   oneIndexed is true when the nodes are 1..numNodes, false when they're 0..numNodes-1
 //   For example: undirectedComponents({{1, 2}, {2, 3}, {4, 5}}, 6, true)   (node 6 has no edges)
 //
-// components -> one {nodes, edges} per component, e.g.
-//   components[0].nodes -> {1, 2, 3}   components[0].edges -> {{1, 2}, {2, 3}}
-//   components[1].nodes -> {4, 5}      components[1].edges -> {{4, 5}}
-//   components[2].nodes -> {6}         components[2].edges -> {}
-//   nodes are increasing, and edges are that component's edges in the order you gave them.
+// components -> one {nodes, edgeList} per component, e.g.
+//   components[0].nodes -> {1, 2, 3}   components[0].edgeList -> {{1, 2}, {2, 3}}
+//   components[1].nodes -> {4, 5}      components[1].edgeList -> {{4, 5}}
+//   components[2].nodes -> {6}         components[2].edgeList -> {}
+//   nodes are increasing, and edgeList is that component's edges in the order you gave them.
 //   A node with no edges is a component by itself, with no edges
 //
 //   Components are ordered by their smallest node, and components.size() is how many there are
@@ -22,7 +22,7 @@ using namespace std;
 
 struct Component {
     vector<int> nodes;
-    vector<pair<int, int>> edges;
+    vector<pair<int, int>> edgeList;
 };
 
 vector<Component> undirectedComponents(const vector<pair<int, int>>& edges, int numNodes, bool oneIndexed) {
@@ -54,6 +54,6 @@ vector<Component> undirectedComponents(const vector<pair<int, int>>& edges, int 
         }
         components[slot[root]].nodes.push_back(node);
     }
-    for (auto [a, b] : edges) components[slot[find(a)]].edges.push_back({a, b});
+    for (auto [a, b] : edges) components[slot[find(a)]].edgeList.push_back({a, b});
     return components;
 }

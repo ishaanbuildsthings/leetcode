@@ -42,6 +42,15 @@ def boolWord(b, cpp):
     return ("true" if b else "false") if cpp else ("True" if b else "False")
 
 
+def shape(directed, weighted, cpp):
+    """How an edge list is written: [[from, to], ...] when directed, [[node1, node2], ...] when undirected."""
+    names = ["from", "to"] if directed else ["node1", "node2"]
+    if weighted:
+        names.append("weight")
+    inner = ", ".join(names)
+    return "{{" + inner + "}, ...}" if cpp else "[[" + inner + "], ...]"
+
+
 # ---------------------------------------------------------------- Dijkstra
 def dijkstra(kind, cpp):
     fn = f"dijkstra{kind}"
@@ -59,7 +68,7 @@ def dijkstra(kind, cpp):
     return [
         call,
         f"  edges is a list of {'directed' if directed else 'undirected'} weighted edges "
-        + ("{{from, to, weight}, ...}" if cpp else "[[from, to, weight], ...]")
+        + shape(directed, True, cpp)
         + ("" if directed else ", usable both ways") + ", weights >= 0",
         "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
         f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
@@ -89,7 +98,7 @@ def topoSort(cpp):
     assert cyc is None
     return [
         ("vector<int> order = topoSort(edges, numNodes, oneIndexed);" if cpp else "order = topoSort(edges, numNodes, oneIndexed)"),
-        "  edges is a list of directed edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]")
+        "  edges is a list of directed edges " + shape(True, False, cpp)
         + ", meaning from has to come before to",
         "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
         f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
@@ -116,7 +125,7 @@ def scc(cpp):
     return [
         ("Scc scc = buildScc(edges, numNodes, oneIndexed);" if cpp else "scc = buildScc(edges, numNodes, oneIndexed)"),
         "  A strongly connected component is a group of nodes that can all reach each other",
-        "  edges is a list of directed edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]")
+        "  edges is a list of directed edges " + shape(True, False, cpp)
         + "; repeated edges and self-loops are fine",
         "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
         f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
@@ -146,7 +155,7 @@ def euler(kind, isPath, cpp):
     directed = kind == "Directed"
     fn = f"euler{'Path' if isPath else 'Circuit'}{kind}"
     none = "{}" if cpp else "None"
-    edgesWord = ("directed edges " if directed else "undirected edges ") + ("{{from, to}, ...}" if cpp else "[[from, to], ...]")
+    edgesWord = ("directed edges " if directed else "undirected edges ") + shape(directed, False, cpp)
     if isPath:
         ex = [(1, 2), (2, 3), (3, 1), (1, 4)]
         good = run(fn, fn, ex)
@@ -228,7 +237,7 @@ def floydWarshall(kind, one, cpp):
     lines = [
         (f"auto dist = {fn}(numNodes, edges);" if cpp else f"dist = {fn}(numNodes, edges)"),
         f"  edges is a list of {'directed' if directed else 'undirected'} weighted edges "
-        + ("{{from, to, weight}, ...}" if cpp else "[[from, to, weight], ...]")
+        + shape(directed, True, cpp)
         + ("" if directed else ", usable both ways") + ", weights >= 0",
         "  Repeated edges keep the cheapest; self-loops are ignored",
         "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
@@ -261,7 +270,7 @@ def undirectedComponents(cpp):
     lines = [
         ("vector<Component> components = undirectedComponents(edges, numNodes, oneIndexed);" if cpp
          else "components = undirectedComponents(edges, numNodes, oneIndexed)"),
-        "  edges is a list of undirected edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]")
+        "  edges is a list of undirected edges " + shape(False, False, cpp)
         + "; repeated edges and self-loops are fine",
         "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
         f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
@@ -270,14 +279,14 @@ def undirectedComponents(cpp):
     ]
     if cpp:
         w = max(len(lst(cpp, *n)) for n, _ in comps)
-        lines += ["components -> one {nodes, edges} per component, e.g."]
-        lines += [f"  components[{i}].nodes -> {lst(cpp, *n).ljust(w)}   components[{i}].edges -> {edgeList(e, cpp)}"
+        lines += ["components -> one {nodes, edgeList} per component, e.g."]
+        lines += [f"  components[{i}].nodes -> {lst(cpp, *n).ljust(w)}   components[{i}].edgeList -> {edgeList(e, cpp)}"
                   for i, (n, e) in enumerate(comps)]
     else:
-        lines += ["components -> one (nodes, edges) per component, e.g.",
+        lines += ["components -> one (nodes, edgeList) per component, e.g.",
                   "  [" + ", ".join(f"({lst(False, *n)}, {edgeList(e, False)})" for n, e in comps) + "]"]
     lines += [
-        "  nodes are increasing, and edges are that component's edges in the order you gave them.",
+        "  nodes are increasing, and edgeList is that component's edges in the order you gave them.",
         "  A node with no edges is a component by itself, with no edges",
         "",
         "  Components are ordered by their smallest node, and "
@@ -301,7 +310,7 @@ def hasCycle(kind, cpp):
     T, F = boolWord(True, cpp), boolWord(False, cpp)
     lines = [
         (f"bool hasCycle = {fn}(edges);" if cpp else f"hasCycle = {fn}(edges)"),
-        f"  edges is a list of {'directed' if directed else 'undirected'} edges " + ("{{from, to}, ...}" if cpp else "[[from, to], ...]"),
+        f"  edges is a list of {'directed' if directed else 'undirected'} edges " + shape(directed, False, cpp),
         "  The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed",
         "  (a node with no edges can't be on a cycle, so how many nodes there are doesn't matter)",
         f"  For example: {fn}({edgeList(ex, cpp)})",

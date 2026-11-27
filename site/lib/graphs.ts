@@ -26,7 +26,7 @@ export const EULER: FillIn[] = [
   },
   {
     label: "Euler circuit, undirected O(V + E)",
-    title: "A walk over an undirected [a, b] edge list using every edge once and ending where it started, or None / {} if there isn't one. Optional start; labels 0..n-1 or 1..n",
+    title: "A walk over an undirected [node1, node2] edge list using every edge once and ending where it started, or None / {} if there isn't one. Optional start; labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerCircuitUndirected",
     usage: GRAPH_USAGE["eulerCircuitUndirected"],
@@ -35,7 +35,7 @@ export const EULER: FillIn[] = [
   },
   {
     label: "Euler path, undirected O(V + E)",
-    title: "A walk over an undirected [a, b] edge list using every edge once, or None / {} if there isn't one. Optional start and end, picked from the odd-degree nodes if left out; a circuit counts. Labels 0..n-1 or 1..n",
+    title: "A walk over an undirected [node1, node2] edge list using every edge once, or None / {} if there isn't one. Optional start and end, picked from the odd-degree nodes if left out; a circuit counts. Labels 0..n-1 or 1..n",
     folder: "_graphs",
     file: "eulerPathUndirected",
     usage: GRAPH_USAGE["eulerPathUndirected"],
@@ -66,7 +66,7 @@ export const SCC: FillIn[] = [
 // Dijkstra (dijkstraDirected.* / dijkstraUndirected.*)
 const dijkstra = (kind: "Directed" | "Undirected"): FillIn => ({
   label: `Dijkstra, ${kind.toLowerCase()} O((V + E) log E)`,
-  title: `Shortest distances from a source over a weighted [a, b, w] edge list (${kind === "Directed" ? "a -> b" : "both ways"}, w >= 0), plus the previous node on a shortest path. numNodes and oneIndexed are required: a node with no edges never shows up in the edge list`,
+  title: `Shortest distances from a source over a weighted ${kind === "Directed" ? "[from, to, weight] edge list (from -> to" : "[node1, node2, weight] edge list (both ways"}, weight >= 0), plus the previous node on a shortest path. numNodes and oneIndexed are required: a node with no edges never shows up in the edge list`,
   folder: "_graphs",
   file: `dijkstra${kind}`,
   usage: GRAPH_USAGE[`dijkstra${kind}`],
@@ -100,7 +100,7 @@ const floydWarshall = (kind: "Directed" | "Undirected"): FillIn => {
   const edgeWord = kind === "Directed" ? "a -> b" : "both ways";
   return {
     label: `Floyd-Warshall, ${kind.toLowerCase()} O(V^3)`,
-    title: `Shortest distance between every pair of nodes over a weighted [a, b, w] edge list (${edgeWord}, w >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 0..numNodes-1`,
+    title: `Shortest distance between every pair of nodes over a weighted ${kind === "Directed" ? "[from, to, weight]" : "[node1, node2, weight]"} edge list (${edgeWord}, weight >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 0..numNodes-1`,
     folder: "_graphs",
     file: fn,
     usage: GRAPH_USAGE[fn],
@@ -113,7 +113,7 @@ const floydWarshall = (kind: "Directed" | "Undirected"): FillIn => {
       title: "Nodes are 1..numNodes instead of 0..numNodes-1. The matrix is (numNodes + 1) x (numNodes + 1) and node 0's row and column are unused (all INF)",
       storageKey: `templatePicker.oneIndexed.${fn}`,
       on: {
-        title: `Shortest distance between every pair of nodes over a weighted [a, b, w] edge list (${edgeWord}, w >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 1..numNodes`,
+        title: `Shortest distance between every pair of nodes over a weighted ${kind === "Directed" ? "[from, to, weight]" : "[node1, node2, weight]"} edge list (${edgeWord}, weight >= 0; negative weights are an error). numNodes is required: a node with no edges never shows up in the edge list. Nodes 1..numNodes`,
         file: `${fn}.oneIndexed`,
         usage: GRAPH_USAGE[`${fn}.oneIndexed`],
         ops: [
@@ -163,12 +163,12 @@ export const FUNCTIONAL_GRAPH: FillIn[] = [
 export const UNDIRECTED_COMPONENTS: FillIn[] = [
   {
     label: "Connected components, undirected O(V + E)",
-    title: "Undirected [a, b] edge list plus numNodes and oneIndexed (a node with no edges is still its own component). Returns each component's nodes and its edges",
+    title: "Undirected [node1, node2] edge list plus numNodes and oneIndexed (a node with no edges is still its own component). Returns each component's nodes and its edge list",
     folder: "_graphs",
     file: "undirectedComponents",
     usage: GRAPH_USAGE["undirectedComponents"],
     ops: [
-      ["undirectedComponents(edges, numNodes, oneIndexed: bool) -> one (nodes, edges) per component, ordered by smallest node", "V+E"],
+      ["undirectedComponents(edges, numNodes, oneIndexed: bool) -> one (nodes, edgeList) per component, ordered by smallest node", "V+E"],
     ],
     githubUrl: GITHUB,
   },
@@ -187,7 +187,7 @@ export const CYCLE_CHECKS: FillIn[] = [
   },
   {
     label: "Has a cycle, undirected O(V + E)",
-    title: "Undirected [a, b] edge list, sized from the largest label. True if there's a loop anywhere (a self-loop or the same edge twice counts)",
+    title: "Undirected [node1, node2] edge list, sized from the largest label. True if there's a loop anywhere (a self-loop or the same edge twice counts)",
     folder: "_graphs",
     file: "hasCycleUndirected",
     usage: GRAPH_USAGE["hasCycleUndirected"],

@@ -5,7 +5,7 @@ using namespace std;
 using ll = long long;
 
 // auto dist = floydWarshallUndirected(numNodes, edges);
-//   edges is a list of undirected weighted edges {{from, to, weight}, ...}, usable both ways, weights >= 0
+//   edges is a list of undirected weighted edges {{node1, node2, weight}, ...}, usable both ways, weights >= 0
 //   Repeated edges keep the cheapest; self-loops are ignored
 //   numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)
 //   For example: floydWarshallUndirected(4, {{1, 2, 4}, {1, 3, 1}, {3, 2, 2}})   (node 4 has no edges)

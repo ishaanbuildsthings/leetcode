@@ -4,7 +4,7 @@
 using namespace std;
 
 // bool hasCycle = hasCycleUndirected(edges);
-//   edges is a list of undirected edges {{from, to}, ...}
+//   edges is a list of undirected edges {{node1, node2}, ...}
 //   The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed
 //   (a node with no edges can't be on a cycle, so how many nodes there are doesn't matter)
 //   For example: hasCycleUndirected({{1, 2}, {2, 3}, {3, 1}})

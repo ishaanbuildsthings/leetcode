@@ -156,8 +156,8 @@ int main() {
             if (i) cout << " | ";
             for (int j = 0; j < (int)comps[i].nodes.size(); j++) cout << (j ? "," : "") << comps[i].nodes[j];
             cout << ":";
-            for (int j = 0; j < (int)comps[i].edges.size(); j++)
-                cout << (j ? ";" : "") << comps[i].edges[j].first << "," << comps[i].edges[j].second;
+            for (int j = 0; j < (int)comps[i].edgeList.size(); j++)
+                cout << (j ? ";" : "") << comps[i].edgeList[j].first << "," << comps[i].edgeList[j].second;
         }
         cout << "\\n" << hasCycleUndirected(edges) << " " << hasCycleDirected(edges) << "\\n";
     }
