@@ -377,6 +377,16 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
     });
   };
 
+  const submitButton = (
+    <button
+      type="submit"
+      disabled={createProblem.isPending}
+      className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {createProblem.isPending ? "Creating..." : "Create Problem"}
+    </button>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -636,6 +646,8 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
         )}
       </div>
 
+      {submitButton}
+
       <div>
         <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
         <div className="space-y-3 border border-gray-200 rounded-md p-4">
@@ -734,13 +746,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={createProblem.isPending}
-        className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {createProblem.isPending ? "Creating..." : "Create Problem"}
-      </button>
+      {submitButton}
 
       {createProblem.error && (
         <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>
@@ -1312,6 +1318,16 @@ function CreateCodeforcesProblemForm({ onSuccess }: { onSuccess: () => void }) {
     });
   };
 
+  const submitButton = (
+    <button
+      type="submit"
+      disabled={createProblem.isPending}
+      className="w-full px-4 py-3 bg-amber-600 text-white font-semibold rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {createProblem.isPending ? "Creating..." : "Create Codeforces Problem"}
+    </button>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-amber-200">
       <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
@@ -1569,6 +1585,8 @@ function CreateCodeforcesProblemForm({ onSuccess }: { onSuccess: () => void }) {
         )}
       </div>
 
+      {submitButton}
+
       <div>
         <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
         <div className="space-y-3 border border-gray-200 rounded-md p-4">
@@ -1667,13 +1685,7 @@ function CreateCodeforcesProblemForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={createProblem.isPending}
-        className="w-full px-4 py-3 bg-amber-600 text-white font-semibold rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {createProblem.isPending ? "Creating..." : "Create Codeforces Problem"}
-      </button>
+      {submitButton}
 
       {createProblem.error && (
         <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>
@@ -1766,6 +1778,16 @@ function CreateCsesProblemForm({ onSuccess }: { onSuccess: () => void }) {
       platformProblemId: problemId || formData.platformProblemId,
     });
   };
+
+  const submitButton = (
+    <button
+      type="submit"
+      disabled={createProblem.isPending}
+      className="w-full px-4 py-3 bg-cyan-600 text-white font-semibold rounded-md hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {createProblem.isPending ? "Creating..." : "Create CSES Problem"}
+    </button>
+  );
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-cyan-200">
@@ -2024,6 +2046,8 @@ function CreateCsesProblemForm({ onSuccess }: { onSuccess: () => void }) {
         )}
       </div>
 
+      {submitButton}
+
       <div>
         <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
         <div className="space-y-3 border border-gray-200 rounded-md p-4">
@@ -2122,13 +2146,7 @@ function CreateCsesProblemForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={createProblem.isPending}
-        className="w-full px-4 py-3 bg-cyan-600 text-white font-semibold rounded-md hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {createProblem.isPending ? "Creating..." : "Create CSES Problem"}
-      </button>
+      {submitButton}
 
       {createProblem.error && (
         <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>
@@ -2245,6 +2263,16 @@ function CreateQuantQuestionsProblemForm({ onSuccess }: { onSuccess: () => void 
       title: prev.title || parsedTitle,
     }));
   };
+
+  const submitButton = (
+    <button
+      type="submit"
+      disabled={createProblem.isPending}
+      className="w-full px-4 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {createProblem.isPending ? "Creating..." : "Create Quant Questions Problem"}
+    </button>
+  );
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-teal-200">
@@ -2385,6 +2413,8 @@ function CreateQuantQuestionsProblemForm({ onSuccess }: { onSuccess: () => void 
         </div>
       )}
 
+      {submitButton}
+
       <div>
         <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
         <div className="space-y-3 border border-gray-200 rounded-md p-4">
@@ -2483,13 +2513,7 @@ function CreateQuantQuestionsProblemForm({ onSuccess }: { onSuccess: () => void 
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={createProblem.isPending}
-        className="w-full px-4 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {createProblem.isPending ? "Creating..." : "Create Quant Questions Problem"}
-      </button>
+      {submitButton}
 
       {createProblem.error && (
         <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>
@@ -2593,6 +2617,16 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
       platformProblemId: problemId,
     });
   };
+
+  const submitButton = (
+    <button
+      type="submit"
+      disabled={createProblem.isPending}
+      className="w-full px-4 py-3 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {createProblem.isPending ? "Creating..." : "Create Database Problem"}
+    </button>
+  );
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-purple-200">
@@ -2851,6 +2885,8 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
         )}
       </div>
 
+      {submitButton}
+
       <div>
         <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
         <div className="space-y-3 border border-gray-200 rounded-md p-4">
@@ -2954,13 +2990,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={createProblem.isPending}
-        className="w-full px-4 py-3 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {createProblem.isPending ? "Creating..." : "Create Database Problem"}
-      </button>
+      {submitButton}
 
       {createProblem.error && (
         <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>

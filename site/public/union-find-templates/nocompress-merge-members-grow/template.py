@@ -36,8 +36,7 @@ def baseFn(v: RawVal, i: int) -> Node:
     pass
 
 
-# called once per merge: big is the bigger component's Node (on a tie, either one). Mutating big and returning it is
-# fine, e.g.
+# called once per merge: big is the bigger component's Node (on a tie, either one). Mutating big and returning it is fine, e.g.
 # small-to-large: big |= small; return big (O(n log n) in total)
 def combine(big: Node, small: Node) -> Node:
     # return (big[0] + small[0], max(big[1], small[1]))
@@ -45,8 +44,7 @@ def combine(big: Node, small: Node) -> Node:
 
 
 # dsu = DSUNoCompress(vals, baseFn, combine)
-# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val)
-# appends more
+# vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val) appends more
 
 
 class DSUNoCompress:
@@ -62,8 +60,7 @@ class DSUNoCompress:
         self.data = [baseFn(v, i) for i, v in enumerate(self.vals)]  # data[root]: the Node of root's component
         self.nxt = list(range(n))  # each component's members linked in a circle: i -> nxt[i] -> ... -> i
 
-    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every
-    # merge
+    # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
     def find(self, i):
         par = self.par
         while par[i] != i:
@@ -116,12 +113,18 @@ class DSUNoCompress:
     def sizes(self):
         return sorted((self.sz[i] for i in range(len(self.par)) if self.par[i] == i), reverse=True)
 
-    # O(n log n), groupsArr[rt] = list of values whose root is rt, [] if rt is not a root
+    # O(n log n), one list of values per component (no empty lists), e.g. vals [10, 20, 30, 40] with 0-2 and 1-3
+    # united -> [[10, 30], [20, 40]]; components ordered by their smallest index, values in index order
     def groups(self):
         n = len(self.par)
-        groupsArr = [[] for _ in range(n)]
+        slot = [-1] * n  # slot[rt] = where root rt's list sits in groupsArr
+        groupsArr = []
         for i in range(n):
-            groupsArr[self.find(i)].append(self.vals[i])
+            rt = self.find(i)
+            if slot[rt] == -1:
+                slot[rt] = len(groupsArr)
+                groupsArr.append([])
+            groupsArr[slot[rt]].append(self.vals[i])
         return groupsArr
 
     # O(size of the group), the values of every element in the same group as index i, starting at i

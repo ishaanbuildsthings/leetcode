@@ -393,7 +393,7 @@ class DynamicConnectivity:
             rep.setdefault(self.componentId(u), u)
         return list(rep.values())
 
-    # O(n log n), the values grouped by component
+    # O(n log n), one list of values per component (no empty lists), e.g. [[10, 30], [20, 40]]
     def groups(self):
         g = defaultdict(list)
         for u in range(self.n):

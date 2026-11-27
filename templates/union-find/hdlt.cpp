@@ -335,7 +335,7 @@ struct DynamicConnectivity {
         return res;
     }
 
-    // O(n log n), the values grouped by component
+    // O(n log n), one vector of values per component (no empty ones), e.g. {{10, 30}, {20, 40}}
     vector<vector<T>> groups() {
         map<int, vector<T>> g;
         for (int u = 0; u < n; u++) g[componentId(u)].push_back(vals[u]);

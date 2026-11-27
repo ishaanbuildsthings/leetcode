@@ -38,8 +38,7 @@ struct DynamicConnectivity {
     struct Forest {
         vector<int> lc, rc, pa, sz, eid, arcNode;  // arcNode[2s], arcNode[2s+1] = the two arcs of slot s
         vector<unsigned> pri;
-        // bit 0 = tree edge living at this level, bit 1 = vertex owns an incident non-tree edge at this level
-        vector<char> mk, ag;
+        vector<char> mk, ag;  // bit 0 = tree edge living at this level, bit 1 = vertex owns an incident non-tree edge at this level
         vector<int> pool;
         unsigned rngState = 2463534242u;
         int n = 0;
@@ -215,8 +214,7 @@ struct DynamicConnectivity {
             return e;
         }
         int e = eu.size();
-        eu.push_back(0), ev.push_back(0), elevel.push_back(0), slot.push_back(-1), seen.push_back(0),
-            pairPos.push_back(0);
+        eu.push_back(0), ev.push_back(0), elevel.push_back(0), slot.push_back(-1), seen.push_back(0), pairPos.push_back(0);
         nxt.push_back(-1), nxt.push_back(-1), prv.push_back(-1), prv.push_back(-1);
         return e;
     }
@@ -247,8 +245,7 @@ struct DynamicConnectivity {
     // the heart of HDLT: hunt for an edge that reconnects the two halves
     bool replace(int l, int u, int v) {
         Forest& f = forest[l];
-        // always walk the smaller half, so a promotion doubles a component
-        int a = f.treeSize(u) <= f.treeSize(v) ? u : v;
+        int a = f.treeSize(u) <= f.treeSize(v) ? u : v;  // always walk the smaller half, so a promotion doubles a component
         int ra = f.rootOf(a);
 
         // every level-l tree edge of the smaller half moves up to level l + 1
@@ -356,7 +353,7 @@ struct DynamicConnectivity {
         return res;
     }
 
-    // O(n log n), the values grouped by component
+    // O(n log n), one vector of values per component (no empty ones), e.g. {{10, 30}, {20, 40}}
     vector<vector<T>> groups() {
         map<int, vector<T>> g;
         for (int u = 0; u < n; u++) g[componentKey(u)].push_back(vals[u]);

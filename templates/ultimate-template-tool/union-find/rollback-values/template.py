@@ -118,12 +118,18 @@ class RollbackDSU:
     def sizes(self):
         return sorted((self.sz[i] for i in range(len(self.par)) if self.par[i] == i), reverse=True)
 
-    # O(n log n), groupsArr[rt] = list of values whose root is rt, [] if rt is not a root
+    # O(n log n), one list of values per component (no empty lists), e.g. vals [10, 20, 30, 40] with 0-2 and 1-3
+    # united -> [[10, 30], [20, 40]]; components ordered by their smallest index, values in index order
     def groups(self):
         n = len(self.par)
-        groupsArr = [[] for _ in range(n)]
+        slot = [-1] * n  # slot[rt] = where root rt's list sits in groupsArr
+        groupsArr = []
         for i in range(n):
-            groupsArr[self.find(i)].append(self.vals[i])
+            rt = self.find(i)
+            if slot[rt] == -1:
+                slot[rt] = len(groupsArr)
+                groupsArr.append([])
+            groupsArr[slot[rt]].append(self.vals[i])
         return groupsArr
 
     # O(n log n), the values of every element sitting in the same group as index i
