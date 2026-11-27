@@ -16,7 +16,7 @@ using namespace std;
 //   hasCycleDirected({{1, 2}, {1, 3}, {2, 3}}) -> false
 //   hasCycleDirected({{1, 2}, {2, 1}}) -> true
 //
-// O(V + E) time and space, V = largest label, E = number of edges
+// O(V + E) time and space, V = number of nodes, E = number of edges
 
 bool hasCycleDirected(const vector<pair<int, int>>& edges) {
     int size = 0;

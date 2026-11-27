@@ -16,7 +16,7 @@
 #
 #   articulationPoints([[1, 2], [1, 3], [1, 4]]) -> [1]    (removing the center leaves three pieces)
 #
-# O(V + E) time and space, V = largest label, E = number of edges
+# O(V + E) time and space, V = number of nodes, E = number of edges
 
 
 def articulationPoints(edges):

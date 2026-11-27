@@ -17,7 +17,7 @@
 #
 #   bridges([[1, 2], [2, 3]]) -> [[1, 2], [2, 3]]    (in a tree, every edge is a bridge)
 #
-# O(V + E) time and space, V = largest label, E = number of edges
+# O(V + E) time and space, V = number of nodes, E = number of edges
 
 
 def bridges(edges):

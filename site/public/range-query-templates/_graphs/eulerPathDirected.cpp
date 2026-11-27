@@ -21,7 +21,7 @@ using namespace std;
 //   eulerPathDirected({{1, 2}, {2, 1}}, 2, 2) -> {2, 1, 2}
 //   eulerPathDirected({{1, 2}, {1, 3}}) -> {}
 //
-// O(V + E) time and space, V = largest label, E = number of edges
+// O(V + E) time and space, V = number of nodes, E = number of edges
 vector<int> eulerPathDirected(const vector<pair<int, int>>& edges, int start = -1, int end = -1) {
     if (edges.empty()) {
         if (start != -1 && end != -1 && start != end) return {};

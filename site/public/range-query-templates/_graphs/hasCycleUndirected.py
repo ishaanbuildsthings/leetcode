@@ -14,7 +14,7 @@
 #   hasCycleUndirected([[1, 2], [2, 3]]) -> False
 #   hasCycleUndirected([[1, 2], [2, 1]]) -> True    (the same edge twice)
 #
-# O(V + E α(V)) time (union-find, so practically linear), O(V) space, V = largest label
+# O(V + E α(V)) time (union-find, so practically linear), O(V) space, V = number of nodes
 
 
 def hasCycleUndirected(edges):

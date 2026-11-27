@@ -14,7 +14,7 @@
 #   hasCycleDirected([[1, 2], [1, 3], [2, 3]]) -> False
 #   hasCycleDirected([[1, 2], [2, 1]]) -> True
 #
-# O(V + E) time and space, V = largest label, E = number of edges
+# O(V + E) time and space, V = number of nodes, E = number of edges
 
 
 def hasCycleDirected(edges):

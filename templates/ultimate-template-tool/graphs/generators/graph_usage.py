@@ -222,7 +222,7 @@ def euler(kind, isPath, cpp):
             f"  {callStr(ex2, kw2, args2)} -> {show(second, cpp, none)}",
             f"  {callStr(bad, {}, ())} -> {none}",
         ]
-    return lines + ["", "O(V + E) time and space, V = largest label, E = number of edges"]
+    return lines + ["", "O(V + E) time and space, V = number of nodes, E = number of edges"]
 
 
 # ---------------------------------------------------------------- Floyd-Warshall
@@ -333,35 +333,38 @@ def hasCycle(kind, cpp):
         f"  {fn}({edgeList(no, cpp)}) -> {F}",
         f"  {fn}({edgeList(yes2, cpp)}) -> {T}" + ("" if directed else "    (the same edge twice)"),
         "",
-        ("O(V + E) time and space, V = largest label, E = number of edges" if directed
-         else "O(V + E α(V)) time (union-find, so practically linear), O(V) space, V = largest label"),
+        ("O(V + E) time and space, V = number of nodes, E = number of edges" if directed
+         else "O(V + E α(V)) time (union-find, so practically linear), O(V) space, V = number of nodes"),
     ]
     return lines
 
 
 # ---------------------------------------------------------------- minimum spanning tree
-def minimumSpanningTree(cpp):
-    fn = "minimumSpanningTree"
+def minimumSpanningTrees(cpp):
+    fn = "minimumSpanningTrees"
     edges = [(1, 2, 2), (2, 3, 2), (1, 3, 3), (3, 4, 1)]
-    tree = run(fn, fn, edges)
-    total = sum(e[2] for e in tree)
-    assert total == 5 and sorted(map(tuple, tree)) == sorted([(3, 4, 1), (1, 2, 2), (2, 3, 2)])
+    trees = run(fn, fn, edges)
+    assert len(trees) == 1 and sum(e[2] for e in trees[0]) == 5
     apart = [(1, 2, 5), (3, 4, 1)]
-    assert run(fn, fn, apart) == [[3, 4, 1], [1, 2, 5]]
+    assert run(fn, fn, apart) == [[[1, 2, 5]], [[3, 4, 1]]]
     return [
-        (f"vector<array<ll, 3>> tree = {fn}(edges);" if cpp else f"tree = {fn}(edges)"),
+        (f"vector<vector<array<ll, 3>>> trees = {fn}(edges);" if cpp else f"trees = {fn}(edges)"),
         "  edges is a list of undirected weighted edges " + shape(False, True, cpp) + "; negative",
         "  weights, repeated edges and self-loops are fine",
         "  The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed",
-        "  (a node with no edges can't be in the tree, so how many nodes there are doesn't matter)",
         f"  For example: {fn}({edgeList(edges, cpp)})",
         "",
-        f"tree -> the edges of a minimum spanning tree, cheapest first, e.g. {edgeList(tree, cpp)}",
-        "  Each edge is written exactly as you gave it. Adding up the weights gives the tree's total",
-        f"  weight, here {total}",
+        f"trees -> one minimum spanning tree for each separate piece of the graph, e.g. {show(trees, cpp, '')}",
+        "  Each tree is a list of its edges, cheapest first, written exactly as you gave them. A connected",
+        "  graph has one piece, so you get a list holding one tree: use trees[0]. Adding up a tree's",
+        f"  weights gives its total, here {sum(e[2] for e in trees[0])}",
         "",
-        "  What it minimizes:",
-        "  - the total weight, over every way of picking edges that connects all the nodes",
+        f"  {fn}({edgeList(apart, cpp)}) -> {show(run(fn, fn, apart), cpp, '')}",
+        "  1 - 2 and 3 - 4 aren't connected, so that's two trees. Trees are ordered by their smallest",
+        "  node, and a node with no edges has no tree",
+        "",
+        "  What each tree minimizes:",
+        "  - the total weight, over every way of picking edges that connects all the nodes of its piece",
         "  - the biggest edge you have to cross between any two nodes: the path through the tree has the",
         "    smallest possible biggest edge of any path between them in the whole graph. Here 1 to 3",
         "    through the tree crosses edges of weight 2 and 2, while the direct edge weighs 3",
@@ -371,12 +374,7 @@ def minimumSpanningTree(cpp):
         "",
         "  If several trees tie for cheapest, you get one of them",
         "",
-        "  If the graph isn't connected, there's no single tree, so you still get one flat list, holding",
-        f"  the cheapest tree for each separate piece mixed together: {fn}({edgeList(apart, cpp)})",
-        f"  -> {edgeList(run(fn, fn, apart), cpp)}, which is two trees, 1 - 2 and 3 - 4. If your graph has V nodes, it's",
-        "  connected exactly when the list has V - 1 edges",
-        "",
-        "O(E log E) time, O(V + E) space, V = largest label, E = number of edges",
+        "O(E log E) time, O(V + E) space, V = number of nodes, E = number of edges",
     ]
 
 
@@ -405,7 +403,7 @@ def bridgesUsage(cpp):
         "",
         f"  {fn}({edgeList(chain, cpp)}) -> {edgeList(run(fn, fn, chain), cpp)}    (in a tree, every edge is a bridge)",
         "",
-        "O(V + E) time and space, V = largest label, E = number of edges",
+        "O(V + E) time and space, V = number of nodes, E = number of edges",
     ]
 
 
@@ -432,7 +430,7 @@ def articulationPointsUsage(cpp):
         "",
         f"  {fn}({edgeList(star, cpp)}) -> {lst(cpp, 1)}    (removing the center leaves three pieces)",
         "",
-        "O(V + E) time and space, V = largest label, E = number of edges",
+        "O(V + E) time and space, V = number of nodes, E = number of edges",
     ]
 
 
@@ -493,7 +491,7 @@ def allUsages():
         out.setdefault("topoSort", {})[lang] = topoSort(cpp)
         out.setdefault("scc", {})[lang] = scc(cpp)
         out.setdefault("undirectedComponents", {})[lang] = undirectedComponents(cpp)
-        out.setdefault("minimumSpanningTree", {})[lang] = minimumSpanningTree(cpp)
+        out.setdefault("minimumSpanningTrees", {})[lang] = minimumSpanningTrees(cpp)
         out.setdefault("bridges", {})[lang] = bridgesUsage(cpp)
         out.setdefault("articulationPoints", {})[lang] = articulationPointsUsage(cpp)
         out.setdefault("bipartiteSplit", {})[lang] = bipartiteUsage(cpp)
