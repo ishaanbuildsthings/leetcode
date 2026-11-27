@@ -143,6 +143,8 @@ const FACTOR_VALUES: Record<string, number> = {
   V: SIZES.N,
   E: SIZES.N,
   "log(E)": Math.log2(SIZES.N),
+  "log(V)": Math.log2(SIZES.N),
+  "V^3": SIZES.N ** 3,
   // Mo's: Q queries, F = the cost of one add / remove you write
   "sqrt(Q)": Math.sqrt(SIZES.Q),
   F: 1,
@@ -268,6 +270,8 @@ const PRETTY_FACTORS: Record<string, string> = {
   V: "V",
   E: "E",
   "log(E)": "logE",
+  "log(V)": "logV",
+  "V^3": "V³",
   // the primes templates: x = the number asked about, D = how many divisors it has
   "x^(1/4)": "x^¼",
   D: "D",

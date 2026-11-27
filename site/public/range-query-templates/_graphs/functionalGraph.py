@@ -1,18 +1,27 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/functionalGraph.py
 
-# Functional graph breakdown, 0-indexed. In a functional graph every node has exactly one outgoing edge, so
-# each component is exactly one cycle, with trees of tails feeding into it (several tails can enter the cycle,
-# at different cycle nodes, and tails can branch).
-# edges: [a, b] meaning a -> b, in any order. The nodes are 0..len(edges)-1: there's one edge per node, so
-# no node count is passed. Every node must be the start of exactly one edge, else it errors.
+# Functional graph breakdown, 0-indexed.
+#
+# In a functional graph every node has exactly one outgoing edge, so each component is exactly one cycle,
+# with trees of tails feeding into it. Several tails can enter the cycle at different cycle nodes, and
+# tails can branch.
+#
+# edges: [a, b] meaning a -> b, in any order. The nodes are 0..len(edges)-1: there's one edge per node,
+# so no node count is passed. Every node must be the start of exactly one edge, else it errors.
+#
 # Example (7 -> 7 is a self-loop, so it's a cycle of length 1):
 #   fg = FunctionalGraph([(0, 1), (1, 2), (2, 3), (3, 1), (4, 2), (5, 4), (6, 0), (7, 7), (8, 7)])
-#   fg.cycles() -> [[1, 2, 3], [7]]
-#   fg.componentId(5) -> 0               fg.numEdgesToCrossBeforeCycle(5) -> 2      fg.firstCycleNodeHit(5) -> 2
-#   fg.kthNext(5, 4) -> 1               (5 -> 4 -> 2 -> 3 -> 1)
-#   fg.stepsFromTo(6, 3) -> 4           fg.stepsFromTo(4, 0) -> None  (4 never passes through 0)
-#   fg.components() -> [([1, 2, 3], [[5, 4, 2], [6, 0, 1]]), ([7], [[8, 7]])]
+#
+#   fg.cycles()                      -> [[1, 2, 3], [7]]
+#   fg.componentId(5)                -> 0
+#   fg.numEdgesToCrossBeforeCycle(5) -> 2
+#   fg.firstCycleNodeHit(5)          -> 2
+#   fg.kthNext(5, 4)                 -> 1      5 -> 4 -> 2 -> 3 -> 1
+#   fg.stepsFromTo(6, 3)             -> 4
+#   fg.stepsFromTo(4, 0)             -> None   4 never passes through 0
+#   fg.components()                  -> [([1, 2, 3], [[5, 4, 2], [6, 0, 1]]), ([7], [[8, 7]])]
+#
 # Build: O(V) time and space, V = number of nodes. Invalid nodes or a negative k raise ValueError.
 
 from bisect import bisect_right
