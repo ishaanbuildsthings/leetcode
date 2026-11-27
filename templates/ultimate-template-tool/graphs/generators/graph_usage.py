@@ -346,6 +346,8 @@ def minimumSpanningTree(cpp):
     tree = run(fn, fn, edges)
     total = sum(e[2] for e in tree)
     assert total == 5 and sorted(map(tuple, tree)) == sorted([(3, 4, 1), (1, 2, 2), (2, 3, 2)])
+    apart = [(1, 2, 5), (3, 4, 1)]
+    assert run(fn, fn, apart) == [[3, 4, 1], [1, 2, 5]]
     return [
         (f"vector<array<ll, 3>> tree = {fn}(edges);" if cpp else f"tree = {fn}(edges)"),
         "  edges is a list of undirected weighted edges " + shape(False, True, cpp) + "; negative",
@@ -367,12 +369,115 @@ def minimumSpanningTree(cpp):
         "  What it does NOT minimize: the distance between two nodes. 1 to 3 through the tree costs",
         "  2 + 2 = 4, but the direct edge costs 3. For distances use Dijkstra or Floyd-Warshall",
         "",
-        "  If several trees tie, you get one of them. If the graph isn't connected, you get one tree per",
-        "  component: with numNodes nodes, the graph is connected exactly when the tree has",
-        "  numNodes - 1 edges",
+        "  If several trees tie for cheapest, you get one of them",
+        "",
+        "  If the graph isn't connected, there's no single tree, so you still get one flat list, holding",
+        f"  the cheapest tree for each separate piece mixed together: {fn}({edgeList(apart, cpp)})",
+        f"  -> {edgeList(run(fn, fn, apart), cpp)}, which is two trees, 1 - 2 and 3 - 4. If your graph has V nodes, it's",
+        "  connected exactly when the list has V - 1 edges",
         "",
         "O(E log E) time, O(V + E) space, V = largest label, E = number of edges",
     ]
+
+
+# ---------------------------------------------------------------- bridges / articulation points
+def bridgesUsage(cpp):
+    fn = "bridges"
+    edges = [(1, 2), (2, 3), (3, 1), (3, 4), (4, 5), (4, 5)]
+    got = run(fn, fn, edges)
+    assert got == [[3, 4]]
+    chain = [(1, 2), (2, 3)]
+    assert run(fn, fn, chain) == [[1, 2], [2, 3]]
+    return [
+        (f"vector<pair<int, int>> bridgeEdges = {fn}(edges);" if cpp else f"bridgeEdges = {fn}(edges)"),
+        "  edges is a list of undirected edges " + shape(False, False, cpp) + "; repeated edges and",
+        "  self-loops are fine",
+        "  The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed",
+        "  (a node with no edges can't affect the answer, so how many nodes there are doesn't matter)",
+        f"  For example: {fn}({edgeList(edges, cpp)})",
+        "",
+        f"bridgeEdges -> every edge that, if removed, splits its component in two, e.g. {edgeList(got, cpp)}",
+        "  Each edge is written exactly as you gave it, in the order you gave them",
+        "",
+        "  Here 1, 2, 3 form a triangle, so removing any one of those edges still leaves another way",
+        "  around. Removing 3 - 4 cuts 4 and 5 off. 4 - 5 is listed twice, so neither copy is a bridge:",
+        "  the other copy still connects them",
+        "",
+        f"  {fn}({edgeList(chain, cpp)}) -> {edgeList(run(fn, fn, chain), cpp)}    (in a tree, every edge is a bridge)",
+        "",
+        "O(V + E) time and space, V = largest label, E = number of edges",
+    ]
+
+
+def articulationPointsUsage(cpp):
+    fn = "articulationPoints"
+    edges = [(1, 2), (2, 3), (3, 1), (3, 4), (4, 5)]
+    got = run(fn, fn, edges)
+    assert got == [3, 4]
+    star = [(1, 2), (1, 3), (1, 4)]
+    assert run(fn, fn, star) == [1]
+    return [
+        (f"vector<int> cutNodes = {fn}(edges);" if cpp else f"cutNodes = {fn}(edges)"),
+        "  edges is a list of undirected edges " + shape(False, False, cpp) + "; repeated edges and",
+        "  self-loops are fine",
+        "  The nodes are 0..n-1 or 1..n, sized from the largest label, so nothing else has to be passed",
+        "  (a node with no edges can't affect the answer, so how many nodes there are doesn't matter)",
+        f"  For example: {fn}({edgeList(edges, cpp)})",
+        "",
+        f"cutNodes -> every node that, if removed with its edges, splits its component into two or more",
+        f"  pieces, increasing, e.g. {lst(cpp, *got)}",
+        "",
+        "  Here removing 3 separates the triangle's 1 and 2 from 4 and 5, and removing 4 cuts 5 off.",
+        "  Removing 1 or 2 leaves everything else connected",
+        "",
+        f"  {fn}({edgeList(star, cpp)}) -> {lst(cpp, 1)}    (removing the center leaves three pieces)",
+        "",
+        "O(V + E) time and space, V = largest label, E = number of edges",
+    ]
+
+
+# ---------------------------------------------------------------- bipartite split
+def bipartiteUsage(cpp):
+    fn = "bipartiteSplit"
+    edges = [(1, 2), (2, 3), (3, 4)]
+    side1, side2 = run(fn, fn, edges, 5, oneIndexed=True)
+    assert (side1, side2) == ([1, 3, 5], [2, 4])
+    odd = [(1, 2), (2, 3), (3, 1)]
+    assert run(fn, fn, odd, 3, oneIndexed=True) is None
+    lines = [
+        (f"BipartiteSplit split = {fn}(edges, numNodes, oneIndexed);" if cpp
+         else f"split = {fn}(edges, numNodes, oneIndexed)"),
+        "  edges is a list of undirected edges " + shape(False, False, cpp) + "; repeated edges are fine",
+        "  numNodes is how many nodes there are (it has to be passed since a node with no edges never shows up otherwise)",
+        f"  oneIndexed is {boolWord(True, cpp)} when the nodes are 1..numNodes, {boolWord(False, cpp)} when they're 0..numNodes-1",
+        f"  For example: {fn}({edgeList(edges, cpp)}, 5, {boolWord(True, cpp)})   (node 5 has no edges)",
+        "",
+    ]
+    if cpp:
+        lines += [
+            "split.possible -> true if the nodes can be split into two sides with every edge going between",
+            "  the sides (none inside a side), e.g. true",
+            "",
+            f"split.side1, split.side2 -> the two sides, each increasing, e.g. {lst(cpp, *side1)} and {lst(cpp, *side2)}",
+            "  Empty when it's not possible.",
+        ]
+    else:
+        lines += [
+            f"split -> the two sides (side1, side2), each increasing, e.g. ({lst(cpp, *side1)}, {lst(cpp, *side2)})",
+            "  Every edge goes between the two sides, none inside a side.",
+        ]
+    lines += [
+        "  Each component's smallest node goes on side1. A node with no edges is on side1 too (it could go",
+        "  on either side)",
+        "",
+        f"  {'split.possible is false' if cpp else 'None'} if it's impossible: that happens exactly when there's a loop with an odd",
+        "  number of edges, like a triangle. A self-loop always makes it impossible",
+        "",
+        f"  {fn}({edgeList(odd, cpp)}, 3, {boolWord(True, cpp)}) -> {'{false, {}, {}}' if cpp else 'None'}",
+        "",
+        "O(V + E) time and space",
+    ]
+    return lines
 
 
 def allUsages():
@@ -389,6 +494,9 @@ def allUsages():
         out.setdefault("scc", {})[lang] = scc(cpp)
         out.setdefault("undirectedComponents", {})[lang] = undirectedComponents(cpp)
         out.setdefault("minimumSpanningTree", {})[lang] = minimumSpanningTree(cpp)
+        out.setdefault("bridges", {})[lang] = bridgesUsage(cpp)
+        out.setdefault("articulationPoints", {})[lang] = articulationPointsUsage(cpp)
+        out.setdefault("bipartiteSplit", {})[lang] = bipartiteUsage(cpp)
         for kind in ("Directed", "Undirected"):
             out.setdefault(f"hasCycle{kind}", {})[lang] = hasCycle(kind, cpp)
     return out

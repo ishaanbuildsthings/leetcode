@@ -24,9 +24,12 @@ using ll = long long;
 //   What it does NOT minimize: the distance between two nodes. 1 to 3 through the tree costs
 //   2 + 2 = 4, but the direct edge costs 3. For distances use Dijkstra or Floyd-Warshall
 //
-//   If several trees tie, you get one of them. If the graph isn't connected, you get one tree per
-//   component: with numNodes nodes, the graph is connected exactly when the tree has
-//   numNodes - 1 edges
+//   If several trees tie for cheapest, you get one of them
+//
+//   If the graph isn't connected, there's no single tree, so you still get one flat list, holding
+//   the cheapest tree for each separate piece mixed together: minimumSpanningTree({{1, 2, 5}, {3, 4, 1}})
+//   -> {{3, 4, 1}, {1, 2, 5}}, which is two trees, 1 - 2 and 3 - 4. If your graph has V nodes, it's
+//   connected exactly when the list has V - 1 edges
 //
 // O(E log E) time, O(V + E) space, V = largest label, E = number of edges
 

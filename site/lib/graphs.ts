@@ -204,7 +204,42 @@ export const MST: FillIn[] = [
     folder: "_graphs",
     file: "minimumSpanningTree",
     usage: GRAPH_USAGE["minimumSpanningTree"],
-    ops: [["minimumSpanningTree(edges) -> [[node1, node2, weight], ...] cheapest first (one tree per component if disconnected)", "E*log(E)"]],
+    ops: [["minimumSpanningTree(edges) -> [[node1, node2, weight], ...] cheapest first. Disconnected graph: still one list, holding each piece's tree", "E*log(E)"]],
+    githubUrl: GITHUB,
+  },
+];
+
+// Bridges and articulation points (bridges.* / articulationPoints.*)
+export const CUTS: FillIn[] = [
+  {
+    label: "Bridges O(V + E)",
+    title: "Undirected [node1, node2] edge list, sized from the largest label. Every edge whose removal splits its component in two (a repeated edge never is)",
+    folder: "_graphs",
+    file: "bridges",
+    usage: GRAPH_USAGE["bridges"],
+    ops: [["bridges(edges) -> [[node1, node2], ...] as given, in input order", "V+E"]],
+    githubUrl: GITHUB,
+  },
+  {
+    label: "Articulation points O(V + E)",
+    title: "Undirected [node1, node2] edge list, sized from the largest label. Every node whose removal splits its component into two or more pieces",
+    folder: "_graphs",
+    file: "articulationPoints",
+    usage: GRAPH_USAGE["articulationPoints"],
+    ops: [["articulationPoints(edges) -> [node, ...] increasing", "V+E"]],
+    githubUrl: GITHUB,
+  },
+];
+
+// Bipartite split (bipartiteSplit.*)
+export const BIPARTITE: FillIn[] = [
+  {
+    label: "Bipartite split O(V + E)",
+    title: "Undirected [node1, node2] edge list plus numNodes and oneIndexed. The two sides with every edge going between them, or None (C++: possible = false) if there's an odd loop",
+    folder: "_graphs",
+    file: "bipartiteSplit",
+    usage: GRAPH_USAGE["bipartiteSplit"],
+    ops: [["bipartiteSplit(edges, numNodes, oneIndexed: bool) -> (side1, side2), or None if impossible", "V+E"]],
     githubUrl: GITHUB,
   },
 ];
