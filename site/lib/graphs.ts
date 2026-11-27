@@ -1,4 +1,5 @@
 import type { FillIn } from "@/components/TemplatePicker";
+import { FUNCTIONAL_GRAPH_USAGE, FUNCTIONAL_GRAPH_USAGE_ONE_INDEXED } from "@/lib/generated/functional-graph-usage";
 
 // The graph templates (templates/ultimate-template-tool/graphs/): one function each, on the Graphs tab.
 const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/graphs/";
@@ -123,6 +124,7 @@ export const FUNCTIONAL_GRAPH: FillIn[] = [
     title: "Every node has exactly one outgoing edge, so each component is one cycle with tails feeding in. Directed [a, b] edge list (a -> b), one edge per node, so no node count. Nodes 0..len(edges)-1",
     folder: "_graphs",
     file: "functionalGraph",
+    usage: FUNCTIONAL_GRAPH_USAGE,
     ops: [
       ["FunctionalGraph(edges) -> fg", "V"],
       ["fg.cycles() -> every cycle, only the nodes on it, in walking order ([1, 2, 3] is 1 -> 2 -> 3 -> 1), each starting at its smallest node, sorted by that node", "1"],
@@ -140,6 +142,7 @@ export const FUNCTIONAL_GRAPH: FillIn[] = [
       on: {
         title: "Every node has exactly one outgoing edge, so each component is one cycle with tails feeding in. Directed [a, b] edge list (a -> b), one edge per node, so no node count. Nodes 1..len(edges)",
         file: "functionalGraph.oneIndexed",
+        usage: FUNCTIONAL_GRAPH_USAGE_ONE_INDEXED,
       },
     },
     githubUrl: GITHUB,

@@ -174,7 +174,7 @@ export type FillIn = {
   // another version behind a checkbox, on the card and by the ops in its drawer (off on every page load, not
   // remembered): its label, hover text, the key the card and drawer share it by, and what changes while it's ticked
   // (e.g. the in-place next permutation)
-  variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "title" | "file" | "ops">> };
+  variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "title" | "file" | "ops" | "usage">> };
   // rewrites the loaded file before it's shown and copied (the Eertree picker keeps only the ticked ops' code)
   transform?: (code: string) => string;
   // golden references to read alongside it: a button each under the drawer's title, opening it in a drawer on top

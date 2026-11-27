@@ -3,22 +3,40 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// FunctionalGraph fg({{1, 2}, {2, 3}, {3, 4}, {4, 2}, {5, 3}, {6, 5}, {7, 1}, {8, 8}, {9, 8}});
-//   edges {a, b} mean a -> b, in any order; the nodes are 1..edges.size(), each the start of exactly one edge (node 0 doesn't exist)
+// FunctionalGraph fg(edges);
+//   edges is a list of directed edges vector<array<int, 2>> {{from, to}, ...}, with exactly one edge leaving
+//   each node, so the nodes are 1..edges.size() (it errors otherwise); there is no node 0
 //
-// fg.cycles()                      -> {{2, 3, 4}, {8}}
-// fg.componentId(6)                -> 0
-// fg.numEdgesToCrossBeforeCycle(6) -> 2
-// fg.firstCycleNodeHit(6)          -> 3
-// fg.kthNext(6, 4)                 -> 2    6 -> 5 -> 3 -> 4 -> 2
-// fg.stepsFromTo(7, 4)             -> 4
-// fg.stepsFromTo(5, 1)             -> -1   5 never passes through 1
-// fg.components()[0].cycle         -> {2, 3, 4}
-// fg.components()[0].tails         -> {{6, 5, 3}, {7, 1, 2}}
-// fg.components()[1].cycle         -> {8}
-// fg.components()[1].tails         -> {{9, 8}}
+// fg.cycles() -> a list of every cycle, e.g. {{1, 3, 9}, {2}, {4, 10}}
+//   Only nodes inside cycles, never the nodes on tails leading into them. Each cycle is in walking
+//   order (1 -> 3 -> 9 -> 1) and starts at its smallest node. Here 2 points to itself
 //
-// Build: O(V) time and space, V = number of nodes. Invalid nodes or a negative k throw invalid_argument.
+// fg.componentId(node) -> which component node is in, e.g. 1
+//   Works for every node, on a cycle or not. It's an index into fg.cycles(), from 0 up to
+//   fg.cycles().size() - 1: here 1 means node ends up on the cycle {2}
+//
+// fg.numEdgesToCrossBeforeCycle(node) -> edges node crosses before it's inside a cycle, e.g. 2
+//   0 if node is already on a cycle
+//
+// fg.firstCycleNodeHit(node) -> the first cycle node that node reaches, e.g. 3
+//   node itself if it's already on a cycle
+//
+// fg.kthNext(node, k) -> the node you land on after k steps from node, e.g. 9
+//   Any k >= 0, even 10^18. kthNext(node, 0) is node
+//
+// fg.stepsFromTo(a, b) -> how many steps it takes to walk from a to b, e.g. 4
+//   -1 if a never reaches b, 0 if a == b
+//
+// fg.components() -> one {cycle, tails} per component, in componentId order, e.g.
+//   components()[0].cycle -> {1, 3, 9}   components()[0].tails -> {{5, 6, 3}, {7, 6}}
+//   components()[1].cycle -> {2}         components()[1].tails -> {}
+//   components()[2].cycle -> {4, 10}     components()[2].tails -> {{8, 4}}
+//   .cycle is the same list as fg.cycles()[componentId]. Each of .tails is a walk that starts
+//   at a node nothing points to and follows edges until it reaches a node already listed, which
+//   is included: {5, 6, 3} is 5 -> 6 -> 3, and {7, 6} is 7 -> 6, joining that walk at 6
+//
+// Build O(V) time and space. Every method is O(1) except kthNext, which is O(log V) when k
+// stops before reaching the cycle. Invalid nodes or a negative k throw invalid_argument
 
 struct FunctionalGraph {
     struct Component {
